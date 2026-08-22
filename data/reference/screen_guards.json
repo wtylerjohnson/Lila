@@ -1,0 +1,71 @@
+{
+  "_doc": "Universal screening guards, shared by every client. These are NOT gate values: nothing here encodes an engagement decision. They encode facts about the English language and about federal procurement writing, so every client inherits them and no client's frame has to rediscover them. Operator ruling 2026-07-28.",
+  "provenance": {
+    "created": "2026-07-28",
+    "basis": "polysemy false positives observed in the 2026-07-28 extract while screening Riverbed's frame against 78,553 active notices"
+  },
+  "domain_anchors": {
+    "_doc": "A tier-3 single common word only counts when one of these sits within proximity_chars of it. This is the same distance discipline as sam_lanes.grade().",
+    "proximity_chars": 400,
+    "terms": [
+      "software",
+      "license",
+      "SNMP",
+      "NetFlow",
+      "sFlow",
+      "router",
+      "switches",
+      "ethernet",
+      "LAN",
+      "WAN",
+      "bandwidth",
+      "server",
+      "firewall",
+      "packet",
+      "latency",
+      "telemetry",
+      "SIEM",
+      "cybersecurity",
+      "IT infrastructure",
+      "data center",
+      "cloud",
+      "endpoint",
+      "help desk",
+      "network operations",
+      "information technology",
+      "enterprise architecture"
+    ]
+  },
+  "vendor_category_phrases": {
+    "_doc": "Marketing language that a vendor's own team invented. These can never be search terms: they return marketing documents and coincidences, never solicitations. Measured 2026-07-28 against 78,553 active notices, each returned ZERO. Role 'exclude' in the analyst layer.",
+    "phrases": [
+      "unified observability",
+      "AIOps",
+      "AIOps automated remediation",
+      "digital employee experience",
+      "single pane of glass",
+      "full-stack observability",
+      "hyperconverged",
+      "next-generation",
+      "best-of-breed",
+      "digital transformation"
+    ]
+  },
+  "attribute_not_capability": {
+    "_doc": "Real federal terms that describe an ATTRIBUTE of a buy rather than the capability being bought. They qualify a hit and must never generate one: 'FedRAMP High' matched a NASA fire-and-EMS records system, which is a true match and an irrelevant one. Role 'qualify' in the analyst layer.",
+    "phrases": [
+      "FedRAMP",
+      "FedRAMP High",
+      "FedRAMP Moderate",
+      "zero trust",
+      "zero trust architecture",
+      "FISMA",
+      "ATO",
+      "authority to operate",
+      "Section 508",
+      "TAA compliant",
+      "IPv6"
+    ]
+  },
+  "negative_context_moved": "2026-08-03: negative-context strings moved to polysemy_corpus.json, one entry per witnessed notice with mandatory provenance. term_tiers.load_guards reads them from the corpus; this file keeps domain_anchors, vendor_category_phrases and attribute_not_capability."
+}

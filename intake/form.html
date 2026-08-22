@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Federal Sales OS — Capability Profile</title>
+<style>
+  :root {
+    --bg:#0e1116; --card:#161b22; --field:#0d1117; --ink:#e6edf3;
+    --muted:#8b949e; --line:#30363d; --accent:#2f81f7; --accent-ink:#fff;
+  }
+  * { box-sizing: border-box; }
+  body { font: 16px/1.55 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+         color: var(--ink); background: var(--bg); margin: 0; padding: 2.5rem 1rem; }
+  .card { max-width: 760px; margin: 0 auto; background: var(--card);
+          border: 1px solid var(--line); border-radius: 12px; padding: 2.25rem 2.25rem; }
+  h1 { margin: 0 0 .4rem; font-size: 1.5rem; letter-spacing: -0.01em; }
+  p.lead { margin: 0 0 1.75rem; color: var(--muted); }
+  label { display:block; font-weight:600; margin: 1.1rem 0 .4rem; }
+  .hint { font-weight: 400; color: var(--muted); font-size: .85rem; }
+  input[type=text], input[type=email], input[type=url], textarea {
+    width:100%; padding:.6rem .7rem; background: var(--field); color: var(--ink);
+    border:1px solid var(--line); border-radius:8px; font: inherit; }
+  input::placeholder, textarea::placeholder { color:#586069; }
+  input:focus, textarea:focus { outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(47,129,247,.25); }
+  textarea { min-height: 92px; resize: vertical; }
+  fieldset { border:1px solid var(--line); border-radius:8px; margin-top:1.1rem; padding:.75rem 1rem; }
+  legend { font-weight:600; padding: 0 .4rem; color: var(--ink); }
+  .chips { display:flex; flex-wrap:wrap; gap:.4rem 1.25rem; }
+  .chips label { font-weight:400; margin:.25rem 0; display:flex; align-items:center; gap:.45rem; }
+  .row { display:flex; gap:1rem; flex-wrap:wrap; }
+  .row > div { flex:1 1 220px; }
+  button { margin-top:1.85rem; background:var(--accent); color:var(--accent-ink); border:0;
+           border-radius:8px; padding:.7rem 1.25rem; font: inherit; font-weight:600; cursor:pointer; }
+  button:hover { filter: brightness(1.08); }
+  button.secondary { background:transparent; color:var(--accent); border:1px solid var(--accent);
+           margin-left:.5rem; }
+  .note { margin-top:1.1rem; font-size:.85rem; color: var(--muted); }
+  code { background:#21262d; padding:.1rem .35rem; border-radius:4px; color:#c9d1d9; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <form class="card" id="intake">
+    <h1>Capability Profile</h1>
+    <p class="lead">Your responses, your website, and public data inform a tailored federal
+      opportunity-pursuit strategy, delivered for your review.</p>
+
+    <div class="row">
+      <div>
+        <label>Company name *<input type="text" name="client_name" required /></label>
+      </div>
+      <div>
+        <label>Website <span class="hint">(analyzed automatically)</span>
+          <input type="url" name="website" placeholder="https://" /></label>
+      </div>
+    </div>
+
+    <label>Contact email <input type="email" name="contact_email" /></label>
+
+    <label>Core capabilities <span class="hint">— service offerings and delivery areas</span>
+      <textarea name="primary_services"></textarea></label>
+    <label>Differentiators <span class="hint">— competitive advantages and discriminators</span>
+      <textarea name="differentiators"></textarea></label>
+    <label>Past performance <span class="hint">— relevant contracts, agencies, and outcomes</span>
+      <textarea name="past_performance"></textarea></label>
+
+    <fieldset>
+      <legend>Certifications / set-asides</legend>
+      <div class="chips">
+        <label><input type="checkbox" name="certifications" value="SDVOSB" /> SDVOSB</label>
+        <label><input type="checkbox" name="certifications" value="VOSB" /> VOSB</label>
+        <label><input type="checkbox" name="certifications" value="8(a)" /> 8(a)</label>
+        <label><input type="checkbox" name="certifications" value="WOSB" /> WOSB</label>
+        <label><input type="checkbox" name="certifications" value="HUBZone" /> HUBZone</label>
+        <label><input type="checkbox" name="certifications" value="Small Business" /> Small Business</label>
+      </div>
+    </fieldset>
+
+    <div class="row">
+      <div><label>Known NAICS codes <span class="hint">comma-separated</span>
+        <input type="text" name="known_naics" placeholder="541512, 541519" /></label></div>
+      <div><label>Target agencies <span class="hint">comma-separated</span>
+        <input type="text" name="target_agencies" placeholder="VA, GSA, DHS" /></label></div>
+    </div>
+    <div class="row">
+      <div><label>Geographic focus <input type="text" name="geographic_focus" /></label></div>
+      <div><label>UEI <span class="hint">(optional)</span><input type="text" name="uei" /></label></div>
+    </div>
+
+    <button type="button" onclick="download()">Download submission JSON</button>
+    <button type="button" class="secondary" onclick="copyJson()">Copy JSON</button>
+    <p class="note">Save the JSON, then run:
+      <code>python3 run_intake.py --submission your_submission.json</code></p>
+  </form>
+
+<script>
+function collect() {
+  const f = document.getElementById('intake');
+  const v = (n) => (f.elements[n] ? f.elements[n].value.trim() : "");
+  const list = (n) => v(n) ? v(n).split(',').map(s => s.trim()).filter(Boolean) : [];
+  const certs = Array.from(f.querySelectorAll('input[name=certifications]:checked')).map(c => c.value);
+  return {
+    client_name: v('client_name'),
+    website: v('website') || null,
+    contact_email: v('contact_email') || null,
+    primary_services: v('primary_services'),
+    differentiators: v('differentiators'),
+    past_performance: v('past_performance'),
+    certifications: certs,
+    known_naics: list('known_naics'),
+    target_agencies: list('target_agencies'),
+    geographic_focus: v('geographic_focus') || null,
+    uei: v('uei') || null,
+    submitted_at: new Date().toISOString()
+  };
+}
+function fname() {
+  const n = (collect().client_name || 'client').replace(/[^a-z0-9]+/gi, '_').toLowerCase();
+  return n + '_submission.json';
+}
+function download() {
+  if (!collect().client_name) { alert('Company name is required.'); return; }
+  const blob = new Blob([JSON.stringify(collect(), null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = fname(); a.click();
+}
+function copyJson() { navigator.clipboard.writeText(JSON.stringify(collect(), null, 2)); }
+</script>
+</body>
+</html>

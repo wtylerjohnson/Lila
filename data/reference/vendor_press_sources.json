@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "set_by": "operator order 2026-08-18: vendor/press sources ride every sweep",
+  "note": "Newsroom paths churn; path_verified false means the URL is the best-known landing and the adapter receipts the fetched reality. Extend per engagement; the adapter reads this file on every sweep.",
+  "entries": [
+    {"vendor": "Varonis", "url": "https://www.varonis.com/press", "path_verified": false},
+    {"vendor": "BigID", "url": "https://bigid.com/newsroom/", "path_verified": false},
+    {"vendor": "Netwrix", "url": "https://www.netwrix.com/press.html", "path_verified": false},
+    {"vendor": "Cyera", "url": "https://www.cyera.com/newsroom", "path_verified": false},
+    {"vendor": "Everfox", "url": "https://www.everfox.com/newsroom", "path_verified": false},
+    {"vendor": "Forcepoint", "url": "https://www.forcepoint.com/newsroom", "path_verified": false},
+    {"vendor": "Proofpoint", "url": "https://www.proofpoint.com/us/newsroom", "path_verified": false}
+  ]
+}

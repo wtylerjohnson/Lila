@@ -1,0 +1,47 @@
+{
+  "_meta": {
+    "purpose": "Maps agency/office names AS THEY APPEAR in contact-graph observations to web domains, for the dashboard's s2-favicon marks (same pattern as client logos in ui/index.html). Longest-match wins against the office path; unmapped names render a neutral initial-letter tile, never a broken image.",
+    "seeded": "2026-07-05, from the agencies and sub-tier offices present in graph data at seeding time"
+  },
+  "agencies": {
+    "DEPT OF DEFENSE": "defense.gov",
+    "VETERANS AFFAIRS, DEPARTMENT OF": "va.gov",
+    "INTERIOR, DEPARTMENT OF THE": "doi.gov",
+    "HEALTH AND HUMAN SERVICES, DEPARTMENT OF": "hhs.gov",
+    "COMMERCE, DEPARTMENT OF": "commerce.gov",
+    "ENERGY, DEPARTMENT OF": "energy.gov",
+    "LIBRARY OF CONGRESS": "loc.gov",
+    "STATE, DEPARTMENT OF": "state.gov",
+    "HOMELAND SECURITY, DEPARTMENT OF": "dhs.gov",
+    "TRANSPORTATION, DEPARTMENT OF": "transportation.gov",
+    "TREASURY, DEPARTMENT OF THE": "treasury.gov",
+    "JUSTICE, DEPARTMENT OF": "justice.gov",
+    "NUCLEAR REGULATORY COMMISSION": "nrc.gov",
+    "SELECTIVE SERVICE SYSTEM": "sss.gov",
+    "COURT SERVICES AND OFFENDER SUPERVISION AGENCY": "csosa.gov",
+    "AGRICULTURE, DEPARTMENT OF": "usda.gov",
+    "NATIONAL AERONAUTICS AND SPACE ADMINISTRATION": "nasa.gov",
+    "LABOR, DEPARTMENT OF": "dol.gov",
+    "ENVIRONMENTAL PROTECTION AGENCY": "epa.gov",
+    "POSTAL SERVICE": "usps.com",
+    "GOVERNMENT ACCOUNTABILITY OFFICE": "gao.gov",
+    "SECURITIES AND EXCHANGE COMMISSION": "sec.gov",
+    "GENERAL SERVICES ADMINISTRATION": "gsa.gov",
+    "SOCIAL SECURITY ADMINISTRATION": "ssa.gov"
+  },
+  "offices": {
+    "DEPT OF THE AIR FORCE": "airforce.com",
+    "DEPT OF THE ARMY": "army.mil",
+    "DEPT OF THE NAVY": "navy.mil",
+    "US GEOLOGICAL SURVEY": "usgs.gov",
+    "INDIAN HEALTH SERVICE": "ihs.gov",
+    "NATIONAL OCEANIC AND ATMOSPHERIC ADMINISTRATION": "noaa.gov",
+    "BUREAU OF RECLAMATION": "usbr.gov",
+    "DEFENSE INFORMATION SYSTEMS AGENCY (DISA)": "disa.mil",
+    "US SPECIAL OPERATIONS COMMAND (USSOCOM)": "socom.mil",
+    "BUREAU OF INDIAN AFFAIRS": "bia.gov",
+    "NATIONAL INSTITUTE OF STANDARDS AND TECHNOLOGY": "nist.gov",
+    "NATIONAL INSTITUTES OF HEALTH": "nih.gov",
+    "FEDERAL AVIATION ADMINISTRATION": "faa.gov"
+  }
+}

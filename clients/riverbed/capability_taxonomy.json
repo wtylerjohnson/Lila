@@ -1,0 +1,247 @@
+{
+  "client_name": "riverbed",
+  "version": 2,
+  "updated": "2026-07-19",
+  "core": [
+    {
+      "term": "Riverbed",
+      "mode": "exact_phrase",
+      "note": "exact client brand; supports installed-base renewal and expansion evidence"
+    },
+    {
+      "term": "network performance monitoring",
+      "mode": "stemmed",
+      "note": "the NPM acronym is handled separately with network context"
+    },
+    {
+      "term": "network performance management",
+      "mode": "stemmed"
+    },
+    {
+      "term": "application performance monitoring",
+      "mode": "stemmed"
+    },
+    {
+      "term": "unified observability",
+      "mode": "stemmed"
+    },
+    {
+      "term": "digital experience monitoring",
+      "mode": "stemmed"
+    },
+    {
+      "term": "end-user experience monitoring",
+      "mode": "stemmed"
+    },
+    {
+      "term": "WAN optimization",
+      "mode": "stemmed"
+    },
+    {
+      "term": "packet capture",
+      "mode": "stemmed"
+    },
+    {
+      "term": "network visibility",
+      "mode": "stemmed"
+    },
+    {
+      "term": "NetFlow analysis",
+      "mode": "stemmed"
+    },
+    {
+      "term": "Aternity",
+      "mode": "exact_phrase",
+      "note": "product name, exact"
+    },
+    {
+      "term": "SteelHead",
+      "mode": "exact_phrase",
+      "note": "product name, exact"
+    },
+    {
+      "term": "NPM",
+      "mode": "acronym",
+      "expansion_context": [
+        "network",
+        "performance",
+        "monitoring",
+        "visibility"
+      ],
+      "note": "standalone NPM is the node package manager in software text; network/performance co-occurrence makes it ours"
+    }
+  ],
+  "adjacent": [
+    {
+      "term": "full-stack observability",
+      "mode": "stemmed",
+      "note": "contributes, never sufficient alone"
+    },
+    {
+      "term": "AIOps",
+      "mode": "exact_phrase"
+    },
+    {
+      "term": "IT operations monitoring",
+      "mode": "stemmed"
+    },
+    {
+      "term": "network modernization",
+      "mode": "stemmed"
+    },
+    {
+      "term": "SD-WAN",
+      "mode": "exact_phrase"
+    },
+    {
+      "term": "zero trust visibility",
+      "mode": "stemmed"
+    },
+    {
+      "term": "infrastructure monitoring",
+      "mode": "stemmed"
+    }
+  ],
+  "exclude": [
+    {
+      "term": "dredging",
+      "scope": "span",
+      "reason": "riverbed-as-noun: waterway dredging is not network monitoring"
+    },
+    {
+      "term": "dredge",
+      "scope": "span",
+      "reason": "riverbed-as-noun: dredge operations context"
+    },
+    {
+      "term": "dredged",
+      "scope": "span",
+      "reason": "riverbed-as-noun: dredged material context"
+    },
+    {
+      "term": "stabilization",
+      "scope": "span",
+      "reason": "riverbed-as-noun: bank/channel stabilization projects"
+    },
+    {
+      "term": "hydrology",
+      "scope": "span",
+      "reason": "riverbed-as-noun: hydrology studies"
+    },
+    {
+      "term": "hydrologic",
+      "scope": "span",
+      "reason": "riverbed-as-noun: hydrologic engineering context"
+    },
+    {
+      "term": "hydrological",
+      "scope": "span",
+      "reason": "riverbed-as-noun: hydrological survey context"
+    },
+    {
+      "term": "erosion",
+      "scope": "span",
+      "reason": "riverbed-as-noun: erosion control projects"
+    },
+    {
+      "term": "aquatic",
+      "scope": "span",
+      "reason": "riverbed-as-noun: aquatic habitat work"
+    },
+    {
+      "term": "environmental restoration",
+      "scope": "span",
+      "reason": "riverbed-as-noun: restoration projects on actual riverbeds"
+    },
+    {
+      "term": "salmon restoration",
+      "scope": "span",
+      "reason": "SteelHead collision: salmon restoration is fisheries work"
+    },
+    {
+      "term": "steelhead restoration",
+      "scope": "span",
+      "reason": "SteelHead collision: fish restoration is not WAN optimization"
+    },
+    {
+      "term": "salmon habitat restoration",
+      "scope": "span",
+      "reason": "SteelHead collision: salmon habitat restoration"
+    },
+    {
+      "term": "steelhead habitat restoration",
+      "scope": "span",
+      "reason": "SteelHead collision: fish habitat restoration"
+    },
+    {
+      "term": "salmon spawning",
+      "scope": "span",
+      "reason": "SteelHead collision: salmon spawning is fisheries work"
+    },
+    {
+      "term": "steelhead spawning",
+      "scope": "span",
+      "reason": "SteelHead collision: fish spawning is not a Riverbed product"
+    },
+    {
+      "term": "spawning and stranding surveys",
+      "scope": "span",
+      "reason": "SteelHead collision: biological field surveys"
+    },
+    {
+      "term": "salmon survey",
+      "scope": "span",
+      "reason": "SteelHead collision: salmon field survey"
+    },
+    {
+      "term": "salmon surveys",
+      "scope": "span",
+      "reason": "SteelHead collision: salmon field surveys"
+    },
+    {
+      "term": "steelhead survey",
+      "scope": "span",
+      "reason": "SteelHead collision: fish field survey"
+    },
+    {
+      "term": "steelhead surveys",
+      "scope": "span",
+      "reason": "SteelHead collision: fish field surveys"
+    },
+    {
+      "term": "fish feed",
+      "scope": "span",
+      "reason": "SteelHead collision: aquaculture supplies"
+    },
+    {
+      "term": "fish-feed",
+      "scope": "span",
+      "reason": "SteelHead collision: hyphenated aquaculture supplies"
+    },
+    {
+      "term": "fish hatchery",
+      "scope": "span",
+      "reason": "SteelHead collision: hatchery operations"
+    },
+    {
+      "term": "Steelhead Enterprises",
+      "scope": "span",
+      "reason": "SteelHead collision: unrelated vendor legal name"
+    },
+    {
+      "term": "package manager",
+      "scope": "span",
+      "reason": "the NPM collision: node package manager context"
+    }
+  ],
+  "code_universe": {
+    "naics": [
+      "513210",
+      "541511",
+      "541512",
+      "541519",
+      "541690"
+    ],
+    "psc": []
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "data": [
+    {
+      "id": 101,
+      "funding_agency_id": 10,
+      "funding_agency_acronym": "DOS",
+      "funding_agency_name": "Department of State",
+      "funding_account_id": "19x1121",
+      "funding_account_name": "International Narcotics Control and Law Enforcement",
+      "country_code": "KEN",
+      "country_name": "Kenya",
+      "transaction_type_id": 18,
+      "transaction_type_name": "President's Budget Requests",
+      "fiscal_year": "2023",
+      "current_amount": 1000000,
+      "constant_amount": 1020000
+    },
+    {
+      "id": 102,
+      "funding_agency_id": 10,
+      "funding_agency_acronym": "DOS",
+      "funding_agency_name": "Department of State",
+      "funding_account_id": "19x1121",
+      "funding_account_name": "Cybersecurity Capacity Building",
+      "country_code": "KEN",
+      "country_name": "Kenya",
+      "transaction_type_id": 18,
+      "transaction_type_name": "President's Budget Requests",
+      "fiscal_year": "2024",
+      "current_amount": 2500000,
+      "constant_amount": 2390000
+    }
+  ],
+  "page_info": {"current_page": 1, "per_page": 10000, "total_pages": 2, "total_records": 3}
+}

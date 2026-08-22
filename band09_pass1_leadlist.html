@@ -1,0 +1,277 @@
+<meta charset="utf-8"><title>Band 09 · Targeting · Pass 1</title><style id="lila-aesthetic">:root{--t-page:#e9eef3;--t-paper:#ffffff;--t-ink:#0b1728;--t-muted:#5f6d7b;--t-rule:#d4dde7;--t-wash:#f3f6f9;--t-accent:#fb461f;--t-accent-down:#d93616;--t-link:#157eaf;--t-link-wash:#e7f4fa;--t-link-deep:#0d5c81;--t-positive:#13735b;--t-warn-ink:#9d2a10;--t-warn-wash:#fff2ee;--t-warn-border:#f1a08d;--t-live-wash:#effaf6;--t-live-border:#77bfae;--t-board-border:#dfe6ed;--t-stack:"Avenir Next", "Segoe UI", Inter, Arial, sans-serif;--t-mono:ui-monospace, "SFMono-Regular", Consolas, monospace;}
+
+/* ---------- studio chrome ---------- */
+.tools{position:sticky;top:0;z-index:120;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+       padding:9px max(14px,calc((100vw - 1220px)/2));color:#fff;background:#0b1728;
+       border-bottom:3px solid #fb461f;box-shadow:0 5px 18px rgba(11,23,40,.16)}
+.tools button{flex:none;min-height:32px;padding:6px 11px;border:1px solid #607184;border-radius:3px;
+       color:#fff;background:#17283b;font:800 10px/1.1 "Avenir Next","Segoe UI",Arial,sans-serif;
+       letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.tools button:hover{border-color:#8fd0ed;background:#20364e}
+.tools button.primary{border-color:#fb461f;background:#fb461f}
+.tools button.primary:hover{background:#d93616}
+.tools [data-status]{margin-left:auto;color:#b9c6d4;font-size:10px;font-weight:700;letter-spacing:.03em}
+.panel{position:fixed;right:0;top:0;z-index:130;width:296px;height:100vh;display:flex;flex-direction:column;
+       gap:0;transform:translateX(100%);transition:transform .18s ease;color:#0b1728;background:#fff;
+       border-left:1px solid #c6d2de;box-shadow:-12px 0 34px rgba(11,23,40,.18)}
+.panel.is-open{transform:none}
+.p-head{padding:13px 15px;color:#fff;background:#0b1728;font-size:10px;font-weight:900;
+        letter-spacing:.11em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+.p-head button{padding:3px 8px;border:1px solid #607184;border-radius:3px;color:#fff;background:#17283b;
+        font:800 9px/1 inherit;letter-spacing:.06em;cursor:pointer}
+.p-body{flex:1;overflow-y:auto;padding:14px 15px}
+.p-sub{margin:0 0 9px;color:#5f6d7b;font-size:8.5px;font-weight:900;letter-spacing:.11em;text-transform:uppercase}
+.s-row{display:grid;grid-template-columns:1fr auto auto auto;gap:5px;align-items:center;
+       padding:7px 0;border-bottom:1px solid #e6ecf2}
+.s-row.is-off .s-name{color:#9aa8b6;text-decoration:line-through}
+.s-name{font-size:11px;font-weight:800;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.s-row button{padding:3px 6px;border:1px solid #c6d2de;border-radius:2px;background:#f3f6f9;
+       font:800 8.5px/1 inherit;letter-spacing:.04em;cursor:pointer}
+.s-row button:hover{border-color:#157eaf;background:#e7f4fa}
+.i-empty{color:#7b8a99;font-size:11px;font-weight:650;line-height:1.5}
+.i-what{font-size:12px;font-weight:900;letter-spacing:-.01em}
+.i-id{margin:3px 0 11px;color:#8b98a6;font-family:ui-monospace,Consolas,monospace;font-size:9px;word-break:break-all}
+.i-row{display:grid;grid-template-columns:52px 1fr;gap:8px;align-items:center;margin-bottom:9px}
+.i-row.col{grid-template-columns:1fr}
+.i-row span{color:#5f6d7b;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.i-row input[type=range]{width:100%}
+.i-row input[type=url]{width:100%;padding:6px 7px;border:1px solid #c6d2de;border-radius:2px;
+       font:650 10.5px/1.3 ui-monospace,Consolas,monospace}
+.i-btns{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0}
+.i-btns button{padding:5px 9px;border:1px solid #c6d2de;border-radius:2px;background:#f3f6f9;
+       font:800 9px/1 inherit;letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
+.i-btns button:hover{border-color:#157eaf;background:#e7f4fa}
+.i-hint{color:#7b8a99;font-size:10px;line-height:1.5;font-weight:620}
+body.is-editing [data-edit-id]:hover{outline:1px dashed #9cc9de;outline-offset:2px;cursor:text}
+body.is-editing .seal,body.is-editing .pmk,body.is-editing .dmk,
+body.is-editing .cmk,body.is-editing .emk{outline:2px dashed #157eaf;outline-offset:2px;cursor:copy}
+.is-drop{outline:3px solid #fb461f !important;filter:drop-shadow(0 0 6px rgba(251,70,31,.35))}
+.is-sel{outline:3px solid #fb461f !important;outline-offset:3px}
+a[data-link-manual="true"]{border-bottom:1px dotted #fb461f}
+@media print{.tools,.panel{display:none !important}}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;background:#e9eef3;overflow-x:clip}
+body{margin:0;background:#e9eef3;color:#0b1728;
+     font-family:"Avenir Next","Segoe UI",Inter,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+a:hover{color:#157eaf}
+a:focus-visible{outline:3px solid rgba(21,126,175,.38);outline-offset:3px}
+.arw{margin-left:4px;font-size:.85em;opacity:.65}
+#board{--ink:#0b1728;--muted:#5f6d7b;--rule:#d4dde7;--wash:#f3f6f9;--paper:#fff;
+       --orange:#fb461f;--blue:#157eaf;--blue-soft:#e7f4fa;--green:#13735b;
+       width:min(1220px,calc(100% - 32px));margin:24px auto 48px;background:var(--paper);
+       border:1px solid #dfe6ed;box-shadow:0 18px 54px rgba(11,23,40,.14)}
+.util{position:sticky;top:0;z-index:20;display:grid;grid-template-columns:auto 1fr auto;
+      align-items:center;gap:22px;padding:11px 24px;color:#fff;background:var(--ink);
+      border-bottom:3px solid var(--orange)}
+.brand{font-size:15px;font-weight:900;letter-spacing:.12em}
+.nav{display:flex;justify-content:center;gap:17px;flex-wrap:wrap}
+.nav a{color:#b9c6d4;font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.nav a:hover{color:#fff}
+.util-meta{color:#8fa2b5;font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;text-align:right}
+.hero{display:grid;grid-template-columns:1.38fr .62fr;gap:28px;padding:38px 32px 26px;
+      background:linear-gradient(135deg,#fff 0 68%,#f3f7fa 68% 100%);border-bottom:1px solid var(--rule)}
+.kicker{margin-bottom:10px;color:#a9280b;font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.hero h1{max-width:760px;margin:0;font-size:clamp(37px,5vw,64px);line-height:.96;letter-spacing:-.048em}
+.hero-context{max-width:740px;margin:16px 0 0;color:#405062;font-size:12.5px;line-height:1.6;font-weight:650}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.chip{display:inline-flex;align-items:center;min-height:26px;padding:5px 9px;border:1px solid var(--rule);
+      color:#405062;background:#fff;font-size:9px;font-weight:850;letter-spacing:.06em;text-transform:uppercase}
+.chip.hot{border-color:#f1a08d;color:#9d2a10;background:#fff2ee}
+.chip.live{border-color:#77bfae;color:#0b644e;background:#effaf6}
+.hero-num{align-self:end;padding-left:28px;border-left:1px solid var(--rule)}
+.hero-num strong{display:block;font-size:clamp(54px,7vw,84px);line-height:.86;letter-spacing:-.06em}
+.hero-num span{display:block;margin-top:12px;color:var(--muted);font-size:11px;line-height:1.45;
+               font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+.proof{margin-top:16px;border-top:1px solid var(--rule);padding-top:12px}
+.proof summary{cursor:pointer;color:#0d5c81;font-size:9px;font-weight:900;letter-spacing:.1em;
+               text-transform:uppercase;list-style:none}
+.proof summary::-webkit-details-marker{display:none}
+.proof summary::after{content:" +";color:var(--orange)}
+.proof[open] summary::after{content:" −"}
+.proof-body{margin-top:9px;padding:9px 11px;background:#fff;border:1px solid var(--rule)}
+.proof-row{display:flex;justify-content:space-between;gap:12px;padding:4px 0;color:#405062;
+           font-size:9px;line-height:1.25;font-weight:750;text-transform:uppercase}
+.proof-row+.proof-row{border-top:1px solid #edf1f5}
+.proof-row strong{font-size:10px;color:var(--ink)}
+.band{padding:34px 32px;border-bottom:1px solid var(--rule)}
+.band:last-of-type{border-bottom:0}
+.b-no{color:var(--orange);font-size:11px;font-weight:900;letter-spacing:.14em}
+.band h2{margin:8px 0 0;font-size:clamp(24px,2.7vw,34px);line-height:1.06;letter-spacing:-.03em;max-width:840px}
+.b-meta{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;color:var(--muted);
+        font-size:9.5px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
+.b-lede{max-width:860px;margin:14px 0 0;color:#405062;font-size:12.5px;line-height:1.65;font-weight:600}
+.order{margin:22px 0 0;padding:16px 18px;background:var(--ink);color:#fff}
+.order .o-lab{color:#8fd0ed;font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+.order p{margin:8px 0 0;font-size:15px;font-weight:800;line-height:1.4;letter-spacing:-.01em}
+.order .o-sub{margin-top:7px;color:#b9c6d4;font-size:11px;font-weight:650;letter-spacing:0}
+.decks{display:grid;grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:16px;margin-top:22px}
+.deck{display:flex;flex-direction:column;padding:18px;border:1px solid var(--rule);background:var(--wash)}
+.deck.act{display:grid;grid-template-columns:24px 42px minmax(0,1fr);gap:12px;align-items:start;
+          border-top:4px solid var(--orange)}
+.deck.act>.d-no{grid-column:1}
+.deck.act>.seal{grid-column:2}
+.deck.act>div:last-child{grid-column:3;min-width:0}
+.deck.gate{border-top:4px solid #94a5b6}
+.d-no{color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.deck h3{margin:9px 0 0;font-size:16.5px;line-height:1.24;letter-spacing:-.018em}
+.deck .g-lab,.deck .m-lab{color:var(--muted);font-size:8.5px;font-weight:900;
+                         letter-spacing:.1em;text-transform:uppercase}
+.deck .g-lab{color:#9d2a10}
+.deck .g-list{margin-top:9px;padding-top:8px;border-top:1px solid #dce4ec;
+              color:#405062;font-size:10.5px;line-height:1.5;font-weight:650}
+.deck .claim{margin:11px 0 0;color:#33465a;font-size:12px;line-height:1.6;font-weight:600}
+.claim .ev{display:inline-block;padding:1px 6px;border:1px solid #b7cfdd;border-radius:2px;
+           background:var(--blue-soft);color:#0d5c81;font-size:9.5px;font-weight:850;
+           letter-spacing:.04em;white-space:nowrap;vertical-align:1px}
+.claim .ev:hover{background:#d3ebf6;color:#0b4a68}
+.d-do{margin-top:auto;padding-top:13px}
+.d-do .lab{color:var(--orange);font-size:8.5px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+.d-do p{margin:5px 0 0;font-size:12.5px;font-weight:800;line-height:1.45}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}
+.pill{display:inline-flex;align-items:center;padding:5px 8px;border:1px solid #b7cfdd;
+      background:#fff;color:#0d5c81;font-size:9.5px;font-weight:850;letter-spacing:.04em}
+.pill:hover{background:var(--blue-soft);color:#0b4a68}
+table{width:100%;border-collapse:collapse;margin-top:16px;font-size:11.5px}
+th{padding:9px 10px;border-bottom:2px solid var(--ink);color:var(--ink);text-align:left;
+   font-size:8.5px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+td{padding:9px 10px;border-bottom:1px solid var(--rule);vertical-align:top;line-height:1.45}
+tbody tr:hover{background:var(--wash)}
+.cd{font-weight:900;white-space:nowrap}
+.ca{font-weight:900;color:var(--orange);letter-spacing:.06em}
+.cv{font-weight:850;white-space:nowrap;text-align:right}
+.cr a,.rec a{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:10.5px;
+             font-weight:700;color:#0d5c81;white-space:nowrap}
+tr.dead{background:#fff5f2}
+tr.dead .cd,tr.dead .cw{color:#9d2a10}
+.flag{display:inline-block;margin-left:7px;padding:1px 5px;background:#fb461f;color:#fff;
+      font-size:8px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;vertical-align:1px}
+.rk{font-weight:900;color:var(--muted)}
+.rn{font-weight:850}
+.rv{font-weight:850;white-space:nowrap;text-align:right}
+.rc{white-space:nowrap;color:var(--muted);font-weight:750}
+.rw{color:#405062}
+details.agency{margin-top:9px;border:1px solid var(--rule);background:#fff}
+details.agency summary{display:grid;grid-template-columns:46px 108px 1fr auto auto;align-items:center;gap:14px;
+        padding:12px 14px;cursor:pointer;list-style:none}
+details.agency summary::-webkit-details-marker{display:none}
+details.agency summary:hover{background:var(--wash)}
+details[open].agency summary{border-bottom:1px solid var(--rule);background:var(--wash)}
+.a-name{font-size:14px;font-weight:900;letter-spacing:-.01em}
+.a-tone{color:var(--muted);font-size:9px;font-weight:850;letter-spacing:.07em;text-transform:uppercase}
+.a-n{color:var(--muted);font-size:10px;font-weight:800;white-space:nowrap}
+.a-dollars{font-size:14px;font-weight:900;white-space:nowrap;letter-spacing:-.02em}
+.t-current .a-name{border-left:4px solid var(--orange);padding-left:9px}
+.t-rival .a-name{border-left:4px solid var(--blue);padding-left:9px}
+.t-hist .a-name{border-left:4px solid #94a5b6;padding-left:9px}
+table.recs{margin:0}
+table.recs td,table.recs th{padding:8px 14px;font-size:11px}
+.desc{color:#405062}
+.prime{font-weight:800}
+.mk,.seal,.pmk,.dmk,.cmk,.emk{display:inline-flex;align-items:center;justify-content:center;
+     flex:none;overflow:hidden;background:#fff;vertical-align:middle}
+.mk img,.seal img,.pmk img,.dmk img,.cmk img,.emk img{width:100%;height:100%;object-fit:contain}
+.no-img{color:#5f6d7b;background:#eef3f7;border:1px solid var(--rule);
+        font-weight:900;letter-spacing:.02em;line-height:1}
+.seal{width:38px;height:38px}
+.pmk{width:22px;height:22px;margin-right:8px}
+.pmk.no-img{font-size:7.5px}
+.dmk{width:26px;height:26px;margin-right:8px;vertical-align:-8px}
+.dmk.no-img{font-size:8.5px}
+.cmk{width:20px;height:20px;margin-right:7px;vertical-align:-5px}
+.cmk.no-img{font-size:7px}
+.emk{width:30px;height:30px;margin-right:9px;vertical-align:-10px}
+.emk.no-img{font-size:9px}
+.seal.no-img{font-size:11px}
+.gaps{margin-top:16px;padding:15px 17px;border:1px dashed #f1a08d;background:#fff8f6}
+.gaps .g-lab{color:#9d2a10;font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.gaps p{margin:8px 0 0;color:#33465a;font-size:11.5px;line-height:1.6;font-weight:620}
+.gaps .g-list{margin-top:9px;color:#5f6d7b;font-size:10.5px;line-height:1.7;font-weight:750}
+.events{display:grid;grid-template-columns:repeat(auto-fit,minmax(288px,1fr));gap:16px;margin-top:22px}
+.event{padding:18px;border:1px solid var(--rule);background:var(--wash);border-top:4px solid var(--green)}
+.e-when{color:var(--green);font-size:9.5px;font-weight:900;letter-spacing:.09em;text-transform:uppercase}
+.event h3{margin:9px 0 0;font-size:16px;line-height:1.26;letter-spacing:-.016em}
+.e-agenda{margin:11px 0 0;color:#33465a;font-size:12px;line-height:1.6;font-weight:600}
+.e-ask{margin:11px 0 0;font-size:12px;line-height:1.55;font-weight:750}
+.e-lab{display:block;color:var(--orange);font-size:8.5px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px}
+.monitor{margin-top:18px;padding:15px 17px;border:1px dashed var(--rule);background:#fff}
+.monitor .m-lab{color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(228px,1fr));gap:14px;margin-top:20px}
+.leg{padding:15px 16px;border:1px solid var(--rule);background:var(--wash)}
+.leg .n{font-size:26px;font-weight:900;letter-spacing:-.04em;line-height:1}
+.leg .t{margin-top:7px;font-size:11.5px;font-weight:850}
+.leg .d{margin-top:5px;color:var(--muted);font-size:11px;line-height:1.5;font-weight:600}
+.rule{margin-top:20px;padding:16px 18px;border-left:4px solid var(--ink);background:var(--wash)}
+.rule .r-lab{color:var(--ink);font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+.rule p{margin:8px 0 0;color:#33465a;font-size:12.5px;line-height:1.65;font-weight:620}
+.rule p+p{margin-top:9px}
+.foot{padding:22px 32px;color:#b9c6d4;background:var(--ink);font-size:10px;line-height:1.7;font-weight:700;letter-spacing:.04em}
+.foot strong{color:#fff}
+@media (max-width:880px){
+  .hero{grid-template-columns:1fr}
+  .hero-num{padding-left:0;border-left:0;border-top:1px solid var(--rule);padding-top:18px}
+  .util{grid-template-columns:1fr;gap:10px;text-align:center}
+  .nav{justify-content:flex-start;overflow-x:auto}
+  .util-meta{text-align:center}
+  details.agency summary{grid-template-columns:1fr auto;row-gap:6px}
+  .a-tone{grid-column:1/-1}
+  .deck.act{grid-template-columns:24px 42px minmax(0,1fr)}
+}
+@media print{
+  html,body{background:#fff}
+  #board{width:100%;margin:0;border:0;box-shadow:none}
+  .util{position:static}
+  .nav{display:none}
+  details.agency{break-inside:avoid}
+  details.agency[open] summary{background:#f3f6f9}
+  .deck,.event,.leg,.rule{break-inside:avoid}
+  a[href^="http"]::after{content:" (" attr(href) ")";font-size:7.5px;color:#5f6d7b;word-break:break-all}
+  .pill,.claim .ev{border-color:#b7c6d3}
+}
+
+/* installed-extension 2026-08-03: mark state + buyer column */
+.has-img img{width:100%;height:100%;object-fit:contain;display:block}
+.recs .buyer{color:#405062;font-weight:700}
+.agency summary.tier{display:block;padding:13px 16px;font-weight:900;letter-spacing:.02em}
+.ghost{position:absolute;right:24px;top:-30px;font-size:280px;font-weight:900;color:#0b1728;opacity:.045;pointer-events:none;line-height:1;z-index:0}
+#board{position:relative}
+.chart{margin:14px 0;border:1px solid var(--rule);background:#fff;padding:12px}
+.chart svg,.tl svg{width:100%;height:auto;display:block}
+.tl{margin:10px 0;border:1px solid var(--rule);background:#fff;padding:6px 10px}
+
+/* forward-lane card anatomy + global interaction layer, 2026-08-04 */
+.fcard{position:relative;margin:12px 0;padding:16px 18px 14px;background:#fff;
+  border:1px solid var(--rule);border-left:4px solid #94a5b6;
+  transition:box-shadow .15s ease,border-color .15s ease,transform .15s ease}
+.fcard:hover{border-left-color:#fb461f;box-shadow:0 8px 26px rgba(11,23,40,.12);
+  transform:translateY(-1px)}
+.f-eye{display:flex;justify-content:space-between;align-items:center;gap:10px;
+  margin-bottom:6px}
+.f-tag{font-size:9.5px;font-weight:900;letter-spacing:.09em;
+  text-transform:uppercase;color:#9d2a10}
+.f-band{padding:4px 10px;background:#fb461f;color:#fff;font-size:11px;
+  font-weight:900;letter-spacing:.02em;border-radius:2px;white-space:nowrap}
+.fcard h3{margin:2px 0 8px;font-size:15.5px;line-height:1.3;
+  letter-spacing:-.014em}
+.fcard h3 a{color:inherit;text-decoration:none}
+.fcard h3 a:hover{color:#157eaf}
+.f-id a{font-family:ui-monospace,Consolas,monospace;font-size:10px;
+  font-weight:700;color:#0d5c81;text-decoration:none}
+.f-adj{margin-top:8px}
+.f-adj summary{cursor:pointer;font-size:10.5px;font-weight:800;
+  letter-spacing:.05em;text-transform:uppercase;color:#157eaf}
+.f-adj summary:hover{color:#0d5c81}
+.f-adj[open] summary{color:#0d5c81}
+.f-adj .pills{margin-top:8px}
+.deck{transition:box-shadow .15s ease,transform .15s ease}
+.deck:hover{box-shadow:0 10px 30px rgba(11,23,40,.13);transform:translateY(-1px)}
+.agency{transition:box-shadow .15s ease}
+.agency:hover{box-shadow:0 6px 20px rgba(11,23,40,.10)}
+.agency summary{cursor:pointer}
+details summary::-webkit-details-marker{display:none}
+details > summary::after{content:" +";color:#fb461f;font-weight:900}
+details[open] > summary::after{content:" \2212"}
+.event{transition:box-shadow .15s ease,transform .15s ease}
+.event:hover{box-shadow:0 8px 24px rgba(11,23,40,.12);transform:translateY(-1px)}
+</style><div id="board" style="max-width:1240px;margin:0 auto;padding:26px"><section class="band" id="targeting"><div class="b-no">09</div><h2>Targeting · first pass</h2><div class="b-meta">LEAD LIST · PASS 1 OF AN ITERATIVE BUILD · 2 OF 8 ACCOUNTS · EXPORTABLE</div><p class="b-lede">A working lead list against the accounts this report already cites. This is the FIRST PASS: it covers 2 of the 8 buying accounts in Band 01, at 5 leads per account. Each later pass widens coverage and deepens the bench; nothing here is final and nothing is a claim. Every row hangs on a federal record printed elsewhere in this document, and every name links to that person's LinkedIn so the identity can be confirmed before anyone dials.</p><div class="gaps" style="border-style:solid;border-color:#77bfae;background:#effaf6"><div class="g-lab" style="color:#13735b">PASS 1 · WHAT THIS COVERS</div><div class="g-list">2 of 8 accounts · 11 leads · 10 mobiles · 1 direct line · 11 LinkedIn profiles · 1 candidate screened out before spend · 82 credits · <strong>export: red_hat_targets_pass1.csv</strong> (sequence-load shape, loads straight into Apollo)</div></div><table class="recs" data-targeting-contacts="1" style="margin-top:16px"><thead><tr><th>Name</th><th>Title</th><th>Account</th><th>Work email</th><th>Mobile</th><th>Direct</th><th>Joined record</th><th>Apollo refreshed</th></tr></thead><tbody><tr><td style="white-space:nowrap"><a href="https://www.linkedin.com/in/alec-s-89014666" target="_blank" rel="noopener noreferrer" style="font-weight:900">Alec Sichko</a><span style="font-size:8px;font-weight:900;color:#157eaf;border:1px solid #157eaf;border-radius:2px;padding:0 2px;margin-left:5px;vertical-align:1px">in</span></td><td style="color:#405062">Cybersecurity Program Manager</td><td class="cn" style="white-space:nowrap">FBI</td><td style="white-space:nowrap">asichko@fbi.gov<br><span style="display:inline-block;padding:0 5px;border-radius:8px;font-size:8px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:#9d2a10;background:#fff2ee;border:1px solid #f1a08d">extrapolated</span></td><td class="cd">+1 614-578-2948</td><td class="cd"><span style="color:#b3bdc7">·</span></td><td class="cd" style="white-space:nowrap"><a href="https://www.usaspending.gov/award/15F06725F0001715" target="_blank" rel="noopener noreferrer"><span>15F06725F0001715</span></a></td><td class="cd" style="color:#5f6d7b;font-weight:700"></td></tr><tr><td style="white-space:nowrap"><a href="https://www.linkedin.com/in/brian-mccormick-dbia-98298a7a" target="_blank" rel="noopener noreferrer" style="font-weight:900">Brian McCormick</a><span style="font-size:8px;font-weight:900;color:#157eaf;border:1px solid #157eaf;border-radius:2px;padding:0 2px;margin-left:5px;vertical-align:1px">in</span></td><td style="color:#405062">Supervisory Contracting Officer</td><td class="cn" style="white-space:nowrap">FBI</td><td style="white-space:nowrap">bwmccormick@fbi.gov<br><span style="display:inline-block;padding:0 5px;border-radius:8px;font-size:8px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:#13735b;background:#effaf6;border:1px solid #77bfae">verified</span></td><td class="cd">+1 256-658-4956</td><td class="cd"><span style="color:#b3bdc7">·</span></td><td class="cd" style="white-space:nowrap"><a href="https://www.usaspending.gov/award/15F06725F0001715" target="_blank" rel="noopener noreferrer"><span>15F06725F0001715</span></a></td><td class="cd" style="color:#5f6d7b;font-weight:700"></td></tr><tr><td style="white-space:nowrap"><a href="https://www.linkedin.com/in/daryl-slate-mba-a40a78126" target="_blank" rel="noopener noreferrer" style="font-weight:900">Daryl Slate</a><span style="font-size:8px;font-weight:900;color:#157eaf;border:1px solid #157eaf;border-radius:2px;padding:0 2px;margin-left:5px;vertical-align:1px">in</span></td><td style="color:#405062">Senior Contract Specialist</td><td class="cn" style="white-space:nowrap">FBI</td><td style="white-space:nowrap">dslate@fbi.gov<br><span style="display:inline-block;padding:0 5px;border-radius:8px;font-size:8px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:#9d2a10;background:#fff2ee;border:1px solid #f1a08d">extrapolated</span></td><td class="cd">+1 423-298-3193</td><td class="cd"><span style="color:#b3bdc7">·</span></td><td class="cd" style="white-space:nowrap"><a href="https://www.usaspending.gov/award/15F06725F0001715" target="_blank" rel="noopener noreferrer"><span>15F06725F0001715</span></a></td><td class="cd" style="color:#5f6d7b;font-weight:700"></td></tr><tr><td style="white-space:nowrap"><a href="https://www.linkedin.com/in/dlsummers1" target="_blank" rel="noopener noreferrer" style="font-weight:900">Diana Summers</a><span style="font-size:8px;font-weight:900;color:#157eaf;border:1px solid #157eaf;border-radius:2px;padding:0 2px;margin-left:5px;vertical-align:1px">in</span></td><td style="color:#405062">Program Manager</td><td class="cn" style="white-space:nowrap">FBI</td><td style="white-space:nowrap">dsummers@fbi.gov<br><span style="display:inline-block;padding:0 5px;border-radius:8px;font-size:8px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:#13735b;background:#effaf6;border:1px solid #77bfae">verified</span></td><td class="cd">+1 256-640-5237</td><td class="cd"><span style="color:#b3bdc7">·</span></td><td class="cd" style="white-space:nowrap"><a href="https://www.usaspending.gov/award/15F06725F0001715" target="_blank" rel="noopener noreferrer"><span>15F06725F0001715</span></a></td><td class="cd" style="color:#5f6d7b;font-weight:700"></td></tr><tr><td style="white-space:nowrap"><a href="https://www.linkedin.com/in/geoffswanstrom" target="_blank" rel="noopener noreferrer" style="font-weight:900">Geoff Swanstrom</a><span style="font-size:8px;font-weight:900;color:#157eaf;border:1px solid #157eaf;border-radius:2px;padding:0 2px;margin-left:5px;vertical-align:1px">in</span></td><td style="color:#405062">Chief Technology Officer</td><td class="cn" style="white-space:nowrap">FBI</td><td style="white-space:nowrap">gaswanstrom@fbi.gov<br><span style="display:inline-block;padding:0 5px;border-radius:8px;font-size:8px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:#13735b;background:#effaf6;border:1px solid #77bfae">verified</span></td><td class="cd">+1 919-260-4181</td><td class="cd"><span style="color:#b3bdc7">·</span></td><td class="cd" style="white-space:nowrap"><a href="https://www.usaspending.gov/award/15F06725F0001715" target="_blank" rel="noopener noreferrer"><span>15F06725F0001715</span></a></td><td class="cd" style="color:#5f6d7b;font-weight:700"></td></tr><tr><td style="white-space:nowrap"><a href="https://www.linkedin.com/in/gosia-thompson-2975799" target="_blank" rel="noopener noreferrer" style="font-weight:900">Gosia Thompson</a><span style="font-size:8px;font-weight:900;color:#157eaf;border:1px solid #157eaf;border-radius:2px;padding:0 2px;margin-left:5px;vertical-align:1px">in</span></td><td style="color:#405062">Chief/ Contracting Officer</td><td class="cn" style="white-space:nowrap">FBI</td><td style="white-space:nowrap">gthompson2@fbi.gov<br><span style="display:inline-block;padding:0 5px;border-radius:8px;font-size:8px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:#13735b;background:#effaf6;border:1px solid #77bfae">verified</span></td><td class="cd">+1 256-213-2619 *</td><td class="cd"><span style="color:#b3bdc7">·</span></td><td class="cd" style="white-space:nowrap"><a href="https://www.usaspending.gov/award/15F06725F0001715" target="_blank" rel="noopener noreferrer"><span>15F06725F0001715</span></a></td><td class="cd" style="color:#5f6d7b;font-weight:700"></td></tr><tr><td style="white-space:nowrap"><a href="https://www.linkedin.com/in/kristi-naternicola-348ba3b9" target="_blank" rel="noopener noreferrer" style="font-weight:900">Kristi Naternicola</a><span style="font-size:8px;font-weight:900;color:#157eaf;border:1px solid #157eaf;border-radius:2px;padding:0 2px;margin-left:5px;vertical-align:1px">in</span></td><td style="color:#405062">Program Manager</td><td class="cn" style="white-space:nowrap">FBI</td><td style="white-space:nowrap">kanaternicola@fbi.gov<br><span style="display:inline-block;padding:0 5px;border-radius:8px;font-size:8px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:#13735b;background:#effaf6;border:1px solid #77bfae">verified</span></td><td class="cd">+1 304-777-6444</td><td class="cd"><span style="color:#b3bdc7">·</span></td><td class="cd" style="white-space:nowrap"><a href="https://www.usaspending.gov/award/15F06725F0001715" target="_blank" rel="noopener noreferrer"><span>15F06725F0001715</span></a></td><td class="cd" style="color:#5f6d7b;font-weight:700"></td></tr><tr><td style="white-space:nowrap"><a href="https://www.linkedin.com/in/ashley-walsh-crockett-bb375314" target="_blank" rel="noopener noreferrer" style="font-weight:900">Ashley Crockett</a><span style="font-size:8px;font-weight:900;color:#157eaf;border:1px solid #157eaf;border-radius:2px;padding:0 2px;margin-left:5px;vertical-align:1px">in</span></td><td style="color:#405062">Sr. Contracting Officer</td><td class="cn" style="white-space:nowrap">IRS</td><td style="white-space:nowrap">crockett.ashley@irs.gov<br><span style="display:inline-block;padding:0 5px;border-radius:8px;font-size:8px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:#9d2a10;background:#fff2ee;border:1px solid #f1a08d">extrapolated</span></td><td class="cd">+1 760-805-5683</td><td class="cd">+1 760-576-4550</td><td class="cd" style="white-space:nowrap"><a href="https://www.usaspending.gov/award/205AE926F00080" target="_blank" rel="noopener noreferrer"><span>205AE926F00080</span></a></td><td class="cd" style="color:#5f6d7b;font-weight:700"></td></tr><tr><td style="white-space:nowrap"><a href="https://www.linkedin.com/in/eric-markow-493b42328" target="_blank" rel="noopener noreferrer" style="font-weight:900">Eric Markow</a><span style="font-size:8px;font-weight:900;color:#157eaf;border:1px solid #157eaf;border-radius:2px;padding:0 2px;margin-left:5px;vertical-align:1px">in</span></td><td style="color:#405062">Acting Deputy CIO, Strategy &amp; Modernization</td><td class="cn" style="white-space:nowrap">IRS</td><td style="white-space:nowrap">eric.markow@irs.gov<br><span style="display:inline-block;padding:0 5px;border-radius:8px;font-size:8px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:#13735b;background:#effaf6;border:1px solid #77bfae">verified</span></td><td class="cd">+1 202-751-1633</td><td class="cd"><span style="color:#b3bdc7">·</span></td><td class="cd" style="white-space:nowrap"><a href="https://www.usaspending.gov/award/205AE926F00080" target="_blank" rel="noopener noreferrer"><span>205AE926F00080</span></a></td><td class="cd" style="color:#5f6d7b;font-weight:700"></td></tr><tr><td style="white-space:nowrap"><a href="https://www.linkedin.com/in/kaschitp" target="_blank" rel="noopener noreferrer" style="font-weight:900">Kaschit Pandya</a><span style="font-size:8px;font-weight:900;color:#157eaf;border:1px solid #157eaf;border-radius:2px;padding:0 2px;margin-left:5px;vertical-align:1px">in</span></td><td style="color:#405062">Chief Information Officer</td><td class="cn" style="white-space:nowrap">IRS</td><td style="white-space:nowrap">kaschit.pandya@irs.gov<br><span style="display:inline-block;padding:0 5px;border-radius:8px;font-size:8px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:#13735b;background:#effaf6;border:1px solid #77bfae">verified</span></td><td class="cd">+1 304-616-1818</td><td class="cd"><span style="color:#b3bdc7">·</span></td><td class="cd" style="white-space:nowrap"><a href="https://www.usaspending.gov/award/205AE926F00080" target="_blank" rel="noopener noreferrer"><span>205AE926F00080</span></a></td><td class="cd" style="color:#5f6d7b;font-weight:700"></td></tr><tr><td style="white-space:nowrap"><a href="https://www.linkedin.com/in/melvinricejr" target="_blank" rel="noopener noreferrer" style="font-weight:900">Melvin Rice</a><span style="font-size:8px;font-weight:900;color:#157eaf;border:1px solid #157eaf;border-radius:2px;padding:0 2px;margin-left:5px;vertical-align:1px">in</span></td><td style="color:#405062">Supervisory Contracting Officer</td><td class="cn" style="white-space:nowrap">IRS</td><td style="white-space:nowrap">melvin.ricejr@irs.gov<br><span style="display:inline-block;padding:0 5px;border-radius:8px;font-size:8px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:#13735b;background:#effaf6;border:1px solid #77bfae">verified</span></td><td class="cd">+1 443-938-5139</td><td class="cd"><span style="color:#b3bdc7">·</span></td><td class="cd" style="white-space:nowrap"><a href="https://www.usaspending.gov/award/205AE926F00080" target="_blank" rel="noopener noreferrer"><span>205AE926F00080</span></a></td><td class="cd" style="color:#5f6d7b;font-weight:700"></td></tr></tbody></table><div class="gaps"><div class="g-lab">SCREENED OUT BEFORE SPEND</div><div class="g-list">1 candidate rejected before enrichment. "Vasyl Lyovin, Chief Information Officer" resolved to a record based in Ukraine whose employer string is a lowercase "irs" and whose career runs through Fozzy Group and Paritet Avto. Not the Internal Revenue Service. Rejected on org-identity mismatch; no dial credit was spent.</div></div><div class="gaps"><div class="g-lab">NEXT PASS</div><div class="g-list">Pass 2 extends to Department of the Army, Defense Information Systems Agency, Department of the Navy, Department of the Air Force, Office of the Chief Financial Officer and the FCN channel account, and deepens the two accounts above beyond their first five. Coverage is stated every pass, never implied complete.</div></div><div class="gaps"><div class="g-lab">ENRICHMENT · NOT EVIDENCE</div><div class="g-list">Every identity is enrichment carrying its own source and retrieval date. It is a route to the linked record, never a federal record itself. Green marks a verified address, amber an extrapolated one. An asterisk marks a number Apollo returned without a type. Apollo refreshed is Apollo's own record date, not ours: the oldest here is 21 AUG 2025.</div></div></section></div>

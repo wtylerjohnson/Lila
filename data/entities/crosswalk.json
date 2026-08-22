@@ -1,0 +1,607 @@
+{
+  "_doctrine": "One canonical door per corporate entity (L14). Every alias row carries a source_url; no sourceless lineage claims. Pure legal-suffix/punctuation variants need no alias row (the resolver's normalizer collapses them); alias rows are for genuinely different names: former names, dbas, acquisitions, subsidiaries. Types: former_name | dba | acquisition | subsidiary | legal_suffix_variant | misspelling.",
+  "_seeded": "2026-07-10, verified per-claim by web search",
+  "entities": [
+    {
+      "canonical_id": "peraton",
+      "canonical_name": "Peraton",
+      "aliases": [
+        {"name": "Perspecta", "type": "acquisition", "effective_date": "2021-05-06", "source_url": "https://www.prnewswire.com/news-releases/peraton-completes-acquisition-of-perspecta-creating-leading-mission-capability-integrator-and-transformative-enterprise-it-provider-301286224.html"},
+        {"name": "Perspecta Enterprise Solutions", "type": "subsidiary", "effective_date": "2021-05-06", "source_url": "https://www.prnewswire.com/news-releases/peraton-completes-acquisition-of-perspecta-creating-leading-mission-capability-integrator-and-transformative-enterprise-it-provider-301286224.html"},
+        {"name": "Peraton Enterprise Solutions", "type": "subsidiary", "effective_date": null, "source_url": "https://www.peraton.com"},
+        {"name": "Peraton Technology Services", "type": "subsidiary", "effective_date": null, "source_url": "https://www.peraton.com"},
+        {"name": "Vencore", "type": "acquisition", "effective_date": "2018-06-01", "source_url": "https://en.wikipedia.org/wiki/Peraton"},
+        {"name": "KeyPoint Government Solutions", "type": "acquisition", "effective_date": "2018-06-01", "source_url": "https://en.wikipedia.org/wiki/Peraton"},
+        {"name": "Harris IT Services", "type": "former_name", "effective_date": "2017-06-01", "source_url": "https://en.wikipedia.org/wiki/Peraton"},
+        {"name": "Northrop Grumman IT Services", "type": "acquisition", "effective_date": "2021-02-01", "source_url": "https://investor.northropgrumman.com/news-releases/news-release-details/northrop-grumman-completes-sale-it-services-business-veritas"}
+      ],
+      "ueis": [],
+      "notes": "Perspecta acquired by Peraton, May 2021; Peraton formed from Harris IT Services (2017), absorbed Northrop Grumman IT (Feb 2021)"
+    },
+    {
+      "canonical_id": "peraton-labs",
+      "canonical_name": "Peraton Labs",
+      "aliases": [
+        {"name": "Perspecta Labs", "type": "former_name", "effective_date": "2021-05-06", "source_url": "https://www.peratonlabs.com/press-releases/peraton-completes-acquisition-of-perspecta-creating-leading-mission-capability-integrator-and-transformative-enterprise-it-provider"},
+        {"name": "Vencore Labs", "type": "former_name", "effective_date": "2018-06-01", "source_url": "https://www.peratonlabs.com/press-releases/peraton-completes-acquisition-of-perspecta-creating-leading-mission-capability-integrator-and-transformative-enterprise-it-provider"}
+      ],
+      "ueis": [],
+      "notes": "Perspecta Labs renamed Peraton Labs after the May 2021 Peraton acquisition"
+    },
+    {
+      "canonical_id": "gdit",
+      "canonical_name": "General Dynamics Information Technology",
+      "aliases": [
+        {"name": "CSRA", "type": "acquisition", "effective_date": "2018-04-03", "source_url": "https://www.gd.com/Articles/2018/04/02/general-dynamics-completes-acquisition-csra"},
+        {"name": "CSRA Information Systems", "type": "subsidiary", "effective_date": "2018-04-03", "source_url": "https://www.gd.com/Articles/2018/04/02/general-dynamics-completes-acquisition-csra"},
+        {"name": "SRA International", "type": "acquisition", "effective_date": "2015-11-30", "source_url": "https://www.sec.gov/Archives/edgar/data/1646383/000164638315000045/ex991csracscjointpressrele.htm"},
+        {"name": "CSC North American Public Sector", "type": "former_name", "effective_date": "2015-11-30", "source_url": "https://www.sec.gov/Archives/edgar/data/1646383/000164638315000045/ex991csracscjointpressrele.htm"}
+      ],
+      "ueis": [],
+      "notes": "CSRA (itself CSC public sector + SRA, Nov 2015) acquired by General Dynamics, April 2018; operates as GDIT"
+    },
+    {
+      "canonical_id": "leidos",
+      "canonical_name": "Leidos",
+      "aliases": [
+        {"name": "Lockheed Martin IS&GS", "type": "acquisition", "effective_date": "2016-08-16", "source_url": "https://news.lockheedmartin.com/2016-08-16-Lockheed-Martin-Successfully-Closes-Transaction-to-Separate-and-Combine-IT-and-Technical-Services-Businesses-with-Leidos"},
+        {"name": "Leidos Innovations", "type": "subsidiary", "effective_date": "2016-08-16", "source_url": "https://news.lockheedmartin.com/2016-08-16-Lockheed-Martin-Successfully-Closes-Transaction-to-Separate-and-Combine-IT-and-Technical-Services-Businesses-with-Leidos"}
+      ],
+      "ueis": [],
+      "notes": "Lockheed Martin IS&GS merged into Leidos, August 2016"
+    },
+    {
+      "canonical_id": "saic",
+      "canonical_name": "Science Applications International Corporation",
+      "aliases": [
+        {"name": "SAIC", "type": "legal_suffix_variant", "effective_date": null, "source_url": "https://www.saic.com"},
+        {"name": "Engility", "type": "acquisition", "effective_date": "2019-01-14", "source_url": "https://www.businesswire.com/news/home/20190114005798/en/SAIC-Completes-Acquisition-Engility-Holdings"},
+        {"name": "Engility Holdings", "type": "acquisition", "effective_date": "2019-01-14", "source_url": "https://www.businesswire.com/news/home/20190114005798/en/SAIC-Completes-Acquisition-Engility-Holdings"}
+      ],
+      "ueis": [],
+      "notes": "Engility merged into SAIC, January 2019"
+    },
+    {
+      "canonical_id": "caci",
+      "canonical_name": "CACI International",
+      "aliases": [
+        {"name": "CACI Inc Federal", "type": "subsidiary", "effective_date": null, "source_url": "https://www.caci.com"},
+        {"name": "CACI NSS", "type": "subsidiary", "effective_date": null, "source_url": "https://www.caci.com"},
+        {"name": "CACI Enterprise Solutions", "type": "subsidiary", "effective_date": null, "source_url": "https://www.caci.com"},
+        {"name": "CACI Technologies", "type": "subsidiary", "effective_date": null, "source_url": "https://www.caci.com"},
+        {"name": "LGS Innovations", "type": "acquisition", "effective_date": "2019-03-01", "source_url": "https://investor.caci.com/news/news-details/2019/CACI-Completes-Strategic-Acquisition-of-LGS-Innovations/default.aspx"}
+      ],
+      "ueis": [],
+      "notes": "LGS Innovations acquired by CACI, March 2019; CACI contracts flow through several named subsidiaries"
+    },
+    {
+      "canonical_id": "amentum",
+      "canonical_name": "Amentum",
+      "aliases": [
+        {"name": "Amentum Technology", "type": "subsidiary", "effective_date": null, "source_url": "https://www.amentum.com"},
+        {"name": "Jacobs Critical Mission Solutions", "type": "acquisition", "effective_date": "2024-09-27", "source_url": "https://www.amentum.com/news/amentum-completes-transformational-combination-with-jacobs-critical-mission-solutions-and-cyber-and-intelligence-units/"},
+        {"name": "AECOM Management Services", "type": "former_name", "effective_date": "2020-02-01", "source_url": "https://www.sec.gov/Archives/edgar/data/2011286/000201128624000072/amtm-20240927.htm"}
+      ],
+      "ueis": [],
+      "notes": "Amentum spun from AECOM Management Services (2020), combined with Jacobs Critical Mission Solutions and Cyber & Intelligence, September 2024"
+    },
+    {
+      "canonical_id": "jacobs",
+      "canonical_name": "Jacobs",
+      "aliases": [
+        {"name": "Jacobs Technology", "type": "subsidiary", "effective_date": null, "source_url": "https://www.jacobs.com"},
+        {"name": "Jacobs Solutions", "type": "legal_suffix_variant", "effective_date": null, "source_url": "https://www.jacobs.com"}
+      ],
+      "ueis": [],
+      "notes": "Jacobs Critical Mission Solutions spun off to Amentum, September 2024; remaining Jacobs records are one door"
+    },
+    {
+      "canonical_id": "l3harris",
+      "canonical_name": "L3Harris Technologies",
+      "aliases": [
+        {"name": "L3 Technologies", "type": "former_name", "effective_date": "2019-06-29", "source_url": "https://investors.l3harris.com/news/news-details/2019/L3Harris-Technologies-Merger-Successfully-Completed-Board-of-Directors-Leadership-and-Organization-Structure-Announced-07-01-2019/default.aspx"},
+        {"name": "Harris Corporation", "type": "former_name", "effective_date": "2019-06-29", "source_url": "https://investors.l3harris.com/news/news-details/2019/L3Harris-Technologies-Merger-Successfully-Completed-Board-of-Directors-Leadership-and-Organization-Structure-Announced-07-01-2019/default.aspx"},
+        {"name": "L3Harris Global Communications", "type": "subsidiary", "effective_date": null, "source_url": "https://www.l3harris.com"},
+        {"name": "Aerojet Rocketdyne", "type": "acquisition", "effective_date": "2023-07-28", "source_url": "https://www.l3harris.com/newsroom/press-release/2023/07/l3harris-completes-aerojet-rocketdyne-acquisition"},
+        {"name": "Aerojet Rocketdyne of DE", "type": "subsidiary", "effective_date": "2023-07-28", "source_url": "https://www.l3harris.com/newsroom/press-release/2023/07/l3harris-completes-aerojet-rocketdyne-acquisition"}
+      ],
+      "ueis": [],
+      "notes": "L3 Technologies and Harris merged June 2019; Aerojet Rocketdyne acquired July 2023"
+    },
+    {
+      "canonical_id": "northrop-grumman",
+      "canonical_name": "Northrop Grumman",
+      "aliases": [
+        {"name": "Northrop Grumman Systems", "type": "subsidiary", "effective_date": null, "source_url": "https://www.northropgrumman.com"},
+        {"name": "Northrop Grumman Technical Services", "type": "subsidiary", "effective_date": null, "source_url": "https://www.northropgrumman.com"},
+        {"name": "Orbital ATK", "type": "acquisition", "effective_date": "2018-06-06", "source_url": "https://investor.northropgrumman.com/investor-resources/orbital-atk-acquisition"},
+        {"name": "Alliant Techsystems", "type": "former_name", "effective_date": "2018-06-06", "source_url": "https://en.wikipedia.org/wiki/Orbital_ATK"},
+        {"name": "Alliant Techsystems Operations", "type": "subsidiary", "effective_date": "2018-06-06", "source_url": "https://en.wikipedia.org/wiki/Orbital_ATK"},
+        {"name": "Northrop Grumman Innovation Systems", "type": "former_name", "effective_date": "2018-06-06", "source_url": "https://investor.northropgrumman.com/investor-resources/orbital-atk-acquisition"}
+      ],
+      "ueis": [],
+      "notes": "Orbital ATK (Alliant Techsystems heritage) acquired June 2018; IT services divested to Peraton, February 2021"
+    },
+    {
+      "canonical_id": "lockheed-martin",
+      "canonical_name": "Lockheed Martin",
+      "aliases": [
+        {"name": "Lockheed Martin Services", "type": "subsidiary", "effective_date": null, "source_url": "https://www.lockheedmartin.com"}
+      ],
+      "ueis": [],
+      "notes": "IS&GS divested to Leidos, August 2016; remaining records are one door"
+    },
+    {
+      "canonical_id": "boeing",
+      "canonical_name": "The Boeing Company",
+      "aliases": [
+        {"name": "Boeing", "type": "legal_suffix_variant", "effective_date": null, "source_url": "https://www.boeing.com"}
+      ],
+      "ueis": [],
+      "notes": "Digital Aviation Solutions (Jeppesen, ForeFlight) sold to Thoma Bravo, October 2025"
+    },
+    {
+      "canonical_id": "jeppesen-foreflight",
+      "canonical_name": "Jeppesen ForeFlight",
+      "aliases": [
+        {"name": "ForeFlight", "type": "former_name", "effective_date": "2025-10-31", "source_url": "https://www.thomabravo.com/press-releases/jeppesen-foreflight-launches-as-a-standalone-company-to-redefine-the-future-of-aviation-software"},
+        {"name": "Jeppesen", "type": "former_name", "effective_date": "2025-10-31", "source_url": "https://www.thomabravo.com/press-releases/jeppesen-foreflight-launches-as-a-standalone-company-to-redefine-the-future-of-aviation-software"},
+        {"name": "Boeing Digital Aviation Solutions", "type": "former_name", "effective_date": "2025-10-31", "source_url": "https://www.thomabravo.com/press-releases/jeppesen-foreflight-launches-as-a-standalone-company-to-redefine-the-future-of-aviation-software"}
+      ],
+      "ueis": [],
+      "notes": "Boeing sold Jeppesen and ForeFlight to Thoma Bravo, October 2025; standalone company Jeppesen ForeFlight"
+    },
+    {
+      "canonical_id": "rtx",
+      "canonical_name": "RTX",
+      "aliases": [
+        {"name": "Raytheon Company", "type": "former_name", "effective_date": "2020-04-03", "source_url": "https://www.sec.gov/Archives/edgar/data/101829/000114036120007906/nc10010681x1_ex99-1.htm"},
+        {"name": "Raytheon Technologies", "type": "former_name", "effective_date": "2023-07-17", "source_url": "https://www.sec.gov/Archives/edgar/data/101829/000114036123051494/ny20013763x1_424b2.htm"},
+        {"name": "Raytheon", "type": "legal_suffix_variant", "effective_date": null, "source_url": "https://www.rtx.com"},
+        {"name": "United Technologies", "type": "former_name", "effective_date": "2020-04-03", "source_url": "https://www.sec.gov/Archives/edgar/data/101829/000114036120007906/nc10010681x1_ex99-1.htm"},
+        {"name": "RTX BBN Technologies", "type": "subsidiary", "effective_date": null, "source_url": "https://www.rtx.com"}
+      ],
+      "ueis": [],
+      "notes": "United Technologies and Raytheon merged April 2020 as Raytheon Technologies, renamed RTX 2023"
+    },
+    {
+      "canonical_id": "collins-aerospace",
+      "canonical_name": "Collins Aerospace",
+      "aliases": [
+        {"name": "Rockwell Collins", "type": "former_name", "effective_date": "2018-11-26", "source_url": "https://www.sec.gov/Archives/edgar/data/0000101829/000010182918000046/a8-krockwellacquisition992.htm"},
+        {"name": "Rockwell Collins Simulation & Training Solutions", "type": "subsidiary", "effective_date": "2018-11-26", "source_url": "https://www.sec.gov/Archives/edgar/data/0000101829/000010182918000046/a8-krockwellacquisition992.htm"},
+        {"name": "ARINC", "type": "subsidiary", "effective_date": null, "source_url": "https://en.wikipedia.org/wiki/Collins_Aerospace"}
+      ],
+      "ueis": [],
+      "notes": "Rockwell Collins acquired by United Technologies November 2018, now Collins Aerospace, an RTX business"
+    },
+    {
+      "canonical_id": "data-link-solutions",
+      "canonical_name": "Data Link Solutions",
+      "aliases": [],
+      "ueis": [],
+      "notes": "Joint venture of BAE Systems and Collins Aerospace (Link 16); a distinct door from both parents"
+    },
+    {
+      "canonical_id": "bae-systems",
+      "canonical_name": "BAE Systems",
+      "aliases": [
+        {"name": "BAE Systems Information and Electronic Systems Integration", "type": "subsidiary", "effective_date": null, "source_url": "https://www.baesystems.com"},
+        {"name": "BAE Systems Technology Solutions & Services", "type": "subsidiary", "effective_date": null, "source_url": "https://www.baesystems.com"}
+      ],
+      "ueis": [],
+      "notes": "US federal work flows through named BAE Systems Inc. subsidiaries; one door"
+    },
+    {
+      "canonical_id": "booz-allen",
+      "canonical_name": "Booz Allen Hamilton",
+      "aliases": [],
+      "ueis": [],
+      "notes": "Suffix and punctuation variants in award data resolve to one door"
+    },
+    {
+      "canonical_id": "dell",
+      "canonical_name": "Dell Technologies",
+      "aliases": [
+        {"name": "Dell Marketing", "type": "subsidiary", "effective_date": null, "source_url": "https://www.dell.com"},
+        {"name": "Dell Federal Systems", "type": "subsidiary", "effective_date": null, "source_url": "https://www.dell.com"},
+        {"name": "EMC", "type": "acquisition", "effective_date": "2016-09-07", "source_url": "https://www.sec.gov/Archives/edgar/data/0000790070/000119312516703391/d255971dex991.htm"}
+      ],
+      "ueis": [],
+      "notes": "Dell and EMC merged September 2016; federal sales flow through Dell Marketing L.P. and Dell Federal Systems L.P."
+    },
+    {
+      "canonical_id": "oracle-health",
+      "canonical_name": "Oracle Health",
+      "aliases": [
+        {"name": "Cerner", "type": "former_name", "effective_date": "2022-06-08", "source_url": "https://www.oracle.com/news/announcement/oracle-completes-acquisition-of-cerner-2022-06-07/"},
+        {"name": "Cerner Government Services", "type": "former_name", "effective_date": "2022-06-08", "source_url": "https://www.oracle.com/news/announcement/oracle-completes-acquisition-of-cerner-2022-06-07/"},
+        {"name": "Oracle Health Government Services", "type": "subsidiary", "effective_date": null, "source_url": "https://www.oracle.com/health/"}
+      ],
+      "ueis": [],
+      "notes": "Cerner acquired by Oracle June 2022, rebranded Oracle Health"
+    },
+    {
+      "canonical_id": "hii-mission-technologies",
+      "canonical_name": "HII Mission Technologies",
+      "aliases": [
+        {"name": "Alion Science and Technology", "type": "acquisition", "effective_date": "2021-08-19", "source_url": "https://www.hii.com/news/huntington-ingalls-industries-completes-acquisition-ofalion-science-and-technology"},
+        {"name": "HII Technical Solutions", "type": "former_name", "effective_date": "2022-03-31", "source_url": "https://www.hii.com/news/hiis-mission-technologies-division-committed-to-delivering-advanced-technologies-and-domain-expertise"},
+        {"name": "HII Defense and Federal Solutions", "type": "subsidiary", "effective_date": null, "source_url": "https://www.hii.com"}
+      ],
+      "ueis": [],
+      "notes": "Alion acquired by Huntington Ingalls August 2021; division renamed Mission Technologies March 2022"
+    },
+    {
+      "canonical_id": "gigamon",
+      "canonical_name": "Gigamon",
+      "aliases": [],
+      "ueis": [],
+      "notes": "Taken private by Elliott Management (Evergreen Coast Capital), December 2017; same door throughout"
+    },
+    {
+      "canonical_id": "riverbed",
+      "canonical_name": "Riverbed Technology",
+      "aliases": [
+        {"name": "Riverbed", "type": "legal_suffix_variant", "effective_date": null, "source_url": "https://www.riverbed.com"}
+      ],
+      "ueis": [],
+      "notes": "Thoma Bravo take-private April 2015; Apollo-backed recapitalization December 2021; one door throughout"
+    },
+    {
+      "canonical_id": "solarwinds",
+      "canonical_name": "SolarWinds",
+      "aliases": [],
+      "ueis": [],
+      "notes": "Taken private by Turn/River Capital, April 2025; same door"
+    },
+    {
+      "canonical_id": "extrahop",
+      "canonical_name": "ExtraHop",
+      "aliases": [
+        {"name": "ExtraHop Networks", "type": "legal_suffix_variant", "effective_date": null, "source_url": "https://www.extrahop.com"}
+      ],
+      "ueis": [],
+      "notes": "Acquired by Bain Capital and Crosspoint Capital, July 2021; same door"
+    },
+    {
+      "canonical_id": "thousandeyes",
+      "canonical_name": "ThousandEyes",
+      "aliases": [],
+      "ueis": [],
+      "notes": "Acquired by Cisco, August 2020; sells as ThousandEyes, a Cisco company"
+    },
+    {
+      "canonical_id": "cisco",
+      "canonical_name": "Cisco Systems",
+      "aliases": [
+        {"name": "Cisco", "type": "legal_suffix_variant", "effective_date": null, "source_url": "https://www.cisco.com"}
+      ],
+      "ueis": [],
+      "notes": "ThousandEyes (acquired August 2020) tracked as its own product door"
+    },
+    {
+      "canonical_id": "netscout",
+      "canonical_name": "NETSCOUT Systems",
+      "aliases": [
+        {"name": "NETSCOUT", "type": "legal_suffix_variant", "effective_date": null, "source_url": "https://www.netscout.com"},
+        {"name": "Arbor Networks", "type": "acquisition", "effective_date": "2015-07-14", "source_url": "https://www.sec.gov/Archives/edgar/data/0001078075/000119312515253647/d36264dex991.htm"},
+        {"name": "Arbor", "type": "dba", "effective_date": "2015-07-14", "source_url": "https://www.netscout.com/arbor-ddos"},
+        {"name": "nGenius", "type": "dba", "effective_date": null, "source_url": "https://www.netscout.com"},
+        {"name": "InfiniStream", "type": "dba", "effective_date": null, "source_url": "https://www.netscout.com"},
+        {"name": "Tektronix Communications", "type": "acquisition", "effective_date": "2015-07-14", "source_url": "https://www.sec.gov/Archives/edgar/data/0001078075/000119312515253647/d36264dex991.htm"},
+        {"name": "VSS Monitoring", "type": "acquisition", "effective_date": "2015-07-14", "source_url": "https://www.sec.gov/Archives/edgar/data/0001078075/000119312515253647/d36264dex991.htm"}
+      ],
+      "ueis": [],
+      "notes": "NetScout acquired Danaher's communications business (Arbor Networks, Tektronix Communications, VSS Monitoring), July 2015; Arbor/nGenius/InfiniStream are NETSCOUT product brands"
+    },
+    {
+      "canonical_id": "akamai",
+      "canonical_name": "Akamai Technologies",
+      "aliases": [
+        {"name": "Akamai", "type": "legal_suffix_variant", "effective_date": null, "source_url": "https://www.akamai.com"}
+      ],
+      "ueis": [],
+      "notes": "One door; product brands ride the parent"
+    },
+    {
+      "canonical_id": "cloudflare",
+      "canonical_name": "Cloudflare",
+      "aliases": [],
+      "ueis": [],
+      "notes": "One door"
+    },
+    {
+      "canonical_id": "corelight",
+      "canonical_name": "Corelight",
+      "aliases": [],
+      "ueis": [],
+      "notes": "One door"
+    },
+    {
+      "canonical_id": "endace",
+      "canonical_name": "Endace",
+      "aliases": [],
+      "ueis": [],
+      "notes": "One door"
+    },
+    {
+      "canonical_id": "cpacket",
+      "canonical_name": "cPacket Networks",
+      "aliases": [
+        {"name": "cPacket", "type": "legal_suffix_variant", "effective_date": null, "source_url": "https://www.cpacket.com"}
+      ],
+      "ueis": [],
+      "notes": "One door"
+    },
+    {
+      "canonical_id": "radware",
+      "canonical_name": "Radware",
+      "aliases": [],
+      "ueis": [],
+      "notes": "One door"
+    },
+    {
+      "canonical_id": "kentik",
+      "canonical_name": "Kentik",
+      "aliases": [],
+      "ueis": [],
+      "notes": "One door"
+    },
+    {
+      "canonical_id": "dataminr",
+      "canonical_name": "Dataminr",
+      "aliases": [],
+      "ueis": [],
+      "notes": "One door"
+    },
+    {
+      "canonical_id": "compusult",
+      "canonical_name": "Compusult",
+      "aliases": [],
+      "ueis": [],
+      "notes": "One door"
+    },
+    {
+      "canonical_id": "vantor",
+      "canonical_name": "Vantor",
+      "aliases": [
+        {"name": "Maxar Intelligence", "type": "former_name", "effective_date": "2025-10-01", "source_url": "https://www.businesswire.com/news/home/20251001760322/en/Vantor-Rebrands-from-Maxar-Intelligence-Unveils-AI-Powered-Platform"},
+        {"name": "Maxar Technologies", "type": "former_name", "effective_date": "2025-10-01", "source_url": "https://spacenews.com/maxar-retires-its-name-rebrands-as-vantor-and-lanteris/"},
+        {"name": "Maxar", "type": "former_name", "effective_date": "2025-10-01", "source_url": "https://spacenews.com/maxar-retires-its-name-rebrands-as-vantor-and-lanteris/"}
+      ],
+      "ueis": [],
+      "notes": "Maxar Intelligence rebranded Vantor, October 2025 (Advent take-private split Maxar in 2023)"
+    },
+    {
+      "canonical_id": "lanteris",
+      "canonical_name": "Lanteris",
+      "aliases": [
+        {"name": "Maxar Space Systems", "type": "former_name", "effective_date": "2025-10-01", "source_url": "https://spacenews.com/maxar-retires-its-name-rebrands-as-vantor-and-lanteris/"}
+      ],
+      "ueis": [],
+      "notes": "Maxar Space Systems rebranded Lanteris, October 2025"
+    },
+    {
+      "canonical_id": "carahsoft",
+      "canonical_name": "Carahsoft Technology",
+      "aliases": [
+        {"name": "Carahsoft", "type": "legal_suffix_variant", "effective_date": null, "source_url": "https://www.carahsoft.com"}
+      ],
+      "ueis": [],
+      "notes": "One door; master government aggregator for many OEMs"
+    },
+    {
+      "canonical_id": "thundercat",
+      "canonical_name": "ThunderCat Technology",
+      "aliases": [],
+      "ueis": [],
+      "notes": "One door"
+    },
+    {
+      "canonical_id": "fcn",
+      "canonical_name": "FCN",
+      "aliases": [],
+      "ueis": [],
+      "notes": "One door"
+    },
+    {
+      "canonical_id": "govplace",
+      "canonical_name": "GovPlace",
+      "aliases": [],
+      "ueis": [],
+      "notes": "One door"
+    },
+    {
+      "canonical_id": "alvarez",
+      "canonical_name": "Alvarez",
+      "aliases": [],
+      "ueis": [],
+      "notes": "One door"
+    },
+    {
+      "canonical_id": "swish-data",
+      "canonical_name": "Swish Data",
+      "aliases": [
+        {"name": "Titania Solutions Group", "type": "acquisition", "effective_date": "2020-11-16", "source_url": "https://www.prnewswire.com/news-releases/swish-data-acquires-titania-solutions-group-inc-301182417.html"}
+      ],
+      "ueis": [],
+      "notes": "Swish Data acquired Titania Solutions Group, November 2020; Titania operates as a Swish subsidiary"
+    },
+    {
+      "canonical_id": "asrc-federal",
+      "canonical_name": "ASRC Federal",
+      "aliases": [
+        {"name": "ASRC Federal Technology Solutions", "type": "subsidiary", "effective_date": null, "source_url": "https://www.asrcfederal.com"},
+        {"name": "Arctic Slope Mission Services", "type": "subsidiary", "effective_date": null, "source_url": "https://www.asrcfederal.com"}
+      ],
+      "ueis": [],
+      "notes": "ASRC Federal subsidiaries (Arctic Slope Regional Corporation family) are one teaming door"
+    },
+    {
+      "canonical_id": "ads",
+      "canonical_name": "ADS",
+      "aliases": [
+        {"name": "Atlantic Diving Supply", "type": "dba", "effective_date": null, "source_url": "https://www.vendorportal.ecms.va.gov/NAC/Search/Details/36F79722D0102"}
+      ],
+      "ueis": [],
+      "notes": "Atlantic Diving Supply, Inc. does business as ADS"
+    },
+    {
+      "canonical_id": "world-wide-technology",
+      "canonical_name": "World Wide Technology",
+      "aliases": [],
+      "ueis": [],
+      "notes": "One door"
+    },
+    {
+      "canonical_id": "iron-bow",
+      "canonical_name": "Iron Bow Technologies",
+      "aliases": [],
+      "ueis": [],
+      "notes": "One door"
+    },
+    {
+      "canonical_id": "red-river",
+      "canonical_name": "Red River",
+      "aliases": [
+        {"name": "Red River Technology", "type": "legal_suffix_variant", "effective_date": null, "source_url": "https://www.redriver.com"}
+      ],
+      "ueis": [],
+      "notes": "One door"
+    },
+    {
+      "canonical_id": "cdw",
+      "canonical_name": "CDW",
+      "aliases": [
+        {"name": "CDW Government", "type": "subsidiary", "effective_date": null, "source_url": "https://www.cdwg.com"}
+      ],
+      "ueis": [],
+      "notes": "CDW Government LLC is the federal arm; one door"
+    },
+    {
+      "canonical_id": "immixgroup",
+      "canonical_name": "immixGroup",
+      "aliases": [
+        {"name": "EC America", "type": "subsidiary", "effective_date": null, "source_url": "https://www.naspovaluepoint.org/portfolio/cloud-solutions-2016-2026/ec-america-inc-subsidiary-of-immixgroup-inc/"},
+        {"name": "Arrow Electronics immixGroup", "type": "former_name", "effective_date": "2015-03-31", "source_url": "https://investor.arrow.com/news/press-release-details/2015/Arrow-Electronics-Completes-Acquisition-of-immixGroup-Inc/default.aspx"}
+      ],
+      "ueis": [],
+      "notes": "immixGroup acquired by Arrow Electronics, March 2015; EC America is its GSA schedule-holding subsidiary; one door"
+    },
+    {
+      "canonical_id": "mantech",
+      "canonical_name": "ManTech",
+      "aliases": [
+        {"name": "ManTech International", "type": "legal_suffix_variant", "effective_date": null, "source_url": "https://www.mantech.com"},
+        {"name": "ManTech Advanced Systems International", "type": "subsidiary", "effective_date": null, "source_url": "https://www.mantech.com"}
+      ],
+      "ueis": [],
+      "notes": "Taken private by Carlyle, September 2022; same door"
+    },
+    {
+      "canonical_id": "guidehouse",
+      "canonical_name": "Guidehouse",
+      "aliases": [
+        {"name": "PwC US Public Sector", "type": "former_name", "effective_date": "2018-05-01", "source_url": "https://en.wikipedia.org/wiki/Guidehouse"},
+        {"name": "Navigant Consulting", "type": "acquisition", "effective_date": "2019-10-11", "source_url": "https://en.wikipedia.org/wiki/Guidehouse"},
+        {"name": "Guidehouse Digital", "type": "subsidiary", "effective_date": null, "source_url": "https://guidehouse.com"}
+      ],
+      "ueis": [],
+      "notes": "Carved out of PwC's US public sector practice (2018); acquired by Bain Capital, December 2023"
+    },
+    {
+      "canonical_id": "ecs-federal",
+      "canonical_name": "ECS Federal",
+      "aliases": [
+        {"name": "ECS", "type": "dba", "effective_date": null, "source_url": "https://ecstech.com"}
+      ],
+      "ueis": [],
+      "notes": "Acquired by ASGN, April 2018; operates under the ECS brand"
+    },
+    {
+      "canonical_id": "acentra",
+      "canonical_name": "Acentra Health",
+      "aliases": [
+        {"name": "Kepro", "type": "former_name", "effective_date": "2023-06-06", "source_url": "https://www.prnewswire.com/news-releases/cnsi-and-kepro-are-now-acentra-health-301843099.html"},
+        {"name": "CNSI", "type": "former_name", "effective_date": "2023-06-06", "source_url": "https://www.prnewswire.com/news-releases/cnsi-and-kepro-are-now-acentra-health-301843099.html"}
+      ],
+      "ueis": [],
+      "notes": "CNSI and Kepro merged (December 2022), rebranded Acentra Health, June 2023"
+    },
+    {
+      "canonical_id": "salesforce",
+      "canonical_name": "Salesforce",
+      "aliases": [
+        {"name": "Acumen Solutions", "type": "acquisition", "effective_date": "2021-02-01", "source_url": "https://www.salesforce.com/news/stories/salesforce-acumen-close-updates/"}
+      ],
+      "ueis": [],
+      "notes": "Acumen Solutions acquired by Salesforce, February 2021; public sector records under both names are one door"
+    },
+    {
+      "canonical_id": "dlt-solutions",
+      "canonical_name": "DLT Solutions",
+      "aliases": [
+        {"name": "TD SYNNEX Public Sector", "type": "former_name", "effective_date": "2021-09-01", "source_url": "https://www.dlt.com/news/tech-data-completes-acquisition-dlt-solutions"},
+        {"name": "DLT", "type": "legal_suffix_variant", "effective_date": null, "source_url": "https://www.dlt.com"}
+      ],
+      "ueis": [],
+      "notes": "DLT acquired by Tech Data, November 2019; now TD SYNNEX Public Sector"
+    },
+    {
+      "canonical_id": "smartronix",
+      "canonical_name": "Smartronix",
+      "aliases": [],
+      "ueis": [],
+      "notes": "OceanSound Partners platform company since 2019; same door"
+    },
+    {
+      "canonical_id": "qinetiq-us",
+      "canonical_name": "QinetiQ US",
+      "aliases": [
+        {"name": "Avantus Federal", "type": "acquisition", "effective_date": "2022-11-23", "source_url": "https://www.globenewswire.com/news-release/2022/11/23/2561681/0/en/QinetiQ-US-Completes-Acquisition-of-Avantus-Federal.html"}
+      ],
+      "ueis": [],
+      "notes": "Avantus Federal acquired by QinetiQ US, November 2022"
+    },
+    {
+      "canonical_id": "general-dynamics",
+      "canonical_name": "General Dynamics",
+      "aliases": [
+        {"name": "General Dynamics Mission Systems", "type": "subsidiary", "effective_date": null, "source_url": "https://gdmissionsystems.com"}
+      ],
+      "ueis": [],
+      "notes": "Mission Systems and other GD units are one corporate door; GDIT is tracked as its own door for the IT lineage"
+    },
+    {
+      "canonical_id": "accenture-federal",
+      "canonical_name": "Accenture Federal Services",
+      "aliases": [],
+      "ueis": [],
+      "notes": "Accenture's US federal arm; one door"
+    },
+    {
+      "canonical_id": "microtech",
+      "canonical_name": "MicroTech",
+      "aliases": [
+        {"name": "MicroTechnologies", "type": "legal_suffix_variant", "effective_date": null, "source_url": "https://www.microtech.net"}
+      ],
+      "ueis": [],
+      "notes": "MicroTechnologies LLC does business as MicroTech; one door"
+    },
+    {
+      "canonical_id": "mythics",
+      "canonical_name": "Mythics",
+      "aliases": [],
+      "ueis": [],
+      "notes": "One door"
+    },
+    {
+      "canonical_id": "v3gate",
+      "canonical_name": "V3Gate",
+      "aliases": [],
+      "ueis": [],
+      "notes": "One door"
+    }
+  ]
+}

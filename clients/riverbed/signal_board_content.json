@@ -1,0 +1,1590 @@
+{
+  "client_name": "Riverbed",
+  "composition_mode": "machine",
+  "hero_context": "The nearest dated signal is Riverbed’s $1.92M obligated to date IRS footprint via RedSky, whose cited award period ends July 31, 2026. FBI ($1.74M obligated to date via Swish Data) and BLM ($1.4M obligated to date via Swish Data) have current award periods ending in late September, creating a concentrated period-end action sequence across three evidenced civilian accounts.",
+  "chips": [
+    {
+      "label": "RIVERBED",
+      "tone": "hot"
+    },
+    {
+      "label": "STEELHEAD",
+      "tone": "hot"
+    },
+    {
+      "label": "ACQUISITION PATHS TO VALIDATE"
+    }
+  ],
+  "news": [
+    {
+      "head": "IRS · Riverbed via RedSky · active footprint",
+      "body": "$1.92M obligated · active award corridor · PoP end 31 JUL 2026",
+      "award_generated_id": "CONT_AWD_2032H523C00044_2050_-NONE-_-NONE-"
+    },
+    {
+      "head": "FBI · Riverbed via Swish Data · active footprint",
+      "body": "$1.74M obligated · active award corridor · PoP end 24 SEP 2026",
+      "award_generated_id": "CONT_AWD_15F06724F0001868_1549_NNG15SC91B_8000"
+    },
+    {
+      "head": "IRS · Riverbed via FCN · active footprint",
+      "body": "$9.48M obligated · active award corridor · PoP end 25 SEP 2026",
+      "award_generated_id": "CONT_AWD_205AE925F00201_2050_NNG15SC71B_8000"
+    },
+    {
+      "head": "BLM · Riverbed via Swish Data · active footprint",
+      "body": "$1.4M obligated · active award corridor · PoP end 30 SEP 2026",
+      "award_generated_id": "CONT_AWD_140L0625F0144_1422_NNG15SC91B_8000"
+    },
+    {
+      "head": "OCC · Riverbed via Swish Data · active footprint",
+      "body": "$2.22M obligated · active award corridor · PoP end 30 SEP 2026",
+      "award_generated_id": "CONT_AWD_2031JW23F00016_2046_NNG15SC91B_8000"
+    },
+    {
+      "head": "FHWA · Riverbed via Thundercat Technology · active footprint",
+      "body": "$587.39K obligated · active award corridor · PoP end 03 OCT 2026",
+      "award_generated_id": "CONT_AWD_693JJ126F00019N_6925_NNG15SD26B_8000"
+    },
+    {
+      "head": "NASA · Riverbed via Swish Data · active footprint",
+      "body": "$47.35K obligated · active award corridor · PoP end 06 MAR 2027",
+      "award_generated_id": "CONT_AWD_80NSSC26FA300_8000_NNG15SC91B_8000"
+    },
+    {
+      "head": "SSA · Riverbed via Ec America · active footprint",
+      "body": "$2.09M obligated · active award corridor · PoP end 09 MAR 2027",
+      "award_generated_id": "CONT_AWD_28321325FDX030072_2800_GS35F0511T_4730"
+    },
+    {
+      "head": "IRS · FCN · competitor corridor",
+      "body": "$1.66M obligated · active award · through 12 MAY 2027",
+      "award_generated_id": "CONT_AWD_2032H525F00130_2050_NNG15SC71B_8000"
+    },
+    {
+      "head": "USCIS · Swish Data · competitor corridor",
+      "body": "$1.13M obligated · active award · through 30 JUN 2027",
+      "award_generated_id": "CONT_AWD_70SBUR26F00000149_7003_NNG15SC91B_8000"
+    }
+  ],
+  "signal_cards": [
+    {
+      "label": "Priority routes",
+      "value": "3",
+      "sub": "Verified federal records",
+      "detail": "Active award corridors"
+    },
+    {
+      "label": "Active footprint",
+      "value": "$19.49M",
+      "sub": "Obligated across 8 active awards",
+      "detail": "IRS · nearest PoP 31 JUL 2026"
+    },
+    {
+      "label": "Forward timing signals",
+      "value": "2",
+      "sub": "Cited events within up to 36 months",
+      "detail": "Nearest 25 SEP 2026 · DEFEND"
+    },
+    {
+      "label": "Coverage",
+      "value": "7",
+      "sub": "Federal organizations represented",
+      "detail": "DHS · DOI · DOJ · DOT"
+    }
+  ],
+  "coverage": [
+    {
+      "dept": "DHS",
+      "components": "USCIS"
+    },
+    {
+      "dept": "DOI",
+      "components": "BLM"
+    },
+    {
+      "dept": "DOJ",
+      "components": "FBI"
+    },
+    {
+      "dept": "DOT",
+      "components": "FHWA"
+    },
+    {
+      "dept": "NASA",
+      "components": "NASA"
+    },
+    {
+      "dept": "SSA",
+      "components": "SSA"
+    },
+    {
+      "dept": "Treasury",
+      "components": "IRS · OCC"
+    }
+  ],
+  "best_fit": [
+    {
+      "rank": "01",
+      "code": "DOI",
+      "agency_name": "Department of the Interior",
+      "title": "BUREAU OF LAND MANAGEMENT × SWISH DATA CORPORATION",
+      "account": "DOI · ACTIVE AWARD CORRIDOR · CLIENT FOOTPRINT",
+      "award_generated_id": "CONT_AWD_140L0625F0144_1422_NNG15SC91B_8000",
+      "evidence": [
+        {
+          "award_generated_id": "CONT_AWD_140L0625F0144_1422_NNG15SC91B_8000",
+          "label": "140L0625F0144"
+        }
+      ],
+      "cells": [
+        {
+          "label": "Obligated to date",
+          "value": "$1.4M",
+          "small": "HISTORICAL SPEND · NOT OPPORTUNITY SIZE"
+        },
+        {
+          "label": "Window",
+          "value": "30 SEP 2026",
+          "small": "PERIOD OF PERFORMANCE END"
+        },
+        {
+          "label": "Fit",
+          "value": "Riverbed",
+          "small": "RIVERBED, STEELHEAD"
+        },
+        {
+          "label": "Evidence",
+          "value": "4 source excerpts",
+          "small": "VERIFIED AWARD RECORD"
+        }
+      ],
+      "procurement_facts": [
+        {
+          "label": "Award",
+          "value": "140L0625F0144",
+          "source_field": "record identity"
+        },
+        {
+          "label": "NAICS",
+          "value": "541519",
+          "source_field": "NAICS"
+        },
+        {
+          "label": "PSC",
+          "value": "DA10",
+          "source_field": "PSC"
+        },
+        {
+          "label": "Obligated",
+          "value": "$1.4M",
+          "source_field": "obligated_to_date"
+        },
+        {
+          "label": "Award structure",
+          "value": "DELIVERY ORDER",
+          "source_field": "award type/structure"
+        }
+      ],
+      "missing_procurement_facts": [
+        "Set-aside",
+        "Competition",
+        "Place",
+        "Base + all options",
+        "Parent IDV"
+      ],
+      "machine_evidence": {
+        "source_identity": "CONT_AWD_140L0625F0144_1422_NNG15SC91B_8000",
+        "source_kind": "usaspending-award",
+        "quote": "FY25 RIVERBED STEELHEAD, TOOLS & MANAGER",
+        "agency": "Department of the Interior",
+        "in_scope": true,
+        "scope_basis": "preset:civilian@v1 · in-scope:DOI",
+        "procurement_facts": [
+          {
+            "label": "Award",
+            "value": "140L0625F0144",
+            "source_field": "record identity"
+          },
+          {
+            "label": "NAICS",
+            "value": "541519",
+            "source_field": "NAICS"
+          },
+          {
+            "label": "PSC",
+            "value": "DA10",
+            "source_field": "PSC"
+          },
+          {
+            "label": "Obligated",
+            "value": "$1.4M",
+            "source_field": "obligated_to_date"
+          },
+          {
+            "label": "Award structure",
+            "value": "DELIVERY ORDER",
+            "source_field": "award type/structure"
+          }
+        ],
+        "missing_procurement_facts": [
+          "Set-aside",
+          "Competition",
+          "Place",
+          "Base + all options",
+          "Parent IDV"
+        ]
+      }
+    },
+    {
+      "rank": "02",
+      "code": "Treasury",
+      "agency_name": "Department of the Treasury",
+      "title": "INTERNAL REVENUE SERVICE × REDSKY LLC",
+      "account": "TREASURY · ACTIVE AWARD CORRIDOR · CLIENT FOOTPRINT",
+      "award_generated_id": "CONT_AWD_2032H523C00044_2050_-NONE-_-NONE-",
+      "evidence": [
+        {
+          "award_generated_id": "CONT_AWD_2032H523C00044_2050_-NONE-_-NONE-",
+          "label": "2032H523C00044"
+        }
+      ],
+      "cells": [
+        {
+          "label": "Obligated to date",
+          "value": "$1.92M",
+          "small": "HISTORICAL SPEND · NOT OPPORTUNITY SIZE"
+        },
+        {
+          "label": "Window",
+          "value": "31 JUL 2026",
+          "small": "PERIOD OF PERFORMANCE END"
+        },
+        {
+          "label": "Fit",
+          "value": "Riverbed",
+          "small": "RIVERBED"
+        },
+        {
+          "label": "Evidence",
+          "value": "2 source excerpts",
+          "small": "VERIFIED AWARD RECORD"
+        }
+      ],
+      "procurement_facts": [
+        {
+          "label": "Award",
+          "value": "2032H523C00044",
+          "source_field": "record identity"
+        },
+        {
+          "label": "NAICS",
+          "value": "541519",
+          "source_field": "NAICS"
+        },
+        {
+          "label": "PSC",
+          "value": "DE10",
+          "source_field": "PSC"
+        },
+        {
+          "label": "Obligated",
+          "value": "$1.92M",
+          "source_field": "obligated_to_date"
+        },
+        {
+          "label": "Award structure",
+          "value": "DEFINITIVE CONTRACT",
+          "source_field": "award type/structure"
+        }
+      ],
+      "missing_procurement_facts": [
+        "Set-aside",
+        "Competition",
+        "Place",
+        "Base + all options"
+      ],
+      "machine_evidence": {
+        "source_identity": "CONT_AWD_2032H523C00044_2050_-NONE-_-NONE-",
+        "source_kind": "usaspending-award",
+        "quote": "THIS IS A DEFINITIVE CONTRACT TO ACQUIRE RIVERBED NETWORK MONITORING HARDWARE AND SOFTWARE MAINTENANCE, AND S",
+        "agency": "Department of the Treasury",
+        "in_scope": true,
+        "scope_basis": "preset:civilian@v1 · in-scope:Treasury",
+        "procurement_facts": [
+          {
+            "label": "Award",
+            "value": "2032H523C00044",
+            "source_field": "record identity"
+          },
+          {
+            "label": "NAICS",
+            "value": "541519",
+            "source_field": "NAICS"
+          },
+          {
+            "label": "PSC",
+            "value": "DE10",
+            "source_field": "PSC"
+          },
+          {
+            "label": "Obligated",
+            "value": "$1.92M",
+            "source_field": "obligated_to_date"
+          },
+          {
+            "label": "Award structure",
+            "value": "DEFINITIVE CONTRACT",
+            "source_field": "award type/structure"
+          }
+        ],
+        "missing_procurement_facts": [
+          "Set-aside",
+          "Competition",
+          "Place",
+          "Base + all options"
+        ]
+      }
+    },
+    {
+      "rank": "03",
+      "code": "DOJ",
+      "agency_name": "Department of Justice",
+      "title": "FEDERAL BUREAU OF INVESTIGATION × SWISH DATA CORPORATION",
+      "account": "DOJ · ACTIVE AWARD CORRIDOR · CLIENT FOOTPRINT",
+      "award_generated_id": "CONT_AWD_15F06724F0001868_1549_NNG15SC91B_8000",
+      "evidence": [
+        {
+          "award_generated_id": "CONT_AWD_15F06724F0001868_1549_NNG15SC91B_8000",
+          "label": "15F06724F0001868"
+        }
+      ],
+      "cells": [
+        {
+          "label": "Obligated to date",
+          "value": "$1.74M",
+          "small": "HISTORICAL SPEND · NOT OPPORTUNITY SIZE"
+        },
+        {
+          "label": "Window",
+          "value": "24 SEP 2026",
+          "small": "PERIOD OF PERFORMANCE END"
+        },
+        {
+          "label": "Fit",
+          "value": "Riverbed",
+          "small": "RIVERBED"
+        },
+        {
+          "label": "Evidence",
+          "value": "2 source excerpts",
+          "small": "VERIFIED AWARD RECORD"
+        }
+      ],
+      "procurement_facts": [
+        {
+          "label": "Award",
+          "value": "15F06724F0001868",
+          "source_field": "record identity"
+        },
+        {
+          "label": "NAICS",
+          "value": "541519",
+          "source_field": "NAICS"
+        },
+        {
+          "label": "PSC",
+          "value": "7A21",
+          "source_field": "PSC"
+        },
+        {
+          "label": "Obligated",
+          "value": "$1.74M",
+          "source_field": "obligated_to_date"
+        },
+        {
+          "label": "Award structure",
+          "value": "DELIVERY ORDER",
+          "source_field": "award type/structure"
+        }
+      ],
+      "missing_procurement_facts": [
+        "Set-aside",
+        "Competition",
+        "Place",
+        "Base + all options",
+        "Parent IDV"
+      ],
+      "machine_evidence": {
+        "source_identity": "CONT_AWD_15F06724F0001868_1549_NNG15SC91B_8000",
+        "source_kind": "usaspending-award",
+        "quote": "RIVERBED",
+        "agency": "Department of Justice",
+        "in_scope": true,
+        "scope_basis": "preset:civilian@v1 · in-scope:DOJ",
+        "procurement_facts": [
+          {
+            "label": "Award",
+            "value": "15F06724F0001868",
+            "source_field": "record identity"
+          },
+          {
+            "label": "NAICS",
+            "value": "541519",
+            "source_field": "NAICS"
+          },
+          {
+            "label": "PSC",
+            "value": "7A21",
+            "source_field": "PSC"
+          },
+          {
+            "label": "Obligated",
+            "value": "$1.74M",
+            "source_field": "obligated_to_date"
+          },
+          {
+            "label": "Award structure",
+            "value": "DELIVERY ORDER",
+            "source_field": "award type/structure"
+          }
+        ],
+        "missing_procurement_facts": [
+          "Set-aside",
+          "Competition",
+          "Place",
+          "Base + all options",
+          "Parent IDV"
+        ]
+      }
+    }
+  ],
+  "competitors": [
+    {
+      "label": "IRS · ACTIVE",
+      "title": "FCN",
+      "money": "$1.66M",
+      "small": "OBLIGATED · THROUGH 12 MAY 2027",
+      "wedge": "Incumbent product · SolarWinds",
+      "client_relevance": {
+        "kind": "record-core-match",
+        "text": "DISPLACEMENT TARGET · IRS currently funds NETWORK PERFORMANCE MONITORING; prioritize this incumbent account for Riverbed replacement and follow-on capture."
+      },
+      "agency_name": "Department of the Treasury",
+      "award_generated_id": "CONT_AWD_2032H525F00130_2050_NNG15SC71B_8000",
+      "procurement_facts": [
+        {
+          "label": "Award",
+          "value": "2032H525F00130",
+          "source_field": "record identity"
+        },
+        {
+          "label": "NAICS",
+          "value": "541519",
+          "source_field": "NAICS"
+        },
+        {
+          "label": "PSC",
+          "value": "7E20",
+          "source_field": "PSC"
+        },
+        {
+          "label": "Obligated",
+          "value": "$1.66M",
+          "source_field": "obligated_to_date"
+        },
+        {
+          "label": "Award structure",
+          "value": "DELIVERY ORDER",
+          "source_field": "award type/structure"
+        },
+        {
+          "label": "Other boundary awards",
+          "value": "15",
+          "source_field": "buyer-map awards with explicit boundary NAICS"
+        },
+        {
+          "label": "Other federal buyers",
+          "value": "USPTO · FOOD AND DRUG ADMINISTRATION · USCG",
+          "source_field": "buyer-map buying offices"
+        }
+      ],
+      "missing_procurement_facts": [
+        "Set-aside",
+        "Competition",
+        "Place",
+        "Base + all options",
+        "Parent IDV"
+      ],
+      "machine_evidence": {
+        "source_identity": "CONT_AWD_2032H525F00130_2050_NNG15SC71B_8000",
+        "source_kind": "usaspending-award",
+        "quote": "SOLARWINDS SOFTWARE AND SERVICES TO SUPPORT THE NETWORK PERFORMANCE MONITORING ENVIRONMENT.",
+        "agency": "Department of the Treasury",
+        "in_scope": true,
+        "scope_basis": "preset:civilian@v1 · in-scope:Treasury",
+        "client_relevance_basis": {
+          "version": 1,
+          "kind": "record-core-match",
+          "profile_client": "riverbed",
+          "profile_surface": "capability_taxonomy.core",
+          "profile_version": 2,
+          "term": "network performance monitoring",
+          "supports": [
+            {
+              "role": "record",
+              "source_identity": "CONT_AWD_2032H525F00130_2050_NNG15SC71B_8000",
+              "field": "description",
+              "matched_text": "NETWORK PERFORMANCE MONITORING",
+              "quote": "SOLARWINDS SOFTWARE AND SERVICES TO SUPPORT THE NETWORK PERFORMANCE MONITORING ENVIRONMENT."
+            }
+          ],
+          "public_context": {
+            "band": "competitors",
+            "buyer": "IRS",
+            "client": "Riverbed"
+          }
+        },
+        "procurement_facts": [
+          {
+            "label": "Award",
+            "value": "2032H525F00130",
+            "source_field": "record identity"
+          },
+          {
+            "label": "NAICS",
+            "value": "541519",
+            "source_field": "NAICS"
+          },
+          {
+            "label": "PSC",
+            "value": "7E20",
+            "source_field": "PSC"
+          },
+          {
+            "label": "Obligated",
+            "value": "$1.66M",
+            "source_field": "obligated_to_date"
+          },
+          {
+            "label": "Award structure",
+            "value": "DELIVERY ORDER",
+            "source_field": "award type/structure"
+          },
+          {
+            "label": "Other boundary awards",
+            "value": "15",
+            "source_field": "buyer-map awards with explicit boundary NAICS"
+          },
+          {
+            "label": "Other federal buyers",
+            "value": "USPTO · FOOD AND DRUG ADMINISTRATION · USCG",
+            "source_field": "buyer-map buying offices"
+          }
+        ],
+        "missing_procurement_facts": [
+          "Set-aside",
+          "Competition",
+          "Place",
+          "Base + all options",
+          "Parent IDV"
+        ]
+      }
+    },
+    {
+      "label": "USCIS · ACTIVE",
+      "title": "Swish Data",
+      "money": "$1.13M",
+      "small": "OBLIGATED · THROUGH 30 JUN 2027",
+      "wedge": "Incumbent product · Aternity",
+      "client_relevance": {
+        "kind": "record-core-match",
+        "text": "DISPLACEMENT TARGET · USCIS currently funds ATERNITY; prioritize this incumbent account for Riverbed replacement and follow-on capture."
+      },
+      "agency_name": "Department of Homeland Security",
+      "award_generated_id": "CONT_AWD_70SBUR26F00000149_7003_NNG15SC91B_8000",
+      "procurement_facts": [
+        {
+          "label": "Award",
+          "value": "70SBUR26F00000149",
+          "source_field": "record identity"
+        },
+        {
+          "label": "NAICS",
+          "value": "541519",
+          "source_field": "NAICS"
+        },
+        {
+          "label": "PSC",
+          "value": "DA10",
+          "source_field": "PSC"
+        },
+        {
+          "label": "Obligated",
+          "value": "$1.13M",
+          "source_field": "obligated_to_date"
+        },
+        {
+          "label": "Award structure",
+          "value": "DELIVERY ORDER",
+          "source_field": "award type/structure"
+        },
+        {
+          "label": "Other boundary awards",
+          "value": "18",
+          "source_field": "buyer-map awards with explicit boundary NAICS"
+        },
+        {
+          "label": "Other federal buyers",
+          "value": "NIH · USCIS · CBP",
+          "source_field": "buyer-map buying offices"
+        }
+      ],
+      "missing_procurement_facts": [
+        "Set-aside",
+        "Competition",
+        "Place",
+        "Base + all options",
+        "Parent IDV"
+      ],
+      "machine_evidence": {
+        "source_identity": "CONT_AWD_70SBUR26F00000149_7003_NNG15SC91B_8000",
+        "source_kind": "usaspending-award",
+        "quote": "ATERNITY IS USED TO MONITOR THE USCIS ENTERPRISE NETWORK TO ENSURE OPTIMAL NETWORK OPERATION AND IDENTIFY ANY POTENTIAL ISSUES.",
+        "agency": "Department of Homeland Security",
+        "in_scope": true,
+        "scope_basis": "preset:civilian@v1 · in-scope:DHS",
+        "client_relevance_basis": {
+          "version": 1,
+          "kind": "record-core-match",
+          "profile_client": "riverbed",
+          "profile_surface": "capability_taxonomy.core",
+          "profile_version": 2,
+          "term": "Aternity",
+          "supports": [
+            {
+              "role": "record",
+              "source_identity": "CONT_AWD_70SBUR26F00000149_7003_NNG15SC91B_8000",
+              "field": "description",
+              "matched_text": "ATERNITY",
+              "quote": "ATERNITY IS USED TO MONITOR THE USCIS ENTERPRISE NETWORK TO ENSURE O"
+            }
+          ],
+          "public_context": {
+            "band": "competitors",
+            "buyer": "USCIS",
+            "client": "Riverbed"
+          }
+        },
+        "procurement_facts": [
+          {
+            "label": "Award",
+            "value": "70SBUR26F00000149",
+            "source_field": "record identity"
+          },
+          {
+            "label": "NAICS",
+            "value": "541519",
+            "source_field": "NAICS"
+          },
+          {
+            "label": "PSC",
+            "value": "DA10",
+            "source_field": "PSC"
+          },
+          {
+            "label": "Obligated",
+            "value": "$1.13M",
+            "source_field": "obligated_to_date"
+          },
+          {
+            "label": "Award structure",
+            "value": "DELIVERY ORDER",
+            "source_field": "award type/structure"
+          },
+          {
+            "label": "Other boundary awards",
+            "value": "18",
+            "source_field": "buyer-map awards with explicit boundary NAICS"
+          },
+          {
+            "label": "Other federal buyers",
+            "value": "NIH · USCIS · CBP",
+            "source_field": "buyer-map buying offices"
+          }
+        ],
+        "missing_procurement_facts": [
+          "Set-aside",
+          "Competition",
+          "Place",
+          "Base + all options",
+          "Parent IDV"
+        ]
+      }
+    }
+  ],
+  "acquisition_pathways": [
+    {
+      "label": "FHWA · CLIENT FOOTPRINT",
+      "title": "FHWA renewal route",
+      "requirement": "THE PURPOSE OF THIS DELIVERY ORDER IS TO ACQUIRE FOR RIVERBED APPRESPONSE SOFTWARE MAINTENANCE SUPPORT",
+      "pathway": "AWARD 693JJ126F00019N · AWARD STRUCTURE DELIVERY ORDER · NAICS 541519 · PSC 7B22",
+      "access": "ACCESS CONDITIONS NOT STATED IN CITED RECORD",
+      "action": "DEFEND / EXPAND NEXT · renewal or follow-on owner, reseller/channel route, expansion requirement, set-aside eligibility before assigning the renewal capture action.",
+      "citation_label": "award 693JJ126F00019N",
+      "agency_name": "Department of Transportation",
+      "client_relevance": {
+        "kind": "record-core-match",
+        "text": "DEFEND / EXPAND PATH · FHWA funds a cited Riverbed federal footprint; use the award to confirm the renewal owner, channel route, and expansion scope before the next procurement action."
+      },
+      "procurement_facts": [
+        {
+          "label": "Award",
+          "value": "693JJ126F00019N",
+          "source_field": "record identity"
+        },
+        {
+          "label": "NAICS",
+          "value": "541519",
+          "source_field": "NAICS"
+        },
+        {
+          "label": "PSC",
+          "value": "7B22",
+          "source_field": "PSC"
+        },
+        {
+          "label": "Obligated",
+          "value": "$587.39K",
+          "source_field": "obligated_to_date"
+        },
+        {
+          "label": "Award structure",
+          "value": "DELIVERY ORDER",
+          "source_field": "award type/structure"
+        }
+      ],
+      "missing_procurement_facts": [
+        "Set-aside",
+        "Competition",
+        "Place",
+        "Base + all options",
+        "Parent IDV"
+      ],
+      "machine_evidence": {
+        "source_identity": "CONT_AWD_693JJ126F00019N_6925_NNG15SD26B_8000",
+        "source_kind": "usaspending-award",
+        "quote": "THE PURPOSE OF THIS DELIVERY ORDER IS TO ACQUIRE FOR RIVERBED APPRESPONSE SOFTWARE MAINTENANCE SUPPORT",
+        "agency": "Department of Transportation",
+        "in_scope": true,
+        "scope_basis": "preset:civilian@v1 · in-scope:DOT",
+        "pathway_basis": {
+          "version": 1,
+          "agency": "Department of Transportation",
+          "buyer": "FEDERAL HIGHWAY ADMINISTRATION",
+          "capability": "Riverbed",
+          "source_kind": "usaspending-award",
+          "source_identity": "CONT_AWD_693JJ126F00019N_6925_NNG15SD26B_8000",
+          "award_id": "693JJ126F00019N",
+          "notice_guid": "",
+          "route_key": "award:CONT_AWD_693JJ126F00019N_6925_NNG15SD26B_8000",
+          "source_company_key": "thundercat technology",
+          "client_footprint": true,
+          "requirement_excerpt": "THE PURPOSE OF THIS DELIVERY ORDER IS TO ACQUIRE FOR RIVERBED APPRESPONSE SOFTWARE MAINTENANCE SUPPORT",
+          "procurement_facts": [
+            {
+              "label": "Award",
+              "value": "693JJ126F00019N",
+              "source_field": "record identity"
+            },
+            {
+              "label": "NAICS",
+              "value": "541519",
+              "source_field": "NAICS"
+            },
+            {
+              "label": "PSC",
+              "value": "7B22",
+              "source_field": "PSC"
+            },
+            {
+              "label": "Obligated",
+              "value": "$587.39K",
+              "source_field": "obligated_to_date"
+            },
+            {
+              "label": "Award structure",
+              "value": "DELIVERY ORDER",
+              "source_field": "award type/structure"
+            }
+          ],
+          "missing_procurement_facts": [
+            "Set-aside",
+            "Competition",
+            "Place",
+            "Base + all options",
+            "Parent IDV"
+          ]
+        },
+        "client_relevance_basis": {
+          "version": 1,
+          "kind": "record-core-match",
+          "profile_client": "riverbed",
+          "profile_surface": "capability_taxonomy.core",
+          "profile_version": 2,
+          "term": "Riverbed",
+          "supports": [
+            {
+              "role": "record",
+              "source_identity": "CONT_AWD_693JJ126F00019N_6925_NNG15SD26B_8000",
+              "field": "description",
+              "matched_text": "RIVERBED",
+              "quote": "THE PURPOSE OF THIS DELIVERY ORDER IS TO ACQUIRE FOR RIVERBED APPRESPONSE SOFTWARE MAINTENANCE SUPPORT."
+            }
+          ],
+          "public_context": {
+            "band": "acquisition_pathways",
+            "buyer": "FHWA",
+            "client": "Riverbed",
+            "client_footprint": true,
+            "evidence_state": "executed-award"
+          }
+        },
+        "procurement_facts": [
+          {
+            "label": "Award",
+            "value": "693JJ126F00019N",
+            "source_field": "record identity"
+          },
+          {
+            "label": "NAICS",
+            "value": "541519",
+            "source_field": "NAICS"
+          },
+          {
+            "label": "PSC",
+            "value": "7B22",
+            "source_field": "PSC"
+          },
+          {
+            "label": "Obligated",
+            "value": "$587.39K",
+            "source_field": "obligated_to_date"
+          },
+          {
+            "label": "Award structure",
+            "value": "DELIVERY ORDER",
+            "source_field": "award type/structure"
+          }
+        ],
+        "missing_procurement_facts": [
+          "Set-aside",
+          "Competition",
+          "Place",
+          "Base + all options",
+          "Parent IDV"
+        ]
+      },
+      "award_generated_id": "CONT_AWD_693JJ126F00019N_6925_NNG15SD26B_8000",
+      "award_id": "693JJ126F00019N"
+    },
+    {
+      "label": "SSA · CLIENT FOOTPRINT",
+      "title": "SSA renewal route",
+      "requirement": "GSA DELIVERY ORDER FOR RIVERBED NETPROFILER LICENSING AND SUPPORT. (PREVIOUS AWARD: 28321323FDX030013)",
+      "pathway": "AWARD 28321325FDX030072 · AWARD STRUCTURE DELIVERY ORDER · NAICS 443120 · PSC 7A21",
+      "access": "ACCESS CONDITIONS NOT STATED IN CITED RECORD",
+      "action": "DEFEND / EXPAND NEXT · renewal or follow-on owner, reseller/channel route, expansion requirement, set-aside eligibility before assigning the renewal capture action.",
+      "citation_label": "award 28321325FDX030072",
+      "agency_name": "Social Security Administration",
+      "client_relevance": {
+        "kind": "record-core-match",
+        "text": "DEFEND / EXPAND PATH · SSA funds a cited Riverbed federal footprint; use the award to confirm the renewal owner, channel route, and expansion scope before the next procurement action."
+      },
+      "procurement_facts": [
+        {
+          "label": "Award",
+          "value": "28321325FDX030072",
+          "source_field": "record identity"
+        },
+        {
+          "label": "NAICS",
+          "value": "443120",
+          "source_field": "NAICS"
+        },
+        {
+          "label": "PSC",
+          "value": "7A21",
+          "source_field": "PSC"
+        },
+        {
+          "label": "Obligated",
+          "value": "$2.09M",
+          "source_field": "obligated_to_date"
+        },
+        {
+          "label": "Award structure",
+          "value": "DELIVERY ORDER",
+          "source_field": "award type/structure"
+        }
+      ],
+      "missing_procurement_facts": [
+        "Set-aside",
+        "Competition",
+        "Place",
+        "Base + all options",
+        "Parent IDV"
+      ],
+      "machine_evidence": {
+        "source_identity": "CONT_AWD_28321325FDX030072_2800_GS35F0511T_4730",
+        "source_kind": "usaspending-award",
+        "quote": "GSA DELIVERY ORDER FOR RIVERBED NETPROFILER LICENSING AND SUPPORT. (PREVIOUS AWARD: 28321323FDX030013)",
+        "agency": "Social Security Administration",
+        "in_scope": true,
+        "scope_basis": "preset:civilian@v1 · in-scope:SSA",
+        "pathway_basis": {
+          "version": 1,
+          "agency": "Social Security Administration",
+          "buyer": "SOCIAL SECURITY ADMINISTRATION",
+          "capability": "Riverbed",
+          "source_kind": "usaspending-award",
+          "source_identity": "CONT_AWD_28321325FDX030072_2800_GS35F0511T_4730",
+          "award_id": "28321325FDX030072",
+          "notice_guid": "",
+          "route_key": "award:CONT_AWD_28321325FDX030072_2800_GS35F0511T_4730",
+          "source_company_key": "ec america",
+          "client_footprint": true,
+          "requirement_excerpt": "GSA DELIVERY ORDER FOR RIVERBED NETPROFILER LICENSING AND SUPPORT. (PREVIOUS AWARD: 28321323FDX030013)",
+          "procurement_facts": [
+            {
+              "label": "Award",
+              "value": "28321325FDX030072",
+              "source_field": "record identity"
+            },
+            {
+              "label": "NAICS",
+              "value": "443120",
+              "source_field": "NAICS"
+            },
+            {
+              "label": "PSC",
+              "value": "7A21",
+              "source_field": "PSC"
+            },
+            {
+              "label": "Obligated",
+              "value": "$2.09M",
+              "source_field": "obligated_to_date"
+            },
+            {
+              "label": "Award structure",
+              "value": "DELIVERY ORDER",
+              "source_field": "award type/structure"
+            }
+          ],
+          "missing_procurement_facts": [
+            "Set-aside",
+            "Competition",
+            "Place",
+            "Base + all options",
+            "Parent IDV"
+          ]
+        },
+        "client_relevance_basis": {
+          "version": 1,
+          "kind": "record-core-match",
+          "profile_client": "riverbed",
+          "profile_surface": "capability_taxonomy.core",
+          "profile_version": 2,
+          "term": "Riverbed",
+          "supports": [
+            {
+              "role": "record",
+              "source_identity": "CONT_AWD_28321325FDX030072_2800_GS35F0511T_4730",
+              "field": "description",
+              "matched_text": "RIVERBED",
+              "quote": "GSA DELIVERY ORDER FOR RIVERBED NETPROFILER LICENSING AND SUPPORT. (PREVIOUS AWARD: 2832132"
+            }
+          ],
+          "public_context": {
+            "band": "acquisition_pathways",
+            "buyer": "SSA",
+            "client": "Riverbed",
+            "client_footprint": true,
+            "evidence_state": "executed-award"
+          }
+        },
+        "procurement_facts": [
+          {
+            "label": "Award",
+            "value": "28321325FDX030072",
+            "source_field": "record identity"
+          },
+          {
+            "label": "NAICS",
+            "value": "443120",
+            "source_field": "NAICS"
+          },
+          {
+            "label": "PSC",
+            "value": "7A21",
+            "source_field": "PSC"
+          },
+          {
+            "label": "Obligated",
+            "value": "$2.09M",
+            "source_field": "obligated_to_date"
+          },
+          {
+            "label": "Award structure",
+            "value": "DELIVERY ORDER",
+            "source_field": "award type/structure"
+          }
+        ],
+        "missing_procurement_facts": [
+          "Set-aside",
+          "Competition",
+          "Place",
+          "Base + all options",
+          "Parent IDV"
+        ]
+      },
+      "award_generated_id": "CONT_AWD_28321325FDX030072_2800_GS35F0511T_4730",
+      "award_id": "28321325FDX030072"
+    }
+  ],
+  "teaming": [],
+  "horizon": [
+    {
+      "hot": true,
+      "label": "IRS · AWARD WINDOW",
+      "title": "Riverbed via FCN",
+      "value": "25 SEP 2026",
+      "small": "ACTIVE AWARD · PERIOD OF PERFORMANCE END",
+      "decision": "DEFEND",
+      "source_citation": "USAspending award · 205AE925F00201",
+      "timing_basis": {
+        "source_value": "2026-09-25",
+        "precision": "exact-date",
+        "sort_date": "2026-09-25"
+      },
+      "procurement_facts": [
+        {
+          "label": "Award",
+          "value": "205AE925F00201",
+          "source_field": "record identity"
+        },
+        {
+          "label": "NAICS",
+          "value": "541519",
+          "source_field": "NAICS"
+        },
+        {
+          "label": "PSC",
+          "value": "7G21",
+          "source_field": "PSC"
+        },
+        {
+          "label": "Obligated",
+          "value": "$9.48M",
+          "source_field": "obligated_to_date"
+        },
+        {
+          "label": "Award structure",
+          "value": "DELIVERY ORDER",
+          "source_field": "award type/structure"
+        }
+      ],
+      "missing_procurement_facts": [
+        "Set-aside",
+        "Competition",
+        "Place",
+        "Base + all options",
+        "Parent IDV"
+      ],
+      "job_context": {
+        "kind": "published-description",
+        "text": "RENEWAL OF HARDWARE AND SOFTWARE MAINTENANCE AND LICENSE FOR RIVERBED BRAND NAME PRODUCTS"
+      },
+      "client_relevance": {
+        "kind": "record-core-match",
+        "text": "CONTINUITY CHECK · Riverbed's cited federal footprint reaches period end. That date is not a confirmed recompete; confirm option, extension, follow-on, replacement, or sunset before assigning capture action."
+      },
+      "agency_name": "Department of the Treasury",
+      "organization_marks": [
+        {
+          "kind": "agency",
+          "label": "Department of the Treasury",
+          "display": "IRS"
+        },
+        {
+          "kind": "client",
+          "label": "Riverbed",
+          "display": "Riverbed"
+        },
+        {
+          "kind": "company",
+          "label": "FCN, INC.",
+          "display": "FCN"
+        }
+      ],
+      "machine_evidence": {
+        "source_identity": "CONT_AWD_205AE925F00201_2050_NNG15SC71B_8000",
+        "source_kind": "usaspending-award",
+        "quote": "ENEWAL OF HARDWARE AND SOFTWARE MAINTENANCE AND LICENSE FOR RIVERBED BRAND NAME PRODUCTS",
+        "agency": "Department of the Treasury",
+        "in_scope": true,
+        "scope_basis": "preset:civilian@v1 · in-scope:Treasury",
+        "job_context_basis": {
+          "version": 1,
+          "event_kind": "award-window",
+          "source_field": "description",
+          "source_text": "THE PURPOSE OF THIS REQUIREMENT IS FOR THE RENEWAL OF HARDWARE AND SOFTWARE MAINTENANCE AND LICENSE FOR RIVERBED BRAND NAME PRODUCTS"
+        },
+        "client_relevance_basis": {
+          "version": 1,
+          "kind": "record-core-match",
+          "profile_client": "riverbed",
+          "profile_surface": "capability_taxonomy.core",
+          "profile_version": 2,
+          "term": "Riverbed",
+          "supports": [
+            {
+              "role": "record",
+              "source_identity": "CONT_AWD_205AE925F00201_2050_NNG15SC71B_8000",
+              "field": "description",
+              "matched_text": "RIVERBED",
+              "quote": "ENEWAL OF HARDWARE AND SOFTWARE MAINTENANCE AND LICENSE FOR RIVERBED BRAND NAME PRODUCTS"
+            }
+          ],
+          "public_context": {
+            "band": "horizon",
+            "client": "Riverbed",
+            "client_footprint": true,
+            "event_kind": "award-window"
+          }
+        },
+        "decision": "DEFEND",
+        "source_citation": "USAspending award · 205AE925F00201",
+        "timing_basis": {
+          "source_value": "2026-09-25",
+          "precision": "exact-date",
+          "sort_date": "2026-09-25"
+        },
+        "procurement_facts": [
+          {
+            "label": "Award",
+            "value": "205AE925F00201",
+            "source_field": "record identity"
+          },
+          {
+            "label": "NAICS",
+            "value": "541519",
+            "source_field": "NAICS"
+          },
+          {
+            "label": "PSC",
+            "value": "7G21",
+            "source_field": "PSC"
+          },
+          {
+            "label": "Obligated",
+            "value": "$9.48M",
+            "source_field": "obligated_to_date"
+          },
+          {
+            "label": "Award structure",
+            "value": "DELIVERY ORDER",
+            "source_field": "award type/structure"
+          }
+        ],
+        "missing_procurement_facts": [
+          "Set-aside",
+          "Competition",
+          "Place",
+          "Base + all options",
+          "Parent IDV"
+        ]
+      },
+      "award_generated_id": "CONT_AWD_205AE925F00201_2050_NNG15SC71B_8000"
+    },
+    {
+      "hot": false,
+      "label": "OCC · AWARD WINDOW",
+      "title": "Riverbed via Swish Data",
+      "value": "30 SEP 2026",
+      "small": "ACTIVE AWARD · PERIOD OF PERFORMANCE END",
+      "decision": "DEFEND",
+      "source_citation": "USAspending award · 2031JW23F00016",
+      "timing_basis": {
+        "source_value": "2026-09-30",
+        "precision": "exact-date",
+        "sort_date": "2026-09-30"
+      },
+      "procurement_facts": [
+        {
+          "label": "Award",
+          "value": "2031JW23F00016",
+          "source_field": "record identity"
+        },
+        {
+          "label": "NAICS",
+          "value": "541519",
+          "source_field": "NAICS"
+        },
+        {
+          "label": "PSC",
+          "value": "DA10",
+          "source_field": "PSC"
+        },
+        {
+          "label": "Obligated",
+          "value": "$2.22M",
+          "source_field": "obligated_to_date"
+        },
+        {
+          "label": "Award structure",
+          "value": "DELIVERY ORDER",
+          "source_field": "award type/structure"
+        }
+      ],
+      "missing_procurement_facts": [
+        "Set-aside",
+        "Competition",
+        "Place",
+        "Base + all options",
+        "Parent IDV"
+      ],
+      "job_context": {
+        "kind": "published-description",
+        "text": "RIVERBED MAINTENANCE RENEWAL"
+      },
+      "client_relevance": {
+        "kind": "record-core-match",
+        "text": "CONTINUITY CHECK · Riverbed's cited federal footprint reaches period end. That date is not a confirmed recompete; confirm option, extension, follow-on, replacement, or sunset before assigning capture action."
+      },
+      "agency_name": "Department of the Treasury",
+      "organization_marks": [
+        {
+          "kind": "agency",
+          "label": "Department of the Treasury",
+          "display": "OCC"
+        },
+        {
+          "kind": "client",
+          "label": "Riverbed",
+          "display": "Riverbed"
+        },
+        {
+          "kind": "company",
+          "label": "SWISH DATA CORPORATION",
+          "display": "Swish Data"
+        }
+      ],
+      "machine_evidence": {
+        "source_identity": "CONT_AWD_2031JW23F00016_2046_NNG15SC91B_8000",
+        "source_kind": "usaspending-award",
+        "quote": "RIVERBED MAINTENANCE RENEWAL",
+        "agency": "Department of the Treasury",
+        "in_scope": true,
+        "scope_basis": "preset:civilian@v1 · in-scope:Treasury",
+        "job_context_basis": {
+          "version": 1,
+          "event_kind": "award-window",
+          "source_field": "description",
+          "source_text": "RIVERBED MAINTENANCE RENEWAL"
+        },
+        "client_relevance_basis": {
+          "version": 1,
+          "kind": "record-core-match",
+          "profile_client": "riverbed",
+          "profile_surface": "capability_taxonomy.core",
+          "profile_version": 2,
+          "term": "Riverbed",
+          "supports": [
+            {
+              "role": "record",
+              "source_identity": "CONT_AWD_2031JW23F00016_2046_NNG15SC91B_8000",
+              "field": "description",
+              "matched_text": "RIVERBED",
+              "quote": "RIVERBED MAINTENANCE RENEWAL"
+            }
+          ],
+          "public_context": {
+            "band": "horizon",
+            "client": "Riverbed",
+            "client_footprint": true,
+            "event_kind": "award-window"
+          }
+        },
+        "decision": "DEFEND",
+        "source_citation": "USAspending award · 2031JW23F00016",
+        "timing_basis": {
+          "source_value": "2026-09-30",
+          "precision": "exact-date",
+          "sort_date": "2026-09-30"
+        },
+        "procurement_facts": [
+          {
+            "label": "Award",
+            "value": "2031JW23F00016",
+            "source_field": "record identity"
+          },
+          {
+            "label": "NAICS",
+            "value": "541519",
+            "source_field": "NAICS"
+          },
+          {
+            "label": "PSC",
+            "value": "DA10",
+            "source_field": "PSC"
+          },
+          {
+            "label": "Obligated",
+            "value": "$2.22M",
+            "source_field": "obligated_to_date"
+          },
+          {
+            "label": "Award structure",
+            "value": "DELIVERY ORDER",
+            "source_field": "award type/structure"
+          }
+        ],
+        "missing_procurement_facts": [
+          "Set-aside",
+          "Competition",
+          "Place",
+          "Base + all options",
+          "Parent IDV"
+        ]
+      },
+      "award_generated_id": "CONT_AWD_2031JW23F00016_2046_NNG15SC91B_8000"
+    }
+  ],
+  "pocs": [],
+  "decision_makers": [
+    {
+      "name": "Jim Rolfes",
+      "title": "Assistant Director for Information Management and Technology",
+      "organization": "Bureau of Land Management",
+      "bio_url": "https://www.blm.gov/bio/jim-rolfes",
+      "retrieved_at": "2026-07-20T00:00:00Z",
+      "route_kind": "usaspending-award",
+      "route_identity": "CONT_AWD_140L0625F0144_1422_NNG15SC91B_8000",
+      "route_label": "BLM × Swish Data · Riverbed active award; period ends 30 Sep 2026",
+      "relevance_rationale": "BLM identifies Rolfes as its Assistant Director for Information Management and Technology. That remit makes his office relevant to validate the displayed BLM network-performance route; this card does not identify him as a solicitation or procurement owner.",
+      "source_system": "official-leadership-source",
+      "source_record_id": "https://www.blm.gov/bio/jim-rolfes",
+      "portrait_source_url": "https://www.blm.gov/sites/default/files/styles/bio_photo/public/images/2023-02/Leadership-HQ500-Jim-Rolfes.png?itok=1vvoofcy",
+      "portrait_asset": "clients/riverbed/assets/portraits/jim-rolfes.png",
+      "portrait_sha256": "7a3047b96d90f4c74f086b3cbddfb7b327baf28dc68b3ea8ce92c0d91a8644a7"
+    },
+    {
+      "name": "Darren Ash",
+      "title": "Chief Information Officer",
+      "organization": "U.S. Department of the Interior",
+      "bio_url": "https://www.doi.gov/ocio/darren-ash",
+      "retrieved_at": "2026-07-20T00:00:00Z",
+      "route_kind": "usaspending-award",
+      "route_identity": "CONT_AWD_140L0625F0144_1422_NNG15SC91B_8000",
+      "route_label": "DOI → BLM technology governance · displayed Riverbed footprint",
+      "relevance_rationale": "DOI says Ash leads department IT and information-management capabilities, budgeting, governance, and portfolio management. That department-wide remit makes his office relevant to validate the displayed DOI/BLM route; this card does not identify him as a solicitation or procurement owner.",
+      "source_system": "official-leadership-source",
+      "source_record_id": "https://www.doi.gov/ocio/darren-ash",
+      "portrait_source_url": "https://www.doi.gov/sites/default/files/content_images//darren-ash-photo_0.jpg",
+      "portrait_asset": "clients/riverbed/assets/portraits/darren-ash.jpg",
+      "portrait_sha256": "53e74ddd24323a72497685e6c706d5fe71a83a538ed28737afff93b99e84d146"
+    },
+    {
+      "name": "Shantrell (Nikki) Collier",
+      "title": "Deputy Assistant Attorney General and Chief Information Officer",
+      "organization": "U.S. Department of Justice",
+      "bio_url": "https://www.justice.gov/jmd/staff-profile/cio-leadership",
+      "retrieved_at": "2026-07-20T00:00:00Z",
+      "route_kind": "usaspending-award",
+      "route_identity": "CONT_AWD_15F06724F0001868_1549_NNG15SC91B_8000",
+      "route_label": "DOJ → FBI technology governance · displayed Riverbed footprint via Swish Data",
+      "relevance_rationale": "DOJ identifies Collier as its CIO and assigns that office department-wide IT investment, infrastructure, technology-governance, and cybersecurity responsibilities. That remit makes her office relevant to validate the displayed DOJ/FBI route; this card does not identify her as a solicitation or procurement owner.",
+      "source_system": "official-leadership-source",
+      "source_record_id": "https://www.justice.gov/jmd/staff-profile/cio-leadership",
+      "portrait_source_url": "https://www.justice.gov/d9/styles/staff_profile_portrait_300h/public/2025-09/nikki_collier_pboto.jpeg?itok=HZb7dLQI",
+      "portrait_asset": "clients/riverbed/assets/portraits/nikki-collier.jpeg",
+      "portrait_sha256": "ee0dca78a968d79dddb3c6b8c03b9ae14f2d62cf9109147fbdef7c639cd0ea2b"
+    }
+  ],
+  "evidence": [
+    {
+      "award_generated_id": "CONT_AWD_140L0625F0144_1422_NNG15SC91B_8000",
+      "label": "140L0625F0144"
+    },
+    {
+      "award_generated_id": "CONT_AWD_2032H523C00044_2050_-NONE-_-NONE-",
+      "label": "2032H523C00044"
+    },
+    {
+      "award_generated_id": "CONT_AWD_15F06724F0001868_1549_NNG15SC91B_8000",
+      "label": "15F06724F0001868"
+    },
+    {
+      "award_generated_id": "CONT_AWD_205AE925F00201_2050_NNG15SC71B_8000",
+      "label": "IRS · RIVERBED VIA FCN · ACTIVE FO"
+    },
+    {
+      "award_generated_id": "CONT_AWD_2031JW23F00016_2046_NNG15SC91B_8000",
+      "label": "OCC · RIVERBED VIA SWISH DATA · AC"
+    },
+    {
+      "award_generated_id": "CONT_AWD_693JJ126F00019N_6925_NNG15SD26B_8000",
+      "label": "FHWA · RIVERBED VIA THUNDERCAT TEC"
+    },
+    {
+      "award_generated_id": "CONT_AWD_80NSSC26FA300_8000_NNG15SC91B_8000",
+      "label": "NASA · RIVERBED VIA SWISH DATA · A"
+    },
+    {
+      "award_generated_id": "CONT_AWD_28321325FDX030072_2800_GS35F0511T_4730",
+      "label": "SSA · RIVERBED VIA EC AMERICA · AC"
+    },
+    {
+      "award_generated_id": "CONT_AWD_2032H525F00130_2050_NNG15SC71B_8000",
+      "label": "IRS · FCN · COMPETITOR CORRIDOR"
+    },
+    {
+      "award_generated_id": "CONT_AWD_70SBUR26F00000149_7003_NNG15SC91B_8000",
+      "label": "USCIS · SWISH DATA · COMPETITOR CO"
+    }
+  ],
+  "sequence": "Protect and expand the active footprint at IRS; resolve the cited acquisition-path access conditions before assigning partner, displacement, or direct-pursuit posture; treat cited award period ends as research triggers, not recompetes; confirm option status, vehicle, contracting office, and follow-on path.",
+  "scale": {
+    "rows": [
+      {
+        "label": "IRS × FCN",
+        "amount": "$1.66M",
+        "amount_basis": "obligated_to_date",
+        "award_generated_id": "CONT_AWD_2032H525F00130_2050_NNG15SC71B_8000"
+      },
+      {
+        "label": "USCIS × Swish Data",
+        "amount": "$1.13M",
+        "amount_basis": "obligated_to_date",
+        "award_generated_id": "CONT_AWD_70SBUR26F00000149_7003_NNG15SC91B_8000"
+      }
+    ],
+    "total": "$2.79M",
+    "basis": "competitor_obligated_to_date"
+  },
+  "scale_label": "Competitor-held obligated history",
+  "scale_total": "$2.79M",
+  "scale_counts": "Across 2 cited active award corridors",
+  "figures": [
+    {
+      "text": "$1.92M",
+      "raw": 1923540.25,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_record_id": "2032H523C00044",
+      "generated_internal_id": "CONT_AWD_2032H523C00044_2050_-NONE-_-NONE-"
+    },
+    {
+      "text": "$1.74M",
+      "raw": 1738476.0,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_record_id": "15F06724F0001868",
+      "generated_internal_id": "CONT_AWD_15F06724F0001868_1549_NNG15SC91B_8000"
+    },
+    {
+      "text": "$9.48M",
+      "raw": 9477044.6,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_record_id": "205AE925F00201",
+      "generated_internal_id": "CONT_AWD_205AE925F00201_2050_NNG15SC71B_8000"
+    },
+    {
+      "text": "$1.4M",
+      "raw": 1404303.57,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_record_id": "140L0625F0144",
+      "generated_internal_id": "CONT_AWD_140L0625F0144_1422_NNG15SC91B_8000"
+    },
+    {
+      "text": "$2.22M",
+      "raw": 2222069.0,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_record_id": "2031JW23F00016",
+      "generated_internal_id": "CONT_AWD_2031JW23F00016_2046_NNG15SC91B_8000"
+    },
+    {
+      "text": "$587.39K",
+      "raw": 587394.93,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_record_id": "693JJ126F00019N",
+      "generated_internal_id": "CONT_AWD_693JJ126F00019N_6925_NNG15SD26B_8000"
+    },
+    {
+      "text": "$47.35K",
+      "raw": 47345.66,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_record_id": "80NSSC26FA300",
+      "generated_internal_id": "CONT_AWD_80NSSC26FA300_8000_NNG15SC91B_8000"
+    },
+    {
+      "text": "$2.09M",
+      "raw": 2085823.2,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_record_id": "28321325FDX030072",
+      "generated_internal_id": "CONT_AWD_28321325FDX030072_2800_GS35F0511T_4730"
+    },
+    {
+      "text": "$1.66M",
+      "raw": 1660329.76,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_record_id": "2032H525F00130",
+      "generated_internal_id": "CONT_AWD_2032H525F00130_2050_NNG15SC71B_8000"
+    },
+    {
+      "text": "$1.13M",
+      "raw": 1128300.0,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_record_id": "70SBUR26F00000149",
+      "generated_internal_id": "CONT_AWD_70SBUR26F00000149_7003_NNG15SC91B_8000"
+    },
+    {
+      "text": "$19.49M",
+      "raw": 19485997.21,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_url": "https://www.usaspending.gov/",
+      "component_raws": [
+        1923540.25,
+        1738476.0,
+        9477044.6,
+        1404303.57,
+        2222069.0,
+        587394.93,
+        47345.66,
+        2085823.2
+      ]
+    },
+    {
+      "text": "$2.79M",
+      "raw": 2788629.76,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_url": "https://www.usaspending.gov/",
+      "component_raws": [
+        1660329.76,
+        1128300.0
+      ]
+    }
+  ]
+}

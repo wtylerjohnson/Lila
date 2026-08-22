@@ -1,0 +1,63 @@
+{
+  "client_name": "mark43",
+  "display_name": "Mark43",
+  "capability_summary": "Cloud-native public safety software: computer-aided dispatch, law enforcement records management, evidence and analytics for police and first-responder agencies.",
+  "capability_terms": {
+    "core": [
+      "computer-aided dispatch",
+      "law enforcement records management",
+      "records management system",
+      "public safety software",
+      "incident reporting",
+      "dispatch system",
+      "NIBRS",
+      "CJIS",
+      "police records"
+    ],
+    "adjacent": [
+      "evidence management",
+      "crime analytics",
+      "911 modernization",
+      "NG911",
+      "first responder technology",
+      "case management"
+    ],
+    "excluded": [
+      "computer-aided design",
+      "CAD drawing",
+      "CAD file",
+      "engineering design",
+      "electronic records management",
+      "records disposition",
+      "NARA",
+      "archival"
+    ]
+  },
+  "named_competitors_and_incumbents": [
+    "Axon Records",
+    "Tyler Enterprise Public Safety",
+    "New World Systems",
+    "CentralSquare",
+    "Motorola Solutions Flex",
+    "Hexagon OnCall",
+    "Versaterm",
+    "OpenFox",
+    "Sur-Tec OJS DDE"
+  ],
+  "mission_components": [
+    "Department of the Interior",
+    "U.S. Secret Service",
+    "U.S. Marshals Service",
+    "Customs and Border Protection",
+    "Federal Protective Service",
+    "Pentagon Force Protection Agency",
+    "federal law enforcement"
+  ],
+  "naics_boundary": [
+    "513210",
+    "541511",
+    "541512",
+    "541519",
+    "541690"
+  ]
+}

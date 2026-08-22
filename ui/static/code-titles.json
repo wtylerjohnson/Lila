@@ -1,0 +1,13 @@
+{
+  "_note": "Static official-title map shipped with the Command Center. Titles are NEVER invented client-side; the renderer shows a code with no title when the map lacks it. NAICS titles are authoritative (2022 NAICS). PSC titles are intentionally empty: the LILA pipeline renders PSC as bare codes (no title map exists upstream), so the analyst panel renders PSC code-only until an authoritative PSC map is added. Populated per client-agnostic pattern; extend as codes appear.",
+  "naics": {
+    "513210": "Software Publishers",
+    "541519": "Other Computer Related Services",
+    "518210": "Computing Infrastructure Providers, Data Processing, Web Hosting, and Related Services",
+    "541512": "Computer Systems Design Services",
+    "541513": "Computer Facilities Management Services",
+    "511210": "Software Publishers (2017)",
+    "443120": "Computer and Software Stores"
+  },
+  "psc": {}
+}

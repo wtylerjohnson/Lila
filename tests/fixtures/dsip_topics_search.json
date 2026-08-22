@@ -1,0 +1,61 @@
+{
+  "statuses": [
+    {"label": "Pre-Release", "value": 592},
+    {"label": "Open", "value": 591},
+    {"label": "Closed", "value": 593}
+  ],
+  "total": 2,
+  "data": [
+    {
+      "topicStatus": "Pre-Release",
+      "cmmcLevel": "Level 1",
+      "topicManagers": [
+        {
+          "phoneDisplay": "N",
+          "phone": null,
+          "center": "ARMY",
+          "name": "xTech Team",
+          "isActive": "Y",
+          "email": "usarmy.pentagon.hqda-asa-alt.mbx.xtechsearch@army.mil",
+          "assignmentType": "TPOC",
+          "emailDisplay": "Y"
+        }
+      ],
+      "program": "SBIR",
+      "topicTitle": "xTech|Phantum Competition",
+      "showTpoc": true,
+      "topicCode": "ARM26BX01-NP003",
+      "topicPreReleaseStartDate": 1776117600000,
+      "topicPreReleaseEndDate": 1786363200000,
+      "command": "ASA(ALT)",
+      "topicStartDate": 1786363200000,
+      "topicEndDate": 1787932800000,
+      "solicitationNumber": "26.BX",
+      "topicId": "3f4ca360f47545da8558a294ea8dc36a_86472",
+      "component": "ARMY",
+      "solicitationTitle": "DoW SBIR 2026 CSO",
+      "releaseNumber": 1,
+      "cycleName": "DOD_SBIR_2026_P1_CBX"
+    },
+    {
+      "topicStatus": "Open",
+      "cmmcLevel": "Level 2 (Self)",
+      "topicManagers": null,
+      "program": "SBIR",
+      "topicTitle": "Development of Directed Energy Systems for Space-Based Applications",
+      "showTpoc": false,
+      "topicCode": "DAF26BX03-DV505",
+      "topicPreReleaseStartDate": 1780488000000,
+      "topicPreReleaseEndDate": 1782302400000,
+      "command": "AFMC",
+      "topicStartDate": 1782302400000,
+      "topicEndDate": 1784736000000,
+      "solicitationNumber": "26.BX",
+      "topicId": "6106c9a94bbc4141ad47165380086146_86519",
+      "component": "USAF",
+      "solicitationTitle": "DoW SBIR 2026 CSO",
+      "releaseNumber": 3,
+      "cycleName": "DOD_SBIR_2026_P1_CBX"
+    }
+  ]
+}

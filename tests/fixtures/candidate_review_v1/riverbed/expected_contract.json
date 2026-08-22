@@ -1,0 +1,201 @@
+{
+  "schema_version": "candidate_review_v1.expected_contract.v1",
+  "client_id": "riverbed",
+  "client_display_name": "Riverbed",
+  "reference_artifact": {
+    "path": "/Users/wtjohnson/Documents/Codex/2026-07-21/i/outputs/Riverbed_Federal_Opportunity_Assessment_CANDIDATE_REVIEW_EDITABLE_2026-07-22.html",
+    "sha256": "6af1535177ec7c48f56813813bc4b7dddcba09e7627fa593650b68fdd7c565ff",
+    "report_id": "riverbed-candidate-review-ed-logic-v1-2026-07-22",
+    "download_name": "Riverbed_Federal_Opportunity_Assessment_CANDIDATE_REVIEW_EDITABLE_2026-07-22.html"
+  },
+  "reference_role_notes": [
+    "Primary visual and interaction superset and strategic-corridor golden.",
+    "Four displayed candidate corridors preserve eight separately linked member records, proving that candidate, member-evidence, and total-evidence counts are distinct.",
+    "All external anchors are marked as source links, making this the edit-mode source-link behavior baseline.",
+    "The playbook calendar and editor contract override the artifact's legacy contacts section and replacement-only editor.",
+    "Copied positional agency-slot IDs are a known defect, not expected behavior."
+  ],
+  "exact_section_contract": [
+    {
+      "ordinal": 1,
+      "id": "forecast",
+      "heading": "360° assessment: what the pattern suggests"
+    },
+    {
+      "ordinal": 2,
+      "id": "candidate-review",
+      "heading": "Candidate opportunities for review"
+    },
+    {
+      "ordinal": 3,
+      "id": "signals",
+      "heading": "Vehicle, partner, and market signals"
+    },
+    {
+      "ordinal": 4,
+      "id": "accounts",
+      "heading": "Past awards and competitive analysis"
+    },
+    {
+      "ordinal": 5,
+      "id": "capabilities",
+      "heading": "Preliminary keywords and capability search concepts"
+    },
+    {
+      "ordinal": 6,
+      "id": "calendar",
+      "heading": "Federal opportunity calendar"
+    },
+    {
+      "ordinal": 7,
+      "id": "method",
+      "heading": "Assess | Target | Execute"
+    },
+    {
+      "ordinal": 8,
+      "id": "evidence",
+      "heading": "Evidence dock"
+    }
+  ],
+  "candidate_contract": {
+    "display_count": 4,
+    "member_evidence_count": 8,
+    "candidate_kind_counts": {
+      "current_notice": 0,
+      "research_corridor": 4
+    },
+    "candidates_in_order": [
+      {
+        "stable_reference_key": "corridor:irs-network-performance-estate",
+        "title": "IRS network-performance estate",
+        "kind": "research_corridor",
+        "member_count": 2,
+        "member_record_ids": [
+          "2032H523C00044",
+          "205AE925F00201"
+        ]
+      },
+      {
+        "stable_reference_key": "corridor:swish-data-multi-agency-riverbed",
+        "title": "Swish Data multi-agency Riverbed corridor",
+        "kind": "research_corridor",
+        "member_count": 4,
+        "member_record_ids": [
+          "15F06724F0001868",
+          "140L0625F0144",
+          "2031JW23F00016",
+          "70SBUR26F00000149"
+        ]
+      },
+      {
+        "stable_reference_key": "corridor:fhwa-appresponse-support-estate",
+        "title": "FHWA AppResponse support estate",
+        "kind": "research_corridor",
+        "member_count": 1,
+        "member_record_ids": [
+          "693JJ126F00019N"
+        ]
+      },
+      {
+        "stable_reference_key": "corridor:ssa-netprofiler-support-estate",
+        "title": "SSA NetProfiler support estate",
+        "kind": "research_corridor",
+        "member_count": 1,
+        "member_record_ids": [
+          "28321325FDX030072"
+        ]
+      }
+    ]
+  },
+  "reference_inventory": {
+    "candidate_cards": 4,
+    "candidate_member_evidence_records": 8,
+    "market_signal_cards": 4,
+    "award_cards": 6,
+    "capability_cards": 6,
+    "evidence_records": 18,
+    "ticker_primary_items": 11,
+    "kpi_tiles": 4,
+    "data_edit_ids": 266,
+    "unique_data_edit_ids": 266,
+    "editable_asset_targets": 29,
+    "data_logo_slot_ids": 20,
+    "data_logo_ids": 9
+  },
+  "required_controls": {
+    "persistent_document_controls": [
+      {
+        "data_action": "toggle-edit",
+        "label": "Edit text & logos"
+      },
+      {
+        "data_action": "save-draft",
+        "label": "Save draft"
+      },
+      {
+        "data_action": "reset",
+        "label": "Reset"
+      },
+      {
+        "data_action": "download-html",
+        "label": "Download HTML"
+      },
+      {
+        "data_action": "print",
+        "label": "Print / PDF"
+      }
+    ],
+    "contextual_editor_controls": [
+      {
+        "data_action": "undo-soft-delete",
+        "label": "Undo",
+        "visibility": "after_soft_delete",
+        "persistent": false
+      }
+    ],
+    "persistent_bottom_workflow_controls": [
+      {
+        "data_workflow_action": "refresh-analyst-layer",
+        "label": "Refresh from Analyst Layer",
+        "required_occurrences": 1,
+        "source": "playbook_override"
+      }
+    ]
+  },
+  "forbidden_controls": {
+    "visible_labels_exact": [
+      "Generate Pursuit Dossier",
+      "Pursuit Dossier",
+      "Download Pursuit Dossier",
+      "Re-screen",
+      "Re-search",
+      "Re-run",
+      "Re-scan",
+      "Promote to CRM",
+      "Promote to pipeline"
+    ],
+    "data_action_tokens": [
+      "pursuit-dossier",
+      "download-dossier",
+      "re-screen",
+      "rescreen",
+      "re-search",
+      "rerun",
+      "re-run",
+      "rescan",
+      "re-scan",
+      "promote-crm",
+      "promote-pipeline"
+    ]
+  },
+  "forbidden_text_exact": [
+    "Priority federal routes",
+    "Agency targets and contacts to validate",
+    "Account ownership to validate"
+  ],
+  "forbidden_dom_selectors": [
+    "#leadership",
+    ".sb-leader",
+    ".sb-leader-grid"
+  ]
+}

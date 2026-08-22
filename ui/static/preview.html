@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CC client view · preview harness</title>
+<!-- P1 dev harness only. Not shipped; the SPA mounts client-view.js directly. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&family=Playfair+Display:wght@400;500&display=swap" rel="stylesheet">
+<link href="client-view.css" rel="stylesheet">
+<style>
+  html, body { margin: 0; background: #1A1A18; }
+  .harness-bar {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .08em;
+    color: #7C7A73; padding: 8px 26px; text-transform: uppercase; max-width: 1080px; margin: 0 auto;
+  }
+</style>
+</head>
+<body>
+<div class="harness-bar">P1 preview · client-view.js · real riverbed artifacts</div>
+<div id="mount"></div>
+<script src="client-view.js"></script>
+<script>
+  const q = new URLSearchParams(location.search);
+  // scenario harness rides the LIVE endpoint model (no fixtures on disk)
+  const src = q.get("model") || "/api/client/riverbed/cc-model";
+  fetch(src).then(r => r.json()).then(model => {
+    // scenario switches for screenshots
+    if (q.get("scenario") === "partial") {
+      model = Object.assign({}, model, {
+        partial: true, ticker: [], calendar: [], reports: [], press_stages: null
+      });
+    }
+    if (q.get("scenario") === "midpress") {
+      const st = model.press_stages.map(s => Object.assign({}, s));
+      st[0].status = "done"; st[1].status = "done"; st[2].status = "done";
+      st[3].status = "active"; st[3].receipt = "screening 770 records";
+      for (let i = 4; i < st.length; i++) { st[i].status = "pending"; st[i].receipt = ""; }
+      model = Object.assign({}, model, { press_stages: st });
+    }
+    if (q.get("scenario") === "failed") {
+      const st = model.press_stages.map(s => Object.assign({}, s));
+      st[0].status = "done"; st[1].status = "done";
+      st[2].status = "failed"; st[2].receipt = "SAM daily quota exhausted until 2026-07-25 00:00 UTC";
+      for (let i = 3; i < st.length; i++) { st[i].status = "pending"; st[i].receipt = ""; }
+      model = Object.assign({}, model, { press_stages: st });
+    }
+    // ceremony scenarios: SIMULATED status stepping (no dispatch, no spend)
+    // proving collapse -> rail materialize -> live sublabel -> hero reveal /
+    // Re-press. Steps derive from the model's real stages.
+    const scen = q.get("scenario");
+    if (scen === "ceremony" || scen === "ceremonyfail") {
+      const names = (model.press_stages || []).map(s => s.name);
+      const mk = (n) => names.map((nm, i) => ({
+        name: nm,
+        status: i < n ? "done" : i === n ? "active" : "pending",
+        receipt: i < n ? (model.press_stages[i].receipt || "done") : i === n ? "working…" : "",
+      }));
+      let step = 0;
+      const fail = scen === "ceremonyfail";
+      const seq = [];
+      for (let n = 0; n < names.length; n++) seq.push({ live: true, stages: mk(n) });
+      if (fail) {
+        const last = mk(6);
+        last[6] = { name: names[6], status: "failed", receipt: "validation failed twice; 34 violations recorded. No silent ship." };
+        last[7] = { name: names[7], status: "pending", receipt: "" };
+        seq.push({ live: false, stages: last });
+      } else {
+        seq.push({ live: false, stages: model.press_stages });
+      }
+      LILAClientView.render(document.getElementById("mount"), model, {
+        dispatch: () => new Promise(res => setTimeout(() => res({ ok: true }), 250)),
+        pollStatus: () => Promise.resolve(seq[Math.min(step++, seq.length - 1)]),
+        reloadModel: () => Promise.resolve(null),
+      });
+      if (q.get("autostart")) {
+        setTimeout(() => { const b = document.querySelector(".cc-press"); if (b) b.click(); }, 300);
+      }
+      return;
+    }
+    LILAClientView.render(document.getElementById("mount"), model, {
+      onPress: () => alert("press stub (preview harness; the SPA wires the real dispatch)")
+    });
+  });
+</script>
+</body>
+</html>

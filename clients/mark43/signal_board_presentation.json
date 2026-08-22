@@ -1,0 +1,64 @@
+{
+  "client_slug": "mark43",
+  "header_companion_text": "Mark43",
+  "logo_overrides": {
+    "agency:doj_fbi": {
+      "asset": "assets/presentation/agency/doj_fbi/3003c7583d99c724d6052d7ee7e7f791f6ce25f6abb939fa085e5d3a83ec7807.png",
+      "kind": "agency",
+      "label": "DOJ · FBI",
+      "media_type": "image/png",
+      "sha256": "3003c7583d99c724d6052d7ee7e7f791f6ce25f6abb939fa085e5d3a83ec7807",
+      "updated_at": "2026-07-20T14:26:02.798850Z"
+    },
+    "agency:ntsb": {
+      "asset": "assets/presentation/agency/ntsb/2d9b1e27e3d9e5712e4464a7230b7eb6019e0ac5013c3cd437c1c9d5209fceca.png",
+      "kind": "agency",
+      "label": "NTSB",
+      "media_type": "image/png",
+      "sha256": "2d9b1e27e3d9e5712e4464a7230b7eb6019e0ac5013c3cd437c1c9d5209fceca",
+      "updated_at": "2026-07-20T14:26:43.953148Z"
+    },
+    "agency:usss_uscg": {
+      "asset": "assets/presentation/agency/usss_uscg/92fd716f4cceb75e258c4051d0d8055647504ce0efeb8034f0302a286b4078d0.png",
+      "kind": "agency",
+      "label": "USSS · USCG",
+      "media_type": "image/png",
+      "sha256": "92fd716f4cceb75e258c4051d0d8055647504ce0efeb8034f0302a286b4078d0",
+      "updated_at": "2026-07-20T14:25:59.566349Z"
+    },
+    "company:axon_enterprise": {
+      "asset": "assets/presentation/company/axon_enterprise/68c6decacb218de6e2d1c281a2ec3a060c424ed3f22034f4ef278d8399be3c3e.webp",
+      "kind": "company",
+      "label": "AXON ENTERPRISE, INC.",
+      "media_type": "image/webp",
+      "sha256": "68c6decacb218de6e2d1c281a2ec3a060c424ed3f22034f4ef278d8399be3c3e",
+      "updated_at": "2026-07-20T14:27:57.256498Z"
+    },
+    "company:centralsquare_technologies": {
+      "asset": "assets/presentation/company/centralsquare_technologies/1980018b92c4e7d963a0f54449b11309c0d82e4614245950ff81166352db96ec.png",
+      "kind": "company",
+      "label": "CENTRALSQUARE TECHNOLOGIES, LLC",
+      "media_type": "image/png",
+      "sha256": "1980018b92c4e7d963a0f54449b11309c0d82e4614245950ff81166352db96ec",
+      "updated_at": "2026-07-20T14:28:26.375103Z"
+    },
+    "company:computer_projects_of_illinois": {
+      "asset": "assets/presentation/company/computer_projects_of_illinois/bcc12aee8e5c3d5dbe503a16ad17c2eb24b074754dde285d6c9d5c5f6b23dbf4.jpg",
+      "kind": "company",
+      "label": "COMPUTER PROJECTS OF ILLINOIS",
+      "media_type": "image/jpeg",
+      "sha256": "bcc12aee8e5c3d5dbe503a16ad17c2eb24b074754dde285d6c9d5c5f6b23dbf4",
+      "updated_at": "2026-07-20T15:11:35.873716Z"
+    },
+    "person:202cbf062c2b91a83e14a908": {
+      "asset": "assets/presentation/person/202cbf062c2b91a83e14a908/4674691e669e3c4f5c37065e871f1eb11e03f462fe02a6810d288cfd36554820.jpg",
+      "kind": "person",
+      "label": "[\"Renee Leaman\",\"JUSTICE, DEPARTMENT OF / US MARSHALS SERVICE\",\"SAM.gov\",\"40764d7844654bde814b710c58922567\"]",
+      "media_type": "image/jpeg",
+      "sha256": "4674691e669e3c4f5c37065e871f1eb11e03f462fe02a6810d288cfd36554820",
+      "updated_at": "2026-07-21T14:22:52.469522Z"
+    }
+  },
+  "logo_sizes": {},
+  "schema_version": 1
+}

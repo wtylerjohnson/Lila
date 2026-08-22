@@ -1,0 +1,84 @@
+{
+  "client_name": "Varonis",
+  "capability_summary": "Data security platform for discovering, classifying, and protecting sensitive data: DSPM, data access governance, insider-threat and ransomware detection, DLP, database activity monitoring, and AI/copilot data-exposure security; FedRAMP Moderate authorized.",
+  "capability_terms": {
+    "core": [
+      "data loss prevention",
+      "DLP",
+      "insider threat",
+      "user activity monitoring",
+      "insider risk",
+      "data classification",
+      "sensitivity labels",
+      "Microsoft Purview",
+      "Microsoft 365",
+      "M365",
+      "Copilot",
+      "SharePoint",
+      "OneDrive",
+      "records management",
+      "data tagging",
+      "least privilege",
+      "data access governance",
+      "privileged access to data",
+      "CUI",
+      "M-21-31",
+      "event logging",
+      "data security posture",
+      "DSPM",
+      "unstructured data",
+      "file share permissions",
+      "data security platform"
+    ],
+    "adjacent": [
+      "zero trust",
+      "data pillar",
+      "cloud security",
+      "cyber operations"
+    ],
+    "excluded": [
+      "position classification",
+      "personnel security clearance",
+      "physical security",
+      "guard services",
+      "backup tape hardware"
+    ]
+  },
+  "named_competitors_and_incumbents": [
+    "Varonis",
+    "Varonis Data Security Platform",
+    "Varonis Atlas",
+    "Varonis Interceptor",
+    "Varonis Next-Gen DAM",
+    "DatAdvantage",
+    "DatAlert",
+    "Cyera",
+    "BigID",
+    "Microsoft Purview",
+    "Everfox",
+    "Forcepoint",
+    "Proofpoint",
+    "Concentric AI",
+    "Securiti",
+    "Sentra",
+    "Cyberhaven",
+    "Netwrix"
+  ],
+  "mission_components": [
+    "Department of Homeland Security (CISA / CDM CMaaS)",
+    "Department of Defense (Navy, Air Force, Army)",
+    "Department of Energy",
+    "Department of Health and Human Services",
+    "Department of Veterans Affairs",
+    "General Services Administration (MAS / vehicle owner)",
+    "NASA (SEWP contract holder for procurement pass-through)",
+    "State, local, tribal, and education agencies (via GovRAMP)"
+  ],
+  "naics_boundary": [
+    "541519",
+    "513210",
+    "541512",
+    "518210",
+    "541511"
+  ]
+}

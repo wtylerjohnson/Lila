@@ -1,0 +1,1928 @@
+{
+ "3d perception": {
+  "count": 60,
+  "first_seen": "2026-07-12",
+  "raw": "3D PERCEPTION, INC.",
+  "reason": "no match"
+ },
+ "absolute strategic": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "ABSOLUTE STRATEGIC TECHNOLOGIES, LLC",
+  "reason": "no match"
+ },
+ "abt global": {
+  "count": 10,
+  "first_seen": "2026-07-12",
+  "raw": "ABT GLOBAL LLC",
+  "reason": "no match"
+ },
+ "actionet": {
+  "count": 68,
+  "first_seen": "2026-07-12",
+  "raw": "ACTIONET INC",
+  "reason": "no match"
+ },
+ "adg rei technology ventures": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "ADG-REI TECHNOLOGY VENTURES, LLC",
+  "reason": "no match"
+ },
+ "advanced electronics": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "ADVANCED ELECTRONICS COMPANY LIMITED",
+  "reason": "no match"
+ },
+ "advantaged solutions": {
+  "count": 84,
+  "first_seen": "2026-07-12",
+  "raw": "ADVANTAGED SOLUTIONS, LLC",
+  "reason": "no match"
+ },
+ "aechelon": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "AECHELON TECHNOLOGY INC",
+  "reason": "no match"
+ },
+ "aevex aerospace": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "AEVEX AEROSPACE, LLC",
+  "reason": "no match"
+ },
+ "agile decision sciences": {
+  "count": 9,
+  "first_seen": "2026-07-21",
+  "raw": "AGILE DECISION SCIENCES, LLC",
+  "reason": "no match"
+ },
+ "akima data management": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "AKIMA DATA MANAGEMENT LLC",
+  "reason": "no match"
+ },
+ "alethix": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "ALETHIX, LLC",
+  "reason": "no match"
+ },
+ "all points logistics": {
+  "count": 78,
+  "first_seen": "2026-07-12",
+  "raw": "ALL POINTS LOGISTICS, LLC",
+  "reason": "no match"
+ },
+ "alpha omega integration": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "ALPHA OMEGA INTEGRATION LLC",
+  "reason": "no match"
+ },
+ "altana": {
+  "count": 17,
+  "first_seen": "2026-07-21",
+  "raw": "ALTANA TECHNOLOGIES INC",
+  "reason": "no match"
+ },
+ "amazon web services": {
+  "count": 48,
+  "first_seen": "2026-07-12",
+  "raw": "AMAZON WEB SERVICES, INC.",
+  "reason": "no match"
+ },
+ "amentum services": {
+  "count": 54,
+  "first_seen": "2026-07-21",
+  "raw": "AMENTUM SERVICES, INC.",
+  "reason": "no match"
+ },
+ "ameresco select": {
+  "count": 4,
+  "first_seen": "2026-07-12",
+  "raw": "AMERESCO SELECT, INC.",
+  "reason": "no match"
+ },
+ "amr u s": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "AMR U.S., INC.",
+  "reason": "no match"
+ },
+ "anduril industries": {
+  "count": 5,
+  "first_seen": "2026-07-12",
+  "raw": "ANDURIL INDUSTRIES, INC.",
+  "reason": "no match"
+ },
+ "army sustainment": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "ARMY SUSTAINMENT LLC",
+  "reason": "no match"
+ },
+ "astrophysics": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "ASTROPHYSICS INC",
+  "reason": "no match"
+ },
+ "atp gov": {
+  "count": 63,
+  "first_seen": "2026-07-12",
+  "raw": "ATP GOV, LLC",
+  "reason": "no match"
+ },
+ "av3": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "AV3 INC",
+  "reason": "no match"
+ },
+ "avi spl": {
+  "count": 4,
+  "first_seen": "2026-07-15",
+  "raw": "AVI-SPL",
+  "reason": "no match"
+ },
+ "axon enterprise": {
+  "count": 28,
+  "first_seen": "2026-07-12",
+  "raw": "AXON ENTERPRISE, INC.",
+  "reason": "no match"
+ },
+ "battelle energy alliance": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "BATTELLE ENERGY ALLIANCE, LLC",
+  "reason": "no match"
+ },
+ "battelle memorial institute": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "BATTELLE MEMORIAL INSTITUTE",
+  "reason": "no match"
+ },
+ "bell textron": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "BELL TEXTRON INC",
+  "reason": "no match"
+ },
+ "blue tech": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "BLUE TECH INC.",
+  "reason": "no match"
+ },
+ "blue yonder defense solutions": {
+  "count": 17,
+  "first_seen": "2026-07-21",
+  "raw": "BLUE YONDER DEFENSE SOLUTIONS, LLC",
+  "reason": "no match"
+ },
+ "bluestaq": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "BLUESTAQ LLC",
+  "reason": "no match"
+ },
+ "boeing company the": {
+  "count": 2,
+  "first_seen": "2026-07-12",
+  "raw": "BOEING COMPANY, THE",
+  "reason": "no match"
+ },
+ "buraq wireless communications": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "BURAQ WIRELESS COMMUNICATIONS LLC",
+  "reason": "no match"
+ },
+ "business integra technology solutions": {
+  "count": 9,
+  "first_seen": "2026-07-21",
+  "raw": "BUSINESS INTEGRA TECHNOLOGY SOLUTIONS, INC.",
+  "reason": "no match"
+ },
+ "caci iss": {
+  "count": 6,
+  "first_seen": "2026-07-21",
+  "raw": "CACI-ISS, LLC",
+  "reason": "no match"
+ },
+ "casepoint": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "CASEPOINT, LLC",
+  "reason": "no match"
+ },
+ "cellebrite": {
+  "count": 30,
+  "first_seen": "2026-07-12",
+  "raw": "CELLEBRITE INC",
+  "reason": "no match"
+ },
+ "cgi federal": {
+  "count": 167,
+  "first_seen": "2026-07-12",
+  "raw": "CGI FEDERAL INC.",
+  "reason": "no match"
+ },
+ "chainalysis government solutions": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "CHAINALYSIS GOVERNMENT SOLUTIONS, LLC",
+  "reason": "no match"
+ },
+ "chemonics international": {
+  "count": 4,
+  "first_seen": "2026-07-21",
+  "raw": "CHEMONICS INTERNATIONAL, INC.",
+  "reason": "no match"
+ },
+ "chenega mission products": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "CHENEGA MISSION PRODUCTS, LLC",
+  "reason": "no match"
+ },
+ "circumpunct solutions": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "CIRCUMPUNCT SOLUTIONS LLC",
+  "reason": "no match"
+ },
+ "clear align": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "CLEAR ALIGN LLC",
+  "reason": "no match"
+ },
+ "clinisys": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "CLINISYS, INC.",
+  "reason": "no match"
+ },
+ "cognosante cds": {
+  "count": 4,
+  "first_seen": "2026-07-13",
+  "raw": "COGNOSANTE CDS, LLC",
+  "reason": "no match"
+ },
+ "cognosante mvh": {
+  "count": 8,
+  "first_seen": "2026-07-21",
+  "raw": "COGNOSANTE MVH LLC",
+  "reason": "no match"
+ },
+ "colossal contracting": {
+  "count": 69,
+  "first_seen": "2026-07-12",
+  "raw": "COLOSSAL CONTRACTING LLC",
+  "reason": "no match"
+ },
+ "communications resource": {
+  "count": 8,
+  "first_seen": "2026-07-21",
+  "raw": "COMMUNICATIONS RESOURCE INC",
+  "reason": "no match"
+ },
+ "companion data services": {
+  "count": 130,
+  "first_seen": "2026-07-12",
+  "raw": "COMPANION DATA SERVICES LLC",
+  "reason": "no match"
+ },
+ "compqsoft": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "COMPQSOFT, INC.",
+  "reason": "no match"
+ },
+ "computable insights": {
+  "count": 32,
+  "first_seen": "2026-07-21",
+  "raw": "COMPUTABLE INSIGHTS LLC",
+  "reason": "no match"
+ },
+ "consulting services group": {
+  "count": 52,
+  "first_seen": "2026-07-12",
+  "raw": "CONSULTING SERVICES GROUP, LLC",
+  "reason": "no match"
+ },
+ "continental electronics": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "CONTINENTAL ELECTRONICS CORP",
+  "reason": "no match"
+ },
+ "convergent solutions": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "CONVERGENT SOLUTIONS, INC.",
+  "reason": "no match"
+ },
+ "copper river data solutions": {
+  "count": 128,
+  "first_seen": "2026-07-12",
+  "raw": "COPPER RIVER DATA SOLUTIONS, LLC",
+  "reason": "no match"
+ },
+ "cortron": {
+  "count": 6,
+  "first_seen": "2026-07-12",
+  "raw": "CORTRON, INC.",
+  "reason": "no match"
+ },
+ "cotiviti gov services": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "COTIVITI GOV SERVICES, LLC",
+  "reason": "no match"
+ },
+ "countertrade products": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "COUNTERTRADE PRODUCTS, INC.",
+  "reason": "no match"
+ },
+ "coventbridge usa": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "COVENTBRIDGE USA INC",
+  "reason": "no match"
+ },
+ "cpi satcom antenna": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "CPI SATCOM & ANTENNA TECHNOLOGIES INC.",
+  "reason": "no match"
+ },
+ "criterion systems l l c": {
+  "count": 9,
+  "first_seen": "2026-07-21",
+  "raw": "CRITERION SYSTEMS, L.L.C.",
+  "reason": "no match"
+ },
+ "critical communications controls and instruments": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "CRITICAL COMMUNICATIONS, CONTROLS AND INSTRUMENTS, LLC",
+  "reason": "no match"
+ },
+ "csp enterprises": {
+  "count": 720,
+  "first_seen": "2026-07-12",
+  "raw": "CSP ENTERPRISES, LLC",
+  "reason": "no match"
+ },
+ "ctg federal": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "CTG FEDERAL, LLC",
+  "reason": "no match"
+ },
+ "customer value partners": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "CUSTOMER VALUE PARTNERS, LLC",
+  "reason": "no match"
+ },
+ "cynergy professional systems": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "CYNERGY PROFESSIONAL SYSTEMS LLC",
+  "reason": "no match"
+ },
+ "dai global": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "DAI GLOBAL LLC",
+  "reason": "no match"
+ },
+ "dana safety supply": {
+  "count": 6,
+  "first_seen": "2026-07-12",
+  "raw": "DANA SAFETY SUPPLY, INC.",
+  "reason": "no match"
+ },
+ "datapath": {
+  "count": 102,
+  "first_seen": "2026-07-12",
+  "raw": "DATAPATH, INC.",
+  "reason": "no match"
+ },
+ "dbisp": {
+  "count": 60,
+  "first_seen": "2026-07-12",
+  "raw": "DBISP LLC",
+  "reason": "no match"
+ },
+ "deloitte consulting": {
+  "count": 75,
+  "first_seen": "2026-07-12",
+  "raw": "DELOITTE CONSULTING LLP",
+  "reason": "no match"
+ },
+ "deloitte touche": {
+  "count": 2,
+  "first_seen": "2026-07-12",
+  "raw": "DELOITTE & TOUCHE LLP",
+  "reason": "no match"
+ },
+ "dependable global solutions": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "DEPENDABLE GLOBAL SOLUTIONS, LLC",
+  "reason": "no match"
+ },
+ "dev technology group": {
+  "count": 77,
+  "first_seen": "2026-07-12",
+  "raw": "DEV TECHNOLOGY GROUP INC",
+  "reason": "no match"
+ },
+ "digital intelligence": {
+  "count": 6,
+  "first_seen": "2026-07-12",
+  "raw": "DIGITAL INTELLIGENCE, INC.",
+  "reason": "no match"
+ },
+ "digital plaza": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "DIGITAL PLAZA LLC",
+  "reason": "no match"
+ },
+ "digital receiver": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "DIGITAL RECEIVER TECHNOLOGY, INC.",
+  "reason": "no match"
+ },
+ "directviz solutions": {
+  "count": 27,
+  "first_seen": "2026-07-21",
+  "raw": "DIRECTVIZ SOLUTIONS, LLC",
+  "reason": "no match"
+ },
+ "distributed computing system solutions provider": {
+  "count": 60,
+  "first_seen": "2026-07-12",
+  "raw": "DISTRIBUTED COMPUTING SYSTEM SOLUTIONS PROVIDER, INC",
+  "reason": "no match"
+ },
+ "diversified": {
+  "count": 2,
+  "first_seen": "2026-07-15",
+  "raw": "Diversified",
+  "reason": "no match"
+ },
+ "diversified technical services": {
+  "count": 6,
+  "first_seen": "2026-07-21",
+  "raw": "DIVERSIFIED TECHNICAL SERVICES, INC.",
+  "reason": "no match"
+ },
+ "dlh": {
+  "count": 9,
+  "first_seen": "2026-07-21",
+  "raw": "DLH, LLC",
+  "reason": "no match"
+ },
+ "document storage systems": {
+  "count": 17,
+  "first_seen": "2026-07-21",
+  "raw": "DOCUMENT STORAGE SYSTEMS, INC.",
+  "reason": "no match"
+ },
+ "domestic awardees undisclosed": {
+  "count": 20,
+  "first_seen": "2026-07-12",
+  "raw": "DOMESTIC AWARDEES (UNDISCLOSED)",
+  "reason": "no match"
+ },
+ "doubleshot": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "DOUBLESHOT INC",
+  "reason": "no match"
+ },
+ "dtc communications": {
+  "count": 9,
+  "first_seen": "2026-07-12",
+  "raw": "DTC COMMUNICATIONS, INC.",
+  "reason": "no match"
+ },
+ "dutch valley supply": {
+  "count": 6,
+  "first_seen": "2026-07-12",
+  "raw": "DUTCH VALLEY SUPPLY CO.",
+  "reason": "no match"
+ },
+ "dv united": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "DV UNITED LLC",
+  "reason": "no match"
+ },
+ "dynalec": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "DYNALEC CORPORATION",
+  "reason": "no match"
+ },
+ "eagle harbor": {
+  "count": 16,
+  "first_seen": "2026-07-12",
+  "raw": "EAGLE HARBOR, LLC",
+  "reason": "no match"
+ },
+ "earth resources": {
+  "count": 71,
+  "first_seen": "2026-07-12",
+  "raw": "EARTH RESOURCES TECHNOLOGY, LLC",
+  "reason": "no match"
+ },
+ "eccalon": {
+  "count": 51,
+  "first_seen": "2026-07-12",
+  "raw": "ECCALON, LLC",
+  "reason": "no match"
+ },
+ "ekagra partners": {
+  "count": 9,
+  "first_seen": "2026-07-12",
+  "raw": "EKAGRA PARTNERS, LLC",
+  "reason": "no match"
+ },
+ "emergent": {
+  "count": 69,
+  "first_seen": "2026-07-12",
+  "raw": "EMERGENT, LLC",
+  "reason": "no match"
+ },
+ "empower ai": {
+  "count": 69,
+  "first_seen": "2026-07-12",
+  "raw": "EMPOWER AI, INC.",
+  "reason": "no match"
+ },
+ "enlighten it consulting": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "ENLIGHTEN IT CONSULTING LLC",
+  "reason": "no match"
+ },
+ "environmental systems research institute": {
+  "count": 58,
+  "first_seen": "2026-07-12",
+  "raw": "ENVIRONMENTAL SYSTEMS RESEARCH INSTITUTE, INC.",
+  "reason": "no match"
+ },
+ "envisage": {
+  "count": 24,
+  "first_seen": "2026-07-12",
+  "raw": "ENVISAGE TECHNOLOGIES LLC",
+  "reason": "no match"
+ },
+ "envistacom l l c": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "ENVISTACOM, L.L.C",
+  "reason": "no match"
+ },
+ "eq technologic": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "EQ TECHNOLOGIC INC",
+  "reason": "no match"
+ },
+ "esp": {
+  "count": 6,
+  "first_seen": "2026-07-12",
+  "raw": "ESP INC",
+  "reason": "no match"
+ },
+ "essex management": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "ESSEX MANAGEMENT LLC",
+  "reason": "no match"
+ },
+ "euromids": {
+  "count": 102,
+  "first_seen": "2026-07-12",
+  "raw": "EUROMIDS",
+  "reason": "no match"
+ },
+ "everfox": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "EVERFOX LLC",
+  "reason": "no match"
+ },
+ "excella": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "EXCELLA, LLC",
+  "reason": "no match"
+ },
+ "experis technology group": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "EXPERIS TECHNOLOGY GROUP, INC.",
+  "reason": "no match"
+ },
+ "fairwinds": {
+  "count": 2,
+  "first_seen": "2026-07-12",
+  "raw": "FAIRWINDS TECHNOLOGIES LLC",
+  "reason": "no match"
+ },
+ "feddata technology solutions": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "FEDDATA TECHNOLOGY SOLUTIONS, LLC",
+  "reason": "no match"
+ },
+ "fedtribe": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "FEDTRIBE LLC",
+  "reason": "no match"
+ },
+ "fintrac": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "FINTRAC INC",
+  "reason": "no match"
+ },
+ "flightsafety international": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "FLIGHTSAFETY INTERNATIONAL INC",
+  "reason": "no match"
+ },
+ "four": {
+  "count": 199,
+  "first_seen": "2026-07-12",
+  "raw": "FOUR LLC",
+  "reason": "no match"
+ },
+ "four points technology l l c": {
+  "count": 161,
+  "first_seen": "2026-07-12",
+  "raw": "FOUR POINTS TECHNOLOGY, L.L.C.",
+  "reason": "no match"
+ },
+ "foxhole": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "FOXHOLE TECHNOLOGY LLC",
+  "reason": "no match"
+ },
+ "frequentis usa": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "FREQUENTIS USA, INC",
+  "reason": "no match"
+ },
+ "frontier electronic systems": {
+  "count": 180,
+  "first_seen": "2026-07-12",
+  "raw": "FRONTIER ELECTRONIC SYSTEMS CORP",
+  "reason": "no match"
+ },
+ "gdit": {
+  "count": 2,
+  "first_seen": "2026-07-15",
+  "raw": "GDIT",
+  "reason": "no match"
+ },
+ "gebra it gmbh": {
+  "count": 60,
+  "first_seen": "2026-07-12",
+  "raw": "GEBRA-IT GMBH",
+  "reason": "no match"
+ },
+ "general atomics aeronautical systems": {
+  "count": 153,
+  "first_seen": "2026-07-12",
+  "raw": "GENERAL ATOMICS AERONAUTICAL SYSTEMS, INC.",
+  "reason": "no match"
+ },
+ "general micro systems": {
+  "count": 480,
+  "first_seen": "2026-07-12",
+  "raw": "GENERAL MICRO SYSTEMS, INC",
+  "reason": "no match"
+ },
+ "glacier support services": {
+  "count": 60,
+  "first_seen": "2026-07-12",
+  "raw": "GLACIER SUPPORT SERVICES, LLC",
+  "reason": "no match"
+ },
+ "gladiator forensics": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "GLADIATOR FORENSICS LLC",
+  "reason": "no match"
+ },
+ "global engineering": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "GLOBAL ENGINEERING & TECHNOLOGY INC",
+  "reason": "no match"
+ },
+ "global public safety": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "GLOBAL PUBLIC SAFETY LLC",
+  "reason": "no match"
+ },
+ "goldschmitt cri": {
+  "count": 32,
+  "first_seen": "2026-07-12",
+  "raw": "GOLDSCHMITT-CRI LLC",
+  "reason": "no match"
+ },
+ "govcio": {
+  "count": 52,
+  "first_seen": "2026-07-12",
+  "raw": "GOVCIO, LLC",
+  "reason": "no match"
+ },
+ "govconnection": {
+  "count": 6,
+  "first_seen": "2026-07-12",
+  "raw": "GOVCONNECTION INC",
+  "reason": "no match"
+ },
+ "h co computer products": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "H. CO. COMPUTER PRODUCTS",
+  "reason": "no match"
+ },
+ "h2 cognitive designs": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "H2 COGNITIVE DESIGNS LTD",
+  "reason": "no match"
+ },
+ "harmonia holdings group": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "HARMONIA HOLDINGS GROUP, LLC",
+  "reason": "no match"
+ },
+ "harvard pilgrim health care": {
+  "count": 16,
+  "first_seen": "2026-07-12",
+  "raw": "HARVARD PILGRIM HEALTH CARE, INC.",
+  "reason": "no match"
+ },
+ "highlight": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "HIGHLIGHT TECHNOLOGIES, INC.",
+  "reason": "no match"
+ },
+ "hw consulting": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "HW CONSULTING, INCORPORATED",
+  "reason": "no match"
+ },
+ "i m systems group": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "I. M. SYSTEMS GROUP, INC.",
+  "reason": "no match"
+ },
+ "i3 federal": {
+  "count": 71,
+  "first_seen": "2026-07-12",
+  "raw": "I3 FEDERAL LLC",
+  "reason": "no match"
+ },
+ "idemia identity security usa": {
+  "count": 108,
+  "first_seen": "2026-07-12",
+  "raw": "IDEMIA IDENTITY & SECURITY USA LLC",
+  "reason": "no match"
+ },
+ "idemia national security solutions": {
+  "count": 60,
+  "first_seen": "2026-07-12",
+  "raw": "IDEMIA NATIONAL SECURITY SOLUTIONS LLC",
+  "reason": "no match"
+ },
+ "identiv": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "IDENTIV, INC.",
+  "reason": "no match"
+ },
+ "ids international": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "IDS INTERNATIONAL, LLC",
+  "reason": "no match"
+ },
+ "igov": {
+  "count": 51,
+  "first_seen": "2026-07-12",
+  "raw": "IGOV TECHNOLOGIES, INC.",
+  "reason": "no match"
+ },
+ "illumio government solutions": {
+  "count": 15,
+  "first_seen": "2026-07-21",
+  "raw": "ILLUMIO GOVERNMENT SOLUTIONS, LLC",
+  "reason": "no match"
+ },
+ "incadence strategic solutions": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "INCADENCE STRATEGIC SOLUTIONS LLC",
+  "reason": "no match"
+ },
+ "indra air traffic": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "INDRA AIR TRAFFIC, INC.",
+  "reason": "no match"
+ },
+ "infoglide software": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "INFOGLIDE SOFTWARE CORP",
+  "reason": "no match"
+ },
+ "information innovators": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "INFORMATION INNOVATORS, LLC",
+  "reason": "no match"
+ },
+ "information technology strategies": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "INFORMATION TECHNOLOGY STRATEGIES, INC.",
+  "reason": "no match"
+ },
+ "inracks": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "INRACKS LLC",
+  "reason": "no match"
+ },
+ "inserso": {
+  "count": 22,
+  "first_seen": "2026-07-12",
+  "raw": "INSERSO CORPORATION",
+  "reason": "no match"
+ },
+ "institute for defense analyses": {
+  "count": 2,
+  "first_seen": "2026-07-12",
+  "raw": "INSTITUTE FOR DEFENSE ANALYSES",
+  "reason": "no match"
+ },
+ "intact": {
+  "count": 17,
+  "first_seen": "2026-07-21",
+  "raw": "INTACT TECHNOLOGY INC",
+  "reason": "no match"
+ },
+ "integrated biometrics": {
+  "count": 24,
+  "first_seen": "2026-07-12",
+  "raw": "INTEGRATED BIOMETRICS, LLC",
+  "reason": "no match"
+ },
+ "international business machines": {
+  "count": 369,
+  "first_seen": "2026-07-12",
+  "raw": "INTERNATIONAL BUSINESS MACHINES CORPORATION",
+  "reason": "no match"
+ },
+ "invisio communications": {
+  "count": 6,
+  "first_seen": "2026-07-12",
+  "raw": "INVISIO COMMUNICATIONS INC",
+  "reason": "no match"
+ },
+ "isoft solutions": {
+  "count": 48,
+  "first_seen": "2026-07-12",
+  "raw": "ISOFT SOLUTIONS, LLC",
+  "reason": "no match"
+ },
+ "itcon services": {
+  "count": 6,
+  "first_seen": "2026-07-12",
+  "raw": "ITCON SERVICES LLC",
+  "reason": "no match"
+ },
+ "jamaica bearings": {
+  "count": 60,
+  "first_seen": "2026-07-12",
+  "raw": "JAMAICA BEARINGS CO., INC.",
+  "reason": "no match"
+ },
+ "jfl consulting": {
+  "count": 60,
+  "first_seen": "2026-07-12",
+  "raw": "JFL CONSULTING, LLC",
+  "reason": "no match"
+ },
+ "john snow": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "JOHN SNOW, INCORPORATED",
+  "reason": "no match"
+ },
+ "johnson controls": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "JOHNSON CONTROLS, INC",
+  "reason": "no match"
+ },
+ "johnson controls security solutions": {
+  "count": 6,
+  "first_seen": "2026-07-12",
+  "raw": "JOHNSON CONTROLS SECURITY SOLUTIONS LLC",
+  "reason": "no match"
+ },
+ "jsi telecom": {
+  "count": 24,
+  "first_seen": "2026-07-12",
+  "raw": "JSI TELECOM INC.",
+  "reason": "no match"
+ },
+ "kallidus": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "KALLIDUS TECHNOLOGIES, INC",
+  "reason": "no match"
+ },
+ "karsun solutions": {
+  "count": 71,
+  "first_seen": "2026-07-12",
+  "raw": "KARSUN SOLUTIONS LLC",
+  "reason": "no match"
+ },
+ "katmai integrated solutions": {
+  "count": 40,
+  "first_seen": "2026-07-12",
+  "raw": "KATMAI INTEGRATED SOLUTIONS, LLC",
+  "reason": "no match"
+ },
+ "katmai management services": {
+  "count": 12,
+  "first_seen": "2026-07-21",
+  "raw": "KATMAI MANAGEMENT SERVICES, LLC",
+  "reason": "no match"
+ },
+ "kbr wyle services": {
+  "count": 75,
+  "first_seen": "2026-07-12",
+  "raw": "KBR WYLE SERVICES, LLC",
+  "reason": "no match"
+ },
+ "kennell associates": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "KENNELL & ASSOCIATES INC",
+  "reason": "no match"
+ },
+ "kenya medical supplies author ity": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "KENYA MEDICAL SUPPLIES AUTHOR ITY",
+  "reason": "no match"
+ },
+ "key government finance": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "KEY GOVERNMENT FINANCE, INC.",
+  "reason": "no match"
+ },
+ "kratos technology training solutions": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "KRATOS TECHNOLOGY & TRAINING SOLUTIONS, INC.",
+  "reason": "no match"
+ },
+ "l1 enterprises": {
+  "count": 2,
+  "first_seen": "2026-07-12",
+  "raw": "L1 ENTERPRISES INCORPORATED",
+  "reason": "no match"
+ },
+ "lancer information solutions": {
+  "count": 71,
+  "first_seen": "2026-07-12",
+  "raw": "LANCER INFORMATION SOLUTIONS, LLC",
+  "reason": "no match"
+ },
+ "laurel technologies partnership": {
+  "count": 480,
+  "first_seen": "2026-07-12",
+  "raw": "LAUREL TECHNOLOGIES PARTNERSHIP",
+  "reason": "no match"
+ },
+ "ldrm": {
+  "count": 9,
+  "first_seen": "2026-07-21",
+  "raw": "LDRM LLC",
+  "reason": "no match"
+ },
+ "leolabs": {
+  "count": 15,
+  "first_seen": "2026-07-21",
+  "raw": "LEOLABS INC",
+  "reason": "no match"
+ },
+ "lewis price associates": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "LEWIS-PRICE & ASSOCIATES, INC",
+  "reason": "no match"
+ },
+ "lexmark government solutions": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "LEXMARK GOVERNMENT SOLUTIONS, LLC",
+  "reason": "no match"
+ },
+ "lhdtsv": {
+  "count": 16,
+  "first_seen": "2026-07-12",
+  "raw": "LHDTSV LLC",
+  "reason": "no match"
+ },
+ "m d marine electric": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "M.D. MARINE ELECTRIC, LTD",
+  "reason": "no match"
+ },
+ "m t government solutions": {
+  "count": 60,
+  "first_seen": "2026-07-12",
+  "raw": "M & T GOVERNMENT SOLUTIONS LLC",
+  "reason": "no match"
+ },
+ "ma federal": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "MA FEDERAL, INC.",
+  "reason": "no match"
+ },
+ "magnet forensics": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "MAGNET FORENSICS, LLC",
+  "reason": "no match"
+ },
+ "magnet forensics usa": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "MAGNET FORENSICS USA INC",
+  "reason": "no match"
+ },
+ "management services group": {
+  "count": 60,
+  "first_seen": "2026-07-12",
+  "raw": "MANAGEMENT SERVICES GROUP, INC.",
+  "reason": "no match"
+ },
+ "manhattan associates": {
+  "count": 16,
+  "first_seen": "2026-07-12",
+  "raw": "MANHATTAN ASSOCIATES, INC.",
+  "reason": "no match"
+ },
+ "massachusetts institute of": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "MASSACHUSETTS INSTITUTE OF TECHNOLOGY",
+  "reason": "no match"
+ },
+ "mathtech": {
+  "count": 6,
+  "first_seen": "2026-07-12",
+  "raw": "MATHTECH INC",
+  "reason": "no match"
+ },
+ "maveris": {
+  "count": 8,
+  "first_seen": "2026-07-21",
+  "raw": "MAVERIS LLC",
+  "reason": "no match"
+ },
+ "mechdyne": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "MECHDYNE CORPORATION",
+  "reason": "no match"
+ },
+ "mercom": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "MERCOM, INCORPORATED",
+  "reason": "no match"
+ },
+ "mercury mission systems": {
+  "count": 60,
+  "first_seen": "2026-07-12",
+  "raw": "MERCURY MISSION SYSTEMS LLC",
+  "reason": "no match"
+ },
+ "metgreen solutions": {
+  "count": 71,
+  "first_seen": "2026-07-12",
+  "raw": "METGREEN SOLUTIONS INC",
+  "reason": "no match"
+ },
+ "mi technical solutions": {
+  "count": 6,
+  "first_seen": "2026-07-21",
+  "raw": "MI TECHNICAL SOLUTIONS, INC.",
+  "reason": "no match"
+ },
+ "michael stapleton associates": {
+  "count": 4,
+  "first_seen": "2026-07-12",
+  "raw": "MICHAEL STAPLETON ASSOCIATES, LTD.",
+  "reason": "no match"
+ },
+ "minburn technology group": {
+  "count": 1093,
+  "first_seen": "2026-07-12",
+  "raw": "MINBURN TECHNOLOGY GROUP, LLC",
+  "reason": "no match"
+ },
+ "minuteman technology services": {
+  "count": 60,
+  "first_seen": "2026-07-12",
+  "raw": "MINUTEMAN TECHNOLOGY SERVICES LLC",
+  "reason": "no match"
+ },
+ "mission1st group": {
+  "count": 6,
+  "first_seen": "2026-07-21",
+  "raw": "MISSION1ST GROUP INC",
+  "reason": "no match"
+ },
+ "mobius consulting": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "MOBIUS CONSULTING, LLC",
+  "reason": "no match"
+ },
+ "modtech solutions": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "MODTECH SOLUTIONS LLC",
+  "reason": "no match"
+ },
+ "moody s analytics": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "MOODY'S ANALYTICS, INC.",
+  "reason": "no match"
+ },
+ "muhlbauer": {
+  "count": 18,
+  "first_seen": "2026-07-12",
+  "raw": "MUHLBAUER INC",
+  "reason": "no match"
+ },
+ "nag": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "NAG, LLC",
+  "reason": "no match"
+ },
+ "nash harbor solutions": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "NASH HARBOR SOLUTIONS, LLC",
+  "reason": "no match"
+ },
+ "national government services": {
+  "count": 18,
+  "first_seen": "2026-07-12",
+  "raw": "NATIONAL GOVERNMENT SERVICES, INC.",
+  "reason": "no match"
+ },
+ "national institute of building sciences": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "NATIONAL INSTITUTE OF BUILDING SCIENCES",
+  "reason": "no match"
+ },
+ "national opinion research center": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "NATIONAL OPINION RESEARCH CENTER",
+  "reason": "no match"
+ },
+ "ncr government systems": {
+  "count": 52,
+  "first_seen": "2026-07-12",
+  "raw": "NCR GOVERNMENT SYSTEMS LLC",
+  "reason": "no match"
+ },
+ "ncs": {
+  "count": 60,
+  "first_seen": "2026-07-12",
+  "raw": "NCS TECHNOLOGIES INC",
+  "reason": "no match"
+ },
+ "network": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "NETWORK TECHNOLOGIES INC",
+  "reason": "no match"
+ },
+ "network management resources": {
+  "count": 9,
+  "first_seen": "2026-07-21",
+  "raw": "NETWORK MANAGEMENT RESOURCES INC.",
+  "reason": "no match"
+ },
+ "new tech solutions": {
+  "count": 18,
+  "first_seen": "2026-07-12",
+  "raw": "NEW TECH SOLUTIONS, INC.",
+  "reason": "no match"
+ },
+ "newbold": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "NEWBOLD LLC",
+  "reason": "no match"
+ },
+ "nightwing": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "NIGHTWING TECHNOLOGIES, LLC",
+  "reason": "no match"
+ },
+ "noresco": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "NORESCO, LLC",
+  "reason": "no match"
+ },
+ "noridian healthcare solutions": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "NORIDIAN HEALTHCARE SOLUTIONS, LLC",
+  "reason": "no match"
+ },
+ "noritsu america": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "NORITSU AMERICA CORPORATION",
+  "reason": "no match"
+ },
+ "novilo technology solutions": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "NOVILO TECHNOLOGY SOLUTIONS, LLC",
+  "reason": "no match"
+ },
+ "ntt data federal services": {
+  "count": 9,
+  "first_seen": "2026-07-12",
+  "raw": "NTT DATA FEDERAL SERVICES, INC.",
+  "reason": "no match"
+ },
+ "oak ridge associated universities": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "OAK RIDGE ASSOCIATED UNIVERSITIES, INCORPORATED",
+  "reason": "no match"
+ },
+ "octo metric": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "OCTO METRIC LLC",
+  "reason": "no match"
+ },
+ "one tech sol": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "ONE TECH SOL, LLC",
+  "reason": "no match"
+ },
+ "osi federal": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "OSI FEDERAL TECHNOLOGIES INC",
+  "reason": "no match"
+ },
+ "pae government services": {
+  "count": 12,
+  "first_seen": "2026-07-12",
+  "raw": "PAE GOVERNMENT SERVICES, INC.",
+  "reason": "no match"
+ },
+ "pae professional services": {
+  "count": 9,
+  "first_seen": "2026-07-21",
+  "raw": "PAE PROFESSIONAL SERVICES, LLC",
+  "reason": "no match"
+ },
+ "palantir": {
+  "count": 542,
+  "first_seen": "2026-07-12",
+  "raw": "PALANTIR TECHNOLOGIES INC.",
+  "reason": "no match"
+ },
+ "palantir usg": {
+  "count": 375,
+  "first_seen": "2026-07-12",
+  "raw": "PALANTIR USG INC",
+  "reason": "no match"
+ },
+ "palladium international": {
+  "count": 2,
+  "first_seen": "2026-07-12",
+  "raw": "PALLADIUM INTERNATIONAL LLC",
+  "reason": "no match"
+ },
+ "parroco production group": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "PARROCO PRODUCTION GROUP INC",
+  "reason": "no match"
+ },
+ "parsons government services": {
+  "count": 118,
+  "first_seen": "2026-07-12",
+  "raw": "PARSONS GOVERNMENT SERVICES INC.",
+  "reason": "no match"
+ },
+ "pen link": {
+  "count": 24,
+  "first_seen": "2026-07-12",
+  "raw": "PEN-LINK, LTD",
+  "reason": "no match"
+ },
+ "perfect presentation for comm ercial service": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "PERFECT PRESENTATION FOR COMM ERCIAL SERVICE",
+  "reason": "no match"
+ },
+ "persistent systems": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "PERSISTENT SYSTEMS LLC",
+  "reason": "no match"
+ },
+ "phoenix international": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "PHOENIX INTERNATIONAL, INC.",
+  "reason": "no match"
+ },
+ "physical sciences": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "PHYSICAL SCIENCES INC.",
+  "reason": "no match"
+ },
+ "pifinity": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "PIFINITY, INC.",
+  "reason": "no match"
+ },
+ "planet": {
+  "count": 71,
+  "first_seen": "2026-07-12",
+  "raw": "PLANET TECHNOLOGIES, INC.",
+  "reason": "no match"
+ },
+ "planned systems international": {
+  "count": 6,
+  "first_seen": "2026-07-21",
+  "raw": "PLANNED SYSTEMS INTERNATIONAL INC",
+  "reason": "no match"
+ },
+ "plexsys interface products": {
+  "count": 17,
+  "first_seen": "2026-07-21",
+  "raw": "PLEXSYS INTERFACE PRODUCTS, INC",
+  "reason": "no match"
+ },
+ "poplicus": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "POPLICUS INCORPORATED",
+  "reason": "no match"
+ },
+ "potawatomi defense operations": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "POTAWATOMI DEFENSE OPERATIONS LLC",
+  "reason": "no match"
+ },
+ "privoro government solutions": {
+  "count": 15,
+  "first_seen": "2026-07-21",
+  "raw": "PRIVORO GOVERNMENT SOLUTIONS, LLC",
+  "reason": "no match"
+ },
+ "procentrix": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "PROCENTRIX, LLC",
+  "reason": "no match"
+ },
+ "ptsi managed services": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "PTSI MANAGED SERVICES INC",
+  "reason": "no match"
+ },
+ "qlarant integrity solutions": {
+  "count": 16,
+  "first_seen": "2026-07-12",
+  "raw": "QLARANT INTEGRITY SOLUTIONS LLC",
+  "reason": "no match"
+ },
+ "radeus labs": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "RADEUS LABS, INC.",
+  "reason": "no match"
+ },
+ "regula forensics": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "REGULA FORENSICS INC",
+  "reason": "no match"
+ },
+ "reliasource": {
+  "count": 60,
+  "first_seen": "2026-07-12",
+  "raw": "RELIASOURCE, INC.",
+  "reason": "no match"
+ },
+ "research triangle institute": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "RESEARCH TRIANGLE INSTITUTE",
+  "reason": "no match"
+ },
+ "rock creek publishing group": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "ROCK CREEK PUBLISHING GROUP INC.",
+  "reason": "no match"
+ },
+ "rose electronics": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "ROSE ELECTRONICS",
+  "reason": "no match"
+ },
+ "sabel systems technology solutions": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "SABEL SYSTEMS TECHNOLOGY SOLUTIONS, LLC",
+  "reason": "no match"
+ },
+ "safeguard services": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "SAFEGUARD SERVICES LLC",
+  "reason": "no match"
+ },
+ "salient crgt": {
+  "count": 73,
+  "first_seen": "2026-07-12",
+  "raw": "SALIENT CRGT, INC.",
+  "reason": "no match"
+ },
+ "savantage financial services": {
+  "count": 9,
+  "first_seen": "2026-07-12",
+  "raw": "SAVANTAGE FINANCIAL SERVICES, INC.",
+  "reason": "no match"
+ },
+ "sciometrics": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "SCIOMETRICS LLC",
+  "reason": "no match"
+ },
+ "sealing": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "SEALING TECHNOLOGIES, LLC",
+  "reason": "no match"
+ },
+ "securigence": {
+  "count": 6,
+  "first_seen": "2026-07-21",
+  "raw": "SECURIGENCE LLC",
+  "reason": "no match"
+ },
+ "seneca federal solutions": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "SENECA FEDERAL SOLUTIONS, LLC",
+  "reason": "no match"
+ },
+ "seneca strategic partners": {
+  "count": 17,
+  "first_seen": "2026-07-21",
+  "raw": "SENECA STRATEGIC PARTNERS, LLC",
+  "reason": "no match"
+ },
+ "serco": {
+  "count": 209,
+  "first_seen": "2026-07-12",
+  "raw": "SERCO INC",
+  "reason": "no match"
+ },
+ "sevatec": {
+  "count": 69,
+  "first_seen": "2026-07-12",
+  "raw": "SEVATEC LLC",
+  "reason": "no match"
+ },
+ "shoreland": {
+  "count": 15,
+  "first_seen": "2026-07-21",
+  "raw": "SHORELAND INC",
+  "reason": "no match"
+ },
+ "sierra nevada": {
+  "count": 14,
+  "first_seen": "2026-07-12",
+  "raw": "SIERRA NEVADA COMPANY, LLC",
+  "reason": "no match"
+ },
+ "skillsoft us": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "SKILLSOFT (US) LLC",
+  "reason": "no match"
+ },
+ "social solutions international": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "SOCIAL SOLUTIONS INTERNATIONAL, INC.",
+  "reason": "no match"
+ },
+ "solid state scientific": {
+  "count": 16,
+  "first_seen": "2026-07-12",
+  "raw": "SOLID STATE SCIENTIFIC CORPORATION",
+  "reason": "no match"
+ },
+ "sprezzatura management consulting": {
+  "count": 8,
+  "first_seen": "2026-07-21",
+  "raw": "SPREZZATURA MANAGEMENT CONSULTING, LLC",
+  "reason": "no match"
+ },
+ "squarehead": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "SQUAREHEAD TECHNOLOGY LLC",
+  "reason": "no match"
+ },
+ "steampunk": {
+  "count": 6,
+  "first_seen": "2026-07-12",
+  "raw": "STEAMPUNK, INC.",
+  "reason": "no match"
+ },
+ "stg": {
+  "count": 6,
+  "first_seen": "2026-07-21",
+  "raw": "STG LLC",
+  "reason": "no match"
+ },
+ "system high": {
+  "count": 14,
+  "first_seen": "2026-07-12",
+  "raw": "SYSTEM HIGH CORPORATION",
+  "reason": "no match"
+ },
+ "systematic": {
+  "count": 52,
+  "first_seen": "2026-07-12",
+  "raw": "SYSTEMATIC INC.",
+  "reason": "no match"
+ },
+ "t rex solutions": {
+  "count": 68,
+  "first_seen": "2026-07-12",
+  "raw": "T-REX SOLUTIONS LLC",
+  "reason": "no match"
+ },
+ "team one repair": {
+  "count": 60,
+  "first_seen": "2026-07-12",
+  "raw": "TEAM ONE REPAIR, INC.",
+  "reason": "no match"
+ },
+ "telecommunication systems": {
+  "count": 410,
+  "first_seen": "2026-07-12",
+  "raw": "TELECOMMUNICATION SYSTEMS INC",
+  "reason": "no match"
+ },
+ "teledyne flir defense": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "TELEDYNE FLIR DEFENSE, INC.",
+  "reason": "no match"
+ },
+ "telephonics": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "TELEPHONICS CORP",
+  "reason": "no match"
+ },
+ "terma": {
+  "count": 12,
+  "first_seen": "2026-07-12",
+  "raw": "TERMA INC.",
+  "reason": "no match"
+ },
+ "thales defense security": {
+  "count": 53,
+  "first_seen": "2026-07-12",
+  "raw": "THALES DEFENSE & SECURITY INC",
+  "reason": "no match"
+ },
+ "the johns hopkins university applied physics laboratory": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "THE JOHNS HOPKINS UNIVERSITY APPLIED PHYSICS LABORATORY LLC",
+  "reason": "no match"
+ },
+ "the mitre": {
+  "count": 32,
+  "first_seen": "2026-07-12",
+  "raw": "THE MITRE CORPORATION",
+  "reason": "no match"
+ },
+ "thirdpacket": {
+  "count": 9,
+  "first_seen": "2026-07-21",
+  "raw": "THIRDPACKET TECHNOLOGIES LLC",
+  "reason": "no match"
+ },
+ "tista science and": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "TISTA SCIENCE AND TECHNOLOGY CORPORATION",
+  "reason": "no match"
+ },
+ "trace systems": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "TRACE SYSTEMS, INC.",
+  "reason": "no match"
+ },
+ "trailblazer innovations": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "TRAILBLAZER INNOVATIONS, LLC",
+  "reason": "no match"
+ },
+ "trane div american standard": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "TRANE, DIV  AMERICAN STANDARD",
+  "reason": "no match"
+ },
+ "tremor tech": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "TREMOR TECH, INC",
+  "reason": "no match"
+ },
+ "tribalco": {
+  "count": 2,
+  "first_seen": "2026-07-12",
+  "raw": "TRIBALCO LLC",
+  "reason": "no match"
+ },
+ "trm labs": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "TRM LABS, INC.",
+  "reason": "no match"
+ },
+ "truemath": {
+  "count": 8,
+  "first_seen": "2026-07-12",
+  "raw": "TRUEMATH, INC.",
+  "reason": "no match"
+ },
+ "ttec government solutions": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "TTEC GOVERNMENT SOLUTIONS LLC",
+  "reason": "no match"
+ },
+ "tubewriter": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "TUBEWRITER, LLC",
+  "reason": "no match"
+ },
+ "turning point global solutions": {
+  "count": 16,
+  "first_seen": "2026-07-12",
+  "raw": "TURNING POINT GLOBAL SOLUTIONS LLC",
+  "reason": "no match"
+ },
+ "tyto government solutions": {
+  "count": 16,
+  "first_seen": "2026-07-12",
+  "raw": "TYTO GOVERNMENT SOLUTIONS INC",
+  "reason": "no match"
+ },
+ "unicom government": {
+  "count": 8,
+  "first_seen": "2026-07-12",
+  "raw": "UNICOM GOVERNMENT, INC.",
+  "reason": "no match"
+ },
+ "unissant": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "UNISSANT INC.",
+  "reason": "no match"
+ },
+ "universal understanding": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "UNIVERSAL UNDERSTANDING INC",
+  "reason": "no match"
+ },
+ "unwin": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "UNWIN CO",
+  "reason": "no match"
+ },
+ "valdez international": {
+  "count": 9,
+  "first_seen": "2026-07-21",
+  "raw": "VALDEZ INTERNATIONAL CORPORATION",
+  "reason": "no match"
+ },
+ "vantor services": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "VANTOR SERVICES INC.",
+  "reason": "no match"
+ },
+ "vartech systems": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "VARTECH SYSTEMS, INC.",
+  "reason": "no match"
+ },
+ "vectrus systems": {
+  "count": 9,
+  "first_seen": "2026-07-21",
+  "raw": "VECTRUS SYSTEMS LLC",
+  "reason": "no match"
+ },
+ "ventech solutions": {
+  "count": 68,
+  "first_seen": "2026-07-12",
+  "raw": "VENTECH SOLUTIONS INC",
+  "reason": "no match"
+ },
+ "ventera": {
+  "count": 16,
+  "first_seen": "2026-07-12",
+  "raw": "VENTERA LLC",
+  "reason": "no match"
+ },
+ "verizon business network services": {
+  "count": 69,
+  "first_seen": "2026-07-12",
+  "raw": "VERIZON BUSINESS NETWORK SERVICES LLC",
+  "reason": "no match"
+ },
+ "veterans ez info": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "VETERANS EZ INFO INC.",
+  "reason": "no match"
+ },
+ "via science": {
+  "count": 2,
+  "first_seen": "2026-07-21",
+  "raw": "VIA SCIENCE INC",
+  "reason": "no match"
+ },
+ "viasat": {
+  "count": 2,
+  "first_seen": "2026-07-12",
+  "raw": "VIASAT, INC.",
+  "reason": "no match"
+ },
+ "viatech systems": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "VIATECH SYSTEMS, INC.",
+  "reason": "no match"
+ },
+ "vindicator": {
+  "count": 6,
+  "first_seen": "2026-07-12",
+  "raw": "VINDICATOR TECHNOLOGIES, INC.",
+  "reason": "no match"
+ },
+ "vizocom ict": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "VIZOCOM ICT LLC",
+  "reason": "no match"
+ },
+ "vortex systems": {
+  "count": 30,
+  "first_seen": "2026-07-12",
+  "raw": "VORTEX SYSTEMS LLC",
+  "reason": "no match"
+ },
+ "vt milcom": {
+  "count": 120,
+  "first_seen": "2026-07-12",
+  "raw": "VT MILCOM INC.",
+  "reason": "no match"
+ },
+ "walter klein": {
+  "count": 3,
+  "first_seen": "2026-07-12",
+  "raw": "WALTER KLEIN",
+  "reason": "no match"
+ },
+ "westat": {
+  "count": 33,
+  "first_seen": "2026-07-12",
+  "raw": "WESTAT, INC.",
+  "reason": "no match"
+ },
+ "xerox": {
+  "count": 60,
+  "first_seen": "2026-07-12",
+  "raw": "XEROX CORPORATION",
+  "reason": "no match"
+ },
+ "yale new haven health services": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "YALE NEW HAVEN HEALTH SERVICES CORPORATION",
+  "reason": "no match"
+ },
+ "yorktown systems group": {
+  "count": 1,
+  "first_seen": "2026-07-12",
+  "raw": "YORKTOWN SYSTEMS GROUP INC",
+  "reason": "no match"
+ },
+ "zeta integrators": {
+  "count": 1,
+  "first_seen": "2026-07-15",
+  "raw": "Zeta Integrators",
+  "reason": "no match"
+ },
+ "zolon tech": {
+  "count": 9,
+  "first_seen": "2026-07-21",
+  "raw": "ZOLON TECH INC.",
+  "reason": "no match"
+ }
+}

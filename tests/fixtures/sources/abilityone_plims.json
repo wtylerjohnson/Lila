@@ -1,0 +1,35 @@
+{
+  "_fixture_provenance": {
+    "kind": "recorded",
+    "retrieved_at_utc": "2026-08-08T22:56:00Z",
+    "product_url": "https://plims.abilityone.gov/getsearchservices/?type=searchproducts&page=1&pageSize=3&plims_productdescriptiontext=calendar&plims_productname=calendar",
+    "service_url": "https://plims.abilityone.gov/getsearchservices/?type=searchservices&page=1&pageSize=3&plims_servicetype=custodial"
+  },
+  "product_results": [
+    {
+      "plims_name": "7520-01-496-5475",
+      "plims_productprojectnsnid": "d4f1b8ab-137b-f011-b4cc-001dd803dca7",
+      "project.plims_cna": "NIB",
+      "project.plims_npa": "Chicago Lighthouse Industries",
+      "nsn.plims_activedate": "7/19/2002 10:20:05 AM",
+      "nsn.plims_productname": "Calendar, Wall, Custom, Erasable, Blank, 36` x 24`",
+      "nsn.plims_productdescriptiontext": "erasable custom wall calendar is laminated and erasable.",
+      "nsn.plims_listtype": "B",
+      "agency.plims_agencyname": "FEDERAL ACQUISITION SERVICE"
+    }
+  ],
+  "service_results": [
+    {
+      "plims_serviceprojectlocations.plims_city": "Virginia Beach",
+      "plims_serviceprojectlocations.plims_locationname": "US Navy, Dam Neck Annex, Virginia Beach, VA",
+      "plims_serviceprojectlocations.plims_state": "VA",
+      "plims_serviceprojectlocations.plims_addr2": "",
+      "plims_serviceprojectlocations.plims_addr1": "1750 Tomcat Boulevard",
+      "serviceprojects.plims_cna": "NISH",
+      "plims_agencies.plims_agencyname": "DEPT OF THE NAVY",
+      "plims_agencies.plims_department": "DEPT OF DEFENSE",
+      "servicetypes.plims_name": "Custodial",
+      "serviceprojects.plims_transactioneffectivedate": "3/23/2015 12:00:00 AM"
+    }
+  ]
+}

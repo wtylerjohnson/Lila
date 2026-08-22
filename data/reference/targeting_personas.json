@@ -1,0 +1,97 @@
+{
+  "version": "targeting_personas.v2.2026-08-06",
+  "query_bounds": {
+    "person_locations": ["United States"],
+    "why": "THE CHEAPEST SCREEN IS NOT A RULE. Apollo matches person_locations against where the PERSON is based, not their employer's headquarters, and its own docs warn that bounding only the organisation 'returns employees of those companies wherever in the world they live, which wastes credits when those results are enriched'. Measured 2026-08-06: an unbounded IRS search returned a Ukraine-based person with a correct irs.gov org resolution who reached paid enrichment. This bound would have excluded him server-side for zero credits.",
+    "operator_note": "This is a GATE VALUE, not a screening rule. An engagement with OCONUS buyers (garrison IT, embassies, DoDEA, combatant commands) must WIDEN this list, and no agent may narrow it. Add the countries the engagement actually buys from."
+  },
+  "note": "The persona ladder and the row-class rules for Band 09 (REPORT_CONTRACT.md amendment v1.4). Tiers 1 to 4 by persona and component, modeled on the hand-built account sheet. This file is DATA and is tuned like the polysemy corpus: a title added here changes what the supply step searches for without a code change. Selecting a tier that no rule seeks is not an error; it is a defined persona awaiting a rule, disclosed in the band receipt exactly as a recorded-but-unconsumed corpus entry is.",
+  "tiers": [
+    {
+      "tier": 1,
+      "persona": "program owner",
+      "target": "buying_component",
+      "why": "owns the requirement and the renewal decision at the buying component",
+      "titles": [
+        "Program Manager",
+        "Program Director",
+        "Chief Information Officer",
+        "Deputy Chief Information Officer",
+        "Director of Network Operations",
+        "Chief Technology Officer"
+      ],
+      "seniorities": ["director", "vp", "head", "manager", "c_suite"]
+    },
+    {
+      "tier": 2,
+      "persona": "IT procurement",
+      "target": "buying_component",
+      "why": "puts the requirement on contract at the same component the record names",
+      "titles": [
+        "Contracting Officer",
+        "Contract Specialist",
+        "Procurement Analyst",
+        "Director of Acquisition",
+        "Head of Contracting Activity",
+        "Small Business Specialist"
+      ],
+      "seniorities": ["director", "head", "manager", "senior"]
+    },
+    {
+      "tier": 3,
+      "persona": "technical evaluator",
+      "target": "buying_component",
+      "why": "evaluates the technical case at the buying component",
+      "titles": [
+        "Network Engineer",
+        "Enterprise Architect",
+        "Information System Security Officer",
+        "Chief Information Security Officer",
+        "Systems Engineer",
+        "Infrastructure Manager"
+      ],
+      "seniorities": ["senior", "manager", "head", "director"]
+    },
+    {
+      "tier": 4,
+      "persona": "vehicle and channel",
+      "target": "paper_holder",
+      "why": "holds the route on the cited record: the prime, vehicle holder, or reseller the work would ride",
+      "titles": [
+        "Capture Manager",
+        "Business Development Director",
+        "Partner Alliance Manager",
+        "Channel Sales Director",
+        "Federal Program Manager",
+        "Contracts Manager"
+      ],
+      "seniorities": ["director", "vp", "head", "manager"]
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "T1",
+      "row_class": "renewal",
+      "source_rule": "R1",
+      "when": "an R1 head-to-head card whose nearest dated clock belongs to a CLIENT record: the client's own paper closes first, so the motion is defend the renewal",
+      "seeks_tiers": [1, 2],
+      "basis": "renewal rows want the program office plus IT procurement at the buying component"
+    },
+    {
+      "rule_id": "T2",
+      "row_class": "displacement",
+      "source_rule": "R1|R2",
+      "when": "an R1 head-to-head card whose nearest dated clock belongs to a RIVAL record, or any R2 displacement alert",
+      "seeks_tiers": [1, 2],
+      "basis": "displacement rows want the program office plus IT procurement at the buying component"
+    },
+    {
+      "rule_id": "T3",
+      "row_class": "adjacency",
+      "source_rule": "R4",
+      "when": "an R4 qualify row whose client-history evidence names a prime recipient to route through",
+      "seeks_tiers": [4],
+      "basis": "adjacency rows want the vehicle and reseller side, never the buying agency: nothing has posted yet, so the route is the actionable surface"
+    }
+  ]
+}

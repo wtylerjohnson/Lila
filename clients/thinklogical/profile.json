@@ -1,0 +1,183 @@
+{
+  "client_name": "Thinklogical",
+  "capability_summary": "Fiber-optic KVM matrix switching, signal extension and secure video distribution for multi-classification command-and-control facilities. A Belden subsidiary and a hardware OEM: federal revenue reaches the government through GSA-schedule integrators and value-added resellers, not through Thinklogical as a prime.",
+  "capability_terms": {
+    "core": [
+      "KVM matrix switch",
+      "KVM extender",
+      "signal extension",
+      "secure video distribution system",
+      "VDS",
+      "multi-classification",
+      "multi-domain workstation",
+      "command and control",
+      "C2",
+      "all-domain C2",
+      "insider threat",
+      "back-racking"
+    ],
+    "adjacent": [
+      "fiber-optic uncompressed 4K",
+      "8K signal management",
+      "DoDIN APL",
+      "UC APL",
+      "Common Criteria EAL4",
+      "TEMPEST SDIP-27 Level B",
+      "NIAPC GREEN",
+      "NATO accreditation",
+      "TAA-compliant",
+      "made in USA",
+      "Thinklogical KVM",
+      "Velocity KVM",
+      "TLX matrix switch"
+    ],
+    "excluded": [
+      "kernel-based virtual machine",
+      "KVM hypervisor",
+      "virtualization",
+      "ethernet switch",
+      "KVM over IP camera",
+      "vertical datum",
+      "video distribution amplifier"
+    ]
+  },
+  "named_competitors_and_incumbents": [
+    "IHSE",
+    "Guntermann & Drunck",
+    "G&D",
+    "Adder",
+    "Adder Technology",
+    "Black Box",
+    "Black Box Emerald",
+    "Vertiv",
+    "Avocent",
+    "Vertiv Avocent"
+  ],
+  "mission_components": [
+    "Department of Defense",
+    "NAVSEA",
+    "Department of the Navy",
+    "Intelligence Community",
+    "DISA",
+    "U.S. Army",
+    "Department of the Air Force",
+    "Defense Logistics Agency"
+  ],
+  "naics_boundary": [
+    "334118",
+    "334310",
+    "334290",
+    "334220",
+    "423430",
+    "541519"
+  ],
+  "_research_entities_doc": "Operator-supplied at the 2026-08-04 gold-standard brief, kept alongside the competitive engine's roster because they feed different lanes: `named_competitors_and_incumbents` seeds competitive discovery (which anchors ambiguous aliases at MATCH time through reject_entity_hit), while these rows feed press._bridge_entities and the L2 entity-award lane, which searches each name verbatim and therefore only carries unambiguous forms. The approved 2026-07-06 packet is NOT edited: revise() refuses an approved strategy and re-approval is an operator gate.",
+  "research_entities": [
+    {
+      "name": "Thinklogical",
+      "kind": "product",
+      "rationale": "Operator-supplied 2026-08-04: the client's own name, as award descriptions spell it.",
+      "source": "operator brief 2026-08-04"
+    },
+    {
+      "name": "Thinklogical Velocity",
+      "kind": "product",
+      "rationale": "Operator-supplied 2026-08-04: flagship KVM product line. Qualified with the vendor name because bare 'Velocity' is a common federal word.",
+      "source": "operator brief 2026-08-04"
+    },
+    {
+      "name": "Thinklogical TLX",
+      "kind": "product",
+      "rationale": "Operator-supplied 2026-08-04: TLX matrix switch family. Vendor-qualified: bare 'TLX' collides with unrelated model numbers.",
+      "source": "operator brief 2026-08-04"
+    },
+    {
+      "name": "KVM matrix switch",
+      "kind": "product",
+      "rationale": "Operator-supplied 2026-08-04: the capability as award text spells it.",
+      "source": "operator brief 2026-08-04"
+    },
+    {
+      "name": "KVM extender",
+      "kind": "product",
+      "rationale": "Operator-supplied 2026-08-04: extension systems product line.",
+      "source": "operator brief 2026-08-04"
+    },
+    {
+      "name": "secure video distribution system",
+      "kind": "product",
+      "rationale": "Operator-supplied 2026-08-04: VDS spelled out. Bare 'VDS' is not searched verbatim on its own.",
+      "source": "operator brief 2026-08-04"
+    },
+    {
+      "name": "IHSE",
+      "kind": "competitor",
+      "rationale": "Operator-supplied 2026-08-04: direct KVM matrix competitor; distinctive token.",
+      "source": "operator brief 2026-08-04"
+    },
+    {
+      "name": "Guntermann & Drunck",
+      "kind": "competitor",
+      "rationale": "Operator-supplied 2026-08-04: direct KVM competitor. Searched in full; bare 'G&D' anchors at match time instead.",
+      "source": "operator brief 2026-08-04"
+    },
+    {
+      "name": "Adder Technology",
+      "kind": "competitor",
+      "rationale": "Operator-supplied 2026-08-04: direct KVM competitor. Searched with the corporate suffix; bare 'Adder' anchors at match time instead.",
+      "source": "operator brief 2026-08-04"
+    },
+    {
+      "name": "Black Box Emerald",
+      "kind": "competitor",
+      "rationale": "Operator-supplied 2026-08-04: the Emerald KVM line. Product-qualified; bare 'Black Box' anchors at match time instead.",
+      "source": "operator brief 2026-08-04"
+    },
+    {
+      "name": "Vertiv Avocent",
+      "kind": "competitor",
+      "rationale": "Operator-supplied 2026-08-04: Avocent KVM under Vertiv. Vendor-qualified; bare 'Avocent' anchors at match time instead.",
+      "source": "operator brief 2026-08-04"
+    }
+  ],
+  "_ambiguous_aliases_doc": "These short forms stay OUT of the verbatim-search list above because each admits unrelated federal records on its own. They are not lost: the competitive engine carries them in named_competitors_and_incumbents and anchors them at match time via the shared reject_entity_hit guard, which is the stronger design (a bare alias can still confirm a hit when the vendor is present in the same text).",
+  "ambiguous_aliases_not_searched": {
+    "Velocity": "common federal adjective and program name; searched as 'Thinklogical Velocity'",
+    "TLX": "bare model token collides with unrelated part numbers; searched as 'Thinklogical TLX'",
+    "VDS": "initialism with many federal expansions; searched as 'secure video distribution system'",
+    "G&D": "two-letter initialism; searched as 'Guntermann & Drunck'",
+    "Adder": "common electronics and arithmetic noun; searched as 'Adder Technology'",
+    "Black Box": "generic testing and enclosure term; searched as 'Black Box Emerald'",
+    "Avocent": "reaches award text under the parent; searched as 'Vertiv Avocent'"
+  },
+  "product_competitors": {
+    "market": "KVM and video matrix switching for secure environments",
+    "source": "operator-stated product rivals, clients/thinklogical/profile.json",
+    "competitors": [
+      {
+        "name": "IHSE"
+      },
+      {
+        "name": "Guntermann & Drunck"
+      },
+      {
+        "name": "Adder"
+      },
+      {
+        "name": "Adder Technology"
+      },
+      {
+        "name": "Black Box"
+      },
+      {
+        "name": "Vertiv"
+      },
+      {
+        "name": "Avocent"
+      },
+      {
+        "name": "Vertiv Avocent"
+      }
+    ]
+  }
+}

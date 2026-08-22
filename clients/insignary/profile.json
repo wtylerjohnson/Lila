@@ -1,0 +1,56 @@
+{
+  "client_name": "Insignary",
+  "capability_terms": {
+    "core": [
+      "Software Composition Analysis",
+      "Software Bill of Materials",
+      "binary analysis",
+      "software supply chain security",
+      "vulnerability management",
+      "open source license compliance"
+    ],
+    "adjacent": [
+      "SBOM",
+      "CVE detection",
+      "DevSecOps",
+      "EO 14028",
+      "reachability analysis",
+      "CycloneDX",
+      "SPDX"
+    ],
+    "excluded": [
+      "Insignia Federal Group",
+      "Insignis",
+      "Insignia",
+      "Insignia Capital",
+      "Insigniam",
+      "Cybertrust",
+      "reverse engineering",
+      "malware analysis"
+    ]
+  },
+  "named_competitors_and_incumbents": [
+    "Black Duck",
+    "Synopsys",
+    "Anchore",
+    "Sonatype",
+    "Snyk",
+    "Checkmarx",
+    "GitLab",
+    "Veracode",
+    "JFrog",
+    "Mend",
+    "Chainguard"
+  ],
+  "mission_components": [
+    "CISA",
+    "Department of Defense",
+    "NSA",
+    "DHS"
+  ],
+  "naics_boundary": [
+    "511210",
+    "541512",
+    "541519"
+  ]
+}

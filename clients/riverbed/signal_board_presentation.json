@@ -1,0 +1,34 @@
+{
+  "client_slug": "riverbed",
+  "header_companion_text": "Riverbed",
+  "logo_overrides": {
+    "agency:treas": {
+      "asset": "assets/presentation/agency/treas/c78e6b27a32d40722f49efaf5f60896184fc3d63f1c520fa75bacab4c1699ed0.png",
+      "kind": "agency",
+      "label": "Department of the Treasury",
+      "media_type": "image/png",
+      "sha256": "c78e6b27a32d40722f49efaf5f60896184fc3d63f1c520fa75bacab4c1699ed0",
+      "updated_at": "2026-07-19T23:02:18.940033Z"
+    },
+    "company:fcn": {
+      "asset": "assets/presentation/company/fcn/98e11598fbece20540cd6a3bc9c97676ebd91468fceb68355213025f9d3684c5.png",
+      "kind": "company",
+      "label": "FCN",
+      "media_type": "image/png",
+      "sha256": "98e11598fbece20540cd6a3bc9c97676ebd91468fceb68355213025f9d3684c5",
+      "updated_at": "2026-07-21T14:43:32.112065Z"
+    },
+    "company:swish_data": {
+      "asset": "assets/presentation/company/swish_data/7bcecc0a4d25d0791f364036586a3636ad79cde13bfb18c4f3d6635456bd2edd.jpg",
+      "kind": "company",
+      "label": "SWISH DATA",
+      "media_type": "image/jpeg",
+      "sha256": "7bcecc0a4d25d0791f364036586a3636ad79cde13bfb18c4f3d6635456bd2edd",
+      "updated_at": "2026-07-21T14:43:34.268258Z"
+    }
+  },
+  "logo_sizes": {
+    "company:fcn": 110
+  },
+  "schema_version": 1
+}

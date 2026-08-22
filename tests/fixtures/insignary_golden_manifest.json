@@ -1,0 +1,39 @@
+{
+  "client": "Insignary",
+  "render_date": "2026-07-17",
+  "sections": 7,
+  "h2_set": [
+    "Priority federal routes",
+    "Competitor lanes",
+    "Candidate teaming opportunities",
+    "Forward timing signals",
+    "Research source coverage",
+    "Evidence dock"
+  ],
+  "dollar_figure_set": [
+    "$71.23M",
+    "$174.54M",
+    "$43.77M",
+    "$289.5M",
+    "$2.04M",
+    "$1.51M",
+    "$1.54M",
+    "$1.37M",
+    "$677.6K",
+    "$3.86M",
+    "$4.45M",
+    "$20B"
+  ],
+  "date_set_includes": [
+    "24 SEP 2026",
+    "29 SEP 2026"
+  ],
+  "data_current": "17 JUL 2026",
+  "usaspending_award_links": 24,
+  "public_sam_opp_links_min": 11,
+  "sam_workspace_links": 0,
+  "agency_marks_disclaimer": "no affiliation or endorsement",
+  "script_tags": 0,
+  "em_dashes": 0,
+  "agency_seals_embedded": 8
+}

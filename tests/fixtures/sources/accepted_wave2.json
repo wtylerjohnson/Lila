@@ -1,0 +1,75 @@
+{
+  "sf133": {
+    "headers": ["RPT_YR", "AGENCY", "BUREAU", "OMB_ACCT", "TRAG", "ALLOC", "TRACCT", "FY1", "FY2", "STAT", "CRED_IND", "COHORT", "LINENO", "LINE_DESC", "CAT_B", "F2_USER_ID", "TAFS", "AGENCY_TITLE", "LAST_UPDATED", "SECTION", "SECTION_NO", "LINE_TYPE", "BUREAU_TITLE", "OMB_ACCOUNT", "F2_USER", "AMT_JUL", "AMT_AUG"],
+    "rows": [
+      [2026, "070", "10", "024-70-0100", "070", null, "0100", 2026, 2026, "X", null, null, "2004", "Obligations incurred", "Cybersecurity modernization", "preparer@example.gov", "070-2026-2026-0100", "Department of Homeland Security", "2026-08-01", "Obligations", 2, "D", "Management", "Operations and Support", "Preparer Name", 1250000, 1750000],
+      [2026, "070", "10", "024-70-0100", "070", null, "0100", 2026, 2026, "X", null, null, "2190", "Unobligated balance", "Facilities", "preparer@example.gov", "070-2026-2026-0100", "Department of Homeland Security", "2026-08-01", "Balances", 2, "D", "Management", "Operations and Support", "Preparer Name", 900000, 800000]
+    ]
+  },
+  "sba": [
+    {
+      "fiscal_year": 2025,
+      "department_id": 7000,
+      "department_friendly_name": "Department of Homeland Security",
+      "department_name": "HOMELAND SECURITY, DEPARTMENT OF (7000)",
+      "department_acronym": "DHS",
+      "agency_grade": "A",
+      "agency_score": "103.50%",
+      "prime_total_score": "55.00%",
+      "sub_total_score": "18.00%",
+      "prime_sb_dollars": "$8.0 B",
+      "prime_sb_cfy_achievement": "32.00%",
+      "prime_sb_cfy_goal": "29.00%",
+      "sub_sb_dollars": "$4.0 B",
+      "sub_sb_cfy_achievement": "35.00%",
+      "sub_sb_cfy_goal": "33.00%",
+      "category_sb_cfy_vendor_count": "12,000",
+      "category_sb_percent_change": "2.0%",
+      "prime_footnotes": "Prime data retrieved February 20, 2026.<br>Publisher stated.",
+      "sub_footnotes": "Subcontract data retrieved January 30, 2026."
+    },
+    {
+      "fiscal_year": 2025,
+      "department_id": 8900,
+      "department_friendly_name": "Department of Energy",
+      "department_name": "ENERGY, DEPARTMENT OF (8900)",
+      "department_acronym": "DOE",
+      "agency_grade": "B",
+      "agency_score": "95.00%"
+    }
+  ],
+  "leie_csv": "LASTNAME,FIRSTNAME,MIDNAME,BUSNAME,GENERAL,SPECIALTY,UPIN,NPI,DOB,ADDRESS,CITY,STATE,ZIP,EXCLTYPE,EXCLDATE,REINDATE,WAIVERDATE,WVRSTATE\n\"\",\"\",\"\",\"ACME HEALTH SERVICES, INC\",\"OTHER BUSINESS\",\"HOME HEALTH AGENCY\",\"\",\"1234567890\",\"\",\"123 PRIVATE STREET\",\"DENVER\",\"CO\",\"80202\",\"1128b5\",\"20230518\",\"00000000\",\"00000000\",\"\"\n\"DOE\",\"JANE\",\"Q\",\"\",\"INDIVIDUAL\",\"NURSES AIDE\",\"\",\"0000000000\",\"19800101\",\"999 PRIVATE STREET\",\"DENVER\",\"CO\",\"80203\",\"1128a1\",\"20200101\",\"00000000\",\"00000000\",\"\"\n",
+  "oversight_html": "<html><div class=\"view-content\"><tr class=\"listing-table__row table-row\"><td data-label=\"Report Date\"><time datetime=\"2026-07-15T12:00:00Z\">07/15/2026</time></td><td data-label=\"Agency Reviewed / Investigated\">Department of Energy</td><td data-label=\"Report Title\">Cybersecurity Contract Oversight</td><td data-label=\"Type\">Audit</td><td data-label=\"Location\">Agency-Wide</td><td data-label=\"action-cell-report-link\"><a href=\"/reports/audit/cybersecurity-contract-oversight\">View Report</a></td></tr><tr class=\"listing-table__accordion-toggle\"></tr><div class=\"field field--name-field-report-submitting-oig\"><div class=\"field__item display-inline\">Department of Energy OIG</div></div><div class=\"field field--name-body\"><div class=\"field__item display-inline\"><p>Reviewed cybersecurity contractor controls.</p></div></div><div class=\"field field--name-field-report-number-of-recs\"><div class=\"field__item display-inline\">5</div></div><div class=\"field field--name-field-report-number\"><div class=\"field__item display-inline\">DOE-OIG-26-01</div></div></div><div class=\"view-footer\">Displaying 1 - 1 of 1</div></html>",
+  "eere_html": "<html><table><tr id=\"ctl00_cphMainContent_FoaDetailGridControl_gvFoaList_DXDataRow0\" class=\"dxgvDataRow\"><td></td><td><a id=\"ctl00_cphMainContent_FoaDetailGridControl_gvFoaList_cell0_1_lblfoaNumberURL\" href=\"#FoaId612e4ab7-c5f0-4b6f-9d50-e0104dd38b62\">DE-FOA-0003662</a></td><td><a id=\"ctl00_cphMainContent_FoaDetailGridControl_gvFoaList_cell0_2_lblfoaTitleURL\" href=\"#FoaId612e4ab7-c5f0-4b6f-9d50-e0104dd38b62\">NOI: Critical hydrogen systems</a></td><td><span id=\"ctl00_cphMainContent_FoaDetailGridControl_gvFoaList_cell0_3_lblFoaType\">Notice of Intent to Publish Announcement (NOI)</span></td><td><span id=\"ctl00_cphMainContent_FoaDetailGridControl_gvFoaList_cell0_4_lblProgram\">Hydrogen Office</span></td><td><span id=\"ctl00_cphMainContent_FoaDetailGridControl_gvFoaList_cell0_6_lblRFIDeadline\"></span></td><td><span id=\"ctl00_cphMainContent_FoaDetailGridControl_gvFoaList_cell0_7_lblNOIDeadline\"></span></td><td><span id=\"ctl00_cphMainContent_FoaDetailGridControl_gvFoaList_cell0_8_lblCPDeadline\"></span></td><td><span id=\"ctl00_cphMainContent_FoaDetailGridControl_gvFoaList_cell0_9_lblFADeadline\">TBD</span></td></tr><tr id=\"ctl00_cphMainContent_FoaDetailGridControl_gvFoaList_DXDataRow1\" class=\"dxgvDataRow\"><td></td><td><a id=\"ctl00_cphMainContent_FoaDetailGridControl_gvFoaList_cell1_1_lblfoaNumberURL\" href=\"#FoaIdc8a08473-ba66-45b5-aca1-ca8b950a6bc8\">TPL-0000073</a></td><td><a id=\"ctl00_cphMainContent_FoaDetailGridControl_gvFoaList_cell1_2_lblfoaTitleURL\" href=\"#FoaIdc8a08473-ba66-45b5-aca1-ca8b950a6bc8\">Teaming Partner List for DE-FOA-0003662 Critical hydrogen systems</a></td><td><span id=\"ctl00_cphMainContent_FoaDetailGridControl_gvFoaList_cell1_3_lblFoaType\">Teaming Partner List</span></td><td><span id=\"ctl00_cphMainContent_FoaDetailGridControl_gvFoaList_cell1_4_lblProgram\"></span></td><td><span id=\"ctl00_cphMainContent_FoaDetailGridControl_gvFoaList_cell1_6_lblRFIDeadline\"></span></td><td><span id=\"ctl00_cphMainContent_FoaDetailGridControl_gvFoaList_cell1_7_lblNOIDeadline\"></span></td><td><span id=\"ctl00_cphMainContent_FoaDetailGridControl_gvFoaList_cell1_8_lblCPDeadline\"></span></td><td><span id=\"ctl00_cphMainContent_FoaDetailGridControl_gvFoaList_cell1_9_lblFADeadline\"></span></td></tr></table></html>",
+  "sam_wd": {
+    "_embedded": {
+      "results": [
+        {
+          "_id": "2015-4281",
+          "revisionNumber": 38,
+          "publishDate": "2026-07-30T00:00:00-04:00",
+          "modifiedDate": "2026-07-30T00:00:00-04:00",
+          "_type": "wdSCA",
+          "title": "2015-4281",
+          "type": {"code": "SCA", "value": "Service Contract Act"},
+          "isActive": true,
+          "isLatest": true,
+          "isStandard": true,
+          "fullReferenceNumber": "2015-4281",
+          "shortReferenceNumber": "15-4281",
+          "location": {
+            "states": [
+              {
+                "code": "CO",
+                "name": "Colorado",
+                "isStateWide": false,
+                "counties": {"include": [{"code": 123, "value": "Denver"}], "exclude": null}
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "page": {"size": 1, "totalElements": 1, "totalPages": 1, "number": 0, "maxAllowedRecords": 10000}
+  }
+}

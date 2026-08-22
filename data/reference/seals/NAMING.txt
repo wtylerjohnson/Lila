@@ -1,0 +1,35 @@
+LILA BRAND MARKS — AGENCY SEALS · naming protocol
+
+Drop images here (or into the Desktop shortcut). PNG, JPG, WEBP or SVG.
+
+Exact names the system reads, one per agency (lowercase):
+    aid.png  (usaid.gov)
+    aousc.png  (uscourts.gov)
+    dcc.png  (dccourts.gov)
+    dhs.png  (dhs.gov)
+    doc.png  (commerce.gov)
+    dod.png  (defense.gov)
+    doe.png  (energy.gov)
+    doi.png  (doi.gov)
+    doj.png  (justice.gov)
+    dol.png  (dol.gov)
+    dos.png  (state.gov)
+    dot.png  (transportation.gov)
+    epa.png  (epa.gov)
+    gsa.png  (gsa.gov)
+    hhs.png  (hhs.gov)
+    nara.png  (archives.gov)
+    nasa.png  (nasa.gov)
+    si.png  (si.edu)
+    ssa.png  (ssa.gov)
+    treas.png  (home.treasury.gov)
+    usaid.png  (usaid.gov)
+    usda.png  (usda.gov)
+    va.png  (va.gov)
+
+You do NOT have to rename by hand — recognizable drops are adopted
+automatically: "Department of Defense.png", "DoD seal.jpg", "GSA logo.png"
+all become the right file. Your drop replaces any fetched mark for that
+agency and is never overwritten by the fetcher afterwards.
+
+Unrecognized names are left alone and reported — nothing is deleted.

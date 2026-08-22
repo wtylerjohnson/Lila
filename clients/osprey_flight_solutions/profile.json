@@ -1,0 +1,77 @@
+{
+  "client_name": "Osprey Flight Solutions",
+  "capability_terms": {
+    "core": [
+      "aviation risk intelligence",
+      "aviation risk",
+      "airspace threat",
+      "airspace security",
+      "airspace risk",
+      "overflight risk",
+      "overflight security",
+      "conflict zone advisory",
+      "conflict zone",
+      "flight risk",
+      "aviation security intelligence",
+      "aviation threat"
+    ],
+    "adjacent": [
+      "flight data subscription",
+      "flight data",
+      "aeronautical charts",
+      "aeronautical chart",
+      "aeronautical navigation",
+      "electronic flight bag",
+      "EFB",
+      "counter-UAS",
+      "unmanned aircraft",
+      "geospatial fusion",
+      "geospatial intelligence",
+      "OSINT",
+      "open-source intelligence",
+      "aviation safety data",
+      "aviation safety",
+      "flight tracking",
+      "flight planning",
+      "airspace management",
+      "aviation data",
+      "NOTAM",
+      "notice to air missions",
+      "ISR"
+    ],
+    "excluded": [
+      "aircraft maintenance",
+      "fuel services",
+      "airfield construction",
+      "space management",
+      "facilities management",
+      "janitorial",
+      "custodial",
+      "grounds maintenance",
+      "food service"
+    ]
+  },
+  "named_competitors_and_incumbents": [
+    "ForeFlight",
+    "Jeppesen",
+    "Compusult",
+    "NavBlue",
+    "Lido",
+    "Garmin",
+    "Dataminr",
+    "Seerist",
+    "MedAire",
+    "Osprey Flight Solutions"
+  ],
+  "mission_components": [
+    "Air and Marine Operations",
+    "Customs and Border Protection",
+    "Federal Aviation Administration",
+    "Transportation Security Administration",
+    "Department of the Air Force",
+    "Air Force",
+    "National Geospatial-Intelligence Agency",
+    "Special Operations Command"
+  ],
+  "naics_boundary": ["518210", "541512", "541519", "541690", "541990"]
+}

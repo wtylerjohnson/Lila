@@ -1,0 +1,252 @@
+{
+  "client_name": "iMerit",
+  "version": 1,
+  "updated": "2026-07-21",
+  "core": [
+    {
+      "term": "iMerit",
+      "mode": "exact_phrase",
+      "note": "exact client brand; supports installed-base and named-vendor evidence"
+    },
+    {
+      "term": "Ango Hub",
+      "mode": "exact_phrase",
+      "note": "named iMerit annotation and model-evaluation platform"
+    },
+    {
+      "term": "iMerit Scholars",
+      "mode": "exact_phrase",
+      "note": "named expert-in-the-loop offering"
+    },
+    {
+      "term": "Deep Reasoning Lab",
+      "mode": "exact_phrase",
+      "note": "named reasoning-data and model-evaluation offering"
+    },
+    {
+      "term": "data annotation",
+      "mode": "stemmed"
+    },
+    {
+      "term": "data labeling",
+      "mode": "stemmed"
+    },
+    {
+      "term": "AI training data",
+      "mode": "stemmed"
+    },
+    {
+      "term": "ground truth data",
+      "mode": "stemmed"
+    },
+    {
+      "term": "human-in-the-loop",
+      "mode": "exact_phrase"
+    },
+    {
+      "term": "human in the loop",
+      "mode": "stemmed"
+    },
+    {
+      "term": "expert-in-the-loop",
+      "mode": "exact_phrase"
+    },
+    {
+      "term": "expert in the loop",
+      "mode": "stemmed"
+    },
+    {
+      "term": "model evaluation",
+      "mode": "stemmed"
+    },
+    {
+      "term": "AI safety evaluation",
+      "mode": "stemmed"
+    },
+    {
+      "term": "AI red teaming",
+      "mode": "stemmed"
+    },
+    {
+      "term": "supervised fine-tuning",
+      "mode": "stemmed"
+    },
+    {
+      "term": "RLHF",
+      "mode": "exact_phrase"
+    },
+    {
+      "term": "reinforcement learning from human feedback",
+      "mode": "stemmed"
+    },
+    {
+      "term": "prompt-response evaluation",
+      "mode": "stemmed"
+    },
+    {
+      "term": "multimodal annotation",
+      "mode": "stemmed"
+    },
+    {
+      "term": "3D point cloud annotation",
+      "mode": "stemmed"
+    },
+    {
+      "term": "LiDAR annotation",
+      "mode": "stemmed"
+    },
+    {
+      "term": "DICOM annotation",
+      "mode": "stemmed"
+    },
+    {
+      "term": "medical image annotation",
+      "mode": "stemmed"
+    },
+    {
+      "term": "data curation",
+      "mode": "stemmed"
+    }
+  ],
+  "adjacent": [
+    {
+      "term": "agent evaluation",
+      "mode": "stemmed",
+      "note": "contributes only when a core AI-data capability also appears"
+    },
+    {
+      "term": "AI assurance",
+      "mode": "stemmed"
+    },
+    {
+      "term": "model benchmarking",
+      "mode": "stemmed"
+    },
+    {
+      "term": "model validation",
+      "mode": "stemmed"
+    },
+    {
+      "term": "adversarial testing",
+      "mode": "stemmed"
+    },
+    {
+      "term": "RAG evaluation",
+      "mode": "stemmed"
+    },
+    {
+      "term": "corpus creation",
+      "mode": "stemmed"
+    },
+    {
+      "term": "synthetic data validation",
+      "mode": "stemmed"
+    },
+    {
+      "term": "named entity recognition",
+      "mode": "stemmed"
+    },
+    {
+      "term": "sensor fusion",
+      "mode": "stemmed"
+    },
+    {
+      "term": "remote sensing",
+      "mode": "stemmed"
+    },
+    {
+      "term": "geospatial imagery",
+      "mode": "stemmed"
+    },
+    {
+      "term": "semantic segmentation",
+      "mode": "stemmed"
+    },
+    {
+      "term": "object tracking",
+      "mode": "stemmed"
+    },
+    {
+      "term": "medical data de-identification",
+      "mode": "stemmed"
+    },
+    {
+      "term": "document intelligence",
+      "mode": "stemmed"
+    },
+    {
+      "term": "audio transcription",
+      "mode": "stemmed"
+    }
+  ],
+  "exclude": [
+    {
+      "term": "merit promotion",
+      "scope": "record",
+      "reason": "federal personnel merit-promotion notices are unrelated to iMerit"
+    },
+    {
+      "term": "merit system",
+      "scope": "record",
+      "reason": "civil-service merit-system usage is not the client brand"
+    },
+    {
+      "term": "merit-based selection",
+      "scope": "record",
+      "reason": "evaluation language using merit is not an iMerit capability signal"
+    },
+    {
+      "term": "employee training course",
+      "scope": "span",
+      "reason": "workforce course procurement is not AI training-data production"
+    },
+    {
+      "term": "course development",
+      "scope": "span",
+      "reason": "instructional design is not model training or data annotation"
+    },
+    {
+      "term": "data center construction",
+      "scope": "span",
+      "reason": "physical infrastructure construction is outside iMerit's service boundary"
+    },
+    {
+      "term": "LiDAR equipment purchase",
+      "scope": "span",
+      "reason": "sensor hardware acquisition is not LiDAR data annotation"
+    },
+    {
+      "term": "medical imaging equipment purchase",
+      "scope": "span",
+      "reason": "clinical hardware acquisition is not DICOM or medical-image annotation"
+    }
+  ],
+  "code_universe": {
+    "naics": [
+      "541519",
+      "541511",
+      "513210",
+      "541715",
+      "541512",
+      "518210",
+      "541690",
+      "541370",
+      "541990"
+    ],
+    "psc": [
+      "DA01",
+      "DA10",
+      "R425",
+      "R499",
+      "B529",
+      "B544",
+      "AJ12",
+      "AJ13",
+      "B537",
+      "B538",
+      "B539",
+      "B541",
+      "B599"
+    ]
+  }
+}

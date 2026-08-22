@@ -1,0 +1,37 @@
+{
+  "client_name": "FiscalNote",
+  "capability_summary": "FiscalNote provides policy and regulatory intelligence software: AI-assisted legislative and regulatory tracking (PolicyNote), constituent and grassroots advocacy tools (VoterVoice, Fireside), and congressional news and analysis (CQ, Roll Call), sold as subscription SaaS and data APIs to government affairs, federal affairs, and public-sector teams.",
+  "capability_terms": {
+    "core": [
+      "legislative tracking",
+      "regulatory tracking",
+      "policy intelligence",
+      "government affairs software",
+      "grassroots advocacy",
+      "policy analysis services"
+    ],
+    "adjacent": [
+      "congressional news and analysis",
+      "stakeholder mapping",
+      "policy data API",
+      "policy monitoring subscription"
+    ],
+    "excluded": []
+  },
+  "named_competitors_and_incumbents": [
+    "Quorum",
+    "Bloomberg Government",
+    "Politico Pro"
+  ],
+  "mission_components": [
+    "legislative affairs"
+  ],
+  "naics_boundary": [
+    "511210",
+    "519130",
+    "518210",
+    "541611",
+    "541820",
+    "541990"
+  ]
+}

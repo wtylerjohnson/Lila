@@ -1,0 +1,526 @@
+{
+ "_doc": "The polysemy corpus: every measured collision between client vocabulary and federal procurement language, one entry per witnessed notice. This is an internal quality asset and the checkable record behind coverage claims. Guards derive their negative-context strings from here; nothing here encodes an engagement decision.",
+ "provenance_rule": "Every entry a guard consumes carries the notice_id that produced it. An entry whose evidence lives only in session transcripts gets status 'unproven' and is NOT consumed by any guard until a real id is attached. A notice id is never invented; absence is recorded as absence. Enforced by tests/test_polysemy_corpus.py.",
+ "schema": "term, collision_domain, resolution, notice_id, agency, naics, psc, date_observed, status; guard.consumers lists the code paths that read the entry (empty list: recorded observation, no guard consumes it yet); guard.phrase is the negative-context string a consumer loads.",
+ "entries": [
+  {
+   "term": "network management",
+   "collision_domain": "healthcare provider networks",
+   "resolution": "negative_context: a match near 'provider network' is discarded. 'provider network management' is insurance administration, not IT.",
+   "guard": {
+    "consumers": [
+     "term_tiers.negative_context"
+    ],
+    "phrase": "provider network"
+   },
+   "notice_id": "ab510d376ca04609ac528d9bf217f593",
+   "agency": "STATE, DEPARTMENT OF",
+   "naics": "524114",
+   "psc": "G007",
+   "date_observed": "2026-07-28",
+   "status": "proven",
+   "note": "Locally Employed Staff Health Insurance Services, U.S. Embassy Bishkek."
+  },
+  {
+   "term": "network",
+   "collision_domain": "social networking service boilerplate (TikTok prohibition FAR clause)",
+   "resolution": "negative_context: a match near 'social network' is discarded. The clause text names fiber optic, coaxial cable and Ethernet in the same sentence, so a domain anchor sits inside the boilerplate and the negative guard is the only thing standing.",
+   "guard": {
+    "consumers": [
+     "term_tiers.negative_context"
+    ],
+    "phrase": "social network"
+   },
+   "notice_id": "6b84d75fc96745b5a45bf8724215659a",
+   "agency": "VETERANS AFFAIRS, DEPARTMENT OF",
+   "naics": "334516",
+   "psc": "6640",
+   "date_observed": "2026-08-03",
+   "status": "proven",
+   "note": "Ultracentrifuge equipment buy carrying the ByteDance/TikTok covered-application clause. Witness measured 2026-08-03; the phrase previously rode on 'generic' with no notice."
+  },
+  {
+   "term": "network",
+   "collision_domain": "machine learning and electrical-machine R&D",
+   "resolution": "negative_context: a match near 'neural network' is discarded.",
+   "guard": {
+    "consumers": [
+     "term_tiers.negative_context"
+    ],
+    "phrase": "neural network"
+   },
+   "notice_id": "a3f3bb4848924b4d8ec3363d0a1102d5",
+   "agency": "DEPT OF DEFENSE",
+   "naics": "335311",
+   "psc": "1905",
+   "date_observed": "2026-08-03",
+   "status": "proven",
+   "note": "NAVSEA Naval Power and Energy Systems BAA N00024-19-R-4145: 'Recent trends in electrical machines include neural networks'. Same BAA also witnesses the observability entries. DOE spectroscopy licensing notice 70f1749ccd9641c388f088805ce5e98f is a second independent witness."
+  },
+  {
+   "term": "network monitoring",
+   "collision_domain": "electrical substation protection and automation",
+   "resolution": "negative_context: a match near 'protection and automation' is discarded. 'Network Monitoring ... monitor switch status' in relay procurement means an electrical switch.",
+   "guard": {
+    "consumers": [
+     "term_tiers.negative_context"
+    ],
+    "phrase": "protection and automation"
+   },
+   "notice_id": "97ad88c8e78340488386bc9b6f020333",
+   "agency": "DEPT OF DEFENSE",
+   "naics": "335314",
+   "psc": "5945",
+   "date_observed": "2026-07-28",
+   "status": "proven",
+   "note": "NAVFACSYSCOM Pacific Sources Sought SEL2731, a brand-name market survey for the SEL-2731 substation Ethernet switch. Earlier ingest of the same notice: 7a4233f7e2ec43d7acf2c00927b6708f (codes blank)."
+  },
+  {
+   "term": "network monitoring",
+   "collision_domain": "electrical substation protection and automation",
+   "resolution": "negative_context: a match near 'substation' is discarded.",
+   "guard": {
+    "consumers": [
+     "term_tiers.negative_context"
+    ],
+    "phrase": "substation"
+   },
+   "notice_id": "97ad88c8e78340488386bc9b6f020333",
+   "agency": "DEPT OF DEFENSE",
+   "naics": "335314",
+   "psc": "5945",
+   "date_observed": "2026-07-28",
+   "status": "proven",
+   "note": "Same SEL2731 notice as the protection-and-automation entry."
+  },
+  {
+   "term": "observability",
+   "collision_domain": "naval stealth (signature reduction)",
+   "resolution": "negative_context: a match near 'acoustic' is discarded. 'Reduce observability by ... reduction of acoustic and electromagnetic emissions' is stealth, not telemetry.",
+   "guard": {
+    "consumers": [
+     "term_tiers.negative_context"
+    ],
+    "phrase": "acoustic"
+   },
+   "notice_id": "a3f3bb4848924b4d8ec3363d0a1102d5",
+   "agency": "DEPT OF DEFENSE",
+   "naics": "335311",
+   "psc": "1905",
+   "date_observed": "2026-07-28",
+   "status": "proven",
+   "note": "NAVSEA Naval Power and Energy Systems BAA N00024-19-R-4145, latest posting 2026-06-12. Nine earlier postings of the same BAA carry the verbatim sentence; no other notice in the store uses 'reduce observability'."
+  },
+  {
+   "term": "observability",
+   "collision_domain": "naval stealth (signature reduction)",
+   "resolution": "negative_context: a match near 'electromagnetic emissions' is discarded.",
+   "guard": {
+    "consumers": [
+     "term_tiers.negative_context"
+    ],
+    "phrase": "electromagnetic emissions"
+   },
+   "notice_id": "a3f3bb4848924b4d8ec3363d0a1102d5",
+   "agency": "DEPT OF DEFENSE",
+   "naics": "335311",
+   "psc": "1905",
+   "date_observed": "2026-07-28",
+   "status": "proven",
+   "note": "Same NAVSEA BAA as the acoustic entry."
+  },
+  {
+   "term": "SteelHead",
+   "collision_domain": "aquaculture (steelhead trout)",
+   "resolution": "entity guard: a single-token product name that is an ordinary English word must have the vendor named in the same notice (sam_lanes.reject_entity_hit, reason ambiguous_name_without_vendor). This notice is the false positive the guard class was built from.",
+   "guard": {
+    "consumers": [],
+    "rule_witness": "sam_lanes.reject_entity_hit + load_dictionary"
+   },
+   "notice_id": "a13afa108c9d45b784a96c8801a8eb33",
+   "agency": "COMMERCE, DEPARTMENT OF",
+   "naics": "334513",
+   "psc": "6640",
+   "date_observed": "2026-07-28",
+   "status": "proven",
+   "note": "NOAA notice of intent to sole-source to InnovaSea: acoustic telemetry to quantify steelhead survival in Puget Sound. Sole 'steelhead' hit in the store."
+  },
+  {
+   "term": "configuration management",
+   "collision_domain": "systems-engineering CM discipline on weapons programs",
+   "resolution": "recorded: 'configuration management' on a weapons program is the discipline of controlling design baselines, not the tooling category. No guard consumes per-term negative context today; the tier-2 tech-code gate is the only screen.",
+   "guard": {
+    "consumers": [],
+    "candidate_negative_context": [
+     "air defense",
+     "systems integration",
+     "weapon system",
+     "airframe",
+     "depot",
+     "engineering change proposal",
+     "technical data package",
+     "logistics"
+    ]
+   },
+   "notice_id": "b030134e45794d6bab57e438120fab35",
+   "agency": "DEPT OF DEFENSE",
+   "naics": "334111",
+   "psc": "7G20",
+   "date_observed": "2026-07-28",
+   "status": "proven",
+   "note": "Notice of Intent, follow-on to N6523618D1002 Air Defense Systems Integrator; matched the Red Hat CO frame."
+  },
+  {
+   "term": "APM",
+   "collision_domain": "part and model nomenclature",
+   "resolution": "recorded: standalone 'APM' never means application performance monitoring in the store. Witness for the bare-acronym reject in term_routing (rule 5).",
+   "guard": {
+    "consumers": [],
+    "rule_witness": "term_routing bare-acronym reject"
+   },
+   "notice_id": "4c63e9bb131c46d8b3986c1c60c7ddd9",
+   "agency": "DEPT OF DEFENSE",
+   "naics": "333923",
+   "psc": "3950",
+   "date_observed": "2026-08-03",
+   "status": "proven",
+   "note": "NSWC Crane: SLING ASSEMBLY, APM VERTICAL LIFT."
+  },
+  {
+   "term": "APM",
+   "collision_domain": "approved-source part numbers",
+   "resolution": "recorded: 'APM 1.8' is a part designation in a DLA rotary-pump RFQ.",
+   "guard": {
+    "consumers": [],
+    "rule_witness": "term_routing bare-acronym reject"
+   },
+   "notice_id": "c82d1f728c5f4b5cba17f5b4b74b136d",
+   "agency": "DEPT OF DEFENSE",
+   "naics": "333914",
+   "psc": "43",
+   "date_observed": "2026-08-03",
+   "status": "proven",
+   "note": "Approved sources include '62144 80012028/APM 1.8'."
+  },
+  {
+   "term": "APM",
+   "collision_domain": "job titles (Assistant Program Manager)",
+   "resolution": "recorded: 'the APM, Tony Prudhomme' is a person, not a product category.",
+   "guard": {
+    "consumers": [],
+    "rule_witness": "term_routing bare-acronym reject"
+   },
+   "notice_id": "ea0bef74622a5269987f6b0c49febf71",
+   "agency": "DEPT OF DEFENSE",
+   "naics": "541512",
+   "psc": "Q",
+   "date_observed": "2026-08-03",
+   "status": "proven",
+   "note": "Army Medical Training Command and Control continuation; submissions go to the APM, Tony Prudhomme."
+  },
+  {
+   "term": "flow control",
+   "collision_domain": "hydraulic and mechanical valves",
+   "resolution": "recorded: 'VALVE,FLOW CONTROL' item nomenclature collides with network flow vocabulary. Killed today by the NAICS boundary (332911 is not a tech prefix); the entry is the boundary's witness.",
+   "guard": {
+    "consumers": [],
+    "rule_witness": "NAICS boundary (TECH_NAICS_PREFIXES)"
+   },
+   "notice_id": "3660e93247514ece87dc4464dadfa643",
+   "agency": "DEPT OF DEFENSE",
+   "naics": "332911",
+   "psc": "48",
+   "date_observed": "2026-08-03",
+   "status": "proven",
+   "note": "DLA RFQ, Deliver To: DLA DISTRIBUTION RED RIVER. Sibling valve RFQs with identical delivery language: 0b87681aee084a6ab0ce75ce6da819d7, 37ef01a0da4b4288b885d96767cfd53a, 55ae44787f184daa8878c9bfcdff7da1."
+  },
+  {
+   "term": "solenoid family (PSC 5945)",
+   "collision_domain": "relays and solenoids hardware vs substation networking",
+   "resolution": "recorded: PSC 5945 covers both the SEL-2731 substation Ethernet switch and plain electrical solenoids; a code can never be a keyword. Witness for the codes-are-boundary-only doctrine.",
+   "guard": {
+    "consumers": [],
+    "rule_witness": "codes-are-boundary-only (observed_codes.json doctrine)"
+   },
+   "notice_id": "d9fefc28ea49484380ce3286d830647c",
+   "agency": "DEPT OF DEFENSE",
+   "naics": "334418",
+   "psc": "59",
+   "date_observed": "2026-08-03",
+   "status": "proven",
+   "note": "DLA RFQ for NSN 5945010792910 SOLENOID,ELECTRICAL, Deliver To: DLA DISTRIBUTION RED RIVER. Compare notice 97ad88c8e78340488386bc9b6f020333 (SEL2731) carrying PSC 5945 for a managed Ethernet switch."
+  },
+  {
+   "term": "FedRAMP High",
+   "collision_domain": "attribute of a buy, not the capability bought",
+   "resolution": "recorded: matched a fire-and-EMS records system because the RFP requires a FedRAMP High authorization package. True match, irrelevant buy. Witness for the attribute_not_capability qualify rule (list lives in screen_guards.json).",
+   "guard": {
+    "consumers": [],
+    "rule_witness": "term_routing attribute_not_capability"
+   },
+   "notice_id": "f12d61f283744818904563bfb4b2322c",
+   "agency": "NATIONAL AERONAUTICS AND SPACE ADMINISTRATION",
+   "naics": "513210",
+   "psc": "DE10",
+   "date_observed": "2026-07-28",
+   "status": "proven",
+   "note": "FEMSRMS: Fire and Emergency Medical Services Records Management System."
+  },
+  {
+   "term": "middleware",
+   "collision_domain": "clinical laboratory instrument middleware",
+   "resolution": "recorded: in federal healthcare procurement 'middleware' means laboratory instrument middleware connecting analyzers to a lab information system. Notably every nurse-call hit says middleware only to EXCLUDE it ('without the use of a third-party middleware'): a negated-term false positive. No guard consumes per-term negative context today.",
+   "guard": {
+    "consumers": [],
+    "candidate_negative_context": [
+     "nurse call",
+     "blood culture",
+     "antimicrobial",
+     "susceptibility",
+     "glucose",
+     "laboratory information system",
+     "instrument manager",
+     "specimen",
+     "analyzer",
+     "clinical",
+     "phlebotomy",
+     "LIS interface"
+    ]
+   },
+   "notice_id": "5963aff308e54a9c8aa43a8b8c2ccee2",
+   "agency": "VETERANS AFFAIRS, DEPARTMENT OF",
+   "naics": "541519",
+   "psc": "7G21",
+   "date_observed": "2026-07-28",
+   "status": "proven",
+   "note": "Nurse Call System Replacement RFI. The 2026-07-28 measurement recorded 3 nurse-call hits; the store holds 6 (also fe30cd4bf7a14b688e43973f9fafdde3, 5cf30427ba384a56b35b50dbc76b2953, ca2e81da4e9447ff8e1f1604335b236b, 070fd403ea584ec499d1e31781cda299, 375d188817a34817a5fee7c414b15b2d); the measured run's lookback window most plausibly caught one trio. Recorded as found, not forced to match the prose."
+  },
+  {
+   "term": "middleware",
+   "collision_domain": "clinical laboratory instrument middleware",
+   "resolution": "recorded: BACT/Alert automated blood culture detection, one of the two measured blood-culture hits.",
+   "guard": {
+    "consumers": []
+   },
+   "notice_id": "6985e73dfecb447c9f098663e46094ec",
+   "agency": "VETERANS AFFAIRS, DEPARTMENT OF",
+   "naics": "334516",
+   "psc": "6640",
+   "date_observed": "2026-07-28",
+   "status": "proven",
+   "note": "Second measured blood-culture hit: e5994b8706824b64a866eadb20b278d8."
+  },
+  {
+   "term": "middleware",
+   "collision_domain": "clinical laboratory instrument middleware",
+   "resolution": "recorded: antimicrobial susceptibility testing instrument that names its own middleware, MAESTRIA.",
+   "guard": {
+    "consumers": []
+   },
+   "notice_id": "d85a9c6357394e37a427b50645e97dd5",
+   "agency": "VETERANS AFFAIRS, DEPARTMENT OF",
+   "naics": "334516",
+   "psc": "6515",
+   "date_observed": "2026-07-28",
+   "status": "proven"
+  },
+  {
+   "term": "middleware",
+   "collision_domain": "clinical devices via PSC boilerplate",
+   "resolution": "recorded: Signos continuous glucose monitoring matched via the PSC DH10 title boilerplate 'Database, Mainframe, Middleware', not a lab-middleware requirement. A code-description string, not the buy.",
+   "guard": {
+    "consumers": []
+   },
+   "notice_id": "63a541e3bef742b18f5890867ba06687",
+   "agency": "VETERANS AFFAIRS, DEPARTMENT OF",
+   "naics": "518210",
+   "psc": "DH10",
+   "date_observed": "2026-07-28",
+   "status": "proven"
+  },
+  {
+   "term": "middleware",
+   "collision_domain": "clinical laboratory instrument middleware",
+   "resolution": "recorded: Data Innovations Instrument Manager, laboratory middleware by name, at Madigan Army Medical Center.",
+   "guard": {
+    "consumers": []
+   },
+   "notice_id": "38b2dcdadc524da2ba547c335d9f5848",
+   "agency": "DEPT OF DEFENSE",
+   "naics": "541519",
+   "psc": "7A21",
+   "date_observed": "2026-07-28",
+   "status": "proven",
+   "note": "The other two measured Instrument Manager hits: a25899de320b474d8ace75405f9da323, 4c0df3f7f5de4592b5e8cc29e7f5a9b0."
+  },
+  {
+   "term": "middleware",
+   "collision_domain": "clinical laboratory instrument middleware",
+   "resolution": "recorded: three additional clinical middleware notices found 2026-08-03, beyond the measured set: Curian Analyzer (cites Data Innovation Instruments Manager middleware, also a false 'bact' substring on 'Heliobacter'), Core Lab Integration Atlanta VAMC ('unified middleware/analytics'), RTPCR GI/Respiratory Testing (VA Directive 6550 forms 'for each piece of equipment and middleware proposed').",
+   "guard": {
+    "consumers": []
+   },
+   "notice_id": "d52c7d2c05e2474e8d0381f7cd05099e",
+   "agency": "VETERANS AFFAIRS, DEPARTMENT OF",
+   "naics": "334516",
+   "psc": "6640",
+   "date_observed": "2026-08-03",
+   "status": "proven",
+   "note": "Companions: 56aa1cc42ce7439391e4f9e6e7df3211, bbe1ee3f4ef04db49c143e7760e7268f. Store-wide 'middleware' total 2026-08-03: 25 notices, 16 clinical; the non-clinical remainder includes Unmanned Common Controller x4, IRS tax software, NIST MES, MARAD UCAS."
+  },
+  {
+   "term": "sentra",
+   "collision_domain": "passenger vehicles (Nissan Sentra sedan)",
+   "resolution": "negative_context: a match near 'sedan' is a vehicle purchase, not the Sentra data-security competitor.",
+   "notice_id": "19PE5019P0411",
+   "agency": "Department of State",
+   "naics": "336999",
+   "psc": "2310",
+   "date_observed": "2026-08-04",
+   "status": "proven",
+   "note": "SENTRA SENSE MT 2019 SEDAN, $28,490 purchase order, witnessed in the Varonis competitor lane. Admitted on the operator's 2026-08-04 award-witness ruling.",
+   "guard": {
+    "consumers": [
+     "term_tiers.negative_context"
+    ],
+    "phrase": "sedan"
+   }
+  },
+  {
+   "term": "sentra",
+   "collision_domain": "gas-detection instruments (Sentra-brand probes)",
+   "resolution": "negative_context: a match near 'probe,gaskon' is DLA instrument-parts nomenclature, not the Sentra data-security competitor.",
+   "notice_id": "0023",
+   "agency": "Defense Logistics Agency",
+   "naics": "334519",
+   "psc": "6665",
+   "date_observed": "2026-08-04",
+   "status": "proven",
+   "note": "8504681597!PROBE,GASKON SENTRA, $6,759 IDIQ order under SPE7M516D5020; the composed prose itself flagged the mismatch. Admitted on the operator's 2026-08-04 award-witness ruling.",
+   "guard": {
+    "consumers": [
+     "term_tiers.negative_context"
+    ],
+    "phrase": "probe,gaskon"
+   }
+  },
+  {
+   "term": "sentra",
+   "collision_domain": "gas-detection instruments (Sentra-brand probes)",
+   "resolution": "negative_context: a match near 'probe,gaskon' is DLA instrument-parts nomenclature, not the Sentra data-security competitor.",
+   "notice_id": "SPE7M118F00PB",
+   "agency": "Defense Logistics Agency",
+   "naics": "334519",
+   "psc": "6665",
+   "date_observed": "2026-08-04",
+   "status": "proven",
+   "note": "8505160459!PROBE,GASKON SENTRA, second witnessed order on the same IDIQ, same $6,759 ceiling. Admitted on the operator's 2026-08-04 award-witness ruling.",
+   "guard": {
+    "consumers": [
+     "term_tiers.negative_context"
+    ],
+    "phrase": "probe,gaskon"
+   }
+  },
+  {
+   "term": "Purview",
+   "collision_domain": "English idiom: area of responsibility ('under the purview of', possessive \"DLA's purview\")",
+   "resolution": "structural_routing: the bare token is never a screen term. Work order A1 (2026-08-17) routes the rival product through the vendor-qualified entity name 'Microsoft Purview' only; tools/frame_rescreen.py measures bare occurrences (42 notices, all idiom on sampling) and never keeps on them.",
+   "guard": {
+    "consumers": []
+   },
+   "notice_id": "a9a45e0850ce477a8e827b4aed8ef81d",
+   "agency": "DEPT OF DEFENSE",
+   "naics": "334118",
+   "psc": "7F20",
+   "date_observed": "2026-08-17",
+   "status": "proven",
+   "note": "ONR multi-functional devices sole-source: 'resolving any barriers to competition falls solely under DLA's purview'. A tech-coded record (334118/7F20), so a naive code-gated match would have passed; the structural routing is the guard."
+  },
+  {
+   "term": "Purview",
+   "collision_domain": "English idiom: area of responsibility",
+   "resolution": "structural_routing: same as the ONR witness; bare token never screened.",
+   "guard": {
+    "consumers": []
+   },
+   "notice_id": "bfa94478768d44dba1199b1f64644fa5",
+   "agency": "VETERANS AFFAIRS, DEPARTMENT OF",
+   "naics": "561621",
+   "psc": "J063",
+   "date_observed": "2026-08-17",
+   "status": "proven",
+   "note": "VA kitchen surveillance cameras: 'security equipment under the purview of the VA Police'."
+  },
+  {
+   "term": "Purview",
+   "collision_domain": "English idiom: area of responsibility",
+   "resolution": "structural_routing: same as the ONR witness; bare token never screened.",
+   "guard": {
+    "consumers": []
+   },
+   "notice_id": "a3107a344795418489fe6a18db67fc78",
+   "agency": "POSTAL SERVICE",
+   "naics": "541990",
+   "psc": "R499",
+   "date_observed": "2026-08-17",
+   "status": "proven",
+   "note": "USPS OIG BAA: 'the OIG does not fall under the purview of the Federal Acquisition Regulation'."
+  }
+ ],
+ "common_word_products": {
+  "_doc": "Single-token product names that are ordinary English words and therefore can never match without the vendor named in the same notice. This list is NOT per-notice observation data: it is a dictionary fallback, checkable against any English dictionary, used by sam_lanes.load_dictionary when no system dictionary exists and unioned with it when one does. The guard CLASS it feeds was built from the Innovasea steelhead notice recorded above.",
+  "class_witness_notice_id": "a13afa108c9d45b784a96c8801a8eb33",
+  "words": [
+   "apex",
+   "atlas",
+   "beacon",
+   "cascade",
+   "cloud",
+   "command",
+   "compass",
+   "core",
+   "edge",
+   "element",
+   "fabric",
+   "flow",
+   "forge",
+   "fusion",
+   "harbor",
+   "horizon",
+   "insight",
+   "keystone",
+   "legacy",
+   "lookout",
+   "matrix",
+   "mercury",
+   "meridian",
+   "mirror",
+   "momentum",
+   "nimbus",
+   "orbit",
+   "origin",
+   "paragon",
+   "pinnacle",
+   "pivot",
+   "prism",
+   "pulse",
+   "quantum",
+   "relay",
+   "sentinel",
+   "sierra",
+   "signal",
+   "solstice",
+   "spark",
+   "summit",
+   "tempo",
+   "titan",
+   "trident",
+   "vanguard",
+   "vector",
+   "vertex",
+   "vista",
+   "zenith"
+  ]
+ }
+}

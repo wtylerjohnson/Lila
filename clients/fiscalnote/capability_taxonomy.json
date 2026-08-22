@@ -1,0 +1,67 @@
+{
+  "client_name": "FiscalNote",
+  "version": 1,
+  "updated": "2026-08-03",
+  "core": [
+    {
+      "term": "legislative tracking",
+      "mode": "stemmed"
+    },
+    {
+      "term": "regulatory tracking",
+      "mode": "stemmed"
+    },
+    {
+      "term": "policy intelligence",
+      "mode": "stemmed"
+    },
+    {
+      "term": "government affairs software",
+      "mode": "stemmed"
+    },
+    {
+      "term": "grassroots advocacy",
+      "mode": "stemmed"
+    },
+    {
+      "term": "policy analysis services",
+      "mode": "stemmed"
+    }
+  ],
+  "adjacent": [
+    {
+      "term": "congressional news and analysis",
+      "mode": "stemmed"
+    },
+    {
+      "term": "stakeholder mapping",
+      "mode": "stemmed"
+    },
+    {
+      "term": "policy data API",
+      "mode": "stemmed"
+    }
+  ],
+  "exclude": [
+    {
+      "term": "CQ",
+      "scope": "span",
+      "reason": "operator judgment 2026-08-03: two-letter product name collides with call signs and abbreviations; exact-phrase only"
+    },
+    {
+      "term": "Roll Call",
+      "scope": "span",
+      "reason": "operator judgment 2026-08-03: collides with military roll call in notice prose"
+    },
+    {
+      "term": "Curate",
+      "scope": "span",
+      "reason": "operator judgment 2026-08-03: common verb; collides with curation services"
+    },
+    {
+      "term": "Fireside",
+      "scope": "span",
+      "reason": "operator judgment 2026-08-03: collides with fireside chat event language"
+    }
+  ]
+}

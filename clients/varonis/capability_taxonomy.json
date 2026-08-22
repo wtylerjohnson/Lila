@@ -1,0 +1,51 @@
+{
+  "client_name": "varonis",
+  "version": 2,
+  "updated": "2026-08-17",
+  "generated_from": "operator work order A1 (2026-08-17): buyer-language frame, tiered; tier map recorded in clients/varonis/frame_tiers.json",
+  "core": [
+    {"term": "data loss prevention", "mode": "stemmed", "note": "tier 2 buyer language"},
+    {"term": "DLP", "mode": "acronym", "expansion_context": ["data", "loss", "prevention", "security", "exfiltration"], "note": "tier 2; bare acronym collides with Digital Light Processing projectors, context required"},
+    {"term": "insider threat", "mode": "stemmed", "note": "tier 2 buyer language"},
+    {"term": "user activity monitoring", "mode": "stemmed", "note": "tier 2 buyer language"},
+    {"term": "insider risk", "mode": "stemmed", "note": "tier 2 buyer language"},
+    {"term": "data classification", "mode": "stemmed", "note": "tier 2; 'position classification' kill lives in the profile excluded list"},
+    {"term": "sensitivity labels", "mode": "stemmed", "note": "tier 2 buyer language"},
+    {"term": "Microsoft Purview", "mode": "exact_phrase", "note": "tier 2; the vendor-qualified form. Bare 'purview' is the English idiom and is never matched alone"},
+    {"term": "Microsoft 365", "mode": "exact_phrase", "note": "tier 2 environment signal"},
+    {"term": "M365", "mode": "acronym", "expansion_context": ["microsoft", "office", "tenant", "cloud", "license", "licenses", "sharepoint"], "note": "tier 2 environment signal"},
+    {"term": "Copilot", "mode": "exact_phrase", "note": "tier 2; AI data-exposure driver. Aviation copilot risk is carried by the code universe and anchor discipline"},
+    {"term": "SharePoint", "mode": "exact_phrase", "note": "tier 2 environment signal"},
+    {"term": "OneDrive", "mode": "exact_phrase", "note": "tier 2 environment signal"},
+    {"term": "records management", "mode": "stemmed", "note": "tier 2; NARA-driven demand lane"},
+    {"term": "data tagging", "mode": "stemmed", "note": "tier 2 buyer language"},
+    {"term": "least privilege", "mode": "stemmed", "note": "tier 2 buyer language"},
+    {"term": "data access governance", "mode": "stemmed", "note": "tier 2 buyer language"},
+    {"term": "privileged access to data", "mode": "stemmed", "note": "tier 2 buyer language"},
+    {"term": "CUI", "mode": "acronym", "expansion_context": ["controlled", "unclassified", "information", "marking", "safeguarding", "safeguard"], "note": "tier 2; expansion context keeps the bare trigram honest"},
+    {"term": "M-21-31", "mode": "exact_phrase", "note": "tier 2; OMB event-logging memorandum"},
+    {"term": "event logging", "mode": "stemmed", "note": "tier 2; M-21-31 implementation language"},
+    {"term": "data security posture", "mode": "stemmed", "note": "tier 2 buyer language"},
+    {"term": "DSPM", "mode": "acronym", "expansion_context": ["data", "security", "posture", "management"], "note": "tier 2 category acronym"},
+    {"term": "unstructured data", "mode": "stemmed", "note": "tier 2 buyer language"},
+    {"term": "file share permissions", "mode": "stemmed", "note": "tier 2 buyer language"},
+    {"term": "data security platform", "mode": "stemmed", "note": "tier 2 by routing ruling: bare occurrences are category demand; vendor-qualified occurrences count tier 1"}
+  ],
+  "adjacent": [
+    {"term": "zero trust", "mode": "stemmed", "note": "tier 3 context, never keep-qualifying alone"},
+    {"term": "data pillar", "mode": "stemmed", "note": "tier 3 context (zero-trust data pillar), never keep-qualifying alone"},
+    {"term": "cloud security", "mode": "stemmed", "note": "tier 3 context, never keep-qualifying alone"},
+    {"term": "cyber operations", "mode": "stemmed", "note": "tier 3 context, never keep-qualifying alone"}
+  ],
+  "exclude": [],
+  "code_universe": {
+    "naics": [
+      "541519",
+      "513210",
+      "541512",
+      "518210",
+      "541511"
+    ],
+    "psc": []
+  }
+}

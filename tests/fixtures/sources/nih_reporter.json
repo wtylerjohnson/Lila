@@ -1,0 +1,393 @@
+{
+ "_fixture_provenance": {
+  "retrieval_url": "https://api.reporter.nih.gov/v2/projects/search",
+  "http_method": "POST",
+  "request_body": {
+   "criteria": {
+    "activity_codes": [
+     "N01",
+     "N02",
+     "N43",
+     "N44"
+    ],
+    "org_names": [
+     "LEIDOS"
+    ]
+   },
+   "include_fields": [
+    "ApplId",
+    "ProjectNum",
+    "Organization",
+    "AwardAmount",
+    "FiscalYear",
+    "AgencyIcAdmin",
+    "ProjectTitle",
+    "ContactPiName",
+    "ProjectStartDate",
+    "ProjectEndDate",
+    "ActivityCode",
+    "FundingMechanism"
+   ],
+   "offset": 0,
+   "limit": 8,
+   "sort_field": "project_start_date",
+   "sort_order": "desc"
+  },
+  "retrieved_at_utc": "2026-08-08T17:24:42Z",
+  "http_status": 200,
+  "response_bytes": 7593,
+  "note": "REAL response body, untrimmed, under 'response'. The request is exactly the body rd_contracts() builds for SourceQuery(limit=8) with org_names=['LEIDOS']: the N01/N02/N43/N44 R&D contracts slice of NIH RePORTER v2."
+ },
+ "response": {
+  "meta": {
+   "search_id": "bLKaQ3Hiyk6VR6FM2aCdlQ",
+   "total": 1254,
+   "offset": 0,
+   "limit": 8,
+   "sort_field": "project_start_date",
+   "sort_order": "desc",
+   "sorted_by_relevance": true,
+   "properties": {
+    "URL": "https:/reporter.nih.gov/search/bLKaQ3Hiyk6VR6FM2aCdlQ/projects"
+   }
+  },
+  "results": [
+   {
+    "appl_id": 11456812,
+    "fiscal_year": 2025,
+    "project_num": "75N91019D00024-0-759102500008-1",
+    "organization": {
+     "org_name": "LEIDOS BIOMEDICAL RESEARCH, INC.",
+     "city": null,
+     "country": null,
+     "org_city": "FREDERICK",
+     "org_country": "UNITED STATES",
+     "org_state": "MD",
+     "org_state_name": null,
+     "dept_type": null,
+     "fips_country_code": null,
+     "org_duns": [
+      "159990456"
+     ],
+     "org_ueis": [
+      "HV8BH9BPG8Y9"
+     ],
+     "primary_duns": "159990456",
+     "primary_uei": "HV8BH9BPG8Y9",
+     "org_fips": "US",
+     "org_ipf_code": "10008928",
+     "org_zipcode": "217029242",
+     "external_org_id": 10008928
+    },
+    "activity_code": "N02",
+    "award_amount": 4287020,
+    "contact_pi_name": "BRISCOE, LYNN ",
+    "agency_ic_admin": {
+     "code": "CA",
+     "abbreviation": "NCI",
+     "name": "National Cancer Institute",
+     "admin_org_id": "12500008",
+     "admin_funding_url": ""
+    },
+    "project_start_date": "2025-09-30T00:00:00",
+    "project_end_date": "2030-09-27T00:00:00",
+    "project_title": "FY25 TO-C REFURBISH ELEVATORS",
+    "funding_mechanism": "R and D Contracts"
+   },
+   {
+    "appl_id": 11427560,
+    "fiscal_year": 2025,
+    "project_num": "75N91019D00024-0-759102500017-1",
+    "organization": {
+     "org_name": "LEIDOS BIOMEDICAL RESEARCH, INC.",
+     "city": null,
+     "country": null,
+     "org_city": "FREDERICK",
+     "org_country": "UNITED STATES",
+     "org_state": "MD",
+     "org_state_name": null,
+     "dept_type": null,
+     "fips_country_code": null,
+     "org_duns": [
+      "159990456"
+     ],
+     "org_ueis": [
+      "HV8BH9BPG8Y9"
+     ],
+     "primary_duns": "159990456",
+     "primary_uei": "HV8BH9BPG8Y9",
+     "org_fips": "US",
+     "org_ipf_code": "10008928",
+     "org_zipcode": "217029242",
+     "external_org_id": 10008928
+    },
+    "activity_code": "N01",
+    "award_amount": 5583900,
+    "contact_pi_name": null,
+    "agency_ic_admin": {
+     "code": "AI",
+     "abbreviation": "NIAID",
+     "name": "National Institute of Allergy and Infectious Diseases",
+     "admin_org_id": "12500003",
+     "admin_funding_url": ""
+    },
+    "project_start_date": "2025-09-29T00:00:00",
+    "project_end_date": "2027-03-28T00:00:00",
+    "project_title": "CHARACTERIZATION OF MPOX",
+    "funding_mechanism": "R and D Contracts"
+   },
+   {
+    "appl_id": 11456822,
+    "fiscal_year": 2025,
+    "project_num": "75N91019D00024-0-759102500026-1",
+    "organization": {
+     "org_name": "LEIDOS BIOMEDICAL RESEARCH, INC.",
+     "city": null,
+     "country": null,
+     "org_city": "FREDERICK",
+     "org_country": "UNITED STATES",
+     "org_state": "MD",
+     "org_state_name": null,
+     "dept_type": null,
+     "fips_country_code": null,
+     "org_duns": [
+      "159990456"
+     ],
+     "org_ueis": [
+      "HV8BH9BPG8Y9"
+     ],
+     "primary_duns": "159990456",
+     "primary_uei": "HV8BH9BPG8Y9",
+     "org_fips": "US",
+     "org_ipf_code": "10008928",
+     "org_zipcode": "217029242",
+     "external_org_id": 10008928
+    },
+    "activity_code": "N01",
+    "award_amount": 1856809,
+    "contact_pi_name": "BRISCOE, LYNN ",
+    "agency_ic_admin": {
+     "code": "CA",
+     "abbreviation": "NCI",
+     "name": "National Cancer Institute",
+     "admin_org_id": "12500008",
+     "admin_funding_url": ""
+    },
+    "project_start_date": "2025-09-24T00:00:00",
+    "project_end_date": "2027-05-18T00:00:00",
+    "project_title": "FY25 TO-H W3F1 RENOVATIONS",
+    "funding_mechanism": "R and D Contracts"
+   },
+   {
+    "appl_id": 11456809,
+    "fiscal_year": 2025,
+    "project_num": "75N91019D00024-0-759102500007-1",
+    "organization": {
+     "org_name": "LEIDOS BIOMEDICAL RESEARCH, INC.",
+     "city": null,
+     "country": null,
+     "org_city": "FREDERICK",
+     "org_country": "UNITED STATES",
+     "org_state": "MD",
+     "org_state_name": null,
+     "dept_type": null,
+     "fips_country_code": null,
+     "org_duns": [
+      "159990456"
+     ],
+     "org_ueis": [
+      "HV8BH9BPG8Y9"
+     ],
+     "primary_duns": "159990456",
+     "primary_uei": "HV8BH9BPG8Y9",
+     "org_fips": "US",
+     "org_ipf_code": "10008928",
+     "org_zipcode": "217029242",
+     "external_org_id": 10008928
+    },
+    "activity_code": "N01",
+    "award_amount": 2052772,
+    "contact_pi_name": "BRISCOE, LYNN ",
+    "agency_ic_admin": {
+     "code": "CA",
+     "abbreviation": "NCI",
+     "name": "National Cancer Institute",
+     "admin_org_id": "12500008",
+     "admin_funding_url": ""
+    },
+    "project_start_date": "2025-09-17T00:00:00",
+    "project_end_date": "2027-09-30T00:00:00",
+    "project_title": "FY25 TO-B",
+    "funding_mechanism": "R and D Contracts"
+   },
+   {
+    "appl_id": 11456815,
+    "fiscal_year": 2025,
+    "project_num": "75N91019D00024-0-759102500018-1",
+    "organization": {
+     "org_name": "LEIDOS BIOMEDICAL RESEARCH, INC.",
+     "city": null,
+     "country": null,
+     "org_city": "FREDERICK",
+     "org_country": "UNITED STATES",
+     "org_state": "MD",
+     "org_state_name": null,
+     "dept_type": null,
+     "fips_country_code": null,
+     "org_duns": [
+      "159990456"
+     ],
+     "org_ueis": [
+      "HV8BH9BPG8Y9"
+     ],
+     "primary_duns": "159990456",
+     "primary_uei": "HV8BH9BPG8Y9",
+     "org_fips": "US",
+     "org_ipf_code": "10008928",
+     "org_zipcode": "217029242",
+     "external_org_id": 10008928
+    },
+    "activity_code": "N01",
+    "award_amount": 917706,
+    "contact_pi_name": "BRISCOE, LYNN ",
+    "agency_ic_admin": {
+     "code": "CA",
+     "abbreviation": "NCI",
+     "name": "National Cancer Institute",
+     "admin_org_id": "12500008",
+     "admin_funding_url": ""
+    },
+    "project_start_date": "2025-09-15T00:00:00",
+    "project_end_date": "2030-09-14T00:00:00",
+    "project_title": "MANUFACTURING PROCESS DEVELOPMENT OF 4-HB",
+    "funding_mechanism": "R and D Contracts"
+   },
+   {
+    "appl_id": 11456829,
+    "fiscal_year": 2025,
+    "project_num": "75N91019D00024-0-759102500023-1",
+    "organization": {
+     "org_name": "LEIDOS BIOMEDICAL RESEARCH, INC.",
+     "city": null,
+     "country": null,
+     "org_city": "FREDERICK",
+     "org_country": "UNITED STATES",
+     "org_state": "MD",
+     "org_state_name": null,
+     "dept_type": null,
+     "fips_country_code": null,
+     "org_duns": [
+      "159990456"
+     ],
+     "org_ueis": [
+      "HV8BH9BPG8Y9"
+     ],
+     "primary_duns": "159990456",
+     "primary_uei": "HV8BH9BPG8Y9",
+     "org_fips": "US",
+     "org_ipf_code": "10008928",
+     "org_zipcode": "217029242",
+     "external_org_id": 10008928
+    },
+    "activity_code": "N01",
+    "award_amount": 98473,
+    "contact_pi_name": "BRISCOE, LYNN ",
+    "agency_ic_admin": {
+     "code": "CA",
+     "abbreviation": "NCI",
+     "name": "National Cancer Institute",
+     "admin_org_id": "12500008",
+     "admin_funding_url": ""
+    },
+    "project_start_date": "2025-09-15T00:00:00",
+    "project_end_date": "2028-03-31T00:00:00",
+    "project_title": "STABILITY STUDY SUPPORT OF R-VK4-116",
+    "funding_mechanism": "R and D Contracts"
+   },
+   {
+    "appl_id": 11456827,
+    "fiscal_year": 2025,
+    "project_num": "75N91019D00024-0-759102500019-1",
+    "organization": {
+     "org_name": "LEIDOS BIOMEDICAL RESEARCH, INC.",
+     "city": null,
+     "country": null,
+     "org_city": "FREDERICK",
+     "org_country": "UNITED STATES",
+     "org_state": "MD",
+     "org_state_name": null,
+     "dept_type": null,
+     "fips_country_code": null,
+     "org_duns": [
+      "159990456"
+     ],
+     "org_ueis": [
+      "HV8BH9BPG8Y9"
+     ],
+     "primary_duns": "159990456",
+     "primary_uei": "HV8BH9BPG8Y9",
+     "org_fips": "US",
+     "org_ipf_code": "10008928",
+     "org_zipcode": "217029242",
+     "external_org_id": 10008928
+    },
+    "activity_code": "N01",
+    "award_amount": 921875,
+    "contact_pi_name": "BRISCOE, LYNN ",
+    "agency_ic_admin": {
+     "code": "CA",
+     "abbreviation": "NCI",
+     "name": "National Cancer Institute",
+     "admin_org_id": "12500008",
+     "admin_funding_url": ""
+    },
+    "project_start_date": "2025-09-15T00:00:00",
+    "project_end_date": "2030-09-14T00:00:00",
+    "project_title": "LEAD OPTIMIZATION OF A LONG NON-CODING RNA (LNCRNA) AS A POTENTIAL LIPID- AND GLUCOSE-LOWERING THERAPEUTIC",
+    "funding_mechanism": "R and D Contracts"
+   },
+   {
+    "appl_id": 11456813,
+    "fiscal_year": 2025,
+    "project_num": "75N91019D00024-0-759102500021-1",
+    "organization": {
+     "org_name": "LEIDOS BIOMEDICAL RESEARCH, INC.",
+     "city": null,
+     "country": null,
+     "org_city": "FREDERICK",
+     "org_country": "UNITED STATES",
+     "org_state": "MD",
+     "org_state_name": null,
+     "dept_type": null,
+     "fips_country_code": null,
+     "org_duns": [
+      "159990456"
+     ],
+     "org_ueis": [
+      "HV8BH9BPG8Y9"
+     ],
+     "primary_duns": "159990456",
+     "primary_uei": "HV8BH9BPG8Y9",
+     "org_fips": "US",
+     "org_ipf_code": "10008928",
+     "org_zipcode": "217029242",
+     "external_org_id": 10008928
+    },
+    "activity_code": "N01",
+    "award_amount": 61516,
+    "contact_pi_name": "BRISCOE, LYNN ",
+    "agency_ic_admin": {
+     "code": "CA",
+     "abbreviation": "NCI",
+     "name": "National Cancer Institute",
+     "admin_org_id": "12500008",
+     "admin_funding_url": ""
+    },
+    "project_start_date": "2025-09-15T00:00:00",
+    "project_end_date": "2026-09-14T00:00:00",
+    "project_title": "MANUFACTURING CGMP GRADE HYDROXYCOBALAMINE",
+    "funding_mechanism": "R and D Contracts"
+   }
+  ]
+ }
+}

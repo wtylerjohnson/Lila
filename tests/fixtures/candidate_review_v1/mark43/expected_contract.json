@@ -1,0 +1,232 @@
+{
+  "schema_version": "candidate_review_v1.expected_contract.v1",
+  "client_id": "mark43",
+  "client_display_name": "Mark43",
+  "reference_artifact": {
+    "path": "/Users/wtjohnson/Documents/Codex/2026-07-21/i/outputs/Mark43_Federal_Opportunity_Assessment_CANDIDATE_REVIEW_EDITABLE_2026-07-21.html",
+    "sha256": "f774609b0b7cfcc119d435b45355c21806fc466c2d7fb81d72362f8319fc5c33",
+    "report_id": "mark43-candidate-review-ed-logic-v2-2026-07-21",
+    "download_name": "Mark43_Federal_Opportunity_Assessment_CANDIDATE_REVIEW_EDITABLE_2026-07-21.html"
+  },
+  "reference_role_notes": [
+    "Individual-current-notice content golden with eight separately reviewable candidate cards.",
+    "Locks the white report-paper aesthetic, full-width ticker, four-tile KPI strip, agency rail, card hierarchy, and Evidence dock.",
+    "The playbook calendar and editor contract override the artifact's legacy contacts section and replacement-only editor.",
+    "The artifact's incomplete data-source-link marking is a known defect, not expected behavior."
+  ],
+  "exact_section_contract": [
+    {
+      "ordinal": 1,
+      "id": "forecast",
+      "heading": "360° assessment: what the pattern suggests"
+    },
+    {
+      "ordinal": 2,
+      "id": "candidate-review",
+      "heading": "Candidate opportunities for review"
+    },
+    {
+      "ordinal": 3,
+      "id": "signals",
+      "heading": "Vehicle, partner, and market signals"
+    },
+    {
+      "ordinal": 4,
+      "id": "accounts",
+      "heading": "Past awards and competitive analysis"
+    },
+    {
+      "ordinal": 5,
+      "id": "capabilities",
+      "heading": "Preliminary keywords and capability search concepts"
+    },
+    {
+      "ordinal": 6,
+      "id": "calendar",
+      "heading": "Federal opportunity calendar"
+    },
+    {
+      "ordinal": 7,
+      "id": "method",
+      "heading": "Assess | Target | Execute"
+    },
+    {
+      "ordinal": 8,
+      "id": "evidence",
+      "heading": "Evidence dock"
+    }
+  ],
+  "candidate_contract": {
+    "display_count": 8,
+    "member_evidence_count": 8,
+    "candidate_kind_counts": {
+      "current_notice": 8,
+      "research_corridor": 0
+    },
+    "candidates_in_order": [
+      {
+        "stable_reference_key": "notice:ARMOR001",
+        "title": "Integrated Workforce and Readiness Platform (ARMOR)",
+        "kind": "current_notice",
+        "member_count": 1,
+        "member_record_ids": [
+          "ARMOR001"
+        ]
+      },
+      {
+        "stable_reference_key": "notice:ACQ-OMAS-2026-SAT-0015_Sources",
+        "title": "Financial Crime Search & Due Diligence Software",
+        "kind": "current_notice",
+        "member_count": 1,
+        "member_record_ids": [
+          "ACQ-OMAS-2026-SAT-0015_Sources"
+        ]
+      },
+      {
+        "stable_reference_key": "notice:FA460026PIONEER",
+        "title": "Project Pioneer",
+        "kind": "current_notice",
+        "member_count": 1,
+        "member_record_ids": [
+          "FA460026PIONEER"
+        ]
+      },
+      {
+        "stable_reference_key": "notice:19AQMM26Q0271",
+        "title": "Mexican Criminal Courts Telepresence",
+        "kind": "current_notice",
+        "member_count": 1,
+        "member_record_ids": [
+          "19AQMM26Q0271"
+        ]
+      },
+      {
+        "stable_reference_key": "notice:36C10B26Q0662",
+        "title": "Patient Advocate Tracking System Replacement (PATS-R)",
+        "kind": "current_notice",
+        "member_count": 1,
+        "member_record_ids": [
+          "36C10B26Q0662"
+        ]
+      },
+      {
+        "stable_reference_key": "notice:15M10226QA4700202",
+        "title": "Whooster LE DaaS Access and Search Credits",
+        "kind": "current_notice",
+        "member_count": 1,
+        "member_record_ids": [
+          "15M10226QA4700202"
+        ]
+      },
+      {
+        "stable_reference_key": "notice:36C10B26Q0637",
+        "title": "Unified Discovery and Disclosure Platform",
+        "kind": "current_notice",
+        "member_count": 1,
+        "member_record_ids": [
+          "36C10B26Q0637"
+        ]
+      },
+      {
+        "stable_reference_key": "notice:IHS-26-PSN-1530164",
+        "title": "Magnet Forensics AXIOM Cyber Subscription & Support",
+        "kind": "current_notice",
+        "member_count": 1,
+        "member_record_ids": [
+          "IHS-26-PSN-1530164"
+        ]
+      }
+    ]
+  },
+  "reference_inventory": {
+    "candidate_cards": 8,
+    "candidate_member_evidence_records": 8,
+    "market_signal_cards": 4,
+    "award_cards": 6,
+    "capability_cards": 6,
+    "evidence_records": 18,
+    "ticker_primary_items": 11,
+    "kpi_tiles": 4,
+    "data_edit_ids": 290,
+    "unique_data_edit_ids": 290,
+    "editable_asset_targets": 33,
+    "data_logo_slot_ids": 24,
+    "data_logo_ids": 9
+  },
+  "required_controls": {
+    "persistent_document_controls": [
+      {
+        "data_action": "toggle-edit",
+        "label": "Edit text & logos"
+      },
+      {
+        "data_action": "save-draft",
+        "label": "Save draft"
+      },
+      {
+        "data_action": "reset",
+        "label": "Reset"
+      },
+      {
+        "data_action": "download-html",
+        "label": "Download HTML"
+      },
+      {
+        "data_action": "print",
+        "label": "Print / PDF"
+      }
+    ],
+    "contextual_editor_controls": [
+      {
+        "data_action": "undo-soft-delete",
+        "label": "Undo",
+        "visibility": "after_soft_delete",
+        "persistent": false
+      }
+    ],
+    "persistent_bottom_workflow_controls": [
+      {
+        "data_workflow_action": "refresh-analyst-layer",
+        "label": "Refresh from Analyst Layer",
+        "required_occurrences": 1,
+        "source": "playbook_override"
+      }
+    ]
+  },
+  "forbidden_controls": {
+    "visible_labels_exact": [
+      "Generate Pursuit Dossier",
+      "Pursuit Dossier",
+      "Download Pursuit Dossier",
+      "Re-screen",
+      "Re-search",
+      "Re-run",
+      "Re-scan",
+      "Promote to CRM",
+      "Promote to pipeline"
+    ],
+    "data_action_tokens": [
+      "pursuit-dossier",
+      "download-dossier",
+      "re-screen",
+      "rescreen",
+      "re-search",
+      "rerun",
+      "re-run",
+      "rescan",
+      "re-scan",
+      "promote-crm",
+      "promote-pipeline"
+    ]
+  },
+  "forbidden_text_exact": [
+    "Priority federal routes",
+    "Agency targets and contacts to validate",
+    "Account ownership to validate"
+  ],
+  "forbidden_dom_selectors": [
+    "#leadership",
+    ".sb-leader",
+    ".sb-leader-grid"
+  ]
+}

@@ -1,0 +1,179 @@
+{
+  "schema_version": "candidate_review_v1.reference_manifest.v1",
+  "locked_at": "2026-07-22",
+  "controlling_playbook": "/Users/wtjohnson/Desktop/LILA_Candidate_Review_v1_Build_Playbook.md",
+  "contract_status": "reference_inventory_with_playbook_overrides",
+  "reference_policy": "The HTML artifacts lock visual language, client content, and baseline interaction patterns. The exact section, editor, control, calendar, deletion, reorder, and evidence rules in this manifest override legacy defects in those artifacts.",
+  "exact_section_contract": [
+    {
+      "ordinal": 1,
+      "id": "forecast",
+      "heading": "360° assessment: what the pattern suggests"
+    },
+    {
+      "ordinal": 2,
+      "id": "candidate-review",
+      "heading": "Candidate opportunities for review"
+    },
+    {
+      "ordinal": 3,
+      "id": "signals",
+      "heading": "Vehicle, partner, and market signals"
+    },
+    {
+      "ordinal": 4,
+      "id": "accounts",
+      "heading": "Past awards and competitive analysis"
+    },
+    {
+      "ordinal": 5,
+      "id": "capabilities",
+      "heading": "Preliminary keywords and capability search concepts"
+    },
+    {
+      "ordinal": 6,
+      "id": "calendar",
+      "heading": "Federal opportunity calendar"
+    },
+    {
+      "ordinal": 7,
+      "id": "method",
+      "heading": "Assess | Target | Execute"
+    },
+    {
+      "ordinal": 8,
+      "id": "evidence",
+      "heading": "Evidence dock"
+    }
+  ],
+  "calendar_contract": {
+    "reference_artifacts_contain_calendar_content": false,
+    "replacement_section_id": "calendar",
+    "replacement_heading": "Federal opportunity calendar",
+    "forbidden_legacy_section_id": "leadership",
+    "date_statuses": [
+      "confirmed",
+      "anticipated",
+      "estimated",
+      "research_clock",
+      "monitor"
+    ],
+    "client_event_query_family_count": 7,
+    "client_event_source_class_count": 4,
+    "confirmed_event_horizon_months": 12,
+    "official_flagship_horizon_months": 18,
+    "procurement_research_horizon_months": 24,
+    "official_event_links_required": true,
+    "agency_attendance_requires_exact_official_assertion": true,
+    "failed_and_zero_result_searches_are_distinct": true,
+    "client_specific_calendar_branching_allowed": false
+  },
+  "required_controls": {
+    "persistent_document_controls": [
+      {
+        "data_action": "toggle-edit",
+        "label": "Edit text & logos"
+      },
+      {
+        "data_action": "save-draft",
+        "label": "Save draft"
+      },
+      {
+        "data_action": "reset",
+        "label": "Reset"
+      },
+      {
+        "data_action": "download-html",
+        "label": "Download HTML"
+      },
+      {
+        "data_action": "print",
+        "label": "Print / PDF"
+      }
+    ],
+    "contextual_editor_controls": [
+      {
+        "data_action": "undo-soft-delete",
+        "label": "Undo",
+        "visibility": "after_soft_delete",
+        "persistent": false
+      }
+    ],
+    "persistent_bottom_workflow_controls": [
+      {
+        "data_workflow_action": "refresh-analyst-layer",
+        "label": "Refresh from Analyst Layer",
+        "required_occurrences": 1
+      }
+    ]
+  },
+  "forbidden_contract": {
+    "visible_control_labels_exact": [
+      "Generate Pursuit Dossier",
+      "Pursuit Dossier",
+      "Download Pursuit Dossier",
+      "Re-screen",
+      "Re-search",
+      "Re-run",
+      "Re-scan",
+      "Promote to CRM",
+      "Promote to pipeline"
+    ],
+    "data_action_tokens": [
+      "pursuit-dossier",
+      "download-dossier",
+      "re-screen",
+      "rescreen",
+      "re-search",
+      "rerun",
+      "re-run",
+      "rescan",
+      "re-scan",
+      "promote-crm",
+      "promote-pipeline"
+    ],
+    "visible_text_exact": [
+      "Priority federal routes",
+      "Agency targets and contacts to validate",
+      "Account ownership to validate"
+    ],
+    "dom_selectors": [
+      "#leadership",
+      ".sb-leader",
+      ".sb-leader-grid"
+    ]
+  },
+  "reports": {
+    "mark43": {
+      "reference_path": "/Users/wtjohnson/Documents/Codex/2026-07-21/i/outputs/Mark43_Federal_Opportunity_Assessment_CANDIDATE_REVIEW_EDITABLE_2026-07-21.html",
+      "sha256": "f774609b0b7cfcc119d435b45355c21806fc466c2d7fb81d72362f8319fc5c33",
+      "expected_contract": "mark43/expected_contract.json",
+      "reference_role_notes": [
+        "Individual-current-notice content golden with eight separately reviewable candidate cards.",
+        "Locks the white report-paper aesthetic, full-width ticker, four-tile KPI strip, agency rail, card hierarchy, and Evidence dock.",
+        "Its legacy contacts section, incomplete edit-mode source-link marking, and replacement-only editor are non-normative and must not be frozen as desired behavior."
+      ]
+    },
+    "imerit": {
+      "reference_path": "/Users/wtjohnson/Documents/Codex/2026-07-21/i/outputs/iMerit_Federal_Opportunity_Assessment_CANDIDATE_REVIEW_EDITABLE_2026-07-22.html",
+      "sha256": "6c5583ffc4396b719fea2d3557b3e27a2c8f2cb2c3d9718ae39996f92b50ffe9",
+      "expected_contract": "imerit/expected_contract.json",
+      "reference_role_notes": [
+        "Individual-current-notice content golden spanning SAM.gov, program, forecast, and award evidence families.",
+        "Locks the same visual hierarchy while proving that content and source classes vary by client.",
+        "Its legacy contacts section, incomplete edit-mode source-link marking, and copied positional agency-slot IDs are non-normative."
+      ]
+    },
+    "riverbed": {
+      "reference_path": "/Users/wtjohnson/Documents/Codex/2026-07-21/i/outputs/Riverbed_Federal_Opportunity_Assessment_CANDIDATE_REVIEW_EDITABLE_2026-07-22.html",
+      "sha256": "6af1535177ec7c48f56813813bc4b7dddcba09e7627fa593650b68fdd7c565ff",
+      "expected_contract": "riverbed/expected_contract.json",
+      "reference_role_notes": [
+        "Primary visual and interaction superset and strategic-corridor golden.",
+        "Four displayed candidate corridors preserve eight separately linked member records, proving that candidate, member-evidence, and total-evidence counts are distinct.",
+        "All external anchors are marked as source links, making Riverbed the edit-mode link-behavior baseline.",
+        "Its legacy contacts section, replacement-only editor, and copied positional agency-slot IDs are non-normative."
+      ]
+    }
+  }
+}

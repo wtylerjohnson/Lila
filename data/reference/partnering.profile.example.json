@@ -1,0 +1,22 @@
+{
+  "_readme": [
+    "Client capability profile — HUMAN-ATTESTED, never inferred by the system.",
+    "Copy to data/review/<slug>.partnering.json and fill in what the client attests.",
+    "Keys starting with '_' are comments and ignored by the loader.",
+    "THE DISTINCTION THAT MATTERS: a key you OMIT is UNSET (unconfirmed — the",
+    "related blocker checks degrade to N/A with a gap). A key you include as",
+    "EMPTY is an ATTESTATION (e.g. \"certifications\": [] attests NONE held).",
+    "Certifications must be from: 8(a), SDVOSB, WOSB, EDWOSB, HUBZone.",
+    "Size status values: small | other_than_small."
+  ],
+  "client_name": "Example Co",
+  "attested_at": "2026-07-07",
+  "size_status_by_naics": {
+    "334310": "small",
+    "541519": "other_than_small"
+  },
+  "certifications": [],
+  "vehicles_held": ["SEWP VI"],
+  "award_band": { "floor_usd": 50000, "ceiling_usd": 1500000 },
+  "capability_keywords": ["secure video distribution", "KVM matrix"]
+}

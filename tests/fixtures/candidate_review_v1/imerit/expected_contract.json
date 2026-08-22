@@ -1,0 +1,232 @@
+{
+  "schema_version": "candidate_review_v1.expected_contract.v1",
+  "client_id": "imerit",
+  "client_display_name": "iMerit",
+  "reference_artifact": {
+    "path": "/Users/wtjohnson/Documents/Codex/2026-07-21/i/outputs/iMerit_Federal_Opportunity_Assessment_CANDIDATE_REVIEW_EDITABLE_2026-07-22.html",
+    "sha256": "6c5583ffc4396b719fea2d3557b3e27a2c8f2cb2c3d9718ae39996f92b50ffe9",
+    "report_id": "imerit-candidate-review-ed-logic-v1-2026-07-22",
+    "download_name": "iMerit_Federal_Opportunity_Assessment_CANDIDATE_REVIEW_EDITABLE_2026-07-22.html"
+  },
+  "reference_role_notes": [
+    "Individual-current-notice content golden spanning SAM.gov, program, forecast, and award evidence families.",
+    "Locks the common visual hierarchy while proving that content and source classes vary by client.",
+    "The playbook calendar and editor contract override the artifact's legacy contacts section and replacement-only editor.",
+    "Incomplete edit-mode source-link marking and copied positional agency-slot IDs are known defects, not expected behavior."
+  ],
+  "exact_section_contract": [
+    {
+      "ordinal": 1,
+      "id": "forecast",
+      "heading": "360° assessment: what the pattern suggests"
+    },
+    {
+      "ordinal": 2,
+      "id": "candidate-review",
+      "heading": "Candidate opportunities for review"
+    },
+    {
+      "ordinal": 3,
+      "id": "signals",
+      "heading": "Vehicle, partner, and market signals"
+    },
+    {
+      "ordinal": 4,
+      "id": "accounts",
+      "heading": "Past awards and competitive analysis"
+    },
+    {
+      "ordinal": 5,
+      "id": "capabilities",
+      "heading": "Preliminary keywords and capability search concepts"
+    },
+    {
+      "ordinal": 6,
+      "id": "calendar",
+      "heading": "Federal opportunity calendar"
+    },
+    {
+      "ordinal": 7,
+      "id": "method",
+      "heading": "Assess | Target | Execute"
+    },
+    {
+      "ordinal": 8,
+      "id": "evidence",
+      "heading": "Evidence dock"
+    }
+  ],
+  "candidate_contract": {
+    "display_count": 8,
+    "member_evidence_count": 8,
+    "candidate_kind_counts": {
+      "current_notice": 8,
+      "research_corridor": 0
+    },
+    "candidates_in_order": [
+      {
+        "stable_reference_key": "notice:140G0226Q0049",
+        "title": "NEIC AI/ML and Data Streaming Development",
+        "kind": "current_notice",
+        "member_count": 1,
+        "member_record_ids": [
+          "140G0226Q0049"
+        ]
+      },
+      {
+        "stable_reference_key": "notice:140G0326Q0165",
+        "title": "Coastal Remote Sensing Software Development",
+        "kind": "current_notice",
+        "member_count": 1,
+        "member_record_ids": [
+          "140G0326Q0165"
+        ]
+      },
+      {
+        "stable_reference_key": "notice:FA701426SCS01",
+        "title": "CSDR Support and Curation",
+        "kind": "current_notice",
+        "member_count": 1,
+        "member_record_ids": [
+          "FA701426SCS01"
+        ]
+      },
+      {
+        "stable_reference_key": "notice:DARPA-PS-26-27",
+        "title": "Disruption through Intelligent Strategies, Counter Options, and Resilient Defenses (DISCORD)",
+        "kind": "current_notice",
+        "member_count": 1,
+        "member_record_ids": [
+          "DARPA-PS-26-27"
+        ]
+      },
+      {
+        "stable_reference_key": "notice:DoWEA-PSN-26-002",
+        "title": "Data and Artificial Intelligence Modernization Support",
+        "kind": "current_notice",
+        "member_count": 1,
+        "member_record_ids": [
+          "DoWEA-PSN-26-002"
+        ]
+      },
+      {
+        "stable_reference_key": "notice:693JJ326R000012",
+        "title": "TSMO Data Initiative",
+        "kind": "current_notice",
+        "member_count": 1,
+        "member_record_ids": [
+          "693JJ326R000012"
+        ]
+      },
+      {
+        "stable_reference_key": "notice:DARPA-SN-26-100",
+        "title": "Multiscale Reasoning for Human Physiology",
+        "kind": "current_notice",
+        "member_count": 1,
+        "member_record_ids": [
+          "DARPA-SN-26-100"
+        ]
+      },
+      {
+        "stable_reference_key": "notice:COREMODELEVAL",
+        "title": "Core Model Evaluation for Physical Oceanography Applications",
+        "kind": "current_notice",
+        "member_count": 1,
+        "member_record_ids": [
+          "COREMODELEVAL"
+        ]
+      }
+    ]
+  },
+  "reference_inventory": {
+    "candidate_cards": 8,
+    "candidate_member_evidence_records": 8,
+    "market_signal_cards": 4,
+    "award_cards": 6,
+    "capability_cards": 6,
+    "evidence_records": 18,
+    "ticker_primary_items": 11,
+    "kpi_tiles": 4,
+    "data_edit_ids": 290,
+    "unique_data_edit_ids": 290,
+    "editable_asset_targets": 33,
+    "data_logo_slot_ids": 24,
+    "data_logo_ids": 9
+  },
+  "required_controls": {
+    "persistent_document_controls": [
+      {
+        "data_action": "toggle-edit",
+        "label": "Edit text & logos"
+      },
+      {
+        "data_action": "save-draft",
+        "label": "Save draft"
+      },
+      {
+        "data_action": "reset",
+        "label": "Reset"
+      },
+      {
+        "data_action": "download-html",
+        "label": "Download HTML"
+      },
+      {
+        "data_action": "print",
+        "label": "Print / PDF"
+      }
+    ],
+    "contextual_editor_controls": [
+      {
+        "data_action": "undo-soft-delete",
+        "label": "Undo",
+        "visibility": "after_soft_delete",
+        "persistent": false
+      }
+    ],
+    "persistent_bottom_workflow_controls": [
+      {
+        "data_workflow_action": "refresh-analyst-layer",
+        "label": "Refresh from Analyst Layer",
+        "required_occurrences": 1,
+        "source": "playbook_override"
+      }
+    ]
+  },
+  "forbidden_controls": {
+    "visible_labels_exact": [
+      "Generate Pursuit Dossier",
+      "Pursuit Dossier",
+      "Download Pursuit Dossier",
+      "Re-screen",
+      "Re-search",
+      "Re-run",
+      "Re-scan",
+      "Promote to CRM",
+      "Promote to pipeline"
+    ],
+    "data_action_tokens": [
+      "pursuit-dossier",
+      "download-dossier",
+      "re-screen",
+      "rescreen",
+      "re-search",
+      "rerun",
+      "re-run",
+      "rescan",
+      "re-scan",
+      "promote-crm",
+      "promote-pipeline"
+    ]
+  },
+  "forbidden_text_exact": [
+    "Priority federal routes",
+    "Agency targets and contacts to validate",
+    "Account ownership to validate"
+  ],
+  "forbidden_dom_selectors": [
+    "#leadership",
+    ".sb-leader",
+    ".sb-leader-grid"
+  ]
+}

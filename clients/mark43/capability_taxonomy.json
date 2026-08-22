@@ -1,0 +1,212 @@
+{
+  "client_name": "mark43",
+  "version": 2,
+  "updated": "2026-07-19",
+  "core": [
+    {
+      "term": "Mark43",
+      "mode": "exact_phrase",
+      "note": "exact client brand; supports installed-base renewal and expansion evidence"
+    },
+    {
+      "term": "Axon Records",
+      "mode": "exact_phrase",
+      "note": "human-reviewed public-safety product family; source text proves corridor relevance"
+    },
+    {
+      "term": "Tyler Enterprise Public Safety",
+      "mode": "exact_phrase",
+      "note": "human-reviewed public-safety product family; source text proves corridor relevance"
+    },
+    {
+      "term": "New World Systems",
+      "mode": "exact_phrase",
+      "note": "human-reviewed public-safety product family; source text proves corridor relevance"
+    },
+    {
+      "term": "CentralSquare",
+      "mode": "exact_phrase",
+      "note": "human-reviewed public-safety product family; source text proves corridor relevance"
+    },
+    {
+      "term": "Motorola Solutions Flex",
+      "mode": "exact_phrase",
+      "note": "human-reviewed public-safety product family; source text proves corridor relevance"
+    },
+    {
+      "term": "Hexagon OnCall",
+      "mode": "exact_phrase",
+      "note": "human-reviewed public-safety product family; source text proves corridor relevance"
+    },
+    {
+      "term": "Versaterm",
+      "mode": "exact_phrase",
+      "note": "human-reviewed public-safety product family; source text proves corridor relevance"
+    },
+    {
+      "term": "OpenFox",
+      "mode": "exact_phrase",
+      "note": "human-reviewed public-safety product family; source text proves corridor relevance"
+    },
+    {
+      "term": "Sur-Tec OJS DDE",
+      "mode": "exact_phrase",
+      "note": "human-reviewed public-safety product family; source text proves corridor relevance"
+    },
+    {
+      "term": "computer-aided dispatch",
+      "mode": "stemmed",
+      "note": "the flagship phrase; the CAD acronym is handled separately"
+    },
+    {
+      "term": "law enforcement records management",
+      "mode": "stemmed"
+    },
+    {
+      "term": "records management system",
+      "mode": "stemmed",
+      "note": "the RMS acronym is handled separately with police context"
+    },
+    {
+      "term": "public safety software",
+      "mode": "stemmed"
+    },
+    {
+      "term": "incident reporting",
+      "mode": "stemmed"
+    },
+    {
+      "term": "dispatch system",
+      "mode": "stemmed"
+    },
+    {
+      "term": "police records",
+      "mode": "stemmed"
+    },
+    {
+      "term": "NIBRS",
+      "mode": "exact_phrase",
+      "note": "National Incident-Based Reporting System; no known federal collision"
+    },
+    {
+      "term": "CAD",
+      "mode": "acronym",
+      "expansion_context": [
+        "dispatch",
+        "public safety",
+        "law enforcement",
+        "police",
+        "911"
+      ],
+      "note": "standalone CAD is computer-aided design in federal text; dispatch or public-safety co-occurrence makes it ours"
+    },
+    {
+      "term": "RMS",
+      "mode": "acronym",
+      "expansion_context": [
+        "law enforcement",
+        "police",
+        "incident",
+        "public safety",
+        "dispatch"
+      ],
+      "note": "standalone RMS is records/archives or risk management in federal text"
+    },
+    {
+      "term": "CJIS",
+      "mode": "acronym",
+      "expansion_context": [
+        "criminal justice",
+        "security policy",
+        "law enforcement",
+        "FBI"
+      ],
+      "note": "Criminal Justice Information Services; context guards stray reuse"
+    }
+  ],
+  "adjacent": [
+    {
+      "term": "evidence management",
+      "mode": "stemmed",
+      "note": "contributes, never sufficient alone"
+    },
+    {
+      "term": "crime analytics",
+      "mode": "stemmed"
+    },
+    {
+      "term": "911 modernization",
+      "mode": "stemmed"
+    },
+    {
+      "term": "NG911",
+      "mode": "exact_phrase"
+    },
+    {
+      "term": "first responder technology",
+      "mode": "stemmed"
+    },
+    {
+      "term": "case management",
+      "mode": "stemmed",
+      "note": "broad on its own; adjacent by design"
+    }
+  ],
+  "exclude": [
+    {
+      "term": "computer-aided design",
+      "scope": "span",
+      "reason": "the CAD collision: design/engineering CAD is not dispatch"
+    },
+    {
+      "term": "CAD drawing",
+      "scope": "span",
+      "reason": "design-file CAD context"
+    },
+    {
+      "term": "CAD file",
+      "scope": "span",
+      "reason": "design-file CAD context"
+    },
+    {
+      "term": "engineering design",
+      "scope": "span",
+      "reason": "engineering CAD context near a CAD token is not dispatch"
+    },
+    {
+      "term": "electronic records management",
+      "scope": "span",
+      "reason": "the RMS collision: archival/ERM programs are not police RMS"
+    },
+    {
+      "term": "records disposition",
+      "scope": "span",
+      "reason": "archival records lifecycle context"
+    },
+    {
+      "term": "NARA",
+      "scope": "span",
+      "reason": "National Archives context marks archival RMS, not police RMS"
+    },
+    {
+      "term": "archival",
+      "scope": "span",
+      "reason": "archival context near a records match is not police RMS"
+    },
+    {
+      "term": "blue force tracking",
+      "scope": "span",
+      "reason": "GIS common-operating-picture language can mention incident reporting without indicating a CAD or law-enforcement RMS procurement"
+    }
+  ],
+  "code_universe": {
+    "naics": [
+      "513210",
+      "541511",
+      "541512",
+      "541519",
+      "541690"
+    ],
+    "psc": []
+  }
+}

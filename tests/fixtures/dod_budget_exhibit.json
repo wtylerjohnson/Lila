@@ -1,0 +1,55 @@
+{
+  "Metadata": {
+    "SourceSystem": "EAS",
+    "ServiceAgencyAcronym": "PDI",
+    "ServiceAgencyName": "Pacific Deterrence Initiative",
+    "BudgetYear": "2027",
+    "BudgetCycle": "PB",
+    "SubmissionDate": "April 2026",
+    "AppropriationNumber": "0000D"
+  },
+  "GeneratedOutput": {
+    "Name": "Volume 1",
+    "Type": "Book",
+    "Code": "PDI",
+    "Children": [
+      {
+        "GeneratedOutput": {
+          "Name": "TABLE1 Funding by Category",
+          "Type": "Exhibit",
+          "Code": "PDI_FundTypeByCate",
+          "Children": [
+            {
+              "Name": "Funding by Category",
+              "Description": "",
+              "Type": "Grid",
+              "Code": "PDITab4Loe",
+              "Columns": [
+                {"Code": "RowText", "Text": "PDI Category", "Type": "text"},
+                {"Code": "FyBy1", "Text": "TOTAL", "Type": "numeric"}
+              ],
+              "Rows": [
+                {
+                  "Code": "PDITYP_Loe1",
+                  "Type": "data",
+                  "Cells": [
+                    {"ColumnCode": "RowText", "Type": "text", "Value": "Resilient communications and sensing"},
+                    {"ColumnCode": "FyBy1", "Type": "numeric", "Value": "2,906,393"}
+                  ]
+                },
+                {
+                  "Code": "PDITYP_Total",
+                  "Type": "total",
+                  "Cells": [
+                    {"ColumnCode": "RowText", "Type": "text", "Value": "Grand Total"},
+                    {"ColumnCode": "FyBy1", "Type": "numeric", "Value": "2,906,393"}
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

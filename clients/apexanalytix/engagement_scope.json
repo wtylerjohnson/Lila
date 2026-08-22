@@ -1,0 +1,5 @@
+{
+  "_comment": "APPROVED 2026-07-29: operator directive, ALL-FEDERAL scope, DoD included. capability_summary is PROVISIONAL and will be replaced by a model assessment of the finished report.",
+  "preset": "all_federal",
+  "remove": []
+}

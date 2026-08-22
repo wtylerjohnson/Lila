@@ -1,0 +1,19 @@
+# Core
+pydantic>=2.6           # deterministic structured schemas / validation
+anthropic>=0.69         # Claude decision layers (DecisionEngine)
+httpx>=0.27             # async API clients (SAM.gov, USAspending.gov)
+tenacity>=8.2           # retry/backoff for flaky federal APIs
+python-dotenv>=1.0      # API key management
+
+# Document enrichment (Contextual Enrichment Gate)
+playwright>=1.42         # browser tool for source-doc retrieval
+pdfplumber>=0.11         # full-text extraction from SOW/RFP PDFs
+rapidfuzz>=3.6           # fuzzy semantic mapping of agency jargon -> taxonomy
+
+# Control room (local web dashboard)
+flask>=3.0
+
+# Dev
+pytest>=8.0
+ruff>=0.3
+openpyxl

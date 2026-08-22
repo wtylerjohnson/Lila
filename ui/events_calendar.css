@@ -1,0 +1,74 @@
+/* Events and industry days · adaptive calendar styles (EVENTS_LANE).
+   House ink language: navy structure, ochre for deadlines, no new fonts. */
+.fx-wrap { font-family: inherit; color: #0f1c2e; }
+
+/* Density ribbon: one cell per month across the horizon. Empty months keep
+   their cell so the spread reads as coverage rather than as gaps. */
+.fx-head { display: flex; align-items: flex-end; gap: 12px;
+  border-bottom: 1px solid #d7dee8; padding-bottom: 10px; margin-bottom: 14px; }
+.fx-ribbon { display: flex; gap: 4px; flex: 1; overflow-x: auto; }
+.fx-mcell { flex: 1 0 52px; background: #f4f7fb; border: 1px solid #e2e8f1;
+  border-radius: 3px; padding: 6px 4px 5px; cursor: pointer; text-align: center;
+  font: inherit; line-height: 1.1; transition: background .12s; }
+.fx-mcell:hover { background: #e8eef7; }
+.fx-mcell-empty { opacity: .55; }
+.fx-mlabel { display: block; font-size: 9px; font-weight: 800;
+  letter-spacing: .08em; text-transform: uppercase; color: #5a6b82; }
+.fx-mcount { display: block; font-size: 15px; font-weight: 800; min-height: 18px; }
+.fx-dots { display: flex; gap: 2px; justify-content: center; min-height: 6px; }
+.fx-dot { width: 4px; height: 4px; border-radius: 50%; background: #1b3557;
+  display: inline-block; }
+.fx-dot-deadline { background: #c8811a; }
+.fx-toggle { font: inherit; font-size: 10px; font-weight: 800;
+  letter-spacing: .08em; text-transform: uppercase; background: none;
+  border: 1px solid #c3cede; border-radius: 3px; padding: 6px 10px;
+  cursor: pointer; color: #33445c; white-space: nowrap; }
+
+.fx-month { font-size: 12px; font-weight: 800; letter-spacing: .1em;
+  text-transform: uppercase; margin: 20px 0 8px; padding-bottom: 5px;
+  border-bottom: 1px solid #e5ebf3; }
+.fx-mnote { font-weight: 600; opacity: .55; letter-spacing: .04em;
+  text-transform: none; margin-left: 8px; }
+.fx-quiet { font-size: 11px; opacity: .5; padding: 2px 0 6px; }
+
+/* Rows. Registration deadlines are their own amber rows; closed ones are
+   flagged (struck tag, dimmed) and never hidden. */
+.fx-row { display: flex; gap: 11px; align-items: flex-start;
+  padding: 9px 10px; border: 1px solid #e5ebf3; border-left: 3px solid #1b3557;
+  border-radius: 3px; margin-bottom: 6px; text-decoration: none;
+  color: inherit; background: #fff; }
+.fx-row:hover { background: #f7f9fc; }
+.fx-row-deadline { border-left-color: #c8811a; background: #fffdf7; }
+.fx-row-closed { opacity: .62; }
+.fx-date { flex: 0 0 34px; text-align: center; line-height: 1; }
+.fx-date b { display: block; font-size: 17px; font-weight: 800; }
+.fx-date i { display: block; font-size: 9px; font-style: normal;
+  font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  opacity: .6; }
+.fx-seal { flex: 0 0 26px; width: 26px; height: 26px; border-radius: 50%;
+  object-fit: contain; background: #eef2f8; }
+.fx-seal-mono { display: inline-flex; align-items: center;
+  justify-content: center; font-size: 9px; font-weight: 800; color: #46586f; }
+.fx-body { flex: 1; min-width: 0; }
+.fx-tag { display: inline-block; font-size: 8.5px; font-weight: 800;
+  letter-spacing: .1em; text-transform: uppercase; color: #5a6b82;
+  margin-bottom: 2px; }
+.fx-row-deadline .fx-tag { color: #a8690d; }
+.fx-row-closed .fx-tag { text-decoration: line-through; }
+.fx-name { display: block; font-size: 12.5px; font-weight: 700;
+  line-height: 1.35; }
+.fx-meta { display: block; font-size: 10.5px; opacity: .68; margin-top: 1px; }
+.fx-why { display: block; font-size: 10.5px; margin-top: 3px; color: #33445c; }
+
+/* Mini grid: rendered only when a month holds 4+ items. */
+.fx-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+  margin: 4px 0 10px; }
+.fx-cell { position: relative; aspect-ratio: 1.35; border: 1px solid #eef2f7;
+  border-radius: 2px; padding: 2px 3px; font-size: 9px; color: #8794a8; }
+.fx-cell-pad { border-color: transparent; }
+.fx-cell-event { background: #eaf0f9; border-color: #cfdcee; color: #1b3557; }
+.fx-cell-deadline { background: #fdf3e3; border-color: #ecd9b6; color: #8a5a10; }
+.fx-cell b { position: absolute; right: 3px; bottom: 2px; font-size: 10px; }
+.fx-wrap[data-view="grid"] .fx-row { display: none; }
+.fx-wrap[data-view="grid"] .fx-quiet { display: none; }
+.fx-empty { font-size: 11.5px; opacity: .65; padding: 14px 0; }

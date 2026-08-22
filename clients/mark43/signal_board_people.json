@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "decision_makers": [
+    {
+      "name": "Jon P. Hickey",
+      "title": "Deputy Commandant for Systems and Chief Acquisition Executive",
+      "organization": "U.S. Coast Guard",
+      "bio_url": "https://www.uscg.mil/Biographies/Display/Article/2261382/rear-admiral-jon-p-hickey/",
+      "retrieved_at": "2026-07-20T00:00:00Z",
+      "route_kind": "usaspending-award",
+      "route_identity": "CONT_AWD_70Z02325F76100007_7008_70B03C23D00000006_7014",
+      "route_label": "USCG × Axon Enterprise · displayed active award and award window",
+      "relevance_rationale": "The Coast Guard identifies Hickey as its Deputy Commandant for Systems and Chief Acquisition Executive, overseeing the C5I program executive office plus contracting and procurement. That remit makes his office relevant to validate the displayed Coast Guard public-safety software displacement route; this card does not identify him as the owner of the cited award.",
+      "portrait_source_url": "https://media.defense.gov/2026/Jan/14/2003856530/400/400/0/240114-G-GK311-003.JPG",
+      "portrait_asset": "clients/mark43/assets/portraits/jon-hickey.jpg",
+      "portrait_sha256": "2ce776df097c240af9f7001f7742ff238f04dbcb526ccbabf3001006ed044977"
+    },
+    {
+      "name": "Shantrell (Nikki) Collier",
+      "title": "Deputy Assistant Attorney General and Chief Information Officer",
+      "organization": "U.S. Department of Justice",
+      "bio_url": "https://www.justice.gov/jmd/staff-profile/cio-leadership",
+      "retrieved_at": "2026-07-20T00:00:00Z",
+      "route_kind": "usaspending-award",
+      "route_identity": "CONT_AWD_15F06724P0000749_1549_-NONE-_-NONE-",
+      "route_label": "FBI × Computer Projects of Illinois · displayed active award and award window",
+      "relevance_rationale": "DOJ identifies Collier as its Chief Information Officer with department-wide technology, infrastructure, investment, and cybersecurity responsibilities. That remit makes her office relevant to validate the displayed FBI OpenFox displacement route; this card does not identify her as the owner of the cited award.",
+      "portrait_source_url": "https://www.justice.gov/d9/styles/staff_profile_portrait_300h/public/2025-09/nikki_collier_pboto.jpeg?itok=HZb7dLQI",
+      "portrait_asset": "clients/mark43/assets/portraits/nikki-collier.jpeg",
+      "portrait_sha256": "ee0dca78a968d79dddb3c6b8c03b9ae14f2d62cf9109147fbdef7c639cd0ea2b"
+    }
+  ]
+}

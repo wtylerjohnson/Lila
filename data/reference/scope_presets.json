@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "_comment": "Named engagement-scope presets. The code-to-department normalization in tools/relevance/scope.py is authoritative; names here are review comments only.",
+  "presets": {
+    "civilian": {
+      "unbounded": false,
+      "_comment": "Every CFO Act toptier except Department of Defense (097), enumerated explicitly.",
+      "codes": [
+        {"code": "012", "_comment": "Department of Agriculture"},
+        {"code": "013", "_comment": "Department of Commerce"},
+        {"code": "014", "_comment": "Department of the Interior"},
+        {"code": "015", "_comment": "Department of Justice"},
+        {"code": "019", "_comment": "Department of State"},
+        {"code": "020", "_comment": "Department of the Treasury"},
+        {"code": "024", "_comment": "Office of Personnel Management"},
+        {"code": "028", "_comment": "Social Security Administration"},
+        {"code": "031", "_comment": "Nuclear Regulatory Commission"},
+        {"code": "036", "_comment": "Department of Veterans Affairs"},
+        {"code": "047", "_comment": "General Services Administration"},
+        {"code": "049", "_comment": "National Science Foundation"},
+        {"code": "068", "_comment": "Environmental Protection Agency"},
+        {"code": "069", "_comment": "Department of Transportation"},
+        {"code": "070", "_comment": "Department of Homeland Security"},
+        {"code": "072", "_comment": "Agency for International Development"},
+        {"code": "073", "_comment": "Small Business Administration"},
+        {"code": "075", "_comment": "Department of Health and Human Services"},
+        {"code": "080", "_comment": "National Aeronautics and Space Administration"},
+        {"code": "086", "_comment": "Department of Housing and Urban Development"},
+        {"code": "089", "_comment": "Department of Energy"},
+        {"code": "091", "_comment": "Department of Education"},
+        {"code": "1601", "_comment": "Department of Labor"}
+      ]
+    },
+    "defense": {
+      "unbounded": false,
+      "_comment": "Department of Defense (097), including every subtier through department normalization.",
+      "codes": [
+        {"code": "097", "_comment": "Department of Defense"}
+      ]
+    },
+    "all_federal": {
+      "unbounded": true,
+      "_comment": "No agency boundary.",
+      "codes": []
+    }
+  }
+}

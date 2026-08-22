@@ -1,0 +1,24 @@
+{
+  "3f4ca360f47545da8558a294ea8dc36a_86472": {
+    "topicId": "3f4ca360f47545da8558a294ea8dc36a_86472",
+    "keywords": "Quantum Sensors; Position, Navigation, and Timing (PNT); Radio Frequency (RF) Sensors; Size, Weight, and Power (SWaP), Electromagnetic; UAS; Photonics",
+    "cmmcLevel": "Level 1",
+    "itar": false,
+    "technologyAreas": ["Materials"],
+    "focusAreas": ["Integrated Network Systems-of-Systems", "Integrated Sensing and Cyber", "Quantum Science"],
+    "objective": "<p>The U.S. Army is seeking innovative quantum sensor and photonics solutions from eligible small businesses across the U.S. through the xTech|Phantum competition. This platform offers participants the opportunity to engage with the Department of War (DoW), earn prize money and submit a Phase I Army Small Business Innovation Research (SBIR) proposal.</p>",
+    "phase2Description": "<p>Produce prototype solutions that will be easy to operate by a Soldier. These products will be provided to select Army units for further evaluation by the soldiers.</p>"
+  },
+  "6106c9a94bbc4141ad47165380086146_86519": {
+    "topicId": "6106c9a94bbc4141ad47165380086146_86519",
+    "keywords": "AFWERX, SpaceWERX, Space Platforms, Directed Energy, High Energy Laser, Particle Beam",
+    "cmmcLevel": "Level 2 (Self)",
+    "itar": true,
+    "technologyAreas": ["None"],
+    "focusAreas": ["Directed Energy (DE)", "Space Technology"],
+    "objective": "<p>SpaceWERX, in partnership with Space System Command (SSC) and the Air Force Research Laboratory (AFRL), are seeking innovative solutions to enable the development of directed energy systems for dual-use applications in space. These systems can include High Energy Laser (HEL) systems or particle accelerators (neutral or charged particle beams). This effort aims to bridge the gap between terrestrial directed energy capabilities and the unique requirements of the space environment to provide a multi-mission, dual-use architecture. The goal is to close key capability gaps such as space-qualification, power and thermal management, beam control, and pointing accuracy for space-based systems capable of transferring high energy flux to targets of interest needed to support the Space Force&rsquo;s future architecture.</p>",
+    "description": "<p>This project is a strategic partnership between AFRL and SSC to develop space-based directed energy systems.</p>",
+    "phase2Description": "<p>The proposed solutions should develop and demonstrate innovative technologies to support space-based directed energy systems.</p>",
+    "phase3Description": "<p>Proposed technologies must demonstrate feasibility by the end of Phase II through rigorous modeling, benchtop testing, and/or subcomponent validation in relevant conditions.</p>"
+  }
+}

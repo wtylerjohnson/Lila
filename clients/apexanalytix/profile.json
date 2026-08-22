@@ -1,0 +1,125 @@
+{
+  "client_name": "apexanalytix",
+  "capability_summary": "PROVISIONAL, pending model assessment of the finished report: supplier risk and payment integrity software. Supplier onboarding and vendor master validation, bank account verification, sanctions and PEP screening, improper-payment prevention, and accounts-payable recovery audit for large enterprise and government payment operations.",
+  "capability_terms": {
+    "core": [
+      "supplier onboarding",
+      "supplier risk management",
+      "bank account validation",
+      "improper payment prevention",
+      "AP recovery audit",
+      "payment fraud prevention",
+      "third-party risk management",
+      "ERP procure-to-pay integration",
+      "supply chain risk",
+      "continuous monitoring",
+      "regulatory compliance tracking",
+      "multitier supplier visibility"
+    ],
+    "adjacent": [],
+    "excluded": [
+      "APEX Gamma Service",
+      "APEX Path LLC",
+      "Apex Health Group",
+      "Apex Systems",
+      "apex predator",
+      "apex of the"
+    ]
+  },
+  "named_competitors_and_incumbents": [
+    "apexanalytix",
+    "apexanalytix Platform",
+    "apexportal",
+    "QubitOn",
+    "BankPro",
+    "SmartVM",
+    "Global Bank Account Confidence Score"
+  ],
+  "mission_components": [
+    "Department of the Treasury, Bureau of the Fiscal Service (Do Not Pay, payment integrity, vendor validation)",
+    "Defense Finance and Accounting Service (DoD vendor pay, improper payments)",
+    "Department of Health and Human Services / CMS (large improper-payment programs)",
+    "Department of Veterans Affairs (supplier onboarding and payment integrity)",
+    "U.S. Department of Agriculture (improper-payment and vendor management)",
+    "General Services Administration (vehicle host and buyer of shared financial services)"
+  ],
+  "naics_boundary": [
+    "511210",
+    "541512",
+    "518210",
+    "541219",
+    "541611",
+    "541511"
+  ],
+  "_excluded_basis": "Company-name collision, not common-noun collision. Store-wide, 'apex' appears in three notice titles and all three are OTHER FIRMS: APEX Gamma Service, APEX Path LLC, Apex Health Group. The bare word is NOT excluded, because that would kill legitimate hits.",
+  "client_products": [
+    "Supplier Risk Resolution",
+    "apexportal",
+    "QubitOn",
+    "BankPro",
+    "SmartVM",
+    "Global Bank Account Confidence Score"
+  ],
+  "discovered_terms_approved": [
+    "audit remediation",
+    "other accounting services",
+    "financial improvement"
+  ],
+  "discovered_terms_rejected": {
+    "medical coding": "healthcare coding, not payment integrity; leaks in via the 511210 software NAICS",
+    "remote medical coding": "same healthcare cluster",
+    "coding services": "same healthcare cluster",
+    "accounting services": "matched via description boilerplate; top sample is Ice Machine Maintenance",
+    "financial services": "too broad; top sample is S&P market data, not AP or payment work",
+    "financial management": "too broad to bound a search on its own",
+    "management financial": "one notice, and a word-order artefact",
+    "albuquerque area": "a place, not a subject"
+  },
+  "product_competitors": {
+    "market": "Supplier Risk Management Solutions",
+    "source": "Gartner Magic Quadrant for Supplier Risk Management Solutions, 4 May 2026 (G00834117)",
+    "client_position": "Leader",
+    "competitors": [
+      {
+        "name": "Everstream Analytics",
+        "position": "Leader"
+      },
+      {
+        "name": "Exiger",
+        "position": "Leader"
+      },
+      {
+        "name": "Prewave",
+        "position": "Leader"
+      },
+      {
+        "name": "Resilinc",
+        "position": "Leader"
+      },
+      {
+        "name": "interos.ai",
+        "position": "Challenger"
+      },
+      {
+        "name": "Z2Data",
+        "position": "Challenger"
+      },
+      {
+        "name": "Altana",
+        "position": "Visionary"
+      },
+      {
+        "name": "Sphera",
+        "position": "Visionary"
+      },
+      {
+        "name": "Moody's",
+        "position": "Niche Player"
+      },
+      {
+        "name": "osapiens",
+        "position": "Honorable mention"
+      }
+    ]
+  }
+}

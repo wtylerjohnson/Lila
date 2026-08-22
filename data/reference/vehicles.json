@@ -1,0 +1,343 @@
+{
+ "_meta": {
+  "purpose": "Standing contract-vehicle considerations for every LILA client report (requested by Keith Johnson, GTM Group, Jul 2 2026).",
+  "policy": "Entries marked verified:false MUST NOT be cited to a client until attribution/ceiling is confirmed against the program office or SAM.gov. The client-supplied list contained misattributions; corrections noted per entry.",
+  "updated": "2026-07-02",
+  "ceiling_fields": "ceiling_usd (float dollars, null when no numeric ceiling exists · 'No ceiling'/'TBD' stay null, never invented) and ceiling_period (parenthetical period when stated). Parsed from the display string; the display string stays authoritative for rendering."
+ },
+ "vehicles": [
+  {
+   "name": "OASIS+",
+   "agency": "GSA",
+   "ceiling": "No ceiling (MA-IDIQ)",
+   "scope": "Professional services, all domains",
+   "status": "active",
+   "verified": true,
+   "software_vendor_path": "subcontract/teaming on services task orders",
+   "ceiling_usd": null,
+   "ceiling_period": null
+  },
+  {
+   "name": "SEWP VI",
+   "agency": "NASA",
+   "ceiling": "$60B (2026-2036)",
+   "scope": "IT/AV products and product-based services",
+   "status": "ordering opens Nov 2026",
+   "verified": true,
+   "software_vendor_path": "reseller quoting (Carahsoft Cat A+B and 10 others)",
+   "ceiling_usd": 60000000000.0,
+   "ceiling_period": "2026-2036"
+  },
+  {
+   "name": "Alliant 3",
+   "agency": "GSA",
+   "ceiling": "~$75B (proposed)",
+   "scope": "IT services GWAC",
+   "status": "pre-award · verify current phase",
+   "verified": false,
+   "software_vendor_path": "teaming with expected primes",
+   "ceiling_usd": 75000000000.0,
+   "ceiling_period": null
+  },
+  {
+   "name": "CIO-SP4",
+   "agency": "NIH NITAAC",
+   "ceiling": "$50B",
+   "scope": "IT services and solutions",
+   "status": "verify current phase (protest history)",
+   "verified": false,
+   "software_vendor_path": "teaming/CTA",
+   "ceiling_usd": 50000000000.0,
+   "ceiling_period": null
+  },
+  {
+   "name": "SeaPort-NxG",
+   "agency": "U.S. Navy",
+   "ceiling": "No stated ceiling",
+   "scope": "Engineering and program-management services",
+   "status": "active, rolling on-ramps",
+   "verified": true,
+   "software_vendor_path": "subcontract to seated primes",
+   "ceiling_usd": null,
+   "ceiling_period": null
+  },
+  {
+   "name": "ASTRO",
+   "agency": "GSA (DoD-focused)",
+   "ceiling": "No ceiling",
+   "scope": "Data ops, unmanned systems, mission services",
+   "status": "active",
+   "verified": true,
+   "software_vendor_path": "subcontract/teaming",
+   "ceiling_usd": null,
+   "ceiling_period": null
+  },
+  {
+   "name": "RS3",
+   "agency": "U.S. Army CECOM (ACC-APG)",
+   "ceiling": "$37.4B",
+   "scope": "C4ISR engineering, logistics, cyber",
+   "status": "active",
+   "verified": true,
+   "software_vendor_path": "subcontract to seated primes",
+   "ceiling_usd": 37400000000.0,
+   "ceiling_period": null
+  },
+  {
+   "name": "ITES-SW2",
+   "agency": "U.S. Army",
+   "ceiling": "$13B",
+   "scope": "Commercial software + maintenance",
+   "status": "active",
+   "verified": true,
+   "software_vendor_path": "DIRECT: list products via seated reseller",
+   "ceiling_usd": 13000000000.0,
+   "ceiling_period": null
+  },
+  {
+   "name": "ITES-4S",
+   "agency": "U.S. Army",
+   "ceiling": "TBD",
+   "scope": "IT services (successor to ITES-3S)",
+   "status": "pre-award · verify current phase",
+   "verified": false,
+   "software_vendor_path": "teaming with expected primes",
+   "ceiling_usd": null,
+   "ceiling_period": null
+  },
+  {
+   "name": "Encore III",
+   "agency": "DISA",
+   "ceiling": "$17.5B",
+   "scope": "IT services",
+   "status": "active · check expiry/recompete",
+   "verified": false,
+   "software_vendor_path": "subcontract",
+   "ceiling_usd": 17500000000.0,
+   "ceiling_period": null
+  },
+  {
+   "name": "DLA JETS 2.0",
+   "agency": "Defense Logistics Agency",
+   "ceiling": "~$12B",
+   "scope": "IT services",
+   "status": "active",
+   "verified": false,
+   "software_vendor_path": "subcontract",
+   "ceiling_usd": 12000000000.0,
+   "ceiling_period": null
+  },
+  {
+   "name": "8(a) STARS III",
+   "agency": "GSA",
+   "ceiling": "$50B",
+   "scope": "IT services (8(a) set-aside)",
+   "status": "active · CORRECTED from client's 'STARS II' (expired)",
+   "verified": true,
+   "software_vendor_path": "channel via 8(a) partners",
+   "ceiling_usd": 50000000000.0,
+   "ceiling_period": null
+  },
+  {
+   "name": "Polaris",
+   "agency": "GSA",
+   "ceiling": "No fixed ceiling",
+   "scope": "Small-business IT GWAC",
+   "status": "phased awards · verify pool status",
+   "verified": false,
+   "software_vendor_path": "channel via SB partners",
+   "ceiling_usd": null,
+   "ceiling_period": null
+  },
+  {
+   "name": "VETS 2",
+   "agency": "GSA",
+   "ceiling": "$5B",
+   "scope": "SDVOSB IT services",
+   "status": "active",
+   "verified": true,
+   "software_vendor_path": "channel via SDVOSB partners",
+   "ceiling_usd": 5000000000.0,
+   "ceiling_period": null
+  },
+  {
+   "name": "MAPS",
+   "agency": "U.S. Army (ACC) · CORRECTED from client's 'DoD/GSA successor'",
+   "ceiling": "TBD",
+   "scope": "Marketplace for the Acquisition of Professional Services",
+   "status": "pre-award · verify current phase",
+   "verified": false,
+   "software_vendor_path": "teaming with expected primes",
+   "ceiling_usd": null,
+   "ceiling_period": null
+  },
+  {
+   "name": "PACTS III",
+   "agency": "DHS · CORRECTED from client's 'Treasury'",
+   "ceiling": "~$8.4B",
+   "scope": "Non-IT professional services (SB set-asides)",
+   "status": "active",
+   "verified": false,
+   "software_vendor_path": "teaming",
+   "ceiling_usd": 8400000000.0,
+   "ceiling_period": null
+  },
+  {
+   "name": "T4NG2",
+   "agency": "Department of Veterans Affairs",
+   "ceiling": "$60.7B",
+   "scope": "IT and health-IT services",
+   "status": "active",
+   "verified": false,
+   "software_vendor_path": "subcontract to seated primes",
+   "ceiling_usd": 60700000000.0,
+   "ceiling_period": null
+  },
+  {
+   "name": "VECTOR",
+   "agency": "VA · CORRECTED from client's 'CMS'",
+   "ceiling": "TBD",
+   "scope": "Professional services",
+   "status": "verify scope/phase",
+   "verified": false,
+   "software_vendor_path": "teaming",
+   "ceiling_usd": null,
+   "ceiling_period": null
+  },
+  {
+   "name": "ADMC-3",
+   "agency": "U.S. Army · CORRECTED from client's 'CDC'",
+   "ceiling": "~$10B",
+   "scope": "Desktop and mobile computing (hardware; software via catalogs)",
+   "status": "active",
+   "verified": false,
+   "software_vendor_path": "reseller catalogs",
+   "ceiling_usd": 10000000000.0,
+   "ceiling_period": null
+  },
+  {
+   "name": "EAGLE II",
+   "agency": "DHS",
+   "ceiling": "n/a",
+   "scope": "IT services",
+   "status": "EXPIRED · flag to client; DHS work moved to successors/FirstSource III",
+   "verified": true,
+   "software_vendor_path": "n/a · track successor vehicles",
+   "ceiling_usd": null,
+   "ceiling_period": null
+  },
+  {
+   "name": "SITE III",
+   "agency": "DIA · CORRECTED from client's 'NGA'",
+   "ceiling": "~$12B",
+   "scope": "IC IT enterprise services",
+   "status": "verify current phase",
+   "verified": false,
+   "software_vendor_path": "teaming with IC primes",
+   "ceiling_usd": 12000000000.0,
+   "ceiling_period": null
+  },
+  {
+   "name": "CATS",
+   "agency": "UNVERIFIED · client attribution 'IC' unconfirmed",
+   "ceiling": "TBD",
+   "scope": "TBD",
+   "status": "research required before any client use",
+   "verified": false,
+   "software_vendor_path": "TBD",
+   "ceiling_usd": null,
+   "ceiling_period": null
+  },
+  {
+   "name": "SABLE",
+   "agency": "UNVERIFIED · client attribution 'IC' unconfirmed",
+   "ceiling": "TBD",
+   "scope": "TBD",
+   "status": "research required before any client use",
+   "verified": false,
+   "software_vendor_path": "TBD",
+   "ceiling_usd": null,
+   "ceiling_period": null
+  },
+  {
+   "name": "NOAA ProTech 2.0",
+   "agency": "NOAA",
+   "ceiling": "~$8B across domains",
+   "scope": "Professional/technical services (Satellite, Fisheries, Ocean, Weather)",
+   "status": "active",
+   "verified": false,
+   "software_vendor_path": "teaming",
+   "ceiling_usd": 8000000000.0,
+   "ceiling_period": null
+  },
+  {
+   "name": "SSES NexGen",
+   "agency": "NAVSEA",
+   "ceiling": "TBD",
+   "scope": "Surface ship engineering services",
+   "status": "verify current phase",
+   "verified": false,
+   "software_vendor_path": "subcontract",
+   "ceiling_usd": null,
+   "ceiling_period": null
+  },
+  {
+   "name": "MAIDI",
+   "agency": "UNVERIFIED · client attribution 'FAA' unconfirmed; possibly misnamed",
+   "ceiling": "TBD",
+   "scope": "TBD",
+   "status": "research required before any client use",
+   "verified": false,
+   "software_vendor_path": "TBD",
+   "ceiling_usd": null,
+   "ceiling_period": null
+  }
+ ],
+ "channel": {
+  "_note": "Renders the zero-statement + donut + segment list in every capture brief. CLIENT-AGNOSTIC BY RULE (2026-07-09): vehicle/seat facts only, no client names, no client product claims, no em dashes. The 2026-07-09 Osprey brief shipped RF channel copy from this block; client-specific channel claims belong in a per-client layer, never here.",
+  "zero_number": "$60B",
+  "zero_statement": "<strong>Ten-year SEWP VI ceiling, with the reseller channel already seated.</strong> Carahsoft is seated in both Categories A and B, so commercial software subscriptions can be quoted on task orders through established resellers with zero prime-contract overhead. Ten additional seated resellers give the motion market depth.",
+  "donut": {
+   "center_number": "2,115",
+   "center_label": "PRIME SEATS",
+   "segments": [
+    {
+     "label": "Category A · 364 seats",
+     "detail": "Carahsoft seated · the software/SaaS quoting lane",
+     "value": 364,
+     "color": "oklch(46% 0.21 252)"
+    },
+    {
+     "label": "Category B · 692 seats",
+     "detail": "Carahsoft seated here too",
+     "value": 692,
+     "color": "#2E9FD8"
+    },
+    {
+     "label": "Category C · 1,059 seats",
+     "detail": "services lane · teaming path",
+     "value": 1059,
+     "color": "#a9c3dd"
+    }
+   ]
+  },
+  "segments": [
+   {
+    "entity": "Carahsoft Technology Corp.",
+    "detail": "<strong>CAT A + B · THE CHANNEL ANCHOR</strong> · GTM Group's established reseller relationship for software capture motions; the quoting path applies to any commercial subscription product."
+   },
+   {
+    "entity": "immixTechnology · ThunderCat · DLT Solutions",
+    "detail": "<strong>CAT A</strong> · software-carrying resellers with established security-vendor catalogs."
+   },
+   {
+    "entity": "SHI International · WWT · Iron Bow · Red River",
+    "detail": "<strong>CAT A</strong> · infrastructure-scale resellers; WWT, Iron Bow, Red River, and Presidio also hold Category B."
+   },
+   {
+    "entity": "Insight Public Sector · Sterling Computers · Presidio",
+    "detail": "<strong>CAT A</strong> · additional quoting paths for software subscriptions on task orders."
+   }
+  ]
+ }
+}

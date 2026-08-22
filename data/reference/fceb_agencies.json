@@ -1,0 +1,421 @@
+{
+ "_comment": "Federal Civilian Executive Branch agency catalog. Source: CISA 'Federal Civilian Executive Branch Agencies List' (cisa.gov/news-events/directives/federal-civilian-executive-branch-agencies-list), supplied by the operator 2026-07-30. tools/fceb.py is the catalog owner: matching is exact after its normalizer, never fuzzy, and an unmatched store agency is REPORTED, never guessed. aliases are exact store strings whose shape the normalizer cannot derive from the CISA name.",
+ "version": 1,
+ "retrieved": "2026-07-30",
+ "agencies": [
+  {
+   "acronym": "ACUS",
+   "name": "Administrative Conference of the United States"
+  },
+  {
+   "acronym": "ACHP",
+   "name": "Advisory Council on Historic Preservation"
+  },
+  {
+   "acronym": "ADF",
+   "name": "African Development Foundation"
+  },
+  {
+   "acronym": "ABMC",
+   "name": "American Battle Monuments Commission"
+  },
+  {
+   "acronym": "AFRH",
+   "name": "Armed Forces Retirement Home"
+  },
+  {
+   "acronym": "BGSF",
+   "name": "Barry Goldwater Scholarship and Excellence in Education Foundation"
+  },
+  {
+   "acronym": "FRB",
+   "name": "Board of Governors of the Federal Reserve"
+  },
+  {
+   "acronym": "CSB",
+   "name": "Chemical Safety Board"
+  },
+  {
+   "acronym": "CFA",
+   "name": "Commission of Fine Arts"
+  },
+  {
+   "acronym": "CFTC",
+   "name": "Commodity Futures Trading Commission"
+  },
+  {
+   "acronym": "CFPB",
+   "name": "Consumer Financial Protection Bureau"
+  },
+  {
+   "acronym": "CPSC",
+   "name": "Consumer Product Safety Commission"
+  },
+  {
+   "acronym": "CNCS",
+   "name": "Corporation for National and Community Service"
+  },
+  {
+   "acronym": "CIGIE",
+   "name": "Council of the Inspectors General on Integrity and Efficiency"
+  },
+  {
+   "acronym": "CSOSA",
+   "name": "Court Services and Offender Supervision Agency"
+  },
+  {
+   "acronym": "DNFSB",
+   "name": "Defense Nuclear Facilities Safety Board"
+  },
+  {
+   "acronym": "DENALI",
+   "name": "Denali Commission"
+  },
+  {
+   "acronym": "DOC",
+   "name": "Department of Commerce"
+  },
+  {
+   "acronym": "ED",
+   "name": "Department of Education"
+  },
+  {
+   "acronym": "DOE",
+   "name": "Department of Energy"
+  },
+  {
+   "acronym": "HHS",
+   "name": "Department of Health and Human Services"
+  },
+  {
+   "acronym": "DHS",
+   "name": "Department of Homeland Security"
+  },
+  {
+   "acronym": "HUD",
+   "name": "Department of Housing and Urban Development"
+  },
+  {
+   "acronym": "DOJ",
+   "name": "Department of Justice"
+  },
+  {
+   "acronym": "DOL",
+   "name": "Department of Labor"
+  },
+  {
+   "acronym": "DOS",
+   "name": "Department of State"
+  },
+  {
+   "acronym": "DOI",
+   "name": "Department of the Interior"
+  },
+  {
+   "acronym": "TREAS",
+   "name": "Department of the Treasury"
+  },
+  {
+   "acronym": "DOT",
+   "name": "Department of Transportation"
+  },
+  {
+   "acronym": "VA",
+   "name": "Department of Veterans Affairs"
+  },
+  {
+   "acronym": "EAC",
+   "name": "Election Assistance Commission"
+  },
+  {
+   "acronym": "EPA",
+   "name": "Environmental Protection Agency"
+  },
+  {
+   "acronym": "EEOC",
+   "name": "Equal Employment Opportunity Commission"
+  },
+  {
+   "acronym": "EXIM",
+   "name": "Export-Import Bank of the United States"
+  },
+  {
+   "acronym": "FCA",
+   "name": "Farm Credit Administration"
+  },
+  {
+   "acronym": "FCSIC",
+   "name": "Farm Credit System Insurance Corporation"
+  },
+  {
+   "acronym": "FCC",
+   "name": "Federal Communications Commission"
+  },
+  {
+   "acronym": "FDIC",
+   "name": "Federal Deposit Insurance Corporation"
+  },
+  {
+   "acronym": "FERC",
+   "name": "Federal Energy Regulatory Commission"
+  },
+  {
+   "acronym": "FHFA",
+   "name": "Federal Housing Finance Agency"
+  },
+  {
+   "acronym": "FLRA",
+   "name": "Federal Labor Relations Authority"
+  },
+  {
+   "acronym": "FMC",
+   "name": "Federal Maritime Commission"
+  },
+  {
+   "acronym": "FMCS",
+   "name": "Federal Mediation and Conciliation Service"
+  },
+  {
+   "acronym": "FMSHRC",
+   "name": "Federal Mine Safety and Health Review Commission"
+  },
+  {
+   "acronym": "FPISC",
+   "name": "Federal Permitting Improvement Steering Council"
+  },
+  {
+   "acronym": "FRTIB",
+   "name": "Federal Retirement Thrift Investment Board"
+  },
+  {
+   "acronym": "FTC",
+   "name": "Federal Trade Commission"
+  },
+  {
+   "acronym": "GSA",
+   "name": "General Services Administration"
+  },
+  {
+   "acronym": "GCERC",
+   "name": "Gulf Coast Ecosystem Restoration Council"
+  },
+  {
+   "acronym": "HTSF",
+   "name": "Harry S Truman Scholarship Foundation"
+  },
+  {
+   "acronym": "IMLS",
+   "name": "Institute of Museum and Library Services"
+  },
+  {
+   "acronym": "IAF",
+   "name": "Inter-American Foundation"
+  },
+  {
+   "acronym": "JMMFF",
+   "name": "James Madison Memorial Fellowship Foundation"
+  },
+  {
+   "acronym": "JUSFC",
+   "name": "Japan-United States Friendship Commission"
+  },
+  {
+   "acronym": "MMC",
+   "name": "Marine Mammal Commission"
+  },
+  {
+   "acronym": "MSPB",
+   "name": "Merit Systems Protection Board"
+  },
+  {
+   "acronym": "MCC",
+   "name": "Millennium Challenge Corporation"
+  },
+  {
+   "acronym": "UDALL",
+   "name": "Morris K. Udall and Stewart L. Udall Foundation"
+  },
+  {
+   "acronym": "NASA",
+   "name": "National Aeronautics and Space Administration"
+  },
+  {
+   "acronym": "NARA",
+   "name": "National Archives and Records Administration"
+  },
+  {
+   "acronym": "NCPC",
+   "name": "National Capital Planning Commission"
+  },
+  {
+   "acronym": "NCD",
+   "name": "National Council on Disability"
+  },
+  {
+   "acronym": "NCUA",
+   "name": "National Credit Union Administration"
+  },
+  {
+   "acronym": "NEA",
+   "name": "National Endowment for the Arts"
+  },
+  {
+   "acronym": "NEH",
+   "name": "National Endowment for the Humanities"
+  },
+  {
+   "acronym": "NIGC",
+   "name": "National Indian Gaming Commission"
+  },
+  {
+   "acronym": "NLRB",
+   "name": "National Labor Relations Board"
+  },
+  {
+   "acronym": "NMB",
+   "name": "National Mediation Board"
+  },
+  {
+   "acronym": "NSF",
+   "name": "National Science Foundation"
+  },
+  {
+   "acronym": "NTSB",
+   "name": "National Transportation Safety Board"
+  },
+  {
+   "acronym": "NRC",
+   "name": "Nuclear Regulatory Commission"
+  },
+  {
+   "acronym": "NWTRB",
+   "name": "Nuclear Waste Technical Review Board"
+  },
+  {
+   "acronym": "OSHRC",
+   "name": "Occupational Safety and Health Review Commission"
+  },
+  {
+   "acronym": "OCC",
+   "name": "Office of the Comptroller of the Currency"
+  },
+  {
+   "acronym": "OGE",
+   "name": "Office of Government Ethics"
+  },
+  {
+   "acronym": "ONHIR",
+   "name": "Office of Navajo and Hopi Indian Relocation"
+  },
+  {
+   "acronym": "OPM",
+   "name": "Office of Personnel Management"
+  },
+  {
+   "acronym": "OSC",
+   "name": "Office of Special Counsel"
+  },
+  {
+   "acronym": "PC",
+   "name": "Peace Corps"
+  },
+  {
+   "acronym": "PBGC",
+   "name": "Pension Benefit Guaranty Corporation"
+  },
+  {
+   "acronym": "PRC",
+   "name": "Postal Regulatory Commission"
+  },
+  {
+   "acronym": "PT",
+   "name": "Presidio Trust"
+  },
+  {
+   "acronym": "PCLOB",
+   "name": "Privacy and Civil Liberties Oversight Board"
+  },
+  {
+   "acronym": "RRB",
+   "name": "Railroad Retirement Board"
+  },
+  {
+   "acronym": "SEC",
+   "name": "Securities and Exchange Commission"
+  },
+  {
+   "acronym": "SSS",
+   "name": "Selective Service System"
+  },
+  {
+   "acronym": "SBA",
+   "name": "Small Business Administration"
+  },
+  {
+   "acronym": "SSA",
+   "name": "Social Security Administration"
+  },
+  {
+   "acronym": "SSAB",
+   "name": "Social Security Advisory Board"
+  },
+  {
+   "acronym": "STB",
+   "name": "Surface Transportation Board"
+  },
+  {
+   "acronym": "TVA",
+   "name": "Tennessee Valley Authority"
+  },
+  {
+   "acronym": "IBWC",
+   "name": "U.S. Section of International Boundary and Water Commission",
+   "aliases": [
+    "INTERNATIONAL BOUNDARY AND WATER COMMISSION: US-MEXICO"
+   ]
+  },
+  {
+   "acronym": "USAC",
+   "name": "United States AbilityOne Commission"
+  },
+  {
+   "acronym": "USAB",
+   "name": "United States Access Board"
+  },
+  {
+   "acronym": "USAGM",
+   "name": "United States Agency for Global Media",
+   "aliases": [
+    "UNITED STATES AGENCY FOR GLOBAL MEDIA, BBG"
+   ]
+  },
+  {
+   "acronym": "USAID",
+   "name": "United States Agency for International Development"
+  },
+  {
+   "acronym": "USCCR",
+   "name": "United States Commission on Civil Rights"
+  },
+  {
+   "acronym": "USDA",
+   "name": "United States Department of Agriculture"
+  },
+  {
+   "acronym": "USICH",
+   "name": "United States Interagency Council on Homelessness"
+  },
+  {
+   "acronym": "DFC",
+   "name": "United States International Development Finance Corporation"
+  },
+  {
+   "acronym": "USITC",
+   "name": "United States International Trade Commission"
+  },
+  {
+   "acronym": "USTDA",
+   "name": "United States Trade and Development Agency"
+  }
+ ]
+}

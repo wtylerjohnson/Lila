@@ -1,0 +1,43 @@
+{
+  "version": "vp_action_ready.v1.2026-08-15",
+  "reference": {
+    "label": "Red Hat TD SYNNEX diligence-ready client deliverable",
+    "pressed": "2026-08-14",
+    "sha256": "75568cec65e17324e1d0341f240e4579b20fbe29f79804c63e0ef6e75378b6a1"
+  },
+  "visual_tokens": {
+    "background": "#ffffff",
+    "ink": "#111111",
+    "accent": "#ee0000",
+    "evidence": "#f6c543",
+    "font_family": "Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif"
+  },
+  "sections": [
+    "priority",
+    "orientation",
+    "motions",
+    "keywords",
+    "scope",
+    "footprint",
+    "competition",
+    "opportunities",
+    "forecasts",
+    "channels",
+    "targets",
+    "events",
+    "references"
+  ],
+  "required_marks": [
+    "current_client",
+    "gtm_strategies"
+  ],
+  "required_checks": [
+    "client_visual_contract",
+    "source_identity_binding",
+    "claim_receipts",
+    "desktop_render",
+    "tablet_render",
+    "mobile_render",
+    "print_render"
+  ]
+}

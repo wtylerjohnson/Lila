@@ -1,0 +1,78 @@
+{
+  "client_name": "apexanalytix",
+  "version": "1",
+  "updated": "2026-07-28",
+  "generated_from": "approved review packet",
+  "core": [
+    {
+      "term": "supplier onboarding",
+      "mode": "stemmed",
+      "note": "multi-word procurement phrase; stemmed so plural and participle forms match"
+    },
+    {
+      "term": "supplier risk management",
+      "mode": "stemmed",
+      "note": "multi-word procurement phrase; stemmed so plural and participle forms match"
+    },
+    {
+      "term": "bank account validation",
+      "mode": "stemmed",
+      "note": "multi-word procurement phrase; stemmed so plural and participle forms match"
+    },
+    {
+      "term": "improper payment prevention",
+      "mode": "stemmed",
+      "note": "multi-word procurement phrase; stemmed so plural and participle forms match"
+    },
+    {
+      "term": "AP recovery audit",
+      "mode": "stemmed",
+      "note": "multi-word procurement phrase; stemmed so plural and participle forms match"
+    },
+    {
+      "term": "payment fraud prevention",
+      "mode": "stemmed",
+      "note": "multi-word procurement phrase; stemmed so plural and participle forms match"
+    },
+    {
+      "term": "third-party risk management",
+      "mode": "stemmed",
+      "note": "multi-word procurement phrase; stemmed so plural and participle forms match"
+    },
+    {
+      "term": "ERP procure-to-pay integration",
+      "mode": "stemmed",
+      "note": "multi-word procurement phrase; stemmed so plural and participle forms match"
+    }
+  ],
+  "adjacent": [],
+  "exclude": [
+    {
+      "term": "APEX Gamma Service",
+      "scope": "span",
+      "reason": "different company with a colliding name"
+    },
+    {
+      "term": "APEX Path LLC",
+      "scope": "span",
+      "reason": "different company with a colliding name"
+    },
+    {
+      "term": "Apex Health Group",
+      "scope": "span",
+      "reason": "different company with a colliding name"
+    }
+  ],
+  "code_universe": {
+    "naics": [
+      "511210",
+      "541512",
+      "518210",
+      "541219",
+      "541611",
+      "541511"
+    ],
+    "psc": []
+  },
+  "_mode_basis": "All eight core terms are multi-word procurement phrases, so all are stemmed. exact_phrase is for brand tokens that must not match loosely; none of these are brands (brands routed to entity)."
+}

@@ -1,0 +1,744 @@
+{
+  "client_name": "iMerit",
+  "composition_mode": "machine",
+  "hero_context": "The nearest dated notice-level signal is iMerit’s Core Model Evaluation for Physical Oceanography Applications at the NOAA, with responses due August 14, 2026. A separate cited official program signal is DOD × Art of Novel Signals: Predicting for To develop and demonstrate a predictive/forecasting model that leverages Temporal. The cited source states timing on August 19, 2026. Validate its acquisition path before assigning pipeline value or a capture deadline.",
+  "chips": [
+    {
+      "label": "DATA CURATION",
+      "tone": "hot"
+    },
+    {
+      "label": "MODEL EVALUATION",
+      "tone": "hot"
+    },
+    {
+      "label": "ACQUISITION PATHS TO VALIDATE"
+    }
+  ],
+  "news": [
+    {
+      "head": "DEPARTMENTAL OFFICES · August Schell Enterprises · competitor corridor",
+      "body": "$64.75K obligated · active award · through 24 JUL 2026",
+      "award_generated_id": "CONT_AWD_140D0425F0656_1406_NNG15SD80B_8000"
+    }
+  ],
+  "signal_cards": [
+    {
+      "label": "Priority routes",
+      "value": "2",
+      "sub": "Verified federal records",
+      "detail": "Current federal notices"
+    },
+    {
+      "label": "Top corridor",
+      "value": "$64.75K",
+      "sub": "Largest verified competitor award",
+      "detail": "DEPARTMENTAL OFFICES · August Schell"
+    },
+    {
+      "label": "Forward timing signals",
+      "value": "1",
+      "sub": "Cited events within up to 36 months",
+      "detail": "Nearest 19 AUG 2026 · QUALIFY"
+    },
+    {
+      "label": "Coverage",
+      "value": "3",
+      "sub": "Federal organizations represented",
+      "detail": "DOC · DOI · DoD"
+    }
+  ],
+  "coverage": [
+    {
+      "dept": "DOC",
+      "components": "DOC"
+    },
+    {
+      "dept": "DOI",
+      "components": "DEPARTMENTAL OFFICES"
+    },
+    {
+      "dept": "DoD",
+      "components": "DOD · DARPA"
+    }
+  ],
+  "best_fit": [
+    {
+      "rank": "01",
+      "code": "DoD",
+      "agency_name": "DEPT OF DEFENSE / DEPT OF THE ARMY",
+      "title": "DEVCOM ANALYSIS CENTER BROAD AGENCY ANNOUNCEMENT FOR APPLIED RESEARCH",
+      "account": "DOD · SCORE 3",
+      "evidence": [
+        {
+          "sam_notice_guid": "1aafd421e4ed4f06ac0986fa1bde60bb",
+          "label": "W911NF-23-S-0003"
+        }
+      ],
+      "cells": [
+        {
+          "label": "Relevance",
+          "value": "Score 3",
+          "small": "1 CORE TERMS"
+        },
+        {
+          "label": "Window",
+          "value": "04 JAN 2028",
+          "small": "RESPONSE DEADLINE"
+        },
+        {
+          "label": "Fit",
+          "value": "Data Curation",
+          "small": "DATA CURATION"
+        },
+        {
+          "label": "Evidence",
+          "value": "1 source excerpt",
+          "small": "VERIFIED NOTICE RECORD"
+        }
+      ],
+      "procurement_facts": [
+        {
+          "label": "Solicitation",
+          "value": "W911NF-23-S-0003",
+          "source_field": "record identity"
+        },
+        {
+          "label": "Acquisition method",
+          "value": "Broad Agency Announcement",
+          "source_field": "source-stated notice language"
+        },
+        {
+          "label": "Notice type",
+          "value": "Solicitation",
+          "source_field": "SAM notice type"
+        },
+        {
+          "label": "NAICS",
+          "value": "541715",
+          "source_field": "NAICS"
+        },
+        {
+          "label": "PSC",
+          "value": "AJ12",
+          "source_field": "PSC"
+        }
+      ],
+      "missing_procurement_facts": [
+        "Set-aside",
+        "Place"
+      ],
+      "machine_evidence": {
+        "source_identity": "1aafd421e4ed4f06ac0986fa1bde60bb",
+        "source_kind": "sam.gov",
+        "quote": "ith objective Analysis enabled through Tool development and Data curation. DAC partners across the national security enterprise to de",
+        "agency": "DEPT OF DEFENSE / DEPT OF THE ARMY",
+        "in_scope": true,
+        "scope_basis": "preset:all_federal@v1",
+        "triage_verdict": "",
+        "triage_reason": "",
+        "procurement_facts": [
+          {
+            "label": "Solicitation",
+            "value": "W911NF-23-S-0003",
+            "source_field": "record identity"
+          },
+          {
+            "label": "Acquisition method",
+            "value": "Broad Agency Announcement",
+            "source_field": "source-stated notice language"
+          },
+          {
+            "label": "Notice type",
+            "value": "Solicitation",
+            "source_field": "SAM notice type"
+          },
+          {
+            "label": "NAICS",
+            "value": "541715",
+            "source_field": "NAICS"
+          },
+          {
+            "label": "PSC",
+            "value": "AJ12",
+            "source_field": "PSC"
+          }
+        ],
+        "missing_procurement_facts": [
+          "Set-aside",
+          "Place"
+        ]
+      },
+      "sam_notice_guid": "1aafd421e4ed4f06ac0986fa1bde60bb"
+    },
+    {
+      "rank": "02",
+      "code": "DOC",
+      "agency_name": "COMMERCE, DEPARTMENT OF / NATIONAL OCEANIC AND ATMOSPHERIC ADMINISTRATION",
+      "title": "Core Model Evaluation for Physical Oceanography Applications",
+      "account": "DOC · SCORE 3",
+      "evidence": [
+        {
+          "sam_notice_guid": "8b0c07ba1db84928980bd7678e28b26b",
+          "label": "COREMODELEVAL"
+        }
+      ],
+      "cells": [
+        {
+          "label": "Relevance",
+          "value": "Score 3",
+          "small": "1 CORE TERMS"
+        },
+        {
+          "label": "Window",
+          "value": "14 AUG 2026",
+          "small": "RESPONSE DEADLINE"
+        },
+        {
+          "label": "Fit",
+          "value": "Model Evaluation",
+          "small": "MODEL EVALUATION"
+        },
+        {
+          "label": "Evidence",
+          "value": "2 source excerpts",
+          "small": "VERIFIED NOTICE RECORD"
+        }
+      ],
+      "procurement_facts": [
+        {
+          "label": "Solicitation",
+          "value": "COREMODELEVAL",
+          "source_field": "record identity"
+        },
+        {
+          "label": "Notice type",
+          "value": "Sources Sought",
+          "source_field": "SAM notice type"
+        },
+        {
+          "label": "Place",
+          "value": "USA",
+          "source_field": "place of performance"
+        }
+      ],
+      "missing_procurement_facts": [
+        "Acquisition method",
+        "NAICS",
+        "PSC",
+        "Set-aside"
+      ],
+      "machine_evidence": {
+        "source_identity": "8b0c07ba1db84928980bd7678e28b26b",
+        "source_kind": "sam.gov",
+        "quote": "Core Model Evaluation for Physical Oceanography Applications",
+        "agency": "COMMERCE, DEPARTMENT OF / NATIONAL OCEANIC AND ATMOSPHERIC ADMINISTRATION",
+        "in_scope": true,
+        "scope_basis": "preset:all_federal@v1",
+        "triage_verdict": "",
+        "triage_reason": "",
+        "procurement_facts": [
+          {
+            "label": "Solicitation",
+            "value": "COREMODELEVAL",
+            "source_field": "record identity"
+          },
+          {
+            "label": "Notice type",
+            "value": "Sources Sought",
+            "source_field": "SAM notice type"
+          },
+          {
+            "label": "Place",
+            "value": "USA",
+            "source_field": "place of performance"
+          }
+        ],
+        "missing_procurement_facts": [
+          "Acquisition method",
+          "NAICS",
+          "PSC",
+          "Set-aside"
+        ]
+      },
+      "sam_notice_guid": "8b0c07ba1db84928980bd7678e28b26b"
+    }
+  ],
+  "competitors": [
+    {
+      "label": "DEPARTMENTAL OFFICES · ACTIVE",
+      "title": "August Schell Enterprises",
+      "money": "$64.75K",
+      "small": "OBLIGATED · THROUGH 24 JUL 2026",
+      "wedge": "Incumbent product · Snorkel AI",
+      "client_relevance": {
+        "kind": "record-core-match",
+        "text": "DISPLACEMENT TARGET · DEPARTMENTAL OFFICES currently funds DATA LABELING; prioritize this incumbent account for iMerit replacement and follow-on capture."
+      },
+      "agency_name": "Department of the Interior",
+      "award_generated_id": "CONT_AWD_140D0425F0656_1406_NNG15SD80B_8000",
+      "procurement_facts": [
+        {
+          "label": "Award",
+          "value": "140D0425F0656",
+          "source_field": "record identity"
+        },
+        {
+          "label": "NAICS",
+          "value": "541519",
+          "source_field": "NAICS"
+        },
+        {
+          "label": "PSC",
+          "value": "DA10",
+          "source_field": "PSC"
+        },
+        {
+          "label": "Obligated",
+          "value": "$64.75K",
+          "source_field": "obligated_to_date"
+        },
+        {
+          "label": "Award structure",
+          "value": "DELIVERY ORDER",
+          "source_field": "award type/structure"
+        }
+      ],
+      "missing_procurement_facts": [
+        "Set-aside",
+        "Competition",
+        "Place",
+        "Base + all options",
+        "Parent IDV"
+      ],
+      "machine_evidence": {
+        "source_identity": "CONT_AWD_140D0425F0656_1406_NNG15SD80B_8000",
+        "source_kind": "usaspending-award",
+        "quote": "ACHP REQUIRES SNORKEL AI DEVELOPMENT PLATFORM SOFTWARE WHICH PROVIDES A FULLY INTEGRATED PLATFORM SUPPORTING A BROAD SUITE OF AI DEVELOPMENT USE CASES INCLUDING PROGRAMMATIC DATA LABELING AND AI EVALUATION AND TRACING.",
+        "agency": "Department of the Interior",
+        "in_scope": true,
+        "scope_basis": "preset:all_federal@v1",
+        "client_relevance_basis": {
+          "version": 1,
+          "kind": "record-core-match",
+          "profile_client": "iMerit",
+          "profile_surface": "capability_taxonomy.core",
+          "profile_version": 1,
+          "term": "data labeling",
+          "supports": [
+            {
+              "role": "record",
+              "source_identity": "CONT_AWD_140D0425F0656_1406_NNG15SD80B_8000",
+              "field": "description",
+              "matched_text": "DATA LABELING",
+              "quote": "AD SUITE OF AI DEVELOPMENT USE CASES INCLUDING PROGRAMMATIC DATA LABELING AND AI EVALUATION AND TRACING."
+            }
+          ],
+          "public_context": {
+            "band": "competitors",
+            "buyer": "DEPARTMENTAL OFFICES",
+            "client": "iMerit"
+          }
+        },
+        "procurement_facts": [
+          {
+            "label": "Award",
+            "value": "140D0425F0656",
+            "source_field": "record identity"
+          },
+          {
+            "label": "NAICS",
+            "value": "541519",
+            "source_field": "NAICS"
+          },
+          {
+            "label": "PSC",
+            "value": "DA10",
+            "source_field": "PSC"
+          },
+          {
+            "label": "Obligated",
+            "value": "$64.75K",
+            "source_field": "obligated_to_date"
+          },
+          {
+            "label": "Award structure",
+            "value": "DELIVERY ORDER",
+            "source_field": "award type/structure"
+          }
+        ],
+        "missing_procurement_facts": [
+          "Set-aside",
+          "Competition",
+          "Place",
+          "Base + all options",
+          "Parent IDV"
+        ]
+      }
+    }
+  ],
+  "acquisition_pathways": [
+    {
+      "label": "DOD · PUBLISHED NOTICE",
+      "title": "DoD acquisition route",
+      "requirement": "Commercial Solutions Opening (CSO) Department of the Air Force (DAF) Cost and Software Data Reporting (CSDR) Support and Curation.: …cation and validation (V&V), compliance support, submission data curation, metadata tagging, and data quality preparation through the…",
+      "pathway": "ACQUISITION METHOD Commercial Solutions Opening · NOTICE TYPE Special Notice · SOLICITATION FA701426SCS01 · SET-ASIDE Total Small Business Set-Aside (FAR 19.5) · NAICS 541715 · PSC R499",
+      "access": "SET-ASIDE Total Small Business Set-Aside (FAR 19.5)",
+      "action": "ENTER ACCOUNT NEXT · follow-on owner, next acquisition milestone before assigning partner, displacement, or direct-pursuit posture.",
+      "citation_label": "SAM notice FA701426SCS01",
+      "agency_name": "DEPT OF DEFENSE / DEPT OF THE AIR FORCE",
+      "client_relevance": {
+        "kind": "record-core-match",
+        "text": "PUBLISHED DEMAND · DoD published a requirement matching DATA CURATION; use the cited notice to position iMerit before the stated acquisition action."
+      },
+      "procurement_facts": [
+        {
+          "label": "Solicitation",
+          "value": "FA701426SCS01",
+          "source_field": "record identity"
+        },
+        {
+          "label": "Acquisition method",
+          "value": "Commercial Solutions Opening",
+          "source_field": "source-stated notice language"
+        },
+        {
+          "label": "Notice type",
+          "value": "Special Notice",
+          "source_field": "SAM notice type"
+        },
+        {
+          "label": "NAICS",
+          "value": "541715",
+          "source_field": "NAICS"
+        },
+        {
+          "label": "PSC",
+          "value": "R499",
+          "source_field": "PSC"
+        },
+        {
+          "label": "Set-aside",
+          "value": "Total Small Business Set-Aside (FAR 19.5)",
+          "source_field": "set-aside"
+        },
+        {
+          "label": "Place",
+          "value": "USA",
+          "source_field": "place of performance"
+        }
+      ],
+      "missing_procurement_facts": [],
+      "machine_evidence": {
+        "source_identity": "04a97d4d8f644465956a6c7b97c1da5d",
+        "source_kind": "sam.gov",
+        "quote": "Commercial Solutions Opening (CSO) Department of the Air Force (DAF) Cost and Software Data Reporting (CSDR) Support and Curation.: …cation and validation (V&V), compliance support, submission data curation, metadata tagging, and data quality preparation through the…",
+        "agency": "DEPT OF DEFENSE / DEPT OF THE AIR FORCE",
+        "in_scope": true,
+        "scope_basis": "preset:all_federal@v1",
+        "pathway_basis": {
+          "version": 1,
+          "agency": "DEPT OF DEFENSE / DEPT OF THE AIR FORCE",
+          "buyer": "DEPT OF DEFENSE / DEPT OF THE AIR FORCE",
+          "capability": "data curation",
+          "source_kind": "sam.gov",
+          "source_identity": "04a97d4d8f644465956a6c7b97c1da5d",
+          "award_id": "",
+          "notice_guid": "04a97d4d8f644465956a6c7b97c1da5d",
+          "route_key": "sam-solicitation:fa701426scs01",
+          "source_company_key": "",
+          "client_footprint": false,
+          "requirement_excerpt": "Commercial Solutions Opening (CSO) Department of the Air Force (DAF) Cost and Software Data Reporting (CSDR) Support and Curation.: …cation and validation (V&V), compliance support, submission data curation, metadata tagging, and data quality preparation through the…",
+          "procurement_facts": [
+            {
+              "label": "Solicitation",
+              "value": "FA701426SCS01",
+              "source_field": "record identity"
+            },
+            {
+              "label": "Acquisition method",
+              "value": "Commercial Solutions Opening",
+              "source_field": "source-stated notice language"
+            },
+            {
+              "label": "Notice type",
+              "value": "Special Notice",
+              "source_field": "SAM notice type"
+            },
+            {
+              "label": "NAICS",
+              "value": "541715",
+              "source_field": "NAICS"
+            },
+            {
+              "label": "PSC",
+              "value": "R499",
+              "source_field": "PSC"
+            },
+            {
+              "label": "Set-aside",
+              "value": "Total Small Business Set-Aside (FAR 19.5)",
+              "source_field": "set-aside"
+            },
+            {
+              "label": "Place",
+              "value": "USA",
+              "source_field": "place of performance"
+            }
+          ],
+          "missing_procurement_facts": []
+        },
+        "client_relevance_basis": {
+          "version": 1,
+          "kind": "record-core-match",
+          "profile_client": "iMerit",
+          "profile_surface": "capability_taxonomy.core",
+          "profile_version": 1,
+          "term": "data curation",
+          "supports": [
+            {
+              "role": "record",
+              "source_identity": "04a97d4d8f644465956a6c7b97c1da5d",
+              "field": "raw_payload.description_snippet",
+              "matched_text": "data curation",
+              "quote": "cation and validation (V&V), compliance support, submission data curation, metadata tagging, and data quality preparation through the"
+            }
+          ],
+          "public_context": {
+            "band": "acquisition_pathways",
+            "buyer": "DoD",
+            "client": "iMerit",
+            "client_footprint": false,
+            "evidence_state": "published-notice"
+          }
+        },
+        "procurement_facts": [
+          {
+            "label": "Solicitation",
+            "value": "FA701426SCS01",
+            "source_field": "record identity"
+          },
+          {
+            "label": "Acquisition method",
+            "value": "Commercial Solutions Opening",
+            "source_field": "source-stated notice language"
+          },
+          {
+            "label": "Notice type",
+            "value": "Special Notice",
+            "source_field": "SAM notice type"
+          },
+          {
+            "label": "NAICS",
+            "value": "541715",
+            "source_field": "NAICS"
+          },
+          {
+            "label": "PSC",
+            "value": "R499",
+            "source_field": "PSC"
+          },
+          {
+            "label": "Set-aside",
+            "value": "Total Small Business Set-Aside (FAR 19.5)",
+            "source_field": "set-aside"
+          },
+          {
+            "label": "Place",
+            "value": "USA",
+            "source_field": "place of performance"
+          }
+        ],
+        "missing_procurement_facts": []
+      },
+      "sam_notice_guid": "04a97d4d8f644465956a6c7b97c1da5d"
+    }
+  ],
+  "teaming": [],
+  "horizon": [
+    {
+      "hot": true,
+      "label": "DOD · DSIP",
+      "title": "Art of Novel Signals: Predicting",
+      "value": "19 AUG 2026",
+      "small": "ACTIVE TOPIC · CLOSES",
+      "decision": "QUALIFY",
+      "source_citation": "DSIP · dsip:c2ae8adb66114133a1a7d5187725db1e_86553",
+      "timing_basis": {
+        "source_value": "2026-08-19",
+        "precision": "exact-date",
+        "sort_date": "2026-08-19"
+      },
+      "procurement_facts": [
+        {
+          "label": "Program record",
+          "value": "dsip:c2ae8adb66114133a1a7d5187725db1e_86553",
+          "source_field": "record identity"
+        }
+      ],
+      "missing_procurement_facts": [
+        "NAICS",
+        "PSC",
+        "Set-aside",
+        "Award type",
+        "Incumbent"
+      ],
+      "job_context": {
+        "kind": "published-description",
+        "text": "To develop and demonstrate a predictive/forecasting model that leverages Temporal Knowledge Graph Forecasting…"
+      },
+      "client_relevance": {
+        "kind": "record-core-match",
+        "text": "PROGRAM MOVE · The cited official program signal matches DATA CURATION; position iMerit with the sponsoring organization before the stated program or funding action."
+      },
+      "agency_name": "Department of Defense",
+      "organization_marks": [
+        {
+          "kind": "agency",
+          "label": "Department of Defense",
+          "display": "DOD"
+        }
+      ],
+      "machine_evidence": {
+        "source_identity": "dsip_topics::dsip:c2ae8adb66114133a1a7d5187725db1e_86553",
+        "source_kind": "program",
+        "quote": "To develop and demonstrate a predictive/forecasting model that leverages Temporal Knowledge Graph Forecasting using In-Context Learning from novel, multilingual, and multimodal data. The goal is to develop and test a capability that increases the forecasting timeline from days to weeks in advance of an event, while increasing forecasting precision to at least 90%.",
+        "agency": "Department of Defense",
+        "in_scope": true,
+        "scope_basis": "preset:all_federal@v1",
+        "job_context_basis": {
+          "version": 1,
+          "event_kind": "program",
+          "source_field": "objective",
+          "source_text": "To develop and demonstrate a predictive/forecasting model that leverages Temporal Knowledge Graph Forecasting using In-Context Learning from novel, multilingual, and multimodal data. The goal is to develop and test a capability that increases the forecasting timeline from days to weeks in advance of an event, while increasing forecasting precision to at least 90%."
+        },
+        "client_relevance_basis": {
+          "version": 1,
+          "kind": "record-core-match",
+          "profile_client": "iMerit",
+          "profile_surface": "capability_taxonomy.core",
+          "profile_version": 1,
+          "term": "data curation",
+          "supports": [
+            {
+              "role": "record",
+              "source_identity": "dsip_topics::dsip:c2ae8adb66114133a1a7d5187725db1e_86553",
+              "field": "description",
+              "matched_text": "data curation",
+              "quote": "ould expect higher error rates on raw signal and budget for data curation, not just volume. Second, the 200-hour figure is per langua"
+            }
+          ],
+          "public_context": {
+            "band": "horizon",
+            "client": "iMerit",
+            "client_footprint": false,
+            "event_kind": "program"
+          }
+        },
+        "decision": "QUALIFY",
+        "source_citation": "DSIP · dsip:c2ae8adb66114133a1a7d5187725db1e_86553",
+        "timing_basis": {
+          "source_value": "2026-08-19",
+          "precision": "exact-date",
+          "sort_date": "2026-08-19"
+        },
+        "procurement_facts": [
+          {
+            "label": "Program record",
+            "value": "dsip:c2ae8adb66114133a1a7d5187725db1e_86553",
+            "source_field": "record identity"
+          }
+        ],
+        "missing_procurement_facts": [
+          "NAICS",
+          "PSC",
+          "Set-aside",
+          "Award type",
+          "Incumbent"
+        ],
+        "source_adapter": "dsip_topics",
+        "canonical_url": "https://www.dodsbirsttr.mil/topics/api/public/topics/c2ae8adb66114133a1a7d5187725db1e_86553/details",
+        "timing_value": "19 AUG 2026",
+        "timing_label": "ACTIVE TOPIC · CLOSES"
+      },
+      "program_record_id": "dsip:c2ae8adb66114133a1a7d5187725db1e_86553",
+      "program_route_identity": "dsip_topics::dsip:c2ae8adb66114133a1a7d5187725db1e_86553",
+      "url": "https://www.dodsbirsttr.mil/topics/api/public/topics/c2ae8adb66114133a1a7d5187725db1e_86553/details"
+    }
+  ],
+  "pocs": [
+    {
+      "opp": "DEVCOM ANALYSIS CENTER BROAD AGENCY ANNOUNCE · DEPT OF DEFENSE / DEPT O",
+      "opp_notice_guid": "1aafd421e4ed4f06ac0986fa1bde60bb",
+      "name": "Administrative Questions for DAC BAA",
+      "role": "Primary POC",
+      "agency": "DEPT OF DEFENSE / DEPT OF THE ARMY",
+      "source_system": "SAM.gov",
+      "source_record_id": "1aafd421e4ed4f06ac0986fa1bde60bb",
+      "deadline": "04 JAN 2028",
+      "signal": "ACTIVE"
+    },
+    {
+      "opp": "Core Model Evaluation for Physical Oceanogra · COMMERCE, DEPARTMENT OF ",
+      "opp_notice_guid": "8b0c07ba1db84928980bd7678e28b26b",
+      "name": "Heather Coleman",
+      "role": "Primary POC",
+      "agency": "COMMERCE, DEPARTMENT OF / NATIONAL OCEANIC AND ATMOSPHERIC ADMINISTRATION",
+      "source_system": "SAM.gov",
+      "source_record_id": "8b0c07ba1db84928980bd7678e28b26b",
+      "deadline": "14 AUG 2026",
+      "signal": "ACTIVE"
+    }
+  ],
+  "decision_makers": [],
+  "evidence": [
+    {
+      "sam_notice_guid": "1aafd421e4ed4f06ac0986fa1bde60bb",
+      "label": "W911NF-23-S-0003"
+    },
+    {
+      "sam_notice_guid": "8b0c07ba1db84928980bd7678e28b26b",
+      "label": "COREMODELEVAL"
+    },
+    {
+      "award_generated_id": "CONT_AWD_140D0425F0656_1406_NNG15SD80B_8000",
+      "label": "DEPARTMENTAL OFFICES · AUGUST SCHE"
+    }
+  ],
+  "sequence": "Lead with August Schell Enterprises at DEPARTMENTAL OFFICES; resolve the cited acquisition-path access conditions before assigning partner, displacement, or direct-pursuit posture; validate the DOD cited acquisition path tied to 19 AUG 2026; confirm vehicle, contracting office, competition path, and incumbent continuity before assigning pipeline value.",
+  "scale": {
+    "rows": [
+      {
+        "label": "DEPARTMENTAL OFFICES × August Schell Enterprises",
+        "amount": "$64.75K",
+        "amount_basis": "obligated_to_date",
+        "award_generated_id": "CONT_AWD_140D0425F0656_1406_NNG15SD80B_8000"
+      }
+    ],
+    "total": "$64.75K",
+    "basis": "competitor_obligated_to_date"
+  },
+  "scale_label": "Competitor-held obligated history",
+  "scale_total": "$64.75K",
+  "scale_counts": "Across 1 cited active award corridor",
+  "figures": [
+    {
+      "text": "$64.75K",
+      "raw": 64746.9,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_record_id": "140D0425F0656",
+      "generated_internal_id": "CONT_AWD_140D0425F0656_1406_NNG15SD80B_8000"
+    },
+    {
+      "text": "$64.75K",
+      "raw": 64746.9,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_url": "https://www.usaspending.gov/",
+      "component_raws": [
+        64746.9
+      ]
+    }
+  ]
+}

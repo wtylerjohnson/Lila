@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "decision_makers": [
+    {
+      "name": "Jim Rolfes",
+      "title": "Assistant Director for Information Management and Technology",
+      "organization": "Bureau of Land Management",
+      "bio_url": "https://www.blm.gov/bio/jim-rolfes",
+      "retrieved_at": "2026-07-20T00:00:00Z",
+      "route_kind": "usaspending-award",
+      "route_identity": "CONT_AWD_140L0625F0144_1422_NNG15SC91B_8000",
+      "route_label": "BLM × Swish Data · Riverbed active award; period ends 30 Sep 2026",
+      "relevance_rationale": "BLM identifies Rolfes as its Assistant Director for Information Management and Technology. That remit makes his office relevant to validate the displayed BLM network-performance route; this card does not identify him as a solicitation or procurement owner.",
+      "portrait_source_url": "https://www.blm.gov/sites/default/files/styles/bio_photo/public/images/2023-02/Leadership-HQ500-Jim-Rolfes.png?itok=1vvoofcy",
+      "portrait_asset": "clients/riverbed/assets/portraits/jim-rolfes.png",
+      "portrait_sha256": "7a3047b96d90f4c74f086b3cbddfb7b327baf28dc68b3ea8ce92c0d91a8644a7"
+    },
+    {
+      "name": "Darren Ash",
+      "title": "Chief Information Officer",
+      "organization": "U.S. Department of the Interior",
+      "bio_url": "https://www.doi.gov/ocio/darren-ash",
+      "retrieved_at": "2026-07-20T00:00:00Z",
+      "route_kind": "usaspending-award",
+      "route_identity": "CONT_AWD_140L0625F0144_1422_NNG15SC91B_8000",
+      "route_label": "DOI → BLM technology governance · displayed Riverbed footprint",
+      "relevance_rationale": "DOI says Ash leads department IT and information-management capabilities, budgeting, governance, and portfolio management. That department-wide remit makes his office relevant to validate the displayed DOI/BLM route; this card does not identify him as a solicitation or procurement owner.",
+      "portrait_source_url": "https://www.doi.gov/sites/default/files/content_images//darren-ash-photo_0.jpg",
+      "portrait_asset": "clients/riverbed/assets/portraits/darren-ash.jpg",
+      "portrait_sha256": "53e74ddd24323a72497685e6c706d5fe71a83a538ed28737afff93b99e84d146"
+    },
+    {
+      "name": "Shantrell (Nikki) Collier",
+      "title": "Deputy Assistant Attorney General and Chief Information Officer",
+      "organization": "U.S. Department of Justice",
+      "bio_url": "https://www.justice.gov/jmd/staff-profile/cio-leadership",
+      "retrieved_at": "2026-07-20T00:00:00Z",
+      "route_kind": "usaspending-award",
+      "route_identity": "CONT_AWD_15F06724F0001868_1549_NNG15SC91B_8000",
+      "route_label": "DOJ → FBI technology governance · displayed Riverbed footprint via Swish Data",
+      "relevance_rationale": "DOJ identifies Collier as its CIO and assigns that office department-wide IT investment, infrastructure, technology-governance, and cybersecurity responsibilities. That remit makes her office relevant to validate the displayed DOJ/FBI route; this card does not identify her as a solicitation or procurement owner.",
+      "portrait_source_url": "https://www.justice.gov/d9/styles/staff_profile_portrait_300h/public/2025-09/nikki_collier_pboto.jpeg?itok=HZb7dLQI",
+      "portrait_asset": "clients/riverbed/assets/portraits/nikki-collier.jpeg",
+      "portrait_sha256": "ee0dca78a968d79dddb3c6b8c03b9ae14f2d62cf9109147fbdef7c639cd0ea2b"
+    }
+  ]
+}

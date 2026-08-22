@@ -1,0 +1,21 @@
+{
+  "_fixture_provenance": {
+    "kind": "recorded",
+    "retrieved_at_utc": "2026-08-08T23:05:00Z",
+    "titles_url": "https://www.ecfr.gov/api/versioner/v1/titles.json",
+    "section_url": "https://www.ecfr.gov/api/versioner/v1/full/2026-08-06/title-48.xml?section=9.104-1"
+  },
+  "titles": {
+    "titles": [
+      {
+        "number": 48,
+        "name": "Federal Acquisition Regulations System",
+        "latest_amended_on": "2026-07-08",
+        "latest_issue_date": "2026-07-08",
+        "up_to_date_as_of": "2026-08-06",
+        "reserved": false
+      }
+    ]
+  },
+  "section_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><DIV8 N=\"9.104-1\" TYPE=\"SECTION\" hierarchy_metadata=\"{&quot;path&quot;:&quot;/on/_SUBSTITUTE_DATE_/title-48/section-9.104-1&quot;,&quot;citation&quot;:&quot;48 CFR 9.104-1&quot;,&quot;alternate_reference&quot;:&quot;FAR 9.104-1&quot;}\"><HEAD>9.104-1 General standards.</HEAD><P>To be determined responsible, a prospective contractor must have adequate financial resources to perform the contract.</P></DIV8>"
+}

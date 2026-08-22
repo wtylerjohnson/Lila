@@ -1,0 +1,134 @@
+{
+ "client": "riverbed",
+ "marked_by": "",
+ "marked_at": "",
+ "note": "Hand-marked ideal opportunity set. Ids are benchmarks, never retrieval inputs. must_lead means the record must hold a core seat, not merely appear in the dock.",
+ "targets": [
+  {
+   "id": "CONT_AWD_140L0625F0144_1422_NNG15SC91B_8000",
+   "kind": "award_gid",
+   "must_lead": false,
+   "title_hint": "",
+   "why": ""
+  },
+  {
+   "id": "CONT_AWD_15F06724F0001868_1549_NNG15SC91B_8000",
+   "kind": "award_gid",
+   "must_lead": false,
+   "title_hint": "",
+   "why": ""
+  },
+  {
+   "id": "CONT_AWD_2031JW23F00016_2046_NNG15SC91B_8000",
+   "kind": "award_gid",
+   "must_lead": false,
+   "title_hint": "",
+   "why": ""
+  },
+  {
+   "id": "CONT_AWD_2032H519F00718_2050_NNG15SC71B_8000",
+   "kind": "award_gid",
+   "must_lead": false,
+   "title_hint": "",
+   "why": ""
+  },
+  {
+   "id": "CONT_AWD_2032H523C00044_2050_-NONE-_-NONE-",
+   "kind": "award_gid",
+   "must_lead": false,
+   "title_hint": "",
+   "why": ""
+  },
+  {
+   "id": "CONT_AWD_2032H525F00130_2050_NNG15SC71B_8000",
+   "kind": "award_gid",
+   "must_lead": false,
+   "title_hint": "",
+   "why": ""
+  },
+  {
+   "id": "CONT_AWD_205AE925F00201_2050_NNG15SC71B_8000",
+   "kind": "award_gid",
+   "must_lead": false,
+   "title_hint": "",
+   "why": ""
+  },
+  {
+   "id": "CONT_AWD_28321325FDX030072_2800_GS35F0511T_4730",
+   "kind": "award_gid",
+   "must_lead": false,
+   "title_hint": "",
+   "why": ""
+  },
+  {
+   "id": "CONT_AWD_28321326FDX030101_2800_NNG15SC73B_8000",
+   "kind": "award_gid",
+   "must_lead": false,
+   "title_hint": "",
+   "why": ""
+  },
+  {
+   "id": "CONT_AWD_693JJ126F00019N_6925_NNG15SD26B_8000",
+   "kind": "award_gid",
+   "must_lead": false,
+   "title_hint": "",
+   "why": ""
+  },
+  {
+   "id": "CONT_AWD_697DCK25F00873_6920_697DCK22D00001_6920",
+   "kind": "award_gid",
+   "must_lead": false,
+   "title_hint": "",
+   "why": ""
+  },
+  {
+   "id": "CONT_AWD_70B04C18F00000184_7014_NNG15SD01B_8000",
+   "kind": "award_gid",
+   "must_lead": false,
+   "title_hint": "",
+   "why": ""
+  },
+  {
+   "id": "CONT_AWD_70SBUR26F00000149_7003_NNG15SC91B_8000",
+   "kind": "award_gid",
+   "must_lead": false,
+   "title_hint": "",
+   "why": ""
+  },
+  {
+   "id": "CONT_AWD_72MC1019C00014_7200_-NONE-_-NONE-",
+   "kind": "award_gid",
+   "must_lead": false,
+   "title_hint": "",
+   "why": ""
+  },
+  {
+   "id": "APFS:70806",
+   "kind": "apfs",
+   "must_lead": false,
+   "title_hint": "",
+   "why": ""
+  },
+  {
+   "id": "APFS:72919",
+   "kind": "apfs",
+   "must_lead": false,
+   "title_hint": "",
+   "why": ""
+  },
+  {
+   "id": "APFS:73416",
+   "kind": "apfs",
+   "must_lead": false,
+   "title_hint": "",
+   "why": ""
+  },
+  {
+   "id": "APFS:74529",
+   "kind": "apfs",
+   "must_lead": false,
+   "title_hint": "",
+   "why": ""
+  }
+ ]
+}

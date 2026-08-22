@@ -1,0 +1,562 @@
+{
+  "client_name": "Insignary",
+  "hero_context": "We screened primary federal records for active delivery and public signals aligned with Insignary's binary analysis, SBOM, and reachability capabilities.",
+  "chips": [
+    {
+      "label": "BINARY SCA",
+      "tone": "hot"
+    },
+    {
+      "label": "SBOM ENRICHMENT",
+      "tone": "hot"
+    },
+    {
+      "label": "REACHABILITY"
+    },
+    {
+      "label": "DELIVERED SOFTWARE"
+    },
+    {
+      "label": "INCUMBENT-LED ENTRY",
+      "tone": "live"
+    }
+  ],
+  "scale_total": "$289.5M",
+  "scale_counts": "3 cited corridors · 4 award records · not pipeline revenue",
+  "scale": {
+    "rows": [
+      {
+        "label": "USPTO × Accenture Federal",
+        "award_generated_id": "CONT_AWD_1333BJ25F00280001_1344_47QTCK18D0036_4732",
+        "naics": "541512",
+        "amount": "$71.23M"
+      },
+      {
+        "label": "USCIS ODOS III × DV United",
+        "award_generated_id": "CONT_AWD_70SBUR22F00000113_7003_HHSN316201200193W_7529",
+        "naics": "541512",
+        "amount": "$174.54M"
+      },
+      {
+        "label": "VA LGY DevSecOps 2.0 × Blue Phoenix",
+        "award_generated_id": "CONT_AWD_36C10B25F0304_3600_47QTCA23D00BT_4732",
+        "naics": "541519",
+        "amount": "$43.77M"
+      }
+    ],
+    "total": "$289.5M"
+  },
+  "news": [
+    {
+      "head": "USPTO · Accenture route",
+      "body": "$71.23M obligated · 2 active orders · 58 reported subawards · latest end 30 JUN 2027",
+      "award_generated_id": "CONT_AWD_1333BJ25F00280001_1344_47QTCK18D0036_4732"
+    },
+    {
+      "head": "USCIS · ODOS 3.1 bridge",
+      "body": "In evaluation · 24 APR 2026 status · estimated through 24 MAR 2028",
+      "sam_notice_guid": "1e9c531df5a841c2935f370db3743213"
+    },
+    {
+      "head": "VA · LGY DevSecOps 2.0",
+      "body": "$43.77M obligated · current end 29 SEP 2026 · potential SEP 2029",
+      "award_generated_id": "CONT_AWD_36C10B25F0304_3600_47QTCA23D00BT_4732"
+    },
+    {
+      "head": "CBP · Sonatype SBOM Manager",
+      "body": "$677.6K obligated · standalone SBOM buy · through SEP 2026",
+      "award_generated_id": "CONT_AWD_70B04C25F00001054_7014_NNG15SC77B_8000"
+    },
+    {
+      "head": "DARPA · E-BOSS × Galois",
+      "body": "$3.86M obligated · $4.45M potential · through 07 SEP 2026",
+      "award_generated_id": "CONT_AWD_HR001124C0488_9700_-NONE-_-NONE-"
+    },
+    {
+      "head": "Air Force · Kessel Run CSO",
+      "body": "Umbrella end 29 NOV 2027 · AOI-specific dates govern",
+      "sam_notice_guid": "b208e33b8dcd49088d751842a5f462aa"
+    },
+    {
+      "head": "Army · IT Laboratory CSO",
+      "body": "Active · response deadline 30 OCT 2027",
+      "sam_notice_guid": "ae337f5d01e3499b980d347fa7567323"
+    }
+  ],
+  "signal_cards": [
+    {
+      "label": "Strongest route",
+      "value": "58",
+      "sub": "Reported subawards",
+      "detail": "Accenture · USPTO · 2 active orders"
+    },
+    {
+      "label": "Timing cluster",
+      "value": "SEP ’26",
+      "sub": "2 current POP ends",
+      "detail": "USCIS 24 SEP · VA 29 SEP"
+    },
+    {
+      "label": "Direct DHS proof",
+      "value": "$677.6K",
+      "sub": "SBOM Manager",
+      "detail": "OBLIGATED · CBP · SONATYPE · THROUGH SEP ’26"
+    },
+    {
+      "label": "Published contacts",
+      "value": "4",
+      "sub": "Named federal POCs",
+      "detail": "Kessel Run · DCSA · VA · Army"
+    }
+  ],
+  "coverage": [
+    {
+      "dept": "COMMERCE",
+      "components": "USPTO"
+    },
+    {
+      "dept": "DHS",
+      "components": "USCIS · CBP"
+    },
+    {
+      "dept": "VETERANS AFFAIRS",
+      "components": "VA"
+    },
+    {
+      "dept": "DEFENSE",
+      "components": "DARPA · AIR FORCE · ARMY"
+    }
+  ],
+  "best_fit": [
+    {
+      "rank": "01",
+      "code": "DOC",
+      "agency_name": "Department of Commerce",
+      "title": "USPTO × Accenture Federal",
+      "award_generated_id": "CONT_AWD_1333BJ25F00280001_1344_47QTCK18D0036_4732",
+      "account": "COMMERCE · 2 ACTIVE SOFTWARE-DELIVERY ORDERS",
+      "evidence": [
+        {
+          "award_generated_id": "CONT_AWD_1333BJ25F00280001_1344_47QTCK18D0036_4732",
+          "label": "1333BJ25F00280001"
+        },
+        {
+          "award_generated_id": "CONT_AWD_1333BJ21F00280023_1344_47QTCK18D0036_4732",
+          "label": "1333BJ21F00280023"
+        }
+      ],
+      "cells": [
+        {
+          "label": "Contract scale",
+          "value": "$71.23M",
+          "small": "OBLIGATED · 58 SUBAWARDS"
+        },
+        {
+          "label": "Current ends",
+          "value": "17 OCT 2026",
+          "small": "30 JUN 2027 · LATEST"
+        },
+        {
+          "label": "Fit",
+          "value": "Binary assurance",
+          "small": "Delivered software"
+        },
+        {
+          "label": "Route",
+          "value": "Evidenced",
+          "small": "Alliant 2 · 58 subawards"
+        }
+      ]
+    },
+    {
+      "rank": "02",
+      "code": "DHS",
+      "agency_name": "Department of Homeland Security",
+      "title": "USCIS ODOS III × DV United",
+      "award_generated_id": "CONT_AWD_70SBUR22F00000113_7003_HHSN316201200193W_7529",
+      "account": "DHS · OUTCOME-BASED DELIVERY + DEVSECOPS",
+      "evidence": [
+        {
+          "award_generated_id": "CONT_AWD_70SBUR22F00000113_7003_HHSN316201200193W_7529",
+          "label": "70SBUR22F00000113"
+        },
+        {
+          "sam_notice_guid": "1e9c531df5a841c2935f370db3743213",
+          "label": "ODOS 3.1 UPDATE"
+        }
+      ],
+      "cells": [
+        {
+          "label": "Contract scale",
+          "value": "$174.54M",
+          "small": "Obligated"
+        },
+        {
+          "label": "Window",
+          "value": "24 SEP 2026",
+          "small": "CURRENT"
+        },
+        {
+          "label": "Fit",
+          "value": "SBOM evidence",
+          "small": "Binary analysis"
+        },
+        {
+          "label": "Entry",
+          "value": "Partner thesis",
+          "small": "DV United · 0 subawards"
+        }
+      ]
+    },
+    {
+      "rank": "03",
+      "code": "VA",
+      "agency_name": "Department of Veterans Affairs",
+      "title": "VA LGY DevSecOps 2.0 × Blue Phoenix",
+      "award_generated_id": "CONT_AWD_36C10B25F0304_3600_47QTCA23D00BT_4732",
+      "account": "VETERANS AFFAIRS · CURRENT DELIVERY ORDER",
+      "evidence": [
+        {
+          "award_generated_id": "CONT_AWD_36C10B25F0304_3600_47QTCA23D00BT_4732",
+          "label": "36C10B25F0304"
+        }
+      ],
+      "cells": [
+        {
+          "label": "Contract scale",
+          "value": "$43.77M",
+          "small": "Obligated"
+        },
+        {
+          "label": "Window",
+          "value": "29 SEP 2026",
+          "small": "Potential SEP 2029"
+        },
+        {
+          "label": "Fit",
+          "value": "Binary intake",
+          "small": "SBOM assurance"
+        },
+        {
+          "label": "Entry",
+          "value": "Partner thesis",
+          "small": "Blue Phoenix · 0 subawards"
+        }
+      ]
+    }
+  ],
+  "competitors": [
+    {
+      "label": "USCIS · ACTIVE",
+      "title": "Checkmarx × Anacapa",
+      "award_generated_id": "CONT_AWD_70SBUR25F00000195_7003_NNG15SD08B_8000",
+      "money": "$2.04M",
+      "small": "OBLIGATED · THROUGH SEP 2026",
+      "wedge": "Lane · application security"
+    },
+    {
+      "label": "USCIS · ACTIVE",
+      "title": "Sonatype Nexus Pro × NTS",
+      "award_generated_id": "CONT_AWD_70SBUR25F00000194_7003_HHSN316201500040W_7529",
+      "money": "$1.51M",
+      "small": "OBLIGATED · THROUGH SEP 2027",
+      "wedge": "Lane · SCA / repository"
+    },
+    {
+      "label": "USPTO · ACTIVE",
+      "title": "Sonatype Nexus × SIRC",
+      "award_generated_id": "CONT_AWD_1333BJ24F00282021_1344_NNG15SD74B_8000",
+      "money": "$1.54M",
+      "small": "OBLIGATED · THROUGH MAY 2027",
+      "wedge": "Lane · SCA / repository"
+    },
+    {
+      "label": "USPTO · ADJACENT",
+      "title": "GitLab Ultimate × ThunderCat",
+      "award_generated_id": "CONT_AWD_1333BJ26F00282001_1344_NNG15SD26B_8000",
+      "money": "$1.37M",
+      "small": "OBLIGATED · THROUGH NOV 2027",
+      "wedge": "Lane · DevSecOps platform"
+    },
+    {
+      "label": "CBP · ACTIVE",
+      "title": "Sonatype Lifecycle + SBOM Manager",
+      "award_generated_id": "CONT_AWD_70B04C25F00001054_7014_NNG15SC77B_8000",
+      "money": "$677.6K",
+      "small": "OBLIGATED · GOVPLACE · THROUGH SEP 2026",
+      "wedge": "Proof · standalone SBOM buy"
+    }
+  ],
+  "teaming": [
+    {
+      "client": "INSIGNARY",
+      "partner": "ACCENTURE FEDERAL",
+      "target": "USPTO software delivery",
+      "angle": "BINARY ASSURANCE + DELIVERED SOFTWARE",
+      "proof": "58 SUBAWARDS · ALLIANT 2 · ROUTE EVIDENCED",
+      "award_id": "1333BJ25F00280001",
+      "idv_piid": "47QTCK18D0036",
+      "program": "USPTO software delivery",
+      "agency": "Department of Commerce"
+    },
+    {
+      "client": "INSIGNARY",
+      "partner": "DV UNITED",
+      "target": "USCIS ODOS III / 3.1",
+      "angle": "BINARY ANALYSIS + SBOM EVIDENCE",
+      "proof": "0 SUBAWARDS · ENTRY THESIS",
+      "award_id": "70SBUR22F00000113",
+      "idv_piid": "HHSN316201200193W",
+      "program": "USCIS ODOS III / 3.1",
+      "agency": "Department of Homeland Security"
+    },
+    {
+      "client": "INSIGNARY",
+      "partner": "BLUE PHOENIX",
+      "target": "VA LGY DevSecOps 2.0",
+      "angle": "BINARY INTAKE + SBOM ASSURANCE",
+      "proof": "0 SUBAWARDS · ENTRY THESIS",
+      "award_id": "36C10B25F0304",
+      "idv_piid": "47QTCA23D00BT",
+      "program": "VA LGY DevSecOps 2.0",
+      "agency": "Department of Veterans Affairs"
+    },
+    {
+      "client": "INSIGNARY",
+      "partner": "GALOIS",
+      "target": "DARPA E-BOSS transition",
+      "angle": "ENHANCED SBOM + REACHABILITY",
+      "proof": "NO SUBAWARDS · TRANSITION THESIS",
+      "award_id": "HR001124C0488",
+      "idv_piid": "",
+      "program": "DARPA E-BOSS transition",
+      "agency": "Department of Defense"
+    }
+  ],
+  "horizon": [
+    {
+      "hot": true,
+      "label": "DARPA · TRANSITION",
+      "title": "E-BOSS × Galois",
+      "url": "https://www.darpa.mil/research/programs/enhanced-sbom-for-optimized-software-sustainment",
+      "value": "$3.86M",
+      "small": "OBLIGATED · $4.45M POTENTIAL · THROUGH 07 SEP 2026"
+    },
+    {
+      "hot": false,
+      "label": "AIR FORCE · UMBRELLA CSO",
+      "title": "Kessel Run DevSecOps",
+      "sam_notice_guid": "b208e33b8dcd49088d751842a5f462aa",
+      "value": "29 NOV 2027",
+      "small": "UMBRELLA END · AOI-SPECIFIC DATES GOVERN · POC · ROSA KRAUSS"
+    },
+    {
+      "hot": true,
+      "label": "USCIS · IN EVALUATION",
+      "title": "ODOS 3.1 bridge",
+      "sam_notice_guid": "1e9c531df5a841c2935f370db3743213",
+      "value": "IN EVALUATION",
+      "small": "24 APR 2026 STATUS · 70SBUR26Q00000001 · JAN 2026 FORECAST · APFS F2024066162 · 24-MONTH BRIDGE · EST. THROUGH 24 MAR 2028"
+    },
+    {
+      "hot": false,
+      "label": "NASA · FUTURE CHANNEL",
+      "title": "SEWP VI",
+      "url": "https://www.sewp.nasa.gov/sewpvi/",
+      "value": "10 YEARS",
+      "small": "ORDERING HORIZON · $20B MAXIMUM · PER AWARDED CONTRACT"
+    }
+  ],
+  "pocs": [
+    {
+      "opp": "Kessel Run DevSecOps CSO · AIR FORCE · FA8730-22-S-C001",
+      "opp_notice_guid": "b208e33b8dcd49088d751842a5f462aa",
+      "name": "Rosa Krauss",
+      "role": "Primary POC",
+      "deadline": "29 NOV 2027",
+      "signal": "WATCH AOIs"
+    },
+    {
+      "opp": "DCSA Innovation Gateway · DOD · HS0021-26-CSO-DCSA",
+      "opp_notice_guid": "49ca8b1859c74fe28a4e9d3ae1c83d68",
+      "name": "Daniela Garavito",
+      "role": "Primary POC",
+      "deadline": "22 JUN 2031",
+      "signal": "ACTIVE"
+    },
+    {
+      "opp": "VA Enterprise Cyber Audit · VA · 36C10B26Q0155",
+      "opp_notice_guid": "692f3f7143d84b2da163ab1bcdd73b0b",
+      "name": "Nicole Bestreski",
+      "role": "Contract Specialist",
+      "deadline": "NO CURRENT DATE",
+      "signal": "SAM ACTIVE"
+    },
+    {
+      "opp": "Army IT Laboratory CSO · ARMY · W912HZ26SC006",
+      "opp_notice_guid": "ae337f5d01e3499b980d347fa7567323",
+      "name": "Christy Love",
+      "role": "Primary POC",
+      "deadline": "30 OCT 2027",
+      "signal": "ACTIVE"
+    }
+  ],
+  "evidence": [
+    {
+      "award_generated_id": "CONT_AWD_1333BJ25F00280001_1344_47QTCK18D0036_4732",
+      "label": "USPTO · ACCENTURE · ORDER 1"
+    },
+    {
+      "award_generated_id": "CONT_AWD_1333BJ21F00280023_1344_47QTCK18D0036_4732",
+      "label": "USPTO · ACCENTURE · ORDER 2"
+    },
+    {
+      "award_generated_id": "CONT_AWD_70SBUR22F00000113_7003_HHSN316201200193W_7529",
+      "label": "USCIS · ODOS III"
+    },
+    {
+      "award_generated_id": "CONT_AWD_36C10B25F0304_3600_47QTCA23D00BT_4732",
+      "label": "VA · LGY DEVSECOPS 2.0"
+    },
+    {
+      "award_generated_id": "CONT_AWD_HR001124C0488_9700_-NONE-_-NONE-",
+      "label": "DARPA · E-BOSS · GALOIS"
+    },
+    {
+      "sam_notice_guid": "b208e33b8dcd49088d751842a5f462aa",
+      "label": "AIR FORCE · KESSEL RUN CSO"
+    },
+    {
+      "url": "https://www.cisa.gov/sbom",
+      "label": "CISA · SBOM MINIMUM ELEMENTS"
+    },
+    {
+      "url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+      "label": "CISA · KEV CATALOG"
+    }
+  ],
+  "sequence": "Lead with the evidenced Accenture route at USPTO; validate the DV United USCIS, Blue Phoenix VA, and Galois DARPA theses; keep horizon items in monitor mode until a specific acquisition event emerges.",
+  "figures": [
+    {
+      "text": "$174.54M",
+      "raw": 174537374.57,
+      "source_system": "usaspending",
+      "source_record_id": "70SBUR22F00000113",
+      "generated_internal_id": "CONT_AWD_70SBUR22F00000113_7003_HHSN316201200193W_7529",
+      "retrieved_at": "2026-07-17T15:06:03.212087+00:00"
+    },
+    {
+      "text": "$677.6K",
+      "raw": 677553.03,
+      "source_system": "usaspending",
+      "source_record_id": "70B04C25F00001054",
+      "generated_internal_id": "CONT_AWD_70B04C25F00001054_7014_NNG15SC77B_8000",
+      "retrieved_at": "2026-07-17T15:06:03.212087+00:00"
+    },
+    {
+      "text": "$3.86M",
+      "raw": 3862451.0,
+      "source_system": "usaspending",
+      "source_record_id": "HR001124C0488",
+      "generated_internal_id": "CONT_AWD_HR001124C0488_9700_-NONE-_-NONE-",
+      "retrieved_at": "2026-07-17T15:06:03.212087+00:00"
+    },
+    {
+      "text": "$1.54M",
+      "raw": 1541662.57,
+      "source_system": "usaspending",
+      "source_record_id": "1333BJ24F00282021",
+      "generated_internal_id": "CONT_AWD_1333BJ24F00282021_1344_NNG15SD74B_8000",
+      "retrieved_at": "2026-07-17T15:06:03.212087+00:00"
+    },
+    {
+      "text": "$1.37M",
+      "raw": 1372724.0,
+      "source_system": "usaspending",
+      "source_record_id": "1333BJ26F00282001",
+      "generated_internal_id": "CONT_AWD_1333BJ26F00282001_1344_NNG15SD26B_8000",
+      "retrieved_at": "2026-07-17T15:06:03.212087+00:00"
+    },
+    {
+      "text": "$71.23M",
+      "raw": 71230136.71,
+      "component_raws": [
+        10454741.07,
+        60775395.64
+      ],
+      "source_system": "usaspending",
+      "source_record_id": "1333BJ25F00280001",
+      "generated_internal_id": "CONT_AWD_1333BJ25F00280001_1344_47QTCK18D0036_4732",
+      "retrieved_at": "2026-07-17T15:06:03.212087+00:00"
+    },
+    {
+      "text": "$10,454,741.07",
+      "raw": 10454741.07,
+      "source_system": "usaspending",
+      "source_record_id": "1333BJ25F00280001",
+      "generated_internal_id": "CONT_AWD_1333BJ25F00280001_1344_47QTCK18D0036_4732",
+      "retrieved_at": "2026-07-17T15:06:03.212087+00:00"
+    },
+    {
+      "text": "$60,775,395.64",
+      "raw": 60775395.64,
+      "source_system": "usaspending",
+      "source_record_id": "1333BJ21F00280023",
+      "generated_internal_id": "CONT_AWD_1333BJ21F00280023_1344_47QTCK18D0036_4732",
+      "retrieved_at": "2026-07-17T15:06:03.212087+00:00"
+    },
+    {
+      "text": "$43.77M",
+      "raw": 43768202.89,
+      "source_system": "usaspending",
+      "source_record_id": "36C10B25F0304",
+      "generated_internal_id": "CONT_AWD_36C10B25F0304_3600_47QTCA23D00BT_4732",
+      "retrieved_at": "2026-07-17T15:06:03.212087+00:00"
+    },
+    {
+      "text": "$289.5M",
+      "raw": 289535714.17,
+      "component_raws": [
+        10454741.07,
+        60775395.64,
+        174537374.57,
+        43768202.89
+      ],
+      "source_system": "usaspending",
+      "source_url": "https://www.usaspending.gov/",
+      "retrieved_at": "2026-07-17T15:06:03.212087+00:00"
+    },
+    {
+      "text": "$2.04M",
+      "raw": 2041354.37,
+      "source_system": "usaspending",
+      "source_record_id": "70SBUR25F00000195",
+      "generated_internal_id": "CONT_AWD_70SBUR25F00000195_7003_NNG15SD08B_8000",
+      "retrieved_at": "2026-07-17T15:06:03.212087+00:00"
+    },
+    {
+      "text": "$1.51M",
+      "raw": 1514115.62,
+      "source_system": "usaspending",
+      "source_record_id": "70SBUR25F00000194",
+      "generated_internal_id": "CONT_AWD_70SBUR25F00000194_7003_HHSN316201500040W_7529",
+      "retrieved_at": "2026-07-17T15:06:03.212087+00:00"
+    },
+    {
+      "text": "$4.45M",
+      "raw": 4446007.0,
+      "source_system": "usaspending",
+      "source_record_id": "HR001124C0488",
+      "generated_internal_id": "CONT_AWD_HR001124C0488_9700_-NONE-_-NONE-",
+      "retrieved_at": "2026-07-17T15:06:03.212087+00:00"
+    },
+    {
+      "text": "$20B",
+      "raw": 20000000000.0,
+      "source_system": "agency_doc",
+      "source_record_id": "sewpvi-ceiling",
+      "source_url": "https://www.nasa.gov/news-release/nasa-awards-solutions-for-federal-enterprise-procurement-contracts/",
+      "retrieved_at": "2026-07-17T15:06:03.212087+00:00"
+    }
+  ]
+}

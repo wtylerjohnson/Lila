@@ -1,0 +1,5 @@
+{
+  "_comment": "APPROVED 2026-07-19: civilian scope with DHS included; Department of Defense remains excluded by the civilian preset.",
+  "preset": "civilian",
+  "remove": []
+}

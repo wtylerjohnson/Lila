@@ -1,0 +1,150 @@
+{
+  "_recording": {
+    "what": "A VERBATIM Apollo people-search response body. Not hand-written: this is the payload returned on 2026-08-06 for the first stored red_hat targeting spec (Federal Bureau of Investigation, persona tiers 1 and 2, per_page 10).",
+    "why": "tools/apollo_targets.py was written against an assumed response shape. This file is the real one, so the next schema drift fails a test instead of a client artifact.",
+    "transport": "Apollo MCP connector (OAuth), tool apollo_mixed_people_api_search. NOT the REST path the targets step uses (POST https://api.apollo.io/api/v1/mixed_people/search with an x-api-key header). Field names match Apollo's documented people-search shape, but this recording does not prove the REST path returns byte-identical bytes.",
+    "request": {
+      "q_keywords": "Federal Bureau of Investigation",
+      "person_titles": ["Program Manager", "Program Director", "Chief Information Officer", "Deputy Chief Information Officer", "Director of Network Operations", "Chief Technology Officer", "Contracting Officer", "Contract Specialist", "Procurement Analyst", "Director of Acquisition", "Head of Contracting Activity", "Small Business Specialist"],
+      "person_seniorities": ["director", "vp", "head", "manager", "c_suite", "senior"],
+      "per_page": 10,
+      "page": 1
+    },
+    "contains_real_people": "Yes. These are live records from the operator's own Apollo account. Scrub before any public distribution."
+  },
+  "response": {
+    "total_entries": 104,
+    "people": [
+      {
+        "id": "5ab61e78a6da98b5e13b20a9",
+        "first_name": "Brian",
+        "last_name": "McCormick",
+        "title": "Supervisory Contracting Officer",
+        "last_refreshed_at": "2026-07-18T14:25:13.000+00:00",
+        "linkedin_url": "http://www.linkedin.com/in/brian-mccormick-dbia-98298a7a",
+        "organization": {
+          "id": "57c4ddb5a6da986a6f8d49b2",
+          "name": "Federal Bureau of Investigation (FBI)",
+          "domain": "fbi.gov"
+        }
+      },
+      {
+        "id": "54a89ebc746869334a0b9a02",
+        "first_name": "Gosia",
+        "last_name": "Thompson",
+        "title": "Unit Chief/ Contracting Officer",
+        "last_refreshed_at": "2026-07-08T14:12:33.000+00:00",
+        "linkedin_url": "http://www.linkedin.com/in/gosia-thompson-2975799",
+        "organization": {
+          "id": "57c4ddb5a6da986a6f8d49b2",
+          "name": "Federal Bureau of Investigation (FBI)",
+          "domain": "fbi.gov"
+        }
+      },
+      {
+        "id": "57de0847a6da987aec22f2f4",
+        "first_name": "Geoff",
+        "last_name": "Swanstrom",
+        "title": "Chief Technology Officer",
+        "last_refreshed_at": "2026-07-31T14:37:27.926+00:00",
+        "linkedin_url": "http://www.linkedin.com/in/geoffswanstrom",
+        "organization": {
+          "id": "57c4ddb5a6da986a6f8d49b2",
+          "name": "Federal Bureau of Investigation (FBI)",
+          "domain": "fbi.gov"
+        }
+      },
+      {
+        "id": "658e9dc6db91a100012976f8",
+        "first_name": "Alec",
+        "last_name": "Sichko",
+        "title": "Cybersecurity Program Manager, CIO's Office",
+        "last_refreshed_at": "2026-07-07T02:25:32.000+00:00",
+        "linkedin_url": "http://www.linkedin.com/in/alec-s-89014666",
+        "organization": {
+          "id": "57c4ddb5a6da986a6f8d49b2",
+          "name": "Federal Bureau of Investigation (FBI)",
+          "domain": "fbi.gov"
+        }
+      },
+      {
+        "id": "63daf924c712b60001464ca4",
+        "first_name": "Daryl",
+        "last_name": "Slate",
+        "title": "Senior Contract Specialist",
+        "last_refreshed_at": "2026-06-22T15:39:43.000+00:00",
+        "linkedin_url": "http://www.linkedin.com/in/daryl-slate-mba-a40a78126",
+        "organization": {
+          "id": "57c4ddb5a6da986a6f8d49b2",
+          "name": "Federal Bureau of Investigation (FBI)",
+          "domain": "fbi.gov"
+        }
+      },
+      {
+        "id": "615d18af504d1e00010c8743",
+        "first_name": "Kristi",
+        "last_name": "Naternicola",
+        "title": "Program Manager",
+        "last_refreshed_at": "2026-07-16T01:39:05.000+00:00",
+        "linkedin_url": "http://www.linkedin.com/in/kristi-naternicola-348ba3b9",
+        "organization": {
+          "id": "57c4ddb5a6da986a6f8d49b2",
+          "name": "Federal Bureau of Investigation (FBI)",
+          "domain": "fbi.gov"
+        }
+      },
+      {
+        "id": "6124b2170d76670001f7b214",
+        "first_name": "Diana",
+        "last_name": "Summers",
+        "title": "Program Manager",
+        "last_refreshed_at": "2026-06-17T06:12:16.000+00:00",
+        "linkedin_url": "http://www.linkedin.com/in/dlsummers1",
+        "organization": {
+          "id": "57c4ddb5a6da986a6f8d49b2",
+          "name": "Federal Bureau of Investigation (FBI)",
+          "domain": "fbi.gov"
+        }
+      },
+      {
+        "id": "5abbef0da6da9840fb690bbf",
+        "first_name": "Michael",
+        "last_name": "Myers",
+        "title": "Program Manager",
+        "last_refreshed_at": "2026-07-11T08:42:03.000+00:00",
+        "linkedin_url": "http://www.linkedin.com/in/michael-myers-1023b3210",
+        "organization": {
+          "id": "57c4ddb5a6da986a6f8d49b2",
+          "name": "Federal Bureau of Investigation (FBI)",
+          "domain": "fbi.gov"
+        }
+      },
+      {
+        "id": "61f3939926a0dc0001925729",
+        "first_name": "Paul",
+        "last_name": "Hoffman",
+        "title": "Program Manager",
+        "last_refreshed_at": "2026-07-19T06:02:15.000+00:00",
+        "linkedin_url": "http://www.linkedin.com/in/paul-hoffman-a19418201",
+        "organization": {
+          "id": "57c4ddb5a6da986a6f8d49b2",
+          "name": "Federal Bureau of Investigation (FBI)",
+          "domain": "fbi.gov"
+        }
+      },
+      {
+        "id": "6103ab58143afd0001180fa2",
+        "first_name": "Steve",
+        "last_name": "Braun",
+        "title": "Program Manager",
+        "last_refreshed_at": "2026-06-22T14:54:52.000+00:00",
+        "linkedin_url": "http://www.linkedin.com/in/steve--braun",
+        "organization": {
+          "id": "57c4ddb5a6da986a6f8d49b2",
+          "name": "Federal Bureau of Investigation (FBI)",
+          "domain": "fbi.gov"
+        }
+      }
+    ]
+  }
+}

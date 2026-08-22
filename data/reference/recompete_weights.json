@@ -1,0 +1,8 @@
+{
+  "_doctrine": "Attack-value weights for the recompete calendar (L16). Weights live HERE, never in code. Every scored row must decompose: factor, points, evidence. The factors sum to 100 when all hit; DEFEND rows (client is the incumbent) never enter the attack ranking.",
+  "capability_match": 30,
+  "product_competitor_incumbent": 25,
+  "expiry_within_9_months": 15,
+  "buyer_map_agency": 15,
+  "single_award_vehicle": 15
+}

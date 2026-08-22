@@ -1,0 +1,22 @@
+<svg class="cover-art" width="520" height="520" viewBox="0 0 520 520" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <g fill="none" stroke="#2E9FD8">
+        <circle cx="330" cy="190" r="70" opacity="0.14"></circle>
+        <circle cx="330" cy="190" r="130" opacity="0.10"></circle>
+        <circle cx="330" cy="190" r="195" opacity="0.07"></circle>
+        <circle cx="330" cy="190" r="265" opacity="0.05"></circle>
+        <path d="M330 190 L470 85" opacity="0.18"></path>
+        <path d="M330 190 L455 300" opacity="0.14"></path>
+        <path d="M330 190 L215 60" opacity="0.12"></path>
+        <path d="M330 190 L180 280" opacity="0.10"></path>
+      </g>
+      <g fill="#2E9FD8">
+        <circle cx="470" cy="85" r="5" opacity="0.55"></circle>
+        <circle cx="455" cy="300" r="4" opacity="0.45"></circle>
+        <circle cx="215" cy="60" r="4" opacity="0.4"></circle>
+        <circle cx="180" cy="280" r="3.5" opacity="0.35"></circle>
+        <circle cx="330" cy="190" r="6" opacity="0.8"></circle>
+        <circle cx="395" cy="140" r="2.5" opacity="0.3"></circle>
+        <circle cx="270" cy="250" r="2.5" opacity="0.3"></circle>
+        <circle cx="420" cy="230" r="2" opacity="0.25"></circle>
+      </g>
+    </svg>

@@ -1,0 +1,128 @@
+{
+  "client_name": "Riverbed",
+  "capability_summary": "Network performance monitoring and unified observability: application performance, digital experience monitoring, WAN optimization, and network visibility for enterprise and government networks.",
+  "capability_terms": {
+    "core": [
+      "network performance monitoring",
+      "network performance management",
+      "application performance monitoring",
+      "unified observability",
+      "digital experience monitoring",
+      "end-user experience monitoring",
+      "WAN optimization",
+      "packet capture",
+      "network visibility",
+      "NetFlow analysis"
+    ],
+    "adjacent": [
+      "full-stack observability",
+      "AIOps",
+      "IT operations monitoring",
+      "network modernization",
+      "SD-WAN",
+      "zero trust visibility",
+      "infrastructure monitoring"
+    ],
+    "excluded": [
+      "dredging",
+      "streambank stabilization",
+      "bank stabilization",
+      "hydrology",
+      "erosion control",
+      "aquatic habitat",
+      "environmental restoration",
+      "salmon restoration",
+      "steelhead restoration",
+      "salmon habitat restoration",
+      "steelhead habitat restoration",
+      "salmon spawning",
+      "steelhead spawning",
+      "spawning and stranding surveys",
+      "salmon survey",
+      "salmon surveys",
+      "steelhead survey",
+      "steelhead surveys",
+      "fish feed",
+      "fish-feed",
+      "fish hatchery",
+      "Steelhead Enterprises"
+    ]
+  },
+  "named_competitors_and_incumbents": [
+    "Riverbed",
+    "Aternity",
+    "NPM+",
+    "SteelHead",
+    "SteelCentral",
+    "AppResponse",
+    "NetProfiler",
+    "NetIM",
+    "NETSCOUT",
+    "Gigamon",
+    "ExtraHop",
+    "Cisco ThousandEyes",
+    "Dynatrace",
+    "SolarWinds",
+    "Broadcom AppNeta",
+    "Kentik"
+  ],
+  "mission_components": [
+    "U.S. Customs and Border Protection",
+    "U.S. Citizenship and Immigration Services",
+    "Cybersecurity and Infrastructure Security Agency",
+    "Department of Veterans Affairs",
+    "Internal Revenue Service",
+    "NASA",
+    "Department of Transportation"
+  ],
+  "naics_boundary": [
+    "513210",
+    "541511",
+    "541512",
+    "541519",
+    "541690"
+  ],
+  "client_products": [
+    "Aternity",
+    "SteelHead",
+    "SteelCentral",
+    "AppResponse",
+    "NetProfiler",
+    "NetIM",
+    "NPM+",
+    "Riverbed IQ"
+  ],
+  "product_competitors": {
+    "market": "Network performance monitoring and digital experience monitoring",
+    "source": "operator-stated product rivals, clients/riverbed/profile.json",
+    "competitors": [
+      {
+        "name": "Dynatrace"
+      },
+      {
+        "name": "SolarWinds"
+      },
+      {
+        "name": "NETSCOUT"
+      },
+      {
+        "name": "ThousandEyes"
+      },
+      {
+        "name": "Cisco ThousandEyes"
+      },
+      {
+        "name": "Gigamon"
+      },
+      {
+        "name": "ExtraHop"
+      },
+      {
+        "name": "Broadcom AppNeta"
+      },
+      {
+        "name": "Kentik"
+      }
+    ]
+  }
+}

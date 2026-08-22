@@ -1,0 +1,72 @@
+{
+  "client_name": "NETSCOUT",
+  "capability_terms": {
+    "core": [
+      "network observability",
+      "network performance monitoring",
+      "network visibility",
+      "packet capture",
+      "deep packet inspection",
+      "DDoS protection",
+      "DDoS mitigation",
+      "DDoS defense",
+      "network detection and response",
+      "application performance management",
+      "application performance monitoring"
+    ],
+    "adjacent": [
+      "Continuous Diagnostics and Mitigation",
+      "CDM",
+      "DoDIN",
+      "packet broker",
+      "network tap",
+      "NetFlow",
+      "flow monitoring",
+      "network telemetry",
+      "network traffic analysis",
+      "network monitoring",
+      "zero trust",
+      "JRSS",
+      "network modernization",
+      "cyber threat detection",
+      "network forensics"
+    ],
+    "excluded": [
+      "provider network",
+      "social network",
+      "network cabling",
+      "cabling installation",
+      "telephone services",
+      "network television",
+      "staffing"
+    ]
+  },
+  "named_competitors_and_incumbents": [
+    "NETSCOUT",
+    "Arbor",
+    "nGenius",
+    "InfiniStream",
+    "Gigamon",
+    "Riverbed",
+    "SolarWinds",
+    "ExtraHop",
+    "Corelight",
+    "Endace",
+    "cPacket",
+    "Radware",
+    "Akamai",
+    "Cloudflare",
+    "ThousandEyes",
+    "Kentik"
+  ],
+  "mission_components": [
+    "Defense Information Systems Agency",
+    "Cybersecurity and Infrastructure Security Agency",
+    "Department of Defense",
+    "National Security Agency",
+    "Air Force",
+    "Department of the Army",
+    "Department of the Navy"
+  ],
+  "naics_boundary": ["334118", "511210", "541512", "541519"]
+}

@@ -1,0 +1,51 @@
+{
+  "client": "apexanalytix",
+  "as_of": "2026-08-07",
+  "source": "operator rulings, 2026-08-07",
+  "note": "Record-level dispositions the operator has ruled on by identifier. The projection applies these AFTER both lanes and the semantic gates, records every application in the receipts, and never silently deletes: a rejected record rides the ledger with its reason class.",
+  "rulings": [
+    {
+      "identifier": "31140PR260000095",
+      "ruling": "reject",
+      "reason_class": "rejected_wrong_domain",
+      "reason": "Personnel credentialing and base-access vetting at USCG Base Kodiak (Fortior Solutions' Omni), not supplier, payee, bank-account, vendor-master or procure-to-pay risk. Also a sole-source notice of intent.",
+      "sam_url": "https://sam.gov/opp/d61665232ca44b0d90cba54ff1de4c33/view"
+    },
+    {
+      "identifier": "HT9402-26-RFI-0238",
+      "ruling": "reclassify",
+      "motion": "recompete watch",
+      "flags": ["recompete_watch", "adjacent_capability", "partner_led"],
+      "access_note": "Healthcare-claims review: genuine payment integrity, adjacent to apex's verified AP and supplier-payment capability, not presently a proven apex delivery domain. Partner-led if entered.",
+      "action": "Do not contest the sole-source bridge to Concept Plus; it runs continuity through 2027-02-28 while DHA transitions to a competed follow-on. Watch for the follow-on signal and promote only with verified healthcare-claims past performance or a qualified healthcare payment-integrity partner carrying the domain credentials.",
+      "sam_url": "https://sam.gov/opp/d83870509b054745afcf3a2cff7c88a5/view"
+    },
+    {
+      "identifier": "HHM402-2X-Audit",
+      "ruling": "reclassify",
+      "motion": "successor watch",
+      "flags": ["past_rfi_follow_up", "successor_shape"],
+      "access_note": "High-fit mission: DIA audit remediation is squarely apex's outcome space. The posted RFI closed 2026-06-30; the record is follow-up evidence, not an open sources-sought.",
+      "action": "Follow up with the DIA point of contact on the closed RFI and watch for the successor notice; a comparable live DIA record becomes a direct shape when apex leads with payment analytics, control monitoring, supplier and payment-data validation, and remediation technology.",
+      "sam_url": "https://sam.gov/opp/56c857162b1e4cbea40421ccf42d5656/view"
+    },
+    {
+      "identifier": "FA701426_FMF_FIAR",
+      "ruling": "reclassify",
+      "motion": "partner under CPA prime",
+      "flags": ["partner_under_cpa", "high_fit_partner_route"],
+      "access_note": "High-fit mission, partner-required route: NAICS 541211 establishes a CPA-services prime environment for the FM FIAR multiple-award BPA.",
+      "action": "Position apex as the technology, analytics, controls, improper-payment and recovery-audit layer beneath qualified CPA primes; identify the BPA holders as evidence-backed teaming targets once awarded, never implying an existing relationship.",
+      "sam_url": "https://sam.gov/opp/b8b0b25d9aa2405597740357d4cd02c3/view"
+    },
+    {
+      "identifier": "N0024426RS005",
+      "ruling": "reclassify",
+      "motion": "partner: access required",
+      "flags": ["partner_access_required", "buyer_demand_evidence"],
+      "access_note": "High-fit mission, partner-required route: a past presolicitation for labor-intensive Navy FIAR services with access constraints. Kept as buyer-demand evidence, not a direct pursuit.",
+      "action": "Research the incumbent and holders on this requirement as future teaming or successor routes; the record proves the Navy buys this outcome.",
+      "sam_url": "https://sam.gov/opp/0b4a2f9baced49109216f0ac61c11252/view"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "client_name": "Insignary",
+  "version": 1,
+  "updated": "2026-07-17",
+  "core": [
+    {"term": "binary SCA", "mode": "exact_phrase",
+     "note": "the flagship: SCA adjacent to binary is unambiguous"},
+    {"term": "SBOM", "mode": "acronym",
+     "expansion_context": ["software", "bill of materials", "component",
+                           "supply chain", "dependency", "dependencies"],
+     "note": "software bill of materials; expansion context guards the rare collisions"},
+    {"term": "software bill of materials", "mode": "exact_phrase"},
+    {"term": "software composition analysis", "mode": "stemmed"},
+    {"term": "SCA", "mode": "acronym",
+     "expansion_context": ["software", "composition", "binary", "source code",
+                           "component analysis", "dependency"],
+     "note": "standalone SCA also means Service Component Architecture and Sudden Cardiac Arrest in federal text"},
+    {"term": "reachability analysis", "mode": "stemmed"},
+    {"term": "reachability", "mode": "acronym",
+     "expansion_context": ["vulnerability", "exploit", "code", "software",
+                           "dependency", "sbom"],
+     "note": "reachability alone is a networking word; bind it to software security context"},
+    {"term": "delivered software assurance", "mode": "stemmed"},
+    {"term": "binary analysis", "mode": "exact_phrase",
+     "note": "core when it names the technique on software artifacts"},
+    {"term": "binary composition", "mode": "stemmed"}
+  ],
+  "adjacent": [
+    {"term": "DevSecOps", "mode": "stemmed",
+     "note": "contributes, never sufficient alone"},
+    {"term": "secure software supply chain", "mode": "stemmed"},
+    {"term": "software supply chain", "mode": "stemmed"},
+    {"term": "software supply chain security", "mode": "stemmed"},
+    {"term": "application security testing", "mode": "stemmed"},
+    {"term": "vulnerability management", "mode": "stemmed"},
+    {"term": "open source license compliance", "mode": "stemmed"}
+  ],
+  "exclude": [
+    {"term": "hardware bill of materials", "scope": "span",
+     "reason": "HBOM procurement is not the software SBOM market"},
+    {"term": "hardware BOM", "scope": "span",
+     "reason": "same false-positive shape, abbreviated"},
+    {"term": "biological", "scope": "span",
+     "reason": "biological/biomedical SBOM and SCA collisions are not software"},
+    {"term": "sudden cardiac arrest", "scope": "record",
+     "reason": "medical SCA record; the whole record is out of domain"},
+    {"term": "service component architecture", "scope": "span",
+     "reason": "middleware SCA is not software composition analysis"}
+  ],
+  "code_universe": {
+    "naics": ["541511", "541512", "541519", "541690", "541715", "513210"],
+    "psc": []
+  }
+}

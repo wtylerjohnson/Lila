@@ -1,0 +1,529 @@
+{
+ "client": "apexanalytix",
+ "as_of": "2026-08-07",
+ "source": "reconciled contract, 2026-08-07",
+ "coverage_definition": "Every normalized family has an explicit active or controlled disposition. Controlled families only enter research when their positive trigger is present and their rejection rule is absent.",
+ "normalized_federally_plausible_families": 27,
+ "active_research_families": 22,
+ "controlled_research_families": 5,
+ "disposition_coverage_percent": 100,
+ "positive_context_gate": [
+  "supplier",
+  "vendor",
+  "payee",
+  "accounts payable",
+  "procure-to-pay",
+  "third-party",
+  "payment integrity",
+  "vendor master"
+ ],
+ "global_rejections": [
+  "procurement clause only",
+  "vendor portal submission instruction only",
+  "electronic invoicing payment clause only",
+  "generic AI or chatbot",
+  "generic cybersecurity",
+  "commercial vertical with no federal analogue"
+ ],
+ "families": [
+  {
+   "family": "Supplier management / central hub",
+   "tier": "core",
+   "status": "active",
+   "phrases": [
+    "supplier management platform",
+    "central supplier hub",
+    "vendor management system"
+   ],
+   "evidence": [
+    "Apex government supplier-management page",
+    "SP470125F0285"
+   ]
+  },
+  {
+   "family": "Supplier registration / portal",
+   "tier": "core",
+   "status": "active",
+   "phrases": [
+    "supplier registration portal",
+    "vendor self-service portal",
+    "supplier-facing portal"
+   ],
+   "evidence": [
+    "SP470125F0285",
+    "SP470125F0286"
+   ]
+  },
+  {
+   "family": "Supplier onboarding",
+   "tier": "core",
+   "status": "active",
+   "phrases": [
+    "supplier onboarding workflow",
+    "vendor onboarding modernization",
+    "automated vendor setup"
+   ],
+   "evidence": [
+    "SP470122F0112"
+   ]
+  },
+  {
+   "family": "Third-party data validation / API",
+   "tier": "core",
+   "status": "active",
+   "phrases": [
+    "vendor data validation",
+    "third-party data enrichment",
+    "vendor master API",
+    "golden supplier record"
+   ],
+   "evidence": [
+    "Apex QubitOn page",
+    "SP470424F0027"
+   ]
+  },
+  {
+   "family": "Bank-account ownership validation",
+   "tier": "core",
+   "status": "active",
+   "phrases": [
+    "bank account ownership validation",
+    "bank change verification",
+    "account certification software"
+   ],
+   "evidence": [
+    "2031ZB26P00001"
+   ]
+  },
+  {
+   "family": "Supplier discovery",
+   "tier": "controlled",
+   "status": "controlled",
+   "phrases": [
+    "supplier discovery",
+    "prequalified supplier search"
+   ],
+   "evidence": [
+    "Apex platform page"
+   ],
+   "trigger": "supplier discovery or supplier scouting plus a data platform, marketplace, industrial-base, or prequalified-supplier requirement",
+   "reject": "generic sourcing, market research, vendor lists, or requests to identify potential offerors"
+  },
+  {
+   "family": "TPRM / vendor risk management",
+   "tier": "core",
+   "status": "active",
+   "phrases": [
+    "vendor risk management program",
+    "third-party risk management SaaS",
+    "vendor assessment framework"
+   ],
+   "evidence": [
+    "86615526Q00010",
+    "47QFDA22F0018",
+    "63NLRB24F0057"
+   ],
+   "gov_forms": [
+    {
+     "phrase": "vendor vetting",
+     "witnessed_on": "31140PR260000095"
+    },
+    {
+     "phrase": "third party risk",
+     "witnessed_on": "baaaea69b8924e33a028d0694324f4a0"
+    }
+   ]
+  },
+  {
+   "family": "Supplier financial risk",
+   "tier": "adjacent",
+   "status": "active",
+   "phrases": [
+    "supplier financial risk",
+    "vendor financial health",
+    "supplier credit monitoring"
+   ],
+   "evidence": [
+    "N0003026SSN7001"
+   ]
+  },
+  {
+   "family": "Supplier performance risk",
+   "tier": "adjacent",
+   "status": "active",
+   "phrases": [
+    "supplier performance monitoring",
+    "supplier quality risk",
+    "vendor performance dashboard"
+   ],
+   "evidence": [
+    "N0003026SSN7001"
+   ]
+  },
+  {
+   "family": "Supplier compliance risk",
+   "tier": "core",
+   "status": "active",
+   "phrases": [
+    "supplier compliance monitoring",
+    "vendor compliance assessment",
+    "third-party due diligence"
+   ],
+   "evidence": [
+    "86615526Q00010"
+   ]
+  },
+  {
+   "family": "Supplier cyber risk",
+   "tier": "adjacent",
+   "status": "active",
+   "phrases": [
+    "supplier cyber risk",
+    "vendor cyber monitoring",
+    "cybersecurity supply chain risk"
+   ],
+   "evidence": [
+    "FBI-OCIO-SCRM",
+    "2032H524F00247"
+   ]
+  },
+  {
+   "family": "Supplier capacity risk",
+   "tier": "adjacent",
+   "status": "active",
+   "phrases": [
+    "supplier capacity risk",
+    "capacity forecasting",
+    "industrial base readiness"
+   ],
+   "evidence": [
+    "N0003026SSN7001"
+   ],
+   "family_context": [
+    "industrial base"
+   ]
+  },
+  {
+   "family": "Risk-event monitoring",
+   "tier": "adjacent",
+   "status": "active",
+   "phrases": [
+    "supplier risk event monitoring",
+    "continuous supplier monitoring",
+    "supply disruption alerts"
+   ],
+   "evidence": [
+    "6963GH-22-R-00124"
+   ]
+  },
+  {
+   "family": "Multi-tier supplier mapping / BOM",
+   "tier": "adjacent",
+   "status": "active",
+   "phrases": [
+    "sub-tier supplier mapping",
+    "multi-tier supply chain mapping",
+    "bill of materials supplier mapping"
+   ],
+   "evidence": [
+    "N0003026SSN7001",
+    "FBI-OCIO-SCRM"
+   ],
+   "gov_forms": [
+    {
+     "phrase": "supply chain illumination",
+     "witnessed_on": "e7a0f9b046db433c8f889359707009e0"
+    },
+    {
+     "phrase": "supply chain risk management",
+     "witnessed_on": "e7a0f9b046db433c8f889359707009e0"
+    },
+    {
+     "phrase": "supply chain relationship mapping",
+     "witnessed_on": "e7a0f9b046db433c8f889359707009e0"
+    }
+   ],
+   "family_context": [
+    "supply chain",
+    "sub-tier",
+    "bill of materials"
+   ]
+  },
+  {
+   "family": "Supplier diversity / status validation",
+   "tier": "adjacent",
+   "status": "active",
+   "phrases": [
+    "supplier diversity validation",
+    "veteran status validation",
+    "socioeconomic certification data"
+   ],
+   "evidence": [
+    "Apex government supplier-management page"
+   ]
+  },
+  {
+   "family": "Insurance monitoring",
+   "tier": "controlled",
+   "status": "controlled",
+   "phrases": [
+    "supplier insurance monitoring",
+    "certificate of insurance validation"
+   ],
+   "evidence": [
+    "Apex QubitOn page"
+   ],
+   "trigger": "supplier or contractor insurance plus certificate validation, continuous monitoring, expiration alerts, or a software platform",
+   "reject": "insurance brokerage, employee benefits, construction insurance clauses, or one-time certificate submission"
+  },
+  {
+   "family": "Prohibited / sanctions / PEP screening",
+   "tier": "core",
+   "status": "active",
+   "phrases": [
+    "OFAC supplier screening",
+    "prohibited party screening",
+    "PEP screening",
+    "sanctioned entity monitoring"
+   ],
+   "evidence": [
+    "Apex government supplier-management page",
+    "Apex QubitOn page"
+   ]
+  },
+  {
+   "family": "Overpayment prevention",
+   "tier": "core",
+   "status": "active",
+   "phrases": [
+    "overpayment prevention",
+    "duplicate payment prevention",
+    "pre-payment controls"
+   ],
+   "evidence": [
+    "2032L226N00008",
+    "36C10B26Q0121"
+   ],
+   "gov_forms": [
+    {
+     "phrase": "payment integrity validation",
+     "witnessed_on": "24bd13ce699a4dc18df7d6f836efba4a"
+    },
+    {
+     "phrase": "improper payment",
+     "witnessed_on": "36C10B26Q0121"
+    },
+    {
+     "phrase": "payment integrity",
+     "witnessed_on": "2032L226N00008"
+    }
+   ]
+  },
+  {
+   "family": "AP recovery audit",
+   "tier": "core",
+   "status": "active",
+   "phrases": [
+    "accounts payable recovery audit",
+    "payment recapture audit",
+    "statement credit recovery"
+   ],
+   "evidence": [
+    "36C10X26C0002",
+    "75FCMC21C0007"
+   ],
+   "gov_forms": [
+    {
+     "phrase": "audit remediation",
+     "witnessed_on": "HHM402-2X-Audit"
+    },
+    {
+     "phrase": "financial improvement and audit readiness",
+     "witnessed_on": "N0024426RS005"
+    },
+    {
+     "phrase": "recovery audit",
+     "witnessed_on": "75FCMC21C0007"
+    }
+   ]
+  },
+  {
+   "family": "Contract / pricing compliance",
+   "tier": "core",
+   "status": "active",
+   "phrases": [
+    "contract compliance audit",
+    "pricing compliance review",
+    "missed discount recovery"
+   ],
+   "evidence": [
+    "Apex government audit page"
+   ],
+   "gov_forms": [
+    {
+     "phrase": "claims review",
+     "witnessed_on": "HT9402-26-RFI-0238"
+    }
+   ]
+  },
+  {
+   "family": "Fraud detection / prevention",
+   "tier": "core",
+   "status": "active",
+   "phrases": [
+    "payment fraud detection",
+    "vendor fraud prevention",
+    "fraud detection platform"
+   ],
+   "evidence": [
+    "2032L226N00008",
+    "91003126F0027",
+    "75R60226F80043"
+   ],
+   "gov_forms": [
+    {
+     "phrase": "fraud detection",
+     "witnessed_on": "04633cac95d541f48bbb13025945904d"
+    },
+    {
+     "phrase": "fraud prevention",
+     "witnessed_on": "36C10D25Q0058"
+    },
+    {
+     "phrase": "payment recapture",
+     "witnessed_on": "75FCMC21C0007"
+    }
+   ]
+  },
+  {
+   "family": "Invoice / payment portal",
+   "tier": "core",
+   "status": "active",
+   "phrases": [
+    "supplier invoice portal",
+    "vendor payment status portal",
+    "supplier payment software"
+   ],
+   "evidence": [
+    "SP470125F0285",
+    "91990024F0032"
+   ]
+  },
+  {
+   "family": "Electronic invoicing",
+   "tier": "adjacent",
+   "status": "active",
+   "phrases": [
+    "electronic invoicing solution",
+    "eBilling application",
+    "invoice automation platform"
+   ],
+   "evidence": [
+    "31310023F0102",
+    "70CDCR24FR0000048"
+   ]
+  },
+  {
+   "family": "Inquiry / response agents",
+   "tier": "controlled",
+   "status": "controlled",
+   "phrases": [
+    "supplier inquiry automation",
+    "payment status response agent",
+    "AP helpdesk automation"
+   ],
+   "evidence": [
+    "Apex platform page"
+   ],
+   "trigger": "supplier or vendor payment/invoice inquiry plus portal, virtual agent, response automation, or AP helpdesk workflow",
+   "reject": "generic chatbot, contact-center AI, IT helpdesk, or agentic-AI proof of concept"
+  },
+  {
+   "family": "Early payment / dynamic discounting",
+   "tier": "controlled",
+   "status": "controlled",
+   "phrases": [
+    "dynamic discounting",
+    "early payment program"
+   ],
+   "evidence": [
+    "Apex platform page"
+   ],
+   "trigger": "supplier early-payment discount or dynamic discounting plus invoice, payment, working-capital, or P2P program language",
+   "reject": "standard prompt-payment clauses, ordinary payment terms, financing unrelated to suppliers, or discount language in commodity pricing"
+  },
+  {
+   "family": "Financial improvement and audit readiness",
+   "tier": "adjacent",
+   "status": "active",
+   "phrases": [
+    "financial improvement and audit readiness",
+    "audit remediation services",
+    "audit readiness support"
+   ],
+   "gov_forms": [
+    {
+     "phrase": "audit remediation",
+     "witnessed_on": "HHM402-2X-Audit"
+    },
+    {
+     "phrase": "financial improvement audit remediation",
+     "witnessed_on": "FA701426_FMF_FIAR"
+    },
+    {
+     "phrase": "financial improvement and audit readiness",
+     "witnessed_on": "N0024426RS005"
+    }
+   ],
+   "family_context": [
+    "audit readiness",
+    "financial improvement",
+    "audit remediation",
+    "improper payment",
+    "financial statement audit"
+   ],
+   "evidence": [
+    "FA701426_FMF_FIAR",
+    "HHM402-2X-Audit",
+    "N0024426RS005"
+   ],
+   "note": "Adjacent, not core: these buy audit-remediation programs into which the recovery-audit product fits. Ranked below the product-fit families, never dropped."
+  },
+  {
+   "family": "Healthcare claims review",
+   "tier": "adjacent",
+   "status": "controlled",
+   "phrases": [
+    "claims review services",
+    "healthcare claims audit",
+    "reimbursement integrity review"
+   ],
+   "evidence": [
+    "HT9402-26-RFI-0238"
+   ],
+   "trigger": "healthcare-claims or reimbursement context plus improper-payment, audit, or payment-integrity language",
+   "reject": "generic claims language with no healthcare payment-integrity context",
+   "operator_ruling": "2026-08-07: adjacent capability, initially partner_led; recompete watch only, never a bridge pursuit; promote on a follow-on signal plus verified healthcare past performance or a qualified healthcare payment-integrity partner"
+  }
+ ],
+ "regression_receipts": {
+  "must_recall": [
+   "24bd13ce699a4dc18df7d6f836efba4a",
+   "04633cac95d541f48bbb13025945904d",
+   "baaaea69b8924e33a028d0694324f4a0",
+   "6ba89d0956d54c9185ce8d46f7665865",
+   "e7a0f9b046db433c8f889359707009e0",
+   "SP470125F0285",
+   "31310023F0102",
+   "2031ZB26P00001"
+  ],
+  "must_reject": [
+   "vendor portal appears only in offer-submission instructions",
+   "electronic invoicing appears only in a standard payment clause",
+   "generic agentic AI with no supplier or payment context",
+   "SBOM-only software supply-chain vulnerability tool"
+  ]
+ },
+ "gov_forms_note": "A gov_form is the government's own surface term for a family. Each is witnessed on a named record, so a term enters the frame only with proof that a buyer actually used it.",
+ "gov_forms_total": 18
+}

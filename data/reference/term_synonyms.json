@@ -1,0 +1,178 @@
+{
+  "version": "term_synonyms.v1.2026-08-06",
+  "why": "A capability frame is written in vendor marketing language; a solicitation is written by a contracting officer. Measured 2026-08-06: all eight of apexanalytix's approved core terms matched ZERO of 330,641 stored notices, while their federal equivalents matched hundreds. These groups let one approved term be MATCHED as the word a contracting officer actually writes, without editing the operator-owned frame.",
+  "law": "Equivalence only, never association. 'supplier' and 'vendor' name the same thing in federal procurement text; 'payment' and 'invoice' do not. A group that merely relates two concepts widens the search into a different market and is the failure this file exists to avoid. Additions are cheap and reversible; a wrong group is a silent recall of the wrong records.",
+  "groups": [
+    {
+      "equivalent": [
+        "supplier",
+        "vendor"
+      ],
+      "note": "used interchangeably in federal AP and procurement text"
+    },
+    {
+      "equivalent": [
+        "ap",
+        "accounts payable"
+      ],
+      "note": "AP is the near-universal federal abbreviation"
+    },
+    {
+      "equivalent": [
+        "ar",
+        "accounts receivable"
+      ]
+    },
+    {
+      "equivalent": [
+        "procure-to-pay",
+        "procure to pay",
+        "p2p",
+        "purchase to pay"
+      ]
+    },
+    {
+      "equivalent": [
+        "erp",
+        "enterprise resource planning"
+      ]
+    },
+    {
+      "equivalent": [
+        "improper payment",
+        "erroneous payment",
+        "payment error",
+        "payment integrity",
+        "payment accuracy",
+        "improper payments"
+      ],
+      "note": "the Payment Integrity Information Act is the law ABOUT improper payments; a frame saying one must reach the other"
+    },
+    {
+      "equivalent": [
+        "recovery audit",
+        "payment recapture",
+        "recapture audit"
+      ],
+      "note": "the Improper Payments Act language"
+    },
+    {
+      "equivalent": [
+        "bank account validation",
+        "account verification",
+        "banking validation"
+      ]
+    },
+    {
+      "equivalent": [
+        "third-party risk",
+        "third party risk",
+        "supply chain risk",
+        "vendor risk"
+      ]
+    },
+    {
+      "equivalent": [
+        "fraud prevention",
+        "fraud detection",
+        "anti-fraud"
+      ]
+    },
+    {
+      "equivalent": [
+        "duplicate payment",
+        "duplicate invoice"
+      ]
+    },
+    {
+      "equivalent": [
+        "kvm",
+        "keyboard video mouse"
+      ]
+    },
+    {
+      "equivalent": [
+        "observability",
+        "monitoring"
+      ],
+      "note": "riverbed class: the federal word is monitoring"
+    },
+    {
+      "equivalent": [
+        "wan",
+        "wide area network"
+      ]
+    },
+    {
+      "equivalent": [
+        "npm",
+        "network performance monitoring"
+      ]
+    },
+    {
+      "equivalent": [
+        "sbom",
+        "software bill of materials"
+      ]
+    },
+    {
+      "equivalent": [
+        "cots",
+        "commercial off-the-shelf"
+      ]
+    },
+    {
+      "equivalent": [
+        "o&m",
+        "operations and maintenance"
+      ]
+    },
+    {
+      "equivalent": [
+        "ato",
+        "authority to operate"
+      ]
+    },
+    {
+      "equivalent": [
+        "poc",
+        "point of contact"
+      ]
+    },
+    {
+      "equivalent": [
+        "supplier onboarding",
+        "vendor onboarding",
+        "supplier enrollment"
+      ],
+      "note": "REPLACES the onboarding/registration group, removed 2026-08-06. 'registration' alone matched SAM ENTITY REGISTRATION boilerplate in every Army construction notice, which poisoned term discovery's seed set. The file's own law is equivalence, never association: onboarding and registration are not the same act in federal text."
+    }
+  ],
+  "tiers": {
+    "why": "Adopted from the external Apex benchmark (2026-08-07). An EXACT phrase names the subject and may qualify a record on its own. An ADJACENT phrase is real domain language but too broad to qualify alone: it needs a second signal (NAICS boundary, a validated entity span, or an exact phrase) before a record is promoted. Collapsing the two is how a search becomes broad enough to be noisy and narrow enough to miss the market at the same time.",
+    "exact": [
+      "payment integrity",
+      "improper payment",
+      "payment recapture",
+      "recovery audit services",
+      "vendor master",
+      "bank account validation",
+      "payee verification",
+      "supplier risk management"
+    ],
+    "adjacent": [
+      "fraud risk management",
+      "internal controls over financial reporting",
+      "vendor management office",
+      "supply chain risk management",
+      "purchase card controls",
+      "third party risk management",
+      "improper payments elimination",
+      "audit remediation",
+      "internal controls",
+      "risk management and internal controls",
+      "claims review services",
+      "vendor management support"
+    ]
+  }
+}

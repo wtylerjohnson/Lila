@@ -1,0 +1,984 @@
+{
+ "_recorded": {
+  "source_url": "https://www.gsa.gov/system/files/OASIS%2B%20Contractor%20list%2008062026.xlsx",
+  "landing_url": "https://www.gsa.gov/buy-through-us/products-and-services/professional-services/buy-services/oasis-plus",
+  "retrieved_at": "2026-08-08T13:19:36Z",
+  "note": "Real rows sampled from the 2026-08-06 weekly OASIS+ contractor list workbook (5,483,828 bytes, HTTP 200). Grids are sheet name -> rows as recorded by openpyxl values_only, trailing empty cells trimmed. Sampling: per project family 2 Active + 1 Dormant info rows; family-sheet rows for those contract numbers; 2 WOSB family-only rows kept deliberately (the 435-of-446 thin-join caveat); Mapping rows for sampled SINs."
+ },
+ "sheets": {
+  "OASIS+Contract Information": [
+   [
+    "Last Updated 8/6/2026"
+   ],
+   [
+    "Contract Status",
+    "Project ID",
+    "Contract Number",
+    "PRIMARY NAICS",
+    "Vendor Name",
+    "UEI",
+    "Vendor Address",
+    "Vendor City",
+    "ZIP Code",
+    "COCM",
+    "COCM Email",
+    "COPM",
+    "COPM Email"
+   ],
+   [
+    "Active",
+    "OAS+8A",
+    "47QRCA25DA001",
+    541715,
+    "ZEMITEK LLC",
+    "MKFJCFSVQ9B8",
+    "3 BETHESDA METRO CTR, STE 700",
+    "BETHESDA",
+    20814,
+    "Rosa Caldas",
+    "rcaldas@zemitek.com",
+    "Charles La Duca",
+    "claduca@zemitek.com"
+   ],
+   [
+    "Active",
+    "OAS+8A",
+    "47QRCA25DA002",
+    562910,
+    "AEC-WESTON JV, LLC",
+    "TNFNUEPE91Y3",
+    "10101 Global Way",
+    "Knoxville",
+    37932,
+    "Brian Odom",
+    "bodom@ses-grp.com",
+    "Kim Allerton",
+    "kallerton@bbch-llc.com"
+   ],
+   [
+    "Dormant",
+    "OAS+8A",
+    "47QRCA25DA018",
+    541612,
+    "AC INTEGRITY PARTNERS LLC",
+    "F8NZXJMYRGF1",
+    "13289 HOLLY MEADOW LN",
+    "HERNDON",
+    20171,
+    "Shiva Ram",
+    "sram@acip.us",
+    "Shiva Ram",
+    "sram@acip.us"
+   ],
+   [
+    "Active",
+    "OAS+SB",
+    "47QRCA25DS001",
+    336611,
+    "1 MISSION PARTNERS",
+    "YJSBKLCHH951",
+    "2385 MOUNTAIN RD",
+    "HAYMARKET",
+    20169,
+    "Karla Elias",
+    "kelias6824@gmail.com",
+    "Robert Nelson",
+    "rnelson@1missionpartners.com"
+   ],
+   [
+    "Active",
+    "OAS+SB",
+    "47QRCA25DS002",
+    336611,
+    "11TH HOUR SEARCH LLC",
+    "MKTEN9W6B3J5",
+    "3110 Fairview Park Dr. #1200",
+    "Falls Church",
+    22042,
+    "David Koch",
+    "dkoch@11thhourservice.com",
+    "Jennifer Morris",
+    "jmorris@11thhourservice.com"
+   ],
+   [
+    "Dormant",
+    "OAS+SB",
+    "47QRCA25DS025",
+    336611,
+    "EKJV, LLC",
+    "PREVFCYTUBJ5",
+    "13313 Sabre Blvd, Ste 1",
+    "Victorville",
+    92394,
+    "Matthew Miller",
+    "matthew.miller@exquadrum.com",
+    "Matthew Miller",
+    "matthew.miller@exquadrum.com"
+   ],
+   [
+    "Active",
+    "OAS+WO",
+    "47QRCA24DW001",
+    541715,
+    "ACMESOLV, LLC",
+    "SBDDBRVCUXM9",
+    "6701 DEMOCRACY BLVD, STE 555,",
+    "BETHESDA",
+    20817,
+    "Vivek Bansal",
+    "proposal@acmesolv.com",
+    "Matthew Mills",
+    "matthewm@agovx.com"
+   ],
+   [
+    "Active",
+    "OAS+WO",
+    "47QRCA24DW002",
+    541715,
+    "GARUD TECHNOLOGY SERVICES, INC.",
+    "CF9NNCSKHKR8",
+    "8815 CENTRE PARK DR STE 320",
+    "COLUMBIA",
+    21045,
+    "MeLinda Hodgson",
+    "MHodgson@GarudTechnology.com",
+    "Sharad Singh",
+    "sharad.singh@mail.garudtechnology.com"
+   ],
+   [
+    "Active",
+    "OAS+UR",
+    "47QRCA25DU001",
+    541690,
+    "360 PATRIOT ENTERPRISES LLC",
+    "CC77N236M9L3",
+    "2000 Duke Street Suite 300",
+    "Alexandria",
+    22314,
+    "David Wood",
+    "dwood@patriotenterprisesllc.com",
+    "Cynthia Dillard",
+    "cdillard@patriotenterprisesllc.com"
+   ],
+   [
+    "Active",
+    "OAS+UR",
+    "47QRCA25DU002",
+    541320,
+    "AAA COMPLETE BUILDING SERVICES INC.",
+    "SQ18MTD6ZJ29",
+    "5100 Wisconsin Ave Nw Ste 500",
+    "Washington",
+    20016,
+    "Ben Vanderhoof",
+    "benv@donohoe.com",
+    "Ian Hada",
+    "ianh@donohoe.com"
+   ],
+   [
+    "Dormant",
+    "OAS+UR",
+    "47QRCA25DU049",
+    541320,
+    "BECHTEL NATIONAL, INC.",
+    "WA9LNGN2DPF4",
+    "12011 Sunset Hills Rd",
+    "Reston",
+    20190,
+    "Johanna Henderson",
+    "jdhender@bechtel.us",
+    "Doug Peters",
+    "depeters@bechtel.us"
+   ],
+   [
+    "Active",
+    "OAS+DV",
+    "47QRCA24DV001",
+    541715,
+    "Vision Tech Group, LLC",
+    "QTTCAY6K8UE5",
+    "12358 PARKLAWN DR, Suite 208",
+    "North Bethesda",
+    20852,
+    "Gabe Brown",
+    "contracts@vtgjv.com",
+    "Marilyn Snyder",
+    "marilyn.snyder@tenacity-solutions.com"
+   ],
+   [
+    "Active",
+    "OAS+DV",
+    "47QRCA24DV002",
+    541715,
+    "ADVANCED ARCHITECTURE & SYSTEMS ENGINEERING JV LLC",
+    "CLBQYT8RW2J4",
+    "10830 Guilford Rd Ste 312",
+    "Annapolis Junction",
+    20701,
+    "Amanda Burke",
+    "amanda.burke@ashton-gs.com",
+    "Kathleen Pumphrey",
+    "kathleen.pumphrey@accolade-llc.com"
+   ],
+   [
+    "Dormant",
+    "OAS+DV",
+    "47QRCA24DV004",
+    541715,
+    "EXPANSIA GROUP LLC",
+    "NWSKGM6WLKR1",
+    "71 Spit Brook Rd Suite 410",
+    "Nashua",
+    30605,
+    "Lindsay Baltzell",
+    "lbaltzell@expansiagroup.com",
+    "Keith Griffin",
+    "kgriffin@expansiagroup.com"
+   ],
+   [
+    "Active",
+    "OAS+HZ",
+    "47QRCA24DH002",
+    541715,
+    "QSA-LLC",
+    "GWCXF2QZS976",
+    "111 N 2ND ST",
+    "SMITHFIELD",
+    27577,
+    "Kimberly Simmons",
+    "kim.simmons@s2-gov.com",
+    "Thearin Wendel",
+    "thearin.wendel@s2techllc.com"
+   ],
+   [
+    "Active",
+    "OAS+HZ",
+    "47QRCA24DH003",
+    336611,
+    "DAYTON GROUP INC",
+    "JNESHH55NUN5",
+    "5523 Research Park Dr Ste 260",
+    "Catonsville",
+    21228,
+    "Aruna Sengottuvelu",
+    "aruna@1dgi.com",
+    "Aruna Sengottuvelu",
+    "aruna@1dgi.com"
+   ],
+   [
+    "Dormant",
+    "OAS+HZ",
+    "47QRCA24DH008",
+    541715,
+    "Global Analytical Solutions and Services, LLC",
+    "JPTRDA6DLP85",
+    "417 W BROAD ST STE 203A",
+    "FALLS CHURCH",
+    22046,
+    "Kate Canterbury",
+    "kate.canterbury@syntelligent.com",
+    "John Rutt",
+    "john.rutt@syntelligent.com"
+   ]
+  ],
+  "8a": [
+   [
+    "IDIQ",
+    "Domain",
+    "Vendor",
+    "URL",
+    "Contract #",
+    "SIN",
+    "NAICS",
+    "NAICS Title"
+   ],
+   [
+    "OASIS+ 8(a)",
+    "Management and Advisory",
+    "AC INTEGRITY PARTNERS LLC",
+    "https://acip.us/",
+    "47QRCA25DA018",
+    20101,
+    541611,
+    "Administrative Management and General Management Consulting Services"
+   ],
+   [
+    "OASIS+ 8(a)",
+    "Management and Advisory",
+    "ZEMITEK LLC",
+    "http://www.zemitek.com",
+    "47QRCA25DA001",
+    20101,
+    541611,
+    "Administrative Management and General Management Consulting Services"
+   ],
+   [
+    "OASIS+ 8(a)",
+    "Technical and Engineering",
+    "ZEMITEK LLC",
+    "http://www.zemitek.com",
+    "47QRCA25DA001",
+    20201,
+    336611,
+    "Ship Building and Repairing"
+   ],
+   [
+    "OASIS+ 8(a)",
+    "Research and Development",
+    "ZEMITEK LLC",
+    "http://www.zemitek.com",
+    "47QRCA25DA001",
+    20301,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    "OASIS+ 8(a)",
+    "Environmental",
+    "AEC-WESTON JV, LLC",
+    "https://www.ses-grp.com/companies/aerostar-environmental-and-construction-llc/",
+    "47QRCA25DA002",
+    20601,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    "OASIS+ 8(a)",
+    "Environmental",
+    "ZEMITEK LLC",
+    "http://www.zemitek.com",
+    "47QRCA25DA001",
+    20601,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    "OASIS+ 8(a)",
+    "Logistics",
+    "ZEMITEK LLC",
+    "http://www.zemitek.com",
+    "47QRCA25DA001",
+    20801,
+    336611,
+    "Ship Building and Repairing"
+   ]
+  ],
+  "Small Business": [
+   [
+    "IDIQ",
+    "Domain",
+    "Vendor",
+    "URL",
+    "Contract #",
+    "SIN",
+    "NAICS",
+    "NAICS Title"
+   ],
+   [
+    "OASIS+ SB",
+    "Management and Advisory",
+    "1 MISSION PARTNERS",
+    "http://1missionpartners.com/",
+    "47QRCA25DS001",
+    10101,
+    541611,
+    "Administrative Management and General Management Consulting Services"
+   ],
+   [
+    "OASIS+ SB",
+    "Management and Advisory",
+    "11TH HOUR SEARCH LLC",
+    "http://www.11thhourservice.com",
+    "47QRCA25DS002",
+    10101,
+    541611,
+    "Administrative Management and General Management Consulting Services"
+   ],
+   [
+    "OASIS+ SB",
+    "Technical and Engineering",
+    "1 MISSION PARTNERS",
+    "http://1missionpartners.com/",
+    "47QRCA25DS001",
+    10201,
+    336611,
+    "Ship Building and Repairing"
+   ],
+   [
+    "OASIS+ SB",
+    "Technical and Engineering",
+    "11TH HOUR SEARCH LLC",
+    "http://www.11thhourservice.com",
+    "47QRCA25DS002",
+    10201,
+    336611,
+    "Ship Building and Repairing"
+   ],
+   [
+    "OASIS+ SB",
+    "Technical and Engineering",
+    "EKJV, LLC",
+    null,
+    "47QRCA25DS025",
+    10201,
+    336611,
+    "Ship Building and Repairing"
+   ]
+  ],
+  "Woman Owned SB": [
+   [
+    "IDIQ",
+    "Domain",
+    "Vendor",
+    "URL",
+    "Contract #",
+    "SIN",
+    "NAICS",
+    "NAICS Title"
+   ],
+   [
+    "OASIS+ WOSB",
+    "Management and Advisory",
+    "ACMESOLV, LLC",
+    null,
+    "47QRCA24DW001",
+    50101,
+    541611,
+    "Administrative Management and General Management Consulting Services"
+   ],
+   [
+    "OASIS+ WOSB",
+    "Management and Advisory",
+    "GARUD TECHNOLOGY SERVICES, INC.",
+    "www.garudtechnology.com",
+    "47QRCA24DW002",
+    50101,
+    541611,
+    "Administrative Management and General Management Consulting Services"
+   ],
+   [
+    "OASIS+ WOSB",
+    "Technical and Engineering",
+    "ACMESOLV, LLC",
+    null,
+    "47QRCA24DW001",
+    50201,
+    336611,
+    "Ship Building and Repairing"
+   ],
+   [
+    "OASIS+ WOSB",
+    "Technical and Engineering",
+    "GARUD TECHNOLOGY SERVICES, INC.",
+    "www.garudtechnology.com",
+    "47QRCA24DW002",
+    50201,
+    336611,
+    "Ship Building and Repairing"
+   ],
+   [
+    "OASIS+ WOSB",
+    "Research and Development",
+    "ACMESOLV, LLC",
+    null,
+    "47QRCA24DW001",
+    50301,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    "OASIS+ WOSB",
+    "Research and Development",
+    "GARUD TECHNOLOGY SERVICES, INC.",
+    "www.garudtechnology.com",
+    "47QRCA24DW002",
+    50301,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    "OASIS+ WOSB",
+    "Intelligence Services",
+    "ACMESOLV, LLC",
+    null,
+    "47QRCA24DW001",
+    50401,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    "OASIS+ WOSB",
+    "Environmental",
+    "ACMESOLV, LLC",
+    null,
+    "47QRCA24DW001",
+    50601,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    "OASIS+ WOSB",
+    "Facilities",
+    "ACMESOLV, LLC",
+    null,
+    "47QRCA24DW001",
+    50701,
+    238160,
+    "Roofing Contractors"
+   ],
+   [
+    "OASIS+ WOSB",
+    "Facilities",
+    "GARUD TECHNOLOGY SERVICES, INC.",
+    "www.garudtechnology.com",
+    "47QRCA24DW002",
+    50701,
+    238160,
+    "Roofing Contractors"
+   ],
+   [
+    "OASIS+ WOSB",
+    "Logistics",
+    "ACMESOLV, LLC",
+    null,
+    "47QRCA24DW001",
+    50801,
+    336611,
+    "Ship Building and Repairing"
+   ],
+   [
+    "OASIS+ WOSB",
+    "Logistics",
+    "GARUD TECHNOLOGY SERVICES, INC.",
+    "www.garudtechnology.com",
+    "47QRCA24DW002",
+    50801,
+    336611,
+    "Ship Building and Repairing"
+   ],
+   [
+    "OASIS+ WOSB",
+    "Management and Advisory",
+    "A P VENTURES, LLC",
+    "http://www.APVit.com",
+    "47QRCA24DW087",
+    50101,
+    541611,
+    "Administrative Management and General Management Consulting Services"
+   ],
+   [
+    "OASIS+ WOSB",
+    "Management and Advisory",
+    "A. PRENTICE RAY & ASSOCIATES, LLC",
+    "www.apra.com",
+    "47QRCA25DW110",
+    50101,
+    541611,
+    "Administrative Management and General Management Consulting Services"
+   ]
+  ],
+  "Unrestricted": [
+   [
+    "IDIQ",
+    "Domain",
+    "Vendor",
+    "URL",
+    "Contract #",
+    "SIN",
+    "NAICS",
+    "NAICS Title"
+   ],
+   [
+    "OASIS+ UR",
+    "Management and Advisory",
+    "360 PATRIOT ENTERPRISES LLC",
+    "http://www.bcpiltd.com",
+    "47QRCA25DU001",
+    60101,
+    541611,
+    "Administrative Management and General Management Consulting Services"
+   ],
+   [
+    "OASIS+ UR",
+    "Facilities",
+    "AAA COMPLETE BUILDING SERVICES INC.",
+    "http://www.completebuildingservices.com",
+    "47QRCA25DU002",
+    60701,
+    238160,
+    "Roofing Contractors"
+   ]
+  ],
+  "Service Disabled Veteran Owned ": [
+   [
+    "IDIQ",
+    "Domain",
+    "Vendor",
+    "URL",
+    "Contract #",
+    "SIN",
+    "NAICS",
+    "NAICS Title"
+   ],
+   [
+    "OASIS+ SDVOSB",
+    "OASIS+VO",
+    "ADVANCED ARCHITECTURE & SYSTEMS ENGINEERING JV LLC",
+    "https://www.a2se-jv.com",
+    "47QRCA24DV002",
+    40101,
+    541611,
+    "Administrative Management and General Management Consulting Services"
+   ],
+   [
+    "OASIS+ SDVOSB",
+    "OASIS+VO",
+    "ADVANCED ARCHITECTURE & SYSTEMS ENGINEERING JV LLC",
+    "https://www.a2se-jv.com",
+    "47QRCA24DV002",
+    40201,
+    336611,
+    "Ship Building and Repairing"
+   ],
+   [
+    "OASIS+ SDVOSB",
+    "OASIS+VO",
+    "VISION TECH GROUP, LLC",
+    "www.vtgjv.com",
+    "47QRCA24DV001",
+    40201,
+    336611,
+    "Ship Building and Repairing"
+   ],
+   [
+    "OASIS+ SDVOSB",
+    "OASIS+VO",
+    "ADVANCED ARCHITECTURE & SYSTEMS ENGINEERING JV LLC",
+    "https://www.a2se-jv.com",
+    "47QRCA24DV002",
+    40301,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    "OASIS+ SDVOSB",
+    "OASIS+VO",
+    "VISION TECH GROUP, LLC",
+    "www.vtgjv.com",
+    "47QRCA24DV001",
+    40301,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    "OASIS+ SDVOSB",
+    "OASIS+VO",
+    "ADVANCED ARCHITECTURE & SYSTEMS ENGINEERING JV LLC",
+    "https://www.a2se-jv.com",
+    "47QRCA24DV002",
+    40401,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    "OASIS+ SDVOSB",
+    "OASIS+VO",
+    "VISION TECH GROUP, LLC",
+    "www.vtgjv.com",
+    "47QRCA24DV001",
+    40401,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    "OASIS+ SDVOSB",
+    "OASIS+VO",
+    "VISION TECH GROUP, LLC",
+    "www.vtgjv.com",
+    "47QRCA24DV001",
+    40701,
+    238160,
+    "Roofing Contractors"
+   ],
+   [
+    "OASIS+ SDVOSB",
+    "OASIS+VO",
+    "ADVANCED ARCHITECTURE & SYSTEMS ENGINEERING JV LLC",
+    "https://www.a2se-jv.com",
+    "47QRCA24DV002",
+    40801,
+    336611,
+    "Ship Building and Repairing"
+   ],
+   [
+    "OASIS+ SDVOSB",
+    "OASIS+VO",
+    "VISION TECH GROUP, LLC",
+    "www.vtgjv.com",
+    "47QRCA24DV001",
+    40801,
+    336611,
+    "Ship Building and Repairing"
+   ]
+  ],
+  "HUBZone": [
+   [
+    "IDIQ",
+    "Domain",
+    "Vendor",
+    "URL",
+    "Contract #",
+    "SIN",
+    "NAICS",
+    "NAICS Title"
+   ],
+   [
+    "OASIS+ HUBZone",
+    "Management and Advisory",
+    "GLOBAL ANALYTICAL SOLUTIONS AND SERVICES, LLC",
+    "www.gassjv.com",
+    "47QRCA24DH008",
+    30101,
+    541611,
+    "Administrative Management and General Management Consulting Services"
+   ],
+   [
+    "OASIS+ HUBZone",
+    "Management and Advisory",
+    "QSA-LLC",
+    null,
+    "47QRCA24DH002",
+    30101,
+    541611,
+    "Administrative Management and General Management Consulting Services"
+   ],
+   [
+    "OASIS+ HUBZone",
+    "Technical and Engineering",
+    "DAYTON GROUP INC",
+    "www.dgi.biz",
+    "47QRCA24DH003",
+    30201,
+    336611,
+    "Ship Building and Repairing"
+   ],
+   [
+    "OASIS+ HUBZone",
+    "Technical and Engineering",
+    "GLOBAL ANALYTICAL SOLUTIONS AND SERVICES, LLC",
+    "www.gassjv.com",
+    "47QRCA24DH008",
+    30201,
+    336611,
+    "Ship Building and Repairing"
+   ],
+   [
+    "OASIS+ HUBZone",
+    "Technical and Engineering",
+    "QSA-LLC",
+    null,
+    "47QRCA24DH002",
+    30201,
+    336611,
+    "Ship Building and Repairing"
+   ],
+   [
+    "OASIS+ HUBZone",
+    "Research and Development",
+    "QSA-LLC",
+    null,
+    "47QRCA24DH002",
+    30301,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    "OASIS+ HUBZone",
+    "Intelligence Services",
+    "GLOBAL ANALYTICAL SOLUTIONS AND SERVICES, LLC",
+    "www.gassjv.com",
+    "47QRCA24DH008",
+    30401,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    "OASIS+ HUBZone",
+    "Intelligence Services",
+    "QSA-LLC",
+    null,
+    "47QRCA24DH002",
+    30401,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    "OASIS+ HUBZone",
+    "Environmental",
+    "DAYTON GROUP INC",
+    "www.dgi.biz",
+    "47QRCA24DH003",
+    30601,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    "OASIS+ HUBZone",
+    "Facilities",
+    "DAYTON GROUP INC",
+    "www.dgi.biz",
+    "47QRCA24DH003",
+    30701,
+    238160,
+    "Roofing Contractors"
+   ]
+  ],
+  "Mapping": [
+   [
+    "OASIS+ CLIN (per RFP/ Contract/ CALM/FSS/ Symphony)",
+    "NAICS Code",
+    "NAICS Title"
+   ],
+   [
+    10101,
+    541611,
+    "Administrative Management and General Management Consulting Services"
+   ],
+   [
+    10201,
+    336611,
+    "Ship Building and Repairing"
+   ],
+   [
+    20101,
+    541611,
+    "Administrative Management and General Management Consulting Services"
+   ],
+   [
+    20201,
+    336611,
+    "Ship Building and Repairing"
+   ],
+   [
+    20301,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    20601,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    20801,
+    336611,
+    "Ship Building and Repairing"
+   ],
+   [
+    30101,
+    541611,
+    "Administrative Management and General Management Consulting Services"
+   ],
+   [
+    30201,
+    336611,
+    "Ship Building and Repairing"
+   ],
+   [
+    30301,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    30401,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    30601,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    30701,
+    238160,
+    "Roofing Contractors"
+   ],
+   [
+    40101,
+    541611,
+    "Administrative Management and General Management Consulting Services"
+   ],
+   [
+    40201,
+    336611,
+    "Ship Building and Repairing"
+   ],
+   [
+    40301,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    40401,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    40701,
+    238160,
+    "Roofing Contractors"
+   ],
+   [
+    40801,
+    336611,
+    "Ship Building and Repairing"
+   ],
+   [
+    50101,
+    541611,
+    "Administrative Management and General Management Consulting Services"
+   ],
+   [
+    50201,
+    336611,
+    "Ship Building and Repairing"
+   ],
+   [
+    50301,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    50401,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    50601,
+    541330,
+    "Engineering Services"
+   ],
+   [
+    50701,
+    238160,
+    "Roofing Contractors"
+   ],
+   [
+    50801,
+    336611,
+    "Ship Building and Repairing"
+   ],
+   [
+    60101,
+    541611,
+    "Administrative Management and General Management Consulting Services"
+   ],
+   [
+    60701,
+    238160,
+    "Roofing Contractors"
+   ]
+  ]
+ }
+}

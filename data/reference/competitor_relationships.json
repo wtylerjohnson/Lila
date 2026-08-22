@@ -1,0 +1,36 @@
+{
+ "_comment": "Curated corporate relations for competitor identity expansion. Every entry names its provenance; the loader tolerates absence and never fails a build. Relations expand aliases only when the canonical name is already in the discovered frame.",
+ "schema_version": 1,
+ "relations": [
+  {
+   "canonical": "Vertiv",
+   "alias": "Avocent",
+   "relation": "acquired_brand",
+   "provenance": "Emerson Network Power sold to Platinum Equity 2016, renamed Vertiv; Avocent is its KVM brand (vertiv.com/en-us/about/news-and-insights/)"
+  },
+  {
+   "canonical": "Vertiv",
+   "alias": "Emerson Network Power",
+   "relation": "former_name",
+   "provenance": "Vertiv operated as Emerson Network Power until 2016 rebrand (vertiv.com corporate history)"
+  },
+  {
+   "canonical": "Black Box",
+   "alias": "Black Box Corporation",
+   "relation": "legal_entity",
+   "provenance": "Black Box Corporation, AGC Networks subsidiary since 2019 (blackbox.com/about-us)"
+  },
+  {
+   "canonical": "Guntermann & Drunck",
+   "alias": "G&D North America",
+   "relation": "subsidiary",
+   "provenance": "G&D North America Inc is the US entity of Guntermann & Drunck GmbH (gdsys.com/en/contact)"
+  },
+  {
+   "canonical": "Adder",
+   "alias": "Adder Corporation",
+   "relation": "legal_entity",
+   "provenance": "Adder Corporation is Adder Technology's US entity (adder.com/en/company)"
+  }
+ ]
+}

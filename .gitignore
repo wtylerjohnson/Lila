@@ -1,0 +1,65 @@
+# Secrets
+.env
+*.key
+
+# Data — raw pulls, downloaded source docs, and per-client artifacts are not versioned.
+# Directory structure is preserved via .gitkeep; contents (incl. client-named files) are ignored.
+data/raw/*
+data/cleaned/*
+data/discrepancy_logs/*
+data/reports/*
+data/review/*
+data/intake/*
+# data/state also holds the contact graph (data/state/contact_graph/) —
+# harvested observations + derived index are operational data, never versioned
+data/state/*
+data/cache/*
+data/handoff/*
+# Client-named artifacts anywhere under data/ (logos, per-client reference)
+data/reference/marks/*
+!data/**/.gitkeep
+
+# Client-named artifacts outside data/ (e.g. per-client strategy docs)
+docs/*planetiq*
+docs/*recorded_future*
+*_planetiq.*
+*_recorded_future.*
+
+# Runtime-only locks for durable client presentation manifests.
+clients/*/.signal_board_presentation.lock
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Playwright
+/playwright-report/
+/.cache/
+
+# macOS
+.DS_Store
+
+# Claude Code local settings
+.claude/settings.local.json
+data/reference/marks/company/
+data/reference/marks/client/
+
+# brand-name SAM lane ledger: durable per-client scan history, not source
+data/state/sam_lanes/
+
+# Derived bulk: gzipped extract archives and archived client state. Same
+# class as data/cache and data/state, never source.
+data/archive/
+.preview/
+
+# Client-view build artifacts (see docs/plans/CLIENT_VIEW_UX_STATE.md).
+# The screenshots are ~6.4M of PNG verification evidence for a build that is
+# now committed as code; they are preserved outside the repo rather than made
+# permanent in git history.
+docs/plans/screenshots/
+ui/server.log
+ui/server.pid

@@ -1,0 +1,14 @@
+{
+ "_meta": {
+  "purpose": "Curated per-client product terms for lint_client_bleed. Client NAMES auto-derive from data/review/*.review.json; this file adds distinctive product phrases only. Short abbreviations false-positive (RF = radio frequency in aviation copy), so every entry must be unambiguous.",
+  "added": "2026-07-09",
+  "reason": "The Osprey brief shipped Recorded Future channel copy from a shared reference block. This failure mode is proven; the gate greps every prior client's terms against every outbound brief."
+ },
+ "Recorded Future": [
+  "RF subscriptions",
+  "RF's lead federal distributor",
+  "Intelligence Cloud"
+ ],
+ "Osprey Flight Solutions": [],
+ "Thinklogical": []
+}

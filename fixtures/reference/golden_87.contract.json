@@ -1,0 +1,291 @@
+{
+ "editing": {
+  "actions": [
+   "close-work",
+   "download",
+   "print",
+   "reset",
+   "save-browser",
+   "text-larger",
+   "text-smaller",
+   "toggle-edit"
+  ],
+  "edit_ids": 32,
+  "toolbar": true
+ },
+ "evidence": {
+  "card_anatomy": {
+   "action-panel": {
+    "complete": true,
+    "present": 25
+   },
+   "evidence-lifecycle": {
+    "complete": true,
+    "present": 25
+   },
+   "evidence-tabs": {
+    "complete": true,
+    "present": 25
+   },
+   "evidence-titlebar": {
+    "complete": true,
+    "present": 25
+   },
+   "match-panel": {
+    "complete": true,
+    "present": 25
+   },
+   "status-badge": {
+    "complete": true,
+    "present": 25
+   }
+  },
+  "cards": 25,
+  "id_links": 57,
+  "official_sources_only": true,
+  "source_domains": {
+   "acquisitiongateway.gov": 25,
+   "sam.gov": 49,
+   "www.usaspending.gov": 45
+  },
+  "source_links": 44
+ },
+ "interactions": {
+  "functions": [
+   "apply",
+   "baseline",
+   "capture",
+   "closeWork",
+   "download",
+   "fields",
+   "openWork",
+   "persist",
+   "reset",
+   "resizeText",
+   "setStatus",
+   "toggleEdit",
+   "writeEmbedded"
+  ],
+  "listeners": {
+   "click": 10,
+   "dblclick": 1,
+   "focusin": 1,
+   "keydown": 1
+  }
+ },
+ "lifecycle": {
+  "badge_kinds": [
+   "exact",
+   "forecast",
+   "historical",
+   "pending",
+   "primary"
+  ]
+ },
+ "navigation": {
+  "nav_present": true,
+  "orphan_targets": [
+   "opp-2032L226N00008",
+   "opp-31140PR260000095",
+   "opp-FA701426_FMF_FIAR",
+   "opp-FBI-OCIO-SCRM",
+   "opp-VA-26-00015670"
+  ],
+  "targets": [
+   "company",
+   "competition",
+   "contacts",
+   "events",
+   "evidence-method",
+   "market",
+   "opportunities",
+   "pursuit-thesis",
+   "research-gates",
+   "teaming"
+  ],
+  "unlinked_sections": [
+   "market-lifecycle",
+   "pursuit-board",
+   "vocabulary"
+  ]
+ },
+ "observed_class_counts": {
+  "action-panel": 25,
+  "active": 25,
+  "agency-tile": 5,
+  "card-toggle": 25,
+  "chip-cloud": 3,
+  "close-copy": 25,
+  "context-id": 4,
+  "coverage-item": 7,
+  "ed-flow-stage": 3,
+  "event-row": 4,
+  "evidence-card": 25,
+  "evidence-detail": 25,
+  "evidence-detail-grid": 25,
+  "evidence-kicker": 25,
+  "evidence-lifecycle": 25,
+  "evidence-meta": 25,
+  "evidence-tabs": 25,
+  "evidence-titlebar": 25,
+  "exact": 11,
+  "forecast": 10,
+  "historical": 9,
+  "id-link": 57,
+  "inline-work": 10,
+  "lead-fact": 4,
+  "match-none": 14,
+  "match-panel": 25,
+  "match-signals": 25,
+  "method-row": 4,
+  "metric": 3,
+  "metric-value": 3,
+  "missing-value": 26,
+  "needs": 4,
+  "num": 9,
+  "open-copy": 25,
+  "pending": 5,
+  "plain-head": 8,
+  "plain-number": 8,
+  "plain-section": 8,
+  "plain-state": 8,
+  "primary": 12,
+  "profile-block": 9,
+  "pursuit-ask": 5,
+  "pursuit-id": 5,
+  "pursuit-motion": 5,
+  "pursuit-name": 5,
+  "pursuit-rank": 5,
+  "pursuit-row": 5,
+  "pursuit-target": 5,
+  "receipt-browserbar": 10,
+  "receipt-copy": 10,
+  "receipt-preview": 10,
+  "research-order": 3,
+  "simple-table-wrap": 3,
+  "source-link": 44,
+  "source-role": 10,
+  "status-badge": 25,
+  "tall": 9,
+  "term": 12,
+  "unverified": 5,
+  "warning": 3
+ },
+ "section_order": [
+  "market-lifecycle",
+  "company",
+  "market",
+  "competition",
+  "opportunities",
+  "teaming",
+  "contacts",
+  "events",
+  "evidence-method",
+  "pursuit-thesis",
+  "pursuit-board",
+  "research-gates",
+  "vocabulary"
+ ],
+ "sections": [
+  {
+   "heading": "Read the evidence across time, then qualify it into action.",
+   "id": "market-lifecycle",
+   "words": 146
+  },
+  {
+   "heading": "This is ApexAnalytix as we understand it.",
+   "id": "company",
+   "words": 248
+  },
+  {
+   "heading": "This is the obligation total carried by the supplied research set.",
+   "id": "market",
+   "words": 552
+  },
+  {
+   "heading": "These competitors are winning money in the same market.",
+   "id": "competition",
+   "words": 81
+  },
+  {
+   "heading": "These are the 26 source records to triage\u2014not 26 assumed live pursuits.",
+   "id": "opportunities",
+   "words": 3170
+  },
+  {
+   "heading": "These are the teaming routes to work first.",
+   "id": "teaming",
+   "words": 148
+  },
+  {
+   "heading": "These are the people to contact, and the contact data still needed.",
+   "id": "contacts",
+   "words": 70
+  },
+  {
+   "heading": "These are the engagement and related notices carried by the draft.",
+   "id": "events",
+   "words": 175
+  },
+  {
+   "heading": "Evidence, reconciliation, and what still needs proof.",
+   "id": "evidence-method",
+   "words": 277
+  },
+  {
+   "heading": "Federal Opportunity Pursuit Thesis",
+   "id": "pursuit-thesis",
+   "words": 32
+  },
+  {
+   "heading": "One near-term dated signal deserves immediate source verification. The rest form a research queue.",
+   "id": "pursuit-board",
+   "words": 186
+  },
+  {
+   "heading": "Every record must clear five gates before it becomes a client pursuit.",
+   "id": "research-gates",
+   "words": 141
+  },
+  {
+   "heading": "Every evidence class maps to a distinct commercial action.",
+   "id": "vocabulary",
+   "words": 131
+  }
+ ],
+ "ticker": {
+  "present": true
+ },
+ "tokens": [
+  "amber",
+  "coral",
+  "coral-soft",
+  "green",
+  "ink",
+  "ink-soft",
+  "muted",
+  "navy",
+  "paper",
+  "paper-strong",
+  "purple",
+  "purple-soft",
+  "rule",
+  "rule-dark",
+  "sans",
+  "serif",
+  "ticker-speed",
+  "toolbar"
+ ],
+ "unknowns": {
+  "missing_value_marks": 28,
+  "renders_unknowns_visibly": true
+ },
+ "version": "reference_contract.v1.2026-08-07",
+ "work": {
+  "drawers": 1,
+  "inline_work": 10,
+  "receipt_previews": 10,
+  "receipts": 10,
+  "work_buttons": 1
+ }
+}

@@ -1,0 +1,41 @@
+{
+  "client_name": "Varonis",
+  "work_order": "A1 frame rewrite: replace capability terms with buyer language for the data-security category, tiered",
+  "set_by": "operator (William), work order A1",
+  "date": "2026-08-17",
+  "keep_rule": "a record is kept only on a tier 1 or tier 2 sentence match; tier 3 is context and never qualifies a record alone",
+  "as_ordered": {
+    "tier1": [
+      "Varonis", "DatAdvantage", "DatAlert", "Data Security Platform",
+      "BigID", "Netwrix", "Cyera", "Everfox", "Forcepoint", "Proofpoint",
+      "Purview"
+    ],
+    "tier2": [
+      "data loss prevention", "DLP", "insider threat",
+      "user activity monitoring", "insider risk", "data classification",
+      "sensitivity labels", "Microsoft Purview", "Microsoft 365", "M365",
+      "Copilot", "SharePoint", "OneDrive", "records management",
+      "data tagging", "least privilege", "data access governance",
+      "privileged access to data", "CUI", "M-21-31", "event logging",
+      "data security posture", "DSPM", "unstructured data",
+      "file share permissions"
+    ],
+    "tier3": ["zero trust", "data pillar", "cloud security", "cyber operations"]
+  },
+  "screen_routing": {
+    "tier1_client_names": [
+      "Varonis", "DatAdvantage", "DatAlert", "Varonis Data Security Platform"
+    ],
+    "tier1_rival_names": [
+      "BigID", "Netwrix", "Cyera", "Everfox", "Forcepoint", "Proofpoint",
+      "Microsoft Purview"
+    ],
+    "ambiguous_names": {
+      "Data Security Platform": "vendor-qualified occurrences count tier 1 through 'Varonis Data Security Platform'; bare occurrences are category demand language and ride tier 2 as 'data security platform'",
+      "Purview": "the bare token is the English idiom ('under the purview of') in most federal text; it rides the guard ladder as a common word (tech code plus domain anchor required) and is measured, never a distinctive name; vendor-qualified 'Microsoft Purview' counts directly"
+    },
+    "tier2_added_by_routing": [
+      "data security platform"
+    ]
+  }
+}

@@ -1,0 +1,169 @@
+{
+  "conferences": {
+    "afa_asc": {
+      "agencies": [
+        "Department of the Air Force",
+        "Department of Defense"
+      ],
+      "date_span": "ing Guide &#038; Logos Give to AFA Air, Space &#038; Cyber Conference September 14-16, 2026 National Harbor, Md. AFA's Air, Space &amp; Cyber Conference&nbsp;pro",
+      "event_end": "2026-09-16",
+      "event_start": "2026-09-14",
+      "http_status": 200,
+      "key": "afa_asc",
+      "location": null,
+      "name": "AFA Air, Space & Cyber Conference",
+      "org": "Air & Space Forces Association",
+      "topics": [
+        "air force",
+        "space",
+        "cyber",
+        "defense"
+      ],
+      "url": "https://www.afa.org/air-space-cyber-conference/",
+      "verified_at": "2026-07-27T17:36:41Z"
+    },
+    "afcea_augusta": {
+      "agencies": [
+        "Department of the Army",
+        "Department of Defense",
+        "Defense Information Systems Agency"
+      ],
+      "date_span": "itor Attendee --> Login Exhibitor Attendee --> TechNet Augusta 2026 | August 17-20, 2026 With assistance from the U.S. Army Cyber Center of Excellence, August",
+      "event_end": "2026-08-20",
+      "event_start": "2026-08-17",
+      "http_status": 200,
+      "key": "afcea_augusta",
+      "location": null,
+      "name": "AFCEA TechNet Augusta",
+      "org": "AFCEA",
+      "topics": [
+        "signal",
+        "cyber",
+        "network",
+        "c5isr",
+        "defense"
+      ],
+      "url": "https://events.afcea.org/Augusta26/Public/enter.aspx",
+      "verified_at": "2026-07-27T17:36:39Z"
+    },
+    "afcea_west": {
+      "agencies": [
+        "Department of the Navy",
+        "Department of Defense",
+        "U.S. Coast Guard"
+      ],
+      "date_span": "s in a landscape of increasingly complex challenges. Join us at WEST, February 16-18, 2027, to engage with Navy, Marine Corps and Coast Guard leaders and indust",
+      "event_end": "2027-02-18",
+      "event_start": "2027-02-16",
+      "http_status": 200,
+      "key": "afcea_west",
+      "location": null,
+      "name": "AFCEA WEST",
+      "org": "AFCEA / USNI",
+      "topics": [
+        "navy",
+        "maritime",
+        "cyber",
+        "network",
+        "defense"
+      ],
+      "url": "https://www.westconference.org/WEST27/Public/Content.aspx?ID=123711&sortMenu=101002",
+      "verified_at": "2026-07-27T17:36:39Z"
+    },
+    "ausa_annual": {
+      "agencies": [
+        "Department of the Army",
+        "Department of Defense"
+      ],
+      "date_span": "nd Exposition? The AUSA Annual Meeting and Exposition will take place 12-14 October 2026 at the Walter E. Washington Convention Center (WEWCC). Walter E Washi",
+      "event_end": "2026-10-14",
+      "event_start": "2026-10-12",
+      "http_status": 200,
+      "key": "ausa_annual",
+      "location": null,
+      "name": "AUSA Annual Meeting & Exposition",
+      "org": "AUSA",
+      "topics": [
+        "army",
+        "defense",
+        "c5isr",
+        "network modernization"
+      ],
+      "url": "https://meetings.ausa.org/annual/2026/",
+      "verified_at": "2026-07-27T17:36:38Z"
+    },
+    "hhs_himss": {
+      "agencies": [
+        "Department of Health and Human Services",
+        "Department of Veterans Affairs",
+        "Defense Health Agency"
+      ],
+      "date_span": "forma Skip to content HIMSS Global Health Conference &amp; Exhibition April 5-8, 2027 | McCormick Place Convention Center | Chicago, IL Preconference : Mon",
+      "event_end": "2027-04-08",
+      "event_start": "2027-04-05",
+      "http_status": 200,
+      "key": "hhs_himss",
+      "location": "Chicago, IL",
+      "name": "HIMSS Global Health Conference",
+      "org": "HIMSS",
+      "topics": [
+        "health it",
+        "ehr",
+        "health"
+      ],
+      "url": "https://www.himssconference.com/",
+      "verified_at": "2026-07-27T17:36:42Z"
+    },
+    "sea_air_space": {
+      "agencies": [
+        "Department of the Navy",
+        "U.S. Coast Guard",
+        "Department of Defense"
+      ],
+      "date_span": "ed by, or affiliated with other Sea-Air-Space sponsors or exhibitors. April 4-7, 2027 Sea-Air-Space 2027 Gaylord National Resort & Convention Center Nation",
+      "event_end": "2027-04-07",
+      "event_start": "2027-04-04",
+      "http_status": 200,
+      "key": "sea_air_space",
+      "location": null,
+      "name": "Sea-Air-Space Exposition",
+      "org": "Navy League",
+      "topics": [
+        "navy",
+        "maritime",
+        "defense"
+      ],
+      "url": "https://seaairspace.org/",
+      "verified_at": "2026-07-27T17:36:40Z"
+    }
+  },
+  "generated_at": "2026-07-27T17:36:42Z",
+  "re_verify_days": 92,
+  "schema_version": 1,
+  "skipped": [
+    {
+      "key": "actiac_elc",
+      "name": "ACT-IAC Imagine Nation ELC",
+      "reason": "HTTP 406 (site blocks programmatic verification)",
+      "url": "https://www.actiac.org/act-iac-event/imagine-nation-elc-2026"
+    },
+    {
+      "key": "ndia_events",
+      "name": "NDIA conference program",
+      "reason": "page renders via JavaScript; no verifiable text",
+      "url": "https://www.ndia.org/events"
+    },
+    {
+      "key": "dodiis",
+      "name": "DoDIIS Worldwide Conference",
+      "reason": "HTTP 403 (site blocks programmatic verification)",
+      "url": "https://www.dia.mil/News-Features/DoDIIS-Worldwide/"
+    },
+    {
+      "key": "rsa_conference",
+      "name": "RSA Conference",
+      "reason": "HTTP 403 (site blocks programmatic verification)",
+      "url": "https://www.rsaconference.com/usa"
+    }
+  ]
+}

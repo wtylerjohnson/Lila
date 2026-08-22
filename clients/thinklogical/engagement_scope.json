@@ -1,0 +1,5 @@
+{
+  "_comment": "preset set for the operator-ordered 2026-08-05 competitive-intelligence integration proof, following the operator's uniform all-federal rulings (mark43, varonis); override any time.",
+  "preset": "all_federal",
+  "remove": []
+}

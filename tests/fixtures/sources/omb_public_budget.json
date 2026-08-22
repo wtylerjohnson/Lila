@@ -1,0 +1,18 @@
+{
+  "_fixture_provenance": {
+    "kind": "recorded",
+    "retrieved_at_utc": "2026-08-08T23:00:00Z",
+    "workbook_url": "https://www.whitehouse.gov/wp-content/uploads/2026/04/budauth_fy2027.xlsx",
+    "workbook_size_bytes": 1572864,
+    "sheet": "Sheet1",
+    "source_rows": 5129,
+    "note": "Header and three SBA rows are verbatim workbook values; only unused historical year columns were omitted."
+  },
+  "landing_html": "<a href=\"https://www.whitehouse.gov/wp-content/uploads/2026/04/budauth_fy2027.xlsx\">Budget Authority XLSX</a>",
+  "grid": [
+    ["Agency Code", "Agency Name", "Bureau Code", "Bureau Name", "Account Code", "Account Name", "Treasury Agency Code", "CGAC Agency Code", "Subfunction Code", "Subfunction Title", "BEA Category", "On- or Off- Budget", "2025", "2026", "2027", "2028", "2029", "2030", "2031"],
+    ["028", "Small Business Administration", "00", "Small Business Administration", "0100", "Salaries and Expenses", "73", "073", "376", "Other advancement of commerce", "Discretionary", "On-budget", 358000, 428000, 260000, 260000, 260000, 260000, 260000],
+    ["028", "Small Business Administration", "00", "Small Business Administration", "0100", "Salaries and Expenses", "73", "073", "376", "Other advancement of commerce", "Mandatory", "On-budget", 0, 0, 0, 0, 0, 0, 0],
+    ["028", "Small Business Administration", "00", "Small Business Administration", "0104", "White House Conference on Small Business", "", "", "376", "Other advancement of commerce", "Discretionary", "On-budget", 0, 0, 0, 0, 0, 0, 0]
+  ]
+}

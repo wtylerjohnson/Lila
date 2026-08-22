@@ -1,0 +1,998 @@
+{
+  "client_name": "mark43",
+  "composition_mode": "machine",
+  "hero_context": "The nearest dated signal is Mark43’s $194.76K obligated to date NTSB footprint, whose cited award period ends September 26, 2026. USCG ($548.07K obligated to date via Axon Enterprise) and USSS ($2.09M obligated to date) follow with cited award periods ending September 29, 2026 and July 12, 2027. A separate cited contract-completion signal is DEPARTMENTAL OFFICES × Simple Technology Solutions for LAW ENFORCEMENT RECORDS MANAGEMENT SYSTEM PROCUREMENT - 1ST ORDER. The cited source states timing on October 31, 2026. Validate its acquisition path before assigning pipeline value or a capture deadline.",
+  "chips": [
+    {
+      "label": "MARK43",
+      "tone": "hot"
+    },
+    {
+      "label": "AXON RECORDS",
+      "tone": "hot"
+    },
+    {
+      "label": "ACQUISITION PATHS TO VALIDATE"
+    }
+  ],
+  "news": [
+    {
+      "head": "NTSB · Mark43 · active footprint",
+      "body": "$194.76K obligated · active award corridor · PoP end 26 SEP 2026",
+      "award_generated_id": "CONT_AWD_9531BM23P0059_9508_-NONE-_-NONE-"
+    },
+    {
+      "head": "USSS · Mark43 · active footprint",
+      "body": "$2.09M obligated · active award corridor · PoP end 12 JUL 2027",
+      "award_generated_id": "CONT_AWD_70US0925C70093346_7009_-NONE-_-NONE-"
+    },
+    {
+      "head": "USCG · Axon Enterprise · displacement corridor",
+      "body": "$548.07K obligated · active award corridor · PoP end 29 SEP 2026",
+      "award_generated_id": "CONT_AWD_70Z02325F76100007_7008_70B03C23D00000006_7014"
+    },
+    {
+      "head": "FBI · Computer Projects of Illinois · competitor corridor",
+      "body": "$188.83K obligated · active award · through 31 MAR 2027",
+      "award_generated_id": "CONT_AWD_15F06724P0000749_1549_-NONE-_-NONE-"
+    }
+  ],
+  "signal_cards": [
+    {
+      "label": "Priority routes",
+      "value": "3",
+      "sub": "Verified federal records",
+      "detail": "Active award corridors"
+    },
+    {
+      "label": "Active footprint",
+      "value": "$2.28M",
+      "sub": "Obligated across 2 active awards",
+      "detail": "NTSB · nearest PoP 26 SEP 2026"
+    },
+    {
+      "label": "Forward timing signals",
+      "value": "1",
+      "sub": "Cited events within up to 36 months",
+      "detail": "Nearest 31 OCT 2026 · ATTACK"
+    },
+    {
+      "label": "Coverage",
+      "value": "5",
+      "sub": "Federal organizations represented",
+      "detail": "DHS · DOI · DOJ · DoD"
+    }
+  ],
+  "coverage": [
+    {
+      "dept": "DHS",
+      "components": "USSS · USCG"
+    },
+    {
+      "dept": "DOI",
+      "components": "DEPARTMENTAL OFFICES"
+    },
+    {
+      "dept": "DOJ",
+      "components": "FBI"
+    },
+    {
+      "dept": "DoD",
+      "components": "NAVY"
+    },
+    {
+      "dept": "NTSB",
+      "components": "NTSB"
+    }
+  ],
+  "best_fit": [
+    {
+      "rank": "01",
+      "code": "NTSB",
+      "agency_name": "National Transportation Safety Board",
+      "title": "NATIONAL TRANSPORTATION SAFETY BOARD × MARK43 INC",
+      "account": "NTSB · ACTIVE AWARD CORRIDOR · CLIENT FOOTPRINT",
+      "award_generated_id": "CONT_AWD_9531BM23P0059_9508_-NONE-_-NONE-",
+      "evidence": [
+        {
+          "award_generated_id": "CONT_AWD_9531BM23P0059_9508_-NONE-_-NONE-",
+          "label": "9531BM23P0059"
+        }
+      ],
+      "cells": [
+        {
+          "label": "Obligated to date",
+          "value": "$194.76K",
+          "small": "HISTORICAL SPEND · NOT OPPORTUNITY SIZE"
+        },
+        {
+          "label": "Window",
+          "value": "26 SEP 2026",
+          "small": "PERIOD OF PERFORMANCE END"
+        },
+        {
+          "label": "Fit",
+          "value": "Mark43",
+          "small": "MARK43"
+        },
+        {
+          "label": "Evidence",
+          "value": "3 source excerpts",
+          "small": "VERIFIED AWARD RECORD"
+        }
+      ],
+      "procurement_facts": [
+        {
+          "label": "Award",
+          "value": "9531BM23P0059",
+          "source_field": "record identity"
+        },
+        {
+          "label": "NAICS",
+          "value": "513210",
+          "source_field": "NAICS"
+        },
+        {
+          "label": "PSC",
+          "value": "DA10",
+          "source_field": "PSC"
+        },
+        {
+          "label": "Obligated",
+          "value": "$194.76K",
+          "source_field": "obligated_to_date"
+        },
+        {
+          "label": "Award structure",
+          "value": "PURCHASE ORDER",
+          "source_field": "award type/structure"
+        }
+      ],
+      "missing_procurement_facts": [
+        "Set-aside",
+        "Competition",
+        "Place",
+        "Base + all options"
+      ],
+      "machine_evidence": {
+        "source_identity": "CONT_AWD_9531BM23P0059_9508_-NONE-_-NONE-",
+        "source_kind": "usaspending-award",
+        "quote": "EVIDENCE MANAGEMENT SOFTWARE",
+        "agency": "National Transportation Safety Board",
+        "in_scope": true,
+        "scope_basis": "preset:all_federal@v1",
+        "procurement_facts": [
+          {
+            "label": "Award",
+            "value": "9531BM23P0059",
+            "source_field": "record identity"
+          },
+          {
+            "label": "NAICS",
+            "value": "513210",
+            "source_field": "NAICS"
+          },
+          {
+            "label": "PSC",
+            "value": "DA10",
+            "source_field": "PSC"
+          },
+          {
+            "label": "Obligated",
+            "value": "$194.76K",
+            "source_field": "obligated_to_date"
+          },
+          {
+            "label": "Award structure",
+            "value": "PURCHASE ORDER",
+            "source_field": "award type/structure"
+          }
+        ],
+        "missing_procurement_facts": [
+          "Set-aside",
+          "Competition",
+          "Place",
+          "Base + all options"
+        ]
+      }
+    },
+    {
+      "rank": "02",
+      "code": "DHS",
+      "agency_name": "Department of Homeland Security",
+      "title": "US COAST GUARD × AXON ENTERPRISE, INC.",
+      "account": "DHS · ACTIVE AWARD CORRIDOR · DISPLACEMENT",
+      "award_generated_id": "CONT_AWD_70Z02325F76100007_7008_70B03C23D00000006_7014",
+      "evidence": [
+        {
+          "award_generated_id": "CONT_AWD_70Z02325F76100007_7008_70B03C23D00000006_7014",
+          "label": "70Z02325F76100007"
+        }
+      ],
+      "cells": [
+        {
+          "label": "Obligated to date",
+          "value": "$548.07K",
+          "small": "HISTORICAL SPEND · NOT OPPORTUNITY SIZE"
+        },
+        {
+          "label": "Window",
+          "value": "29 SEP 2026",
+          "small": "PERIOD OF PERFORMANCE END"
+        },
+        {
+          "label": "Fit",
+          "value": "Axon Records",
+          "small": "AXON RECORDS"
+        },
+        {
+          "label": "Evidence",
+          "value": "2 source excerpts",
+          "small": "VERIFIED AWARD RECORD"
+        }
+      ],
+      "procurement_facts": [
+        {
+          "label": "Award",
+          "value": "70Z02325F76100007",
+          "source_field": "record identity"
+        },
+        {
+          "label": "NAICS",
+          "value": "334220",
+          "source_field": "NAICS"
+        },
+        {
+          "label": "PSC",
+          "value": "R425",
+          "source_field": "PSC"
+        },
+        {
+          "label": "Obligated",
+          "value": "$548.07K",
+          "source_field": "obligated_to_date"
+        },
+        {
+          "label": "Award structure",
+          "value": "DELIVERY ORDER",
+          "source_field": "award type/structure"
+        }
+      ],
+      "missing_procurement_facts": [
+        "Set-aside",
+        "Competition",
+        "Place",
+        "Base + all options",
+        "Parent IDV"
+      ],
+      "machine_evidence": {
+        "source_identity": "CONT_AWD_70Z02325F76100007_7008_70B03C23D00000006_7014",
+        "source_kind": "usaspending-award",
+        "quote": "AXON RECORDS & STANDARDS",
+        "agency": "Department of Homeland Security",
+        "in_scope": true,
+        "scope_basis": "preset:all_federal@v1",
+        "procurement_facts": [
+          {
+            "label": "Award",
+            "value": "70Z02325F76100007",
+            "source_field": "record identity"
+          },
+          {
+            "label": "NAICS",
+            "value": "334220",
+            "source_field": "NAICS"
+          },
+          {
+            "label": "PSC",
+            "value": "R425",
+            "source_field": "PSC"
+          },
+          {
+            "label": "Obligated",
+            "value": "$548.07K",
+            "source_field": "obligated_to_date"
+          },
+          {
+            "label": "Award structure",
+            "value": "DELIVERY ORDER",
+            "source_field": "award type/structure"
+          }
+        ],
+        "missing_procurement_facts": [
+          "Set-aside",
+          "Competition",
+          "Place",
+          "Base + all options",
+          "Parent IDV"
+        ]
+      }
+    },
+    {
+      "rank": "03",
+      "code": "DHS",
+      "agency_name": "Department of Homeland Security",
+      "title": "US SECRET SERVICE × MARK43 INC",
+      "account": "DHS · ACTIVE AWARD CORRIDOR · CLIENT FOOTPRINT",
+      "award_generated_id": "CONT_AWD_70US0925C70093346_7009_-NONE-_-NONE-",
+      "evidence": [
+        {
+          "award_generated_id": "CONT_AWD_70US0925C70093346_7009_-NONE-_-NONE-",
+          "label": "70US0925C70093346"
+        }
+      ],
+      "cells": [
+        {
+          "label": "Obligated to date",
+          "value": "$2.09M",
+          "small": "HISTORICAL SPEND · NOT OPPORTUNITY SIZE"
+        },
+        {
+          "label": "Window",
+          "value": "12 JUL 2027",
+          "small": "PERIOD OF PERFORMANCE END"
+        },
+        {
+          "label": "Fit",
+          "value": "Mark43",
+          "small": "MARK43"
+        },
+        {
+          "label": "Evidence",
+          "value": "1 source excerpt",
+          "small": "VERIFIED AWARD RECORD"
+        }
+      ],
+      "procurement_facts": [
+        {
+          "label": "Award",
+          "value": "70US0925C70093346",
+          "source_field": "record identity"
+        },
+        {
+          "label": "NAICS",
+          "value": "334112",
+          "source_field": "NAICS"
+        },
+        {
+          "label": "PSC",
+          "value": "R616",
+          "source_field": "PSC"
+        },
+        {
+          "label": "Obligated",
+          "value": "$2.09M",
+          "source_field": "obligated_to_date"
+        },
+        {
+          "label": "Award structure",
+          "value": "DEFINITIVE CONTRACT",
+          "source_field": "award type/structure"
+        }
+      ],
+      "missing_procurement_facts": [
+        "Set-aside",
+        "Competition",
+        "Place",
+        "Base + all options"
+      ],
+      "machine_evidence": {
+        "source_identity": "CONT_AWD_70US0925C70093346_7009_-NONE-_-NONE-",
+        "source_kind": "usaspending-award",
+        "quote": "mark43",
+        "agency": "Department of Homeland Security",
+        "in_scope": true,
+        "scope_basis": "preset:all_federal@v1",
+        "procurement_facts": [
+          {
+            "label": "Award",
+            "value": "70US0925C70093346",
+            "source_field": "record identity"
+          },
+          {
+            "label": "NAICS",
+            "value": "334112",
+            "source_field": "NAICS"
+          },
+          {
+            "label": "PSC",
+            "value": "R616",
+            "source_field": "PSC"
+          },
+          {
+            "label": "Obligated",
+            "value": "$2.09M",
+            "source_field": "obligated_to_date"
+          },
+          {
+            "label": "Award structure",
+            "value": "DEFINITIVE CONTRACT",
+            "source_field": "award type/structure"
+          }
+        ],
+        "missing_procurement_facts": [
+          "Set-aside",
+          "Competition",
+          "Place",
+          "Base + all options"
+        ]
+      }
+    }
+  ],
+  "competitors": [
+    {
+      "label": "FBI · ACTIVE",
+      "title": "Computer Projects of Illinois",
+      "money": "$188.83K",
+      "small": "OBLIGATED · THROUGH 31 MAR 2027",
+      "wedge": "Incumbent product · OpenFox",
+      "client_relevance": {
+        "kind": "record-core-match",
+        "text": "DISPLACEMENT TARGET · FBI currently funds OPENFOX; prioritize this incumbent account for Mark43 replacement and follow-on capture."
+      },
+      "agency_name": "Department of Justice",
+      "award_generated_id": "CONT_AWD_15F06724P0000749_1549_-NONE-_-NONE-",
+      "procurement_facts": [
+        {
+          "label": "Award",
+          "value": "15F06724P0000749",
+          "source_field": "record identity"
+        },
+        {
+          "label": "NAICS",
+          "value": "541519",
+          "source_field": "NAICS"
+        },
+        {
+          "label": "PSC",
+          "value": "7A21",
+          "source_field": "PSC"
+        },
+        {
+          "label": "Obligated",
+          "value": "$188.83K",
+          "source_field": "obligated_to_date"
+        },
+        {
+          "label": "Award structure",
+          "value": "PURCHASE ORDER",
+          "source_field": "award type/structure"
+        },
+        {
+          "label": "Other boundary awards",
+          "value": "1",
+          "source_field": "buyer-map awards with explicit boundary NAICS"
+        },
+        {
+          "label": "Other federal buyers",
+          "value": "Navy",
+          "source_field": "buyer-map buying offices"
+        }
+      ],
+      "missing_procurement_facts": [
+        "Set-aside",
+        "Competition",
+        "Place",
+        "Base + all options"
+      ],
+      "machine_evidence": {
+        "source_identity": "CONT_AWD_15F06724P0000749_1549_-NONE-_-NONE-",
+        "source_kind": "usaspending-award",
+        "quote": "OPENFOX SERVICES BY COMPUTER PROJECTS OF ILLINOIS FOR CJIS DIVISION.",
+        "agency": "Department of Justice",
+        "in_scope": true,
+        "scope_basis": "preset:all_federal@v1",
+        "client_relevance_basis": {
+          "version": 1,
+          "kind": "record-core-match",
+          "profile_client": "mark43",
+          "profile_surface": "capability_taxonomy.core",
+          "profile_version": 2,
+          "term": "OpenFox",
+          "supports": [
+            {
+              "role": "record",
+              "source_identity": "CONT_AWD_15F06724P0000749_1549_-NONE-_-NONE-",
+              "field": "description",
+              "matched_text": "OPENFOX",
+              "quote": "OPENFOX SERVICES BY COMPUTER PROJECTS OF ILLINOIS FOR CJIS DIVISION"
+            }
+          ],
+          "public_context": {
+            "band": "competitors",
+            "buyer": "FBI",
+            "client": "Mark43"
+          }
+        },
+        "procurement_facts": [
+          {
+            "label": "Award",
+            "value": "15F06724P0000749",
+            "source_field": "record identity"
+          },
+          {
+            "label": "NAICS",
+            "value": "541519",
+            "source_field": "NAICS"
+          },
+          {
+            "label": "PSC",
+            "value": "7A21",
+            "source_field": "PSC"
+          },
+          {
+            "label": "Obligated",
+            "value": "$188.83K",
+            "source_field": "obligated_to_date"
+          },
+          {
+            "label": "Award structure",
+            "value": "PURCHASE ORDER",
+            "source_field": "award type/structure"
+          },
+          {
+            "label": "Other boundary awards",
+            "value": "1",
+            "source_field": "buyer-map awards with explicit boundary NAICS"
+          },
+          {
+            "label": "Other federal buyers",
+            "value": "Navy",
+            "source_field": "buyer-map buying offices"
+          }
+        ],
+        "missing_procurement_facts": [
+          "Set-aside",
+          "Competition",
+          "Place",
+          "Base + all options"
+        ]
+      }
+    }
+  ],
+  "acquisition_pathways": [
+    {
+      "label": "NAVY · EXECUTED BUY",
+      "title": "Navy acquisition route",
+      "requirement": "CENTRALSQUARE ANNUAL SUBSCRIPTION FEES",
+      "pathway": "AWARD N6328526PS002 · AWARD STRUCTURE PURCHASE ORDER · NAICS 513210 · PSC DH10",
+      "access": "ACCESS CONDITIONS NOT STATED IN CITED RECORD",
+      "action": "ENTER ACCOUNT NEXT · follow-on owner, next acquisition milestone, set-aside eligibility, competition method before assigning partner, displacement, or direct-pursuit posture.",
+      "citation_label": "award N6328526PS002",
+      "agency_name": "Department of Defense",
+      "client_relevance": {
+        "kind": "record-core-match",
+        "text": "ACCOUNT-ENTRY PATH · Navy funded CENTRALSQUARE; use the cited award to position Mark43 and resolve vehicle, incumbent, and follow-on access before the next procurement action."
+      },
+      "procurement_facts": [
+        {
+          "label": "Award",
+          "value": "N6328526PS002",
+          "source_field": "record identity"
+        },
+        {
+          "label": "NAICS",
+          "value": "513210",
+          "source_field": "NAICS"
+        },
+        {
+          "label": "PSC",
+          "value": "DH10",
+          "source_field": "PSC"
+        },
+        {
+          "label": "Obligated",
+          "value": "$11.13K",
+          "source_field": "obligated_to_date"
+        },
+        {
+          "label": "Award structure",
+          "value": "PURCHASE ORDER",
+          "source_field": "award type/structure"
+        }
+      ],
+      "missing_procurement_facts": [
+        "Set-aside",
+        "Competition",
+        "Place",
+        "Base + all options"
+      ],
+      "machine_evidence": {
+        "source_identity": "CONT_AWD_N6328526PS002_9700_-NONE-_-NONE-",
+        "source_kind": "usaspending-award",
+        "quote": "CENTRALSQUARE ANNUAL SUBSCRIPTION FEES",
+        "agency": "Department of Defense",
+        "in_scope": true,
+        "scope_basis": "preset:all_federal@v1",
+        "pathway_basis": {
+          "version": 1,
+          "agency": "Department of Defense",
+          "buyer": "DEPARTMENT OF THE NAVY",
+          "capability": "CentralSquare",
+          "source_kind": "usaspending-award",
+          "source_identity": "CONT_AWD_N6328526PS002_9700_-NONE-_-NONE-",
+          "award_id": "N6328526PS002",
+          "notice_guid": "",
+          "route_key": "award:CONT_AWD_N6328526PS002_9700_-NONE-_-NONE-",
+          "source_company_key": "centralsquare technologies",
+          "client_footprint": false,
+          "requirement_excerpt": "CENTRALSQUARE ANNUAL SUBSCRIPTION FEES",
+          "procurement_facts": [
+            {
+              "label": "Award",
+              "value": "N6328526PS002",
+              "source_field": "record identity"
+            },
+            {
+              "label": "NAICS",
+              "value": "513210",
+              "source_field": "NAICS"
+            },
+            {
+              "label": "PSC",
+              "value": "DH10",
+              "source_field": "PSC"
+            },
+            {
+              "label": "Obligated",
+              "value": "$11.13K",
+              "source_field": "obligated_to_date"
+            },
+            {
+              "label": "Award structure",
+              "value": "PURCHASE ORDER",
+              "source_field": "award type/structure"
+            }
+          ],
+          "missing_procurement_facts": [
+            "Set-aside",
+            "Competition",
+            "Place",
+            "Base + all options"
+          ]
+        },
+        "client_relevance_basis": {
+          "version": 1,
+          "kind": "record-core-match",
+          "profile_client": "mark43",
+          "profile_surface": "capability_taxonomy.core",
+          "profile_version": 2,
+          "term": "CentralSquare",
+          "supports": [
+            {
+              "role": "record",
+              "source_identity": "CONT_AWD_N6328526PS002_9700_-NONE-_-NONE-",
+              "field": "description",
+              "matched_text": "CENTRALSQUARE",
+              "quote": "CENTRALSQUARE ANNUAL SUBSCRIPTION FEES"
+            }
+          ],
+          "public_context": {
+            "band": "acquisition_pathways",
+            "buyer": "Navy",
+            "client": "Mark43",
+            "client_footprint": false,
+            "evidence_state": "executed-award"
+          }
+        },
+        "procurement_facts": [
+          {
+            "label": "Award",
+            "value": "N6328526PS002",
+            "source_field": "record identity"
+          },
+          {
+            "label": "NAICS",
+            "value": "513210",
+            "source_field": "NAICS"
+          },
+          {
+            "label": "PSC",
+            "value": "DH10",
+            "source_field": "PSC"
+          },
+          {
+            "label": "Obligated",
+            "value": "$11.13K",
+            "source_field": "obligated_to_date"
+          },
+          {
+            "label": "Award structure",
+            "value": "PURCHASE ORDER",
+            "source_field": "award type/structure"
+          }
+        ],
+        "missing_procurement_facts": [
+          "Set-aside",
+          "Competition",
+          "Place",
+          "Base + all options"
+        ]
+      },
+      "award_generated_id": "CONT_AWD_N6328526PS002_9700_-NONE-_-NONE-",
+      "award_id": "N6328526PS002"
+    }
+  ],
+  "teaming": [],
+  "horizon": [
+    {
+      "hot": true,
+      "label": "DEPARTMENTAL OFFICES · EXPIRING",
+      "title": "SIMPLE TECHNOLOGY SOLUTIONS",
+      "value": "31 OCT 2026",
+      "small": "INCUMBENT CONTRACT COMPLETES",
+      "decision": "ATTACK",
+      "source_citation": "USAspending award · 140D0424F1216",
+      "timing_basis": {
+        "source_value": "2026-10-31",
+        "precision": "exact-date",
+        "sort_date": "2026-10-31"
+      },
+      "procurement_facts": [
+        {
+          "label": "Award",
+          "value": "140D0424F1216",
+          "source_field": "record identity"
+        },
+        {
+          "label": "NAICS",
+          "value": "518210",
+          "source_field": "NAICS"
+        },
+        {
+          "label": "PSC",
+          "value": "DA10",
+          "source_field": "PSC"
+        },
+        {
+          "label": "USAspending award amount",
+          "value": "$10.84M",
+          "source_field": "USAspending Award Amount"
+        }
+      ],
+      "missing_procurement_facts": [
+        "Competition",
+        "Award structure"
+      ],
+      "job_context": {
+        "kind": "published-description",
+        "text": "LAW ENFORCEMENT RECORDS MANAGEMENT SYSTEM PROCUREMENT - 1ST ORDER"
+      },
+      "client_relevance": {
+        "kind": "record-core-match",
+        "text": "COMPLETION SIGNAL · Cited LAW ENFORCEMENT RECORDS MANAGEMENT work approaches contract completion; validate options, extension, and the follow-on acquisition path before assigning Mark43 capture action."
+      },
+      "agency_name": "Departmental Offices",
+      "organization_marks": [
+        {
+          "kind": "agency",
+          "label": "Departmental Offices",
+          "display": "DEPARTMENTAL OFFICES"
+        },
+        {
+          "kind": "company",
+          "label": "SIMPLE TECHNOLOGY SOLUTIONS INC.",
+          "display": "Simple Technology"
+        }
+      ],
+      "machine_evidence": {
+        "source_identity": "140D0424F1216",
+        "source_kind": "contract-award",
+        "quote": "LAW ENFORCEMENT RECORDS MANAGEMENT SYSTEM PROCUREMENT - 1ST ORDER",
+        "agency": "Departmental Offices",
+        "in_scope": true,
+        "scope_basis": "preset:all_federal@v1",
+        "job_context_basis": {
+          "version": 1,
+          "event_kind": "expiring",
+          "source_field": "description",
+          "source_text": "LAW ENFORCEMENT RECORDS MANAGEMENT SYSTEM PROCUREMENT - 1ST ORDER"
+        },
+        "client_relevance_basis": {
+          "version": 1,
+          "kind": "record-core-match",
+          "profile_client": "mark43",
+          "profile_surface": "capability_taxonomy.core",
+          "profile_version": 2,
+          "term": "law enforcement records management",
+          "supports": [
+            {
+              "role": "record",
+              "source_identity": "140D0424F1216",
+              "field": "description",
+              "matched_text": "LAW ENFORCEMENT RECORDS MANAGEMENT",
+              "quote": "LAW ENFORCEMENT RECORDS MANAGEMENT SYSTEM PROCUREMENT - 1ST ORDER"
+            }
+          ],
+          "public_context": {
+            "band": "horizon",
+            "client": "Mark43",
+            "client_footprint": false,
+            "event_kind": "expiring"
+          }
+        },
+        "decision": "ATTACK",
+        "source_citation": "USAspending award · 140D0424F1216",
+        "timing_basis": {
+          "source_value": "2026-10-31",
+          "precision": "exact-date",
+          "sort_date": "2026-10-31"
+        },
+        "procurement_facts": [
+          {
+            "label": "Award",
+            "value": "140D0424F1216",
+            "source_field": "record identity"
+          },
+          {
+            "label": "NAICS",
+            "value": "518210",
+            "source_field": "NAICS"
+          },
+          {
+            "label": "PSC",
+            "value": "DA10",
+            "source_field": "PSC"
+          },
+          {
+            "label": "USAspending award amount",
+            "value": "$10.84M",
+            "source_field": "USAspending Award Amount"
+          }
+        ],
+        "missing_procurement_facts": [
+          "Competition",
+          "Award structure"
+        ]
+      },
+      "award_generated_id": "CONT_AWD_140D0424F1216_1406_140D0424D0105_1406"
+    }
+  ],
+  "pocs": [],
+  "decision_makers": [
+    {
+      "name": "Jon P. Hickey",
+      "title": "Deputy Commandant for Systems and Chief Acquisition Executive",
+      "organization": "U.S. Coast Guard",
+      "bio_url": "https://www.uscg.mil/Biographies/Display/Article/2261382/rear-admiral-jon-p-hickey/",
+      "retrieved_at": "2026-07-20T00:00:00Z",
+      "route_kind": "usaspending-award",
+      "route_identity": "CONT_AWD_70Z02325F76100007_7008_70B03C23D00000006_7014",
+      "route_label": "USCG × Axon Enterprise · displayed active award and award window",
+      "relevance_rationale": "The Coast Guard identifies Hickey as its Deputy Commandant for Systems and Chief Acquisition Executive, overseeing the C5I program executive office plus contracting and procurement. That remit makes his office relevant to validate the displayed Coast Guard public-safety software displacement route; this card does not identify him as the owner of the cited award.",
+      "source_system": "official-leadership-source",
+      "source_record_id": "https://www.uscg.mil/Biographies/Display/Article/2261382/rear-admiral-jon-p-hickey/",
+      "portrait_source_url": "https://media.defense.gov/2026/Jan/14/2003856530/400/400/0/240114-G-GK311-003.JPG",
+      "portrait_asset": "clients/mark43/assets/portraits/jon-hickey.jpg",
+      "portrait_sha256": "2ce776df097c240af9f7001f7742ff238f04dbcb526ccbabf3001006ed044977"
+    },
+    {
+      "name": "Shantrell (Nikki) Collier",
+      "title": "Deputy Assistant Attorney General and Chief Information Officer",
+      "organization": "U.S. Department of Justice",
+      "bio_url": "https://www.justice.gov/jmd/staff-profile/cio-leadership",
+      "retrieved_at": "2026-07-20T00:00:00Z",
+      "route_kind": "usaspending-award",
+      "route_identity": "CONT_AWD_15F06724P0000749_1549_-NONE-_-NONE-",
+      "route_label": "FBI × Computer Projects of Illinois · displayed active award and award window",
+      "relevance_rationale": "DOJ identifies Collier as its Chief Information Officer with department-wide technology, infrastructure, investment, and cybersecurity responsibilities. That remit makes her office relevant to validate the displayed FBI OpenFox displacement route; this card does not identify her as the owner of the cited award.",
+      "source_system": "official-leadership-source",
+      "source_record_id": "https://www.justice.gov/jmd/staff-profile/cio-leadership",
+      "portrait_source_url": "https://www.justice.gov/d9/styles/staff_profile_portrait_300h/public/2025-09/nikki_collier_pboto.jpeg?itok=HZb7dLQI",
+      "portrait_asset": "clients/mark43/assets/portraits/nikki-collier.jpeg",
+      "portrait_sha256": "ee0dca78a968d79dddb3c6b8c03b9ae14f2d62cf9109147fbdef7c639cd0ea2b"
+    }
+  ],
+  "evidence": [
+    {
+      "award_generated_id": "CONT_AWD_9531BM23P0059_9508_-NONE-_-NONE-",
+      "label": "9531BM23P0059"
+    },
+    {
+      "award_generated_id": "CONT_AWD_70Z02325F76100007_7008_70B03C23D00000006_7014",
+      "label": "70Z02325F76100007"
+    },
+    {
+      "award_generated_id": "CONT_AWD_70US0925C70093346_7009_-NONE-_-NONE-",
+      "label": "70US0925C70093346"
+    },
+    {
+      "award_generated_id": "CONT_AWD_15F06724P0000749_1549_-NONE-_-NONE-",
+      "label": "FBI · COMPUTER PROJECTS OF ILLINOI"
+    }
+  ],
+  "sequence": "Protect and expand the active footprint at NTSB; resolve the cited acquisition-path access conditions before assigning partner, displacement, or direct-pursuit posture; validate the DEPARTMENTAL OFFICES cited acquisition path tied to 31 OCT 2026; confirm vehicle, contracting office, competition path, and incumbent continuity before assigning pipeline value.",
+  "scale": {
+    "rows": [
+      {
+        "label": "USCG × Axon Enterprise",
+        "amount": "$548.07K",
+        "amount_basis": "obligated_to_date",
+        "award_generated_id": "CONT_AWD_70Z02325F76100007_7008_70B03C23D00000006_7014"
+      },
+      {
+        "label": "FBI × Computer Projects of Illinois",
+        "amount": "$188.83K",
+        "amount_basis": "obligated_to_date",
+        "award_generated_id": "CONT_AWD_15F06724P0000749_1549_-NONE-_-NONE-"
+      }
+    ],
+    "total": "$736.89K",
+    "basis": "competitor_obligated_to_date"
+  },
+  "scale_label": "Competitor-held obligated history",
+  "scale_total": "$736.89K",
+  "scale_counts": "Across 2 cited active award corridors",
+  "figures": [
+    {
+      "text": "$194.76K",
+      "raw": 194760.0,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_record_id": "9531BM23P0059",
+      "generated_internal_id": "CONT_AWD_9531BM23P0059_9508_-NONE-_-NONE-"
+    },
+    {
+      "text": "$2.09M",
+      "raw": 2087720.0,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_record_id": "70US0925C70093346",
+      "generated_internal_id": "CONT_AWD_70US0925C70093346_7009_-NONE-_-NONE-"
+    },
+    {
+      "text": "$548.07K",
+      "raw": 548065.0,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_record_id": "70Z02325F76100007",
+      "generated_internal_id": "CONT_AWD_70Z02325F76100007_7008_70B03C23D00000006_7014"
+    },
+    {
+      "text": "$188.83K",
+      "raw": 188828.09,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_record_id": "15F06724P0000749",
+      "generated_internal_id": "CONT_AWD_15F06724P0000749_1549_-NONE-_-NONE-"
+    },
+    {
+      "text": "$11.13K",
+      "raw": 11132.1,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_record_id": "N6328526PS002",
+      "generated_internal_id": "CONT_AWD_N6328526PS002_9700_-NONE-_-NONE-"
+    },
+    {
+      "text": "$10.84M",
+      "raw": 10842909.88,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_record_id": "140D0424F1216",
+      "generated_internal_id": "CONT_AWD_140D0424F1216_1406_140D0424D0105_1406"
+    },
+    {
+      "text": "$2.28M",
+      "raw": 2282480.0,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_url": "https://www.usaspending.gov/",
+      "component_raws": [
+        194760.0,
+        2087720.0
+      ]
+    },
+    {
+      "text": "$736.89K",
+      "raw": 736893.09,
+      "source_system": "usaspending",
+      "retrieved_at": "2026-07-21T00:00:00+00:00",
+      "source_url": "https://www.usaspending.gov/",
+      "component_raws": [
+        548065.0,
+        188828.09
+      ]
+    }
+  ]
+}

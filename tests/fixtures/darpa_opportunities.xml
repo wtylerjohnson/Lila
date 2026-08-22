@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Opportunities RSS</title>
+    <item>
+      <title>PERRSEUS</title>
+      <link>https://www.darpa.mil/work-with-us/opportunities</link>
+      <description>&lt;p&gt;DARPA seeks compact cold-atom devices for resilient sensing. | &lt;a href="https://www.darpa.mil/research/programs/perrseus"&gt;See Program&lt;/a&gt;&lt;/p&gt;</description>
+      <pubDate>Thu, 16 Jul 2026 15:22:22 +0000</pubDate>
+      <guid isPermaLink="false">5240 at https://www.darpa.mil</guid>
+    </item>
+    <item>
+      <title>Proposers Day: PINPOINT</title>
+      <link>https://www.darpa.mil/work-with-us/opportunities</link>
+      <description>&lt;p&gt;Precision inertial navigation event. | &lt;a href="https://www.darpa.mil/events/2026/pinpoint-proposers-day"&gt;See Event&lt;/a&gt;&lt;/p&gt;</description>
+      <pubDate>Mon, 06 Jul 2026 20:32:17 +0000</pubDate>
+      <guid isPermaLink="false">5184 at https://www.darpa.mil</guid>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,34 @@
+{
+  "_fixture_provenance": {
+    "kind": "recorded",
+    "retrieved_at_utc": "2026-08-08T23:30:00Z",
+    "nitaac_url": "https://nitaac.nih.gov/search/contract-holders/export?f%5B0%5D=gwac%3A6&_format=csv",
+    "sewp_url": "https://www.sewp.nasa.gov/documents/SEWPVI_Awardees.xlsx",
+    "cofc_url": "https://ecf.cofc.uscourts.gov/cgi-bin/rss_outside.pl",
+    "epa_url": "https://ordspub.epa.gov/ords/forecast/f?p=122:1",
+    "treasury_url": "https://sbecs.treasury.gov/",
+    "doj_url": "https://app.high.powerbigov.us/view?r=recorded",
+    "it_collect_url": "https://api.gsa.gov/technology/it-collect/v1/services/INV2472/contracts",
+    "ssq_url": "https://d2d.gsa.gov/report-link/schedule-sales-query-plus-ssq"
+  },
+  "nitaac_csv": "Contract Holder,Contract Number(s),PIID(s),Contract Type(s),DUNS Number,SAM UID,Task Areas,Business Size,Business Type,Address,Email,Contract URL,Program Manager,PM Phone Number,PM Email Address\n\"A-TEK, INC.\",HHSN316201200006W,HHSN316201200006W,,,HCCFTD1R3UL3,\"Task Area 1, Task Area 10\",Small Business,,,ciosp3@atekinc.com,https://atek.example/cio,Stephanie Cumberbatch,703-443-6900,scumberbatch@atekinc.com\nOTHER LLC,HHSN316201200099W,HHSN316201200099W,,,AAAAAAAAAAAA,Task Area 2,Other Than Small,,,,https://other.example,Pat Manager,,pat@example.com\n",
+  "sewp_grids": {
+    "Category A": [["Count", "Prime Offeror Name"], [1, "Carahsoft Technology Corp."], [2, "Alpha Systems LLC"]],
+    "Category B": [["Count", "Prime Offeror Name"], [1, "Carahsoft Technology Corp."]],
+    "Notes": [["Transition roster"]]
+  },
+  "cofc_rss": "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><rss version=\"2.0\"><channel><title>United States Court of Federal Claims - Recent Entries</title><lastBuildDate>Sat, 08 Aug 2026 22:21:17 GMT</lastBuildDate><item><title>1:26-cv-00458 SUBLIME SYSTEMS, INC. v. USA</title><link>https://ecf.cofc.uscourts.gov/cgi-bin/DktRpt.pl?54021</link><description>[Reply to Response to Motion]</description><guid>https://ecf.cofc.uscourts.gov/cgi-bin/DktRpt.pl?54021&amp;65</guid><pubDate>Sat, 08 Aug 2026 03:59:37 GMT</pubDate></item><item><title>1:23-vv-00299 JENSEN v. SECRETARY OF HEALTH AND HUMAN SERVICES</title><link>https://ecf.cofc.uscourts.gov/cgi-bin/DktRpt.pl?47192</link><description>[Medical Records]</description><guid>vv-299</guid><pubDate>Sat, 08 Aug 2026 02:15:16 GMT</pubDate></item></channel></rss>",
+  "epa_pages": {
+    "current": "<table class=\"a-IRR-table\"><tr><th>View Record</th><th>Record Number</th><th>NAICS Code</th><th>Description</th><th>Procurement Method</th><th>Estimated Dollars</th><th>Target Award Year</th><th>Target Award Quarter</th><th>Place Of Performance</th></tr><tr><td><a href=\"f?p=122:9:123:::P9_RECORD_NUMBER:FY26-15000&amp;cs=session\">View</a></td><td>FY 2026 - 15000</td><td>541519</td><td>Cybersecurity platform support</td><td>Small business set-aside</td><td>&gt;$1M - $3M</td><td>2027</td><td>QTR2</td><td>DC</td></tr></table><button data-pagination=\"next\">Next</button>",
+    "canceled": "<table class=\"a-IRR-table\"><tr><th>View Record</th><th>Record Number</th><th>NAICS Code</th><th>Description</th><th>Procurement Method</th><th>Estimated Dollars</th><th>Target Award Year</th><th>Target Award Quarter</th><th>Place Of Performance</th></tr><tr><td>View</td><td>FY 2025 - 14900</td><td>541620</td><td>Environmental analysis support</td><td>Full and open</td><td>$500K - $1M</td><td>2026</td><td>QTR1</td><td>Nation-wide</td></tr></table>"
+  },
+  "treasury": {
+    "bureau_lookup": [{"Key": "B-IRS", "Value": "INTERNAL REVENUE SERVICE"}],
+    "naics_lookup": [{"Key": "N-541519", "Value": "541519-Other Computer Related Services"}],
+    "psc_lookup": [{"Key": "P-D399", "Value": "D399-Other IT Services"}],
+    "groups": [{"Name": "INTERNAL REVENUE SERVICE", "newOppCount": 1, "newOppData": [{"Id": "a0RTEST1", "Name": "Identity protection platform", "sbfTypeofRequirement__c": "New", "sbfAcquisitionPhase__c": "Forecast", "sbfNAICSCode__r": {"SBF_NAICS_Description__c": "541519-Other Computer Related Services"}, "sbfPSCCode__r": {"sbfPSCCodeandDefinition__c": "D399-Other IT Services"}, "sbfProgramOffice__r": {"Name": "IRS OCIO"}, "sbfProjectedAwardFY_Qtr__c": "FY 2027 Q2", "sbfEstimatedTotalContractValue__c": "$5M-$10M", "SystemModstamp": "2026-08-01T00:00:00Z"}], "recompeteOppData": [], "micropurchaseAwardData": [], "simplifiedAcquisitionAwardData": [], "above250kData": []}]
+  },
+  "it_collect": [{"agencyId": "USDA-INV2472-1", "agencyCode": "005", "PIID": "12314422F0249", "referencePIID": "47QTCB21D0367", "lastModified": "2026-04-15 12:00:00"}],
+  "doj_rows": [{"record_id": "doj-forecast:FY26-OJP-1550-0042", "action_tracking_number": "FY26-OJP-1550-0042", "title": "Data disclosure avoidance support", "contracting_office": "15PBJS--OJP BUREAU OF JUSTICE STATISTICS", "naics_code": "541990", "psc_code": "R408", "target_solicitation": "Q3, 2026", "target_award": "Q4, 2026", "_join_keys": {"action_tracking_number": "FY26-OJP-1550-0042", "contracting_office_code": "15PBJS"}, "evidence_semantics": "planning_intent_not_live_opportunity"}],
+  "ssq_rows": [{"Contract Number": "36F79718D0275", "Contractor Name": "Example Medical LLC", "SIN": "339113", "Fiscal Year": "2026", "Quarter": "Q3", "Sales": "$125,000", "State": "VA"}]
+}

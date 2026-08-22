@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<REGINFO_RIN_DATA RUN_DATE="2026-07-03-04:00">
+  <RIN_INFO>
+    <RIN>0704-AI01</RIN>
+    <PUBLICATION><PUBLICATION_ID>202510</PUBLICATION_ID></PUBLICATION>
+    <AGENCY><NAME>Office of the Chief Information Officer</NAME><ACRONYM>OCIO</ACRONYM></AGENCY>
+    <PARENT_AGENCY><NAME>Department of Defense</NAME><ACRONYM>DOD</ACRONYM></PARENT_AGENCY>
+    <RULE_TITLE>Zero Trust Cybersecurity Reporting Requirements</RULE_TITLE>
+    <ABSTRACT><![CDATA[<p>Establishes <strong>zero trust</strong> reporting and data-exchange requirements.</p>]]></ABSTRACT>
+    <PRIORITY_CATEGORY>Other Significant</PRIORITY_CATEGORY>
+    <RIN_STATUS>First Time Published in The Unified Agenda</RIN_STATUS>
+    <RULE_STAGE>Proposed Rule Stage</RULE_STAGE>
+    <MAJOR>No</MAJOR>
+    <CFR_LIST><CFR>32 CFR Part 236</CFR></CFR_LIST>
+    <TIMETABLE_LIST>
+      <TIMETABLE>
+        <TTBL_ACTION>NPRM</TTBL_ACTION>
+        <TTBL_DATE>11/00/2026</TTBL_DATE>
+        <FR_CITATION>91 FR 1000</FR_CITATION>
+      </TIMETABLE>
+    </TIMETABLE_LIST>
+  </RIN_INFO>
+  <RIN_INFO>
+    <RIN>0503-AA90</RIN>
+    <PUBLICATION><PUBLICATION_ID>202510</PUBLICATION_ID></PUBLICATION>
+    <AGENCY><NAME>Office of the Secretary</NAME><ACRONYM>AgSEC</ACRONYM></AGENCY>
+    <PARENT_AGENCY><NAME>Department of Agriculture</NAME><ACRONYM>USDA</ACRONYM></PARENT_AGENCY>
+    <RULE_TITLE>Faith-Based Organizations in USDA Programs</RULE_TITLE>
+    <ABSTRACT><![CDATA[<p>Clarifies participation in USDA programs.</p>]]></ABSTRACT>
+    <PRIORITY_CATEGORY>Substantive, Nonsignificant</PRIORITY_CATEGORY>
+    <RIN_STATUS>Previously Published in The Unified Agenda</RIN_STATUS>
+    <RULE_STAGE>Final Rule Stage</RULE_STAGE>
+    <MAJOR>No</MAJOR>
+  </RIN_INFO>
+</REGINFO_RIN_DATA>
