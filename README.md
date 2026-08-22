@@ -18,7 +18,7 @@ No single federal system contains the market. A posted notice can show what an a
 
 LILA is built to assemble those signals. Its governed source catalog currently defines **74 source identities across 36 evidence families**, selected according to the client and the declared engagement scope.
 
-| Market question | Evidence LILA can assemble |
+| Market question | Evidence LILA |
 |---|---|
 | **What is buying now?** | SAM.gov opportunities and notice documents, agency announcements, grants, SBIR and STTR topics, research and program-funding opportunities |
 | **What is likely to buy next?** | Agency acquisition forecasts from DHS, GSA, Army, NASA, HHS, State, Education, HUD, SEC, Navy, VA, EPA, Treasury, and DOJ |
