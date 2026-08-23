@@ -36,7 +36,8 @@ _INSTRUCTIONS = (
 
 
 def _slug(name: str) -> str:
-    return name.lower().replace(" ", "_")
+    from tools.slug import client_slug
+    return client_slug(name)
 
 
 def _search_payload(spec: ContactSearchSpec) -> dict:

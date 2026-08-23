@@ -180,6 +180,9 @@ _AGENCY_ALIASES = {
     "department of air force": "air-force",
     "us marine corps": "marines",
     "us space force": "space-force",
+    "us agency for global media": "usagm",
+    "united states agency for global media": "usagm",
+    "equal employment opportunity commission": "eeoc",
 }
 
 

@@ -151,8 +151,21 @@ def client_logo(client_name: Optional[str]) -> str:
     own = _client_asset(str(client_name), "logo")
     if own:
         return own
-    key = _bm.recognize_client_key(str(client_name)) or str(client_name)
-    return _data_uri(_bm.find_mark(_bm.client_marks_dir(), key))
+    # A replay worktree may carry the client's cached mark without carrying
+    # the mutable review roster. The canonical slug is still the cache key;
+    # roster recognition only adds aliases and must not be a precondition for
+    # finding an already approved asset.
+    from tools.slug import client_slug, legacy_client_slug
+    key = (_bm.recognize_client_key(str(client_name))
+           or client_slug(str(client_name)))
+    found = _bm.find_mark(_bm.client_marks_dir(), key)
+    if not found:
+        # Marks cached before the slug consolidation carry the legacy
+        # per-character shape; read them, never mint them.
+        legacy = legacy_client_slug(client_name)
+        if legacy != key:
+            found = _bm.find_mark(_bm.client_marks_dir(), legacy)
+    return _data_uri(found)
 
 
 @functools.lru_cache(maxsize=1)

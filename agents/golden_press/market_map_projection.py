@@ -34,9 +34,11 @@ claim to be an open opportunity.
 
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass, field, replace
 from decimal import Decimal
+from pathlib import Path
 from typing import Any, Optional
 
 from agents.golden_press.evidence_objects import (
@@ -160,6 +162,7 @@ class Opportunity:
     action: str = ""
     access_route: str = ""
     contacts: tuple = ()
+    linked_targets: tuple = ()
     evidence: tuple = ()
     coverage: Optional[CoverageState] = None
 
@@ -649,7 +652,8 @@ def _competition(pack: Any, profile: dict, slug: str = "",
             demand_kind=DEMAND_COMPETITOR_VALIDATION))
 
 def _opportunities(pack: Any, posture: dict, contract: Any = None,
-                   rejected_out: Any = None) -> tuple:
+                   rejected_out: Any = None,
+                   excluded_terms: Any = ()) -> tuple:
     """One row per canonical key. A duplicate cannot be constructed.
 
     THE GATE JUDGES THE RECORD, NOT THE ROW. The capability gate ran on the
@@ -664,11 +668,29 @@ def _opportunities(pack: Any, posture: dict, contract: Any = None,
         lane = _clean(getattr(record, "lane", ""))
         if lane not in ("L1_notice", "L4_forecast"):
             continue
+        record_text = (
+            f"{_clean(getattr(record, 'title', ''))} "
+            f"{_clean(getattr(record, 'description', ''))}").casefold()
+        excluded = next(
+            (_clean(term) for term in (excluded_terms or ())
+             if _clean(term) and _clean(term).casefold() in record_text), "")
+        if excluded:
+            if rejected_out is not None:
+                rejected_out.append({
+                    "identifier": _clean(getattr(record, "record_id", "")),
+                    "title": _clean(getattr(record, "title", ""))[:100],
+                    "kind": (FORECAST if lane == "L4_forecast"
+                             else NOTICE),
+                    "reason": f"client exclusion matched: {excluded}",
+                    "reason_class": "rejected_client_exclusion"})
+            continue
         if contract:
             from agents.golden_press.coverage_families import best_match
+            gate_description = ("" if contract.get("title_required") else
+                                _clean(getattr(record, "description", "")))
             if not best_match(
                     _clean(getattr(record, "title", "")), contract,
-                    description=_clean(getattr(record, "description", ""))):
+                    description=gate_description):
                 if rejected_out is not None:
                     rejected_out.append({
                         "identifier": _clean(
@@ -962,8 +984,9 @@ def _contacts(pack: Any, slug: str, opportunities: tuple,
     enriched identities, and a missing direct dial produces typed research
     demand rather than an organisation switchboard wearing a person's name.
     """
-    from agents.golden_press import targets_store
     from agents.golden_press.person_screen import renderable
+    from tools.intelligence_graph.adapter import (
+        admissible_target_observations, load_target_observations)
 
     # THE PUBLISHED POCs ARE ALREADY IN HAND. Every qualified opportunity
     # carries the contact the government printed on the notice, and this
@@ -998,11 +1021,11 @@ def _contacts(pack: Any, slug: str, opportunities: tuple,
                 coverage=complete("email") if not person.get("phone")
                 else complete("email", "phone")))
 
-    payload = (targets_store.load(slug) if targets_payload is _LIVE
+    payload = (load_target_observations(slug) if targets_payload is _LIVE
                else targets_payload)
     if not payload:
         return _by_reachability(out)
-    rows, _dropped = targets_store.admissible(payload)
+    rows, _dropped = admissible_target_observations(payload)
     for row in rows:
         if not renderable(row.get("screen")):
             continue
@@ -1227,31 +1250,217 @@ def _exact_terms(profile: dict) -> list:
     return [_clean(t) for t in terms if _clean(t)]
 
 
-def capture_inputs(*, profile: dict, slug: str = "") -> dict:
+def _pack_notice_terms(pack: Any) -> list:
+    """The exact capability surface used by the pack's notice lane.
+
+    Retrieval already expands approved client vocabulary into government
+    buying language. The market-map capture previously discarded that work
+    and started again from a much smaller profile list. Keeping the query
+    handoff makes the pack and the final report search the same market.
+    """
+    if pack is None:
+        return []
+    queries = (pack.get("queries") if isinstance(pack, dict)
+               else getattr(pack, "queries", ())) or ()
+    out: list = []
+    for query in queries:
+        lane = (query.get("lane") if isinstance(query, dict)
+                else getattr(query, "lane", ""))
+        if lane != "L1_notice":
+            continue
+        body = (query.get("body") if isinstance(query, dict)
+                else getattr(query, "body", {})) or {}
+        out.extend(body.get("capability_terms") or ())
+    return [_clean(term) for term in out if _clean(term)]
+
+
+def _profile_boundaries(profile: dict) -> tuple[list, list]:
+    naics = [str(code) for code in (profile.get("naics_boundary") or [])
+             if _clean(code)]
+    codes = profile.get("code_universe") or {}
+    psc = [str(code) for code in (codes.get("psc") or []) if _clean(code)]
+    return naics, psc
+
+
+def _load_evidence_pack_v2(slug: str) -> dict:
+    """Load the optional graph-contract sidecar without changing stores.
+
+    Iterations 1 and 2 deliberately avoid a database migration.  The v2
+    evidence pack is therefore a press-time sidecar: when it is absent the
+    existing projection is unchanged; when present its qualified requirement
+    families and target provenance can be consumed directly.
+    """
+    if not slug:
+        return {}
+    path = (Path(__file__).resolve().parents[2] / "data" / "state" /
+            "candidate_review_v1" / slug /
+            f"{slug}.evidence_pack.v2.json")
+    if not path.exists():
+        return {}
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return payload if payload.get("schema_version") == "evidence-pack-v2" else {}
+
+
+def _v2_opportunity_value(row: dict) -> tuple:
+    """Return the source-published value without inventing a spend claim."""
+    literal = _clean(row.get("published_value"))
+    if not literal:
+        return (None, "Value not published", research_next(
+            missing=("official value",),
+            action="Official value not published",
+            demand_kind=DEMAND_OPPORTUNITY_VALUE))
+    return (ExactMoney(
+        amount=Decimal("0"), basis="as published",
+        population="one qualified opportunity record",
+        source_literal=literal), "as published", complete("published value"))
+
+
+def _v2_opportunity(row: dict, targets: tuple) -> Opportunity:
+    """Project one qualified V2 record into the renderer contract.
+
+    The graph contract owns membership.  This adapter only translates its
+    already-classified facts into the established Opportunity dataclass; it
+    does not re-screen or re-rank the record.
+    """
+    identifier = _clean(row.get("record_id") or row.get("notice_id"))
+    evidence_class = _clean(row.get("evidence_class"))
+    source_kind = (FORECAST if evidence_class == "forecast" else NOTICE)
+    reference = EvidenceReference(
+        source_id=identifier, source_kind=source_kind,
+        source_url=_clean(row.get("source_url")),
+        claim_roles=(CLAIM_OPPORTUNITY,),
+        label=_clean(row.get("title")))
+    value, value_note, value_coverage = _v2_opportunity_value(row)
+    instrument = _clean(row.get("instrument"))
+    instrument_norm = instrument.casefold()
+    commercial_route = _clean(row.get("commercial_route"))
+    if source_kind == FORECAST:
+        motion = SHAPE
+        action = "Shape the requirement before it becomes a solicitation."
+    elif any(term in instrument_norm for term in _SHAPING_TYPES):
+        motion = SHAPE
+        action = "Respond while the requirement is still being shaped."
+    elif any(term in instrument_norm for term in _ACTIVE_TYPES):
+        motion = PRIME if commercial_route == "direct" else TEAM
+        action = "A response is required by the published date."
+    else:
+        motion = STATUS_CHECK
+        action = "Confirm the current procurement status in the source record."
+    access_route = {
+        "direct": "Bid directly.",
+        "named_partner_teaming": "Use the named eligible teaming route.",
+        "restricted_route_needed": "Confirm an eligible route before pursuit.",
+    }.get(commercial_route, _clean(row.get("access_rule")))
+    contacts = tuple({
+        "name": _clean(target.get("name")),
+        "email": _clean(target.get("email")),
+        "phone": _clean(target.get("phone")),
+        "title": _clean(target.get("title") or target.get("role")),
+        "source_class": _clean(target.get("source_kind")),
+        "source": _clean(target.get("provenance")),
+    } for target in targets
+        if target.get("source_kind") == "published_contact"
+        and (_clean(target.get("name")) or _clean(target.get("email"))
+             or _clean(target.get("phone"))))
+    response_due = _clean(row.get("response_due"))
+    fit = _clean((row.get("technical_fit") or {}).get("basis"))
+    return Opportunity(
+        key=opportunity_key(source_kind, identifier),
+        identifier=identifier, source_kind=source_kind,
+        title=_clean(row.get("title")), agency=_clean(row.get("agency")),
+        office=_clean(row.get("office")), opportunity_type=instrument,
+        value=value, value_note=value_note,
+        response_date=response_due[:10], fit=fit, motion=motion,
+        action=action, access_route=access_route, contacts=contacts,
+        linked_targets=targets, evidence=(reference,),
+        coverage=value_coverage)
+
+
+def attach_v2_targets(opportunities: tuple, payload: dict) -> tuple:
+    """Make the V2 qualified set authoritative and attach its targets.
+
+    When the sidecar is present, its ordered qualified records define the
+    opportunity population.  Existing projection rows are reused where ids
+    match; missing qualified rows are constructed; legacy rows absent from V2
+    are removed.  This makes opportunity removal cascade to targets and keeps
+    published contacts, approved enrichments, and enrichment candidates
+    distinct in the attached provenance.
+    """
+    if not payload:
+        return tuple(opportunities)
+    qualified = payload.get("qualified_opportunity_records") or []
+    existing = {_clean(row.identifier): row for row in opportunities}
+    groups = payload.get("target_groups") or {}
+    attached = []
+    for row in qualified:
+        identifier = _clean(row.get("record_id") or row.get("notice_id"))
+        if not identifier:
+            continue
+        family = _clean(row.get("requirement_family"))
+        targets = tuple(dict(target) for target in (groups.get(family) or [])
+                        if _clean(target.get("opportunity_record_id")) in {
+                            "", identifier})
+        opportunity = existing.get(identifier)
+        if opportunity is None:
+            opportunity = _v2_opportunity(row, targets)
+        else:
+            published_contacts = tuple({
+                "name": _clean(target.get("name")),
+                "email": _clean(target.get("email")),
+                "phone": _clean(target.get("phone")),
+                "title": _clean(target.get("title") or target.get("role")),
+                "source_class": _clean(target.get("source_kind")),
+                "source": _clean(target.get("provenance")),
+            } for target in targets
+                if target.get("source_kind") == "published_contact"
+                and (_clean(target.get("name")) or
+                     _clean(target.get("email")) or
+                     _clean(target.get("phone"))))
+            opportunity = replace(
+                opportunity, linked_targets=targets,
+                contacts=(published_contacts or opportunity.contacts))
+        attached.append(opportunity)
+    return tuple(attached)
+
+
+def capture_inputs(*, profile: dict, slug: str = "", pack: Any = None) -> dict:
     """Every press-time store read, performed ONCE and returned as data.
 
     The projection consuming this is pure, so a press that saves this
     mapping beside the pack can be replayed byte for byte after the notice
     store has ingested new days and the targets store has been enriched.
     """
-    from agents.golden_press import targets_store
+    from tools.intelligence_graph.adapter import load_target_observations
 
     contract_terms, _coverage = _contract_terms(slug)
-    terms = list(contract_terms) or _exact_terms(profile)
+    terms = sorted(set(list(contract_terms) + _exact_terms(profile)
+                       + _pack_notice_terms(pack)), key=str.casefold)
+    naics_boundary, psc_boundary = _profile_boundaries(profile)
     candidates: dict = {}
     try:
         from tools.notice_store import connect as _connect
         conn = _connect()
         try:
-            candidates = fetch_store_candidates(conn, exact_terms=terms)
+            candidates = fetch_store_candidates(
+                conn, exact_terms=terms, naics_boundary=naics_boundary,
+                psc_boundary=psc_boundary)
         finally:
             conn.close()
     except Exception:                                     # noqa: BLE001
         candidates = {}
     from agents.golden_press.rival_footprint import load_cached
     return {"store_candidates": candidates,
-            "targets_payload": targets_store.load(slug),
-            "rival_footprint": load_cached(slug) if slug else {}}
+            "store_search_terms": terms,
+            "store_naics_boundary": naics_boundary,
+            "store_psc_boundary": psc_boundary,
+            "store_excluded_terms": list(
+                (profile.get("capability_terms") or {}).get("excluded") or []),
+            "targets_payload": load_target_observations(slug),
+            "rival_footprint": load_cached(slug) if slug else {},
+            "evidence_pack_v2": _load_evidence_pack_v2(slug)}
 
 
 def build_market_map(pack: Any, *, profile: dict, slug: str = "",
@@ -1266,7 +1475,7 @@ def build_market_map(pack: Any, *, profile: dict, slug: str = "",
     # has one view of the world and the sidecar carries all of it.
     captured: dict = {}
     if inputs is _LIVE or not isinstance(inputs, dict):
-        captured = capture_inputs(profile=profile, slug=slug)
+        captured = capture_inputs(profile=profile, slug=slug, pack=pack)
     else:
         captured = inputs
     measured_rivals = captured.get("rival_footprint")
@@ -1290,8 +1499,11 @@ def build_market_map(pack: Any, *, profile: dict, slug: str = "",
     # rejected", never silently thins the set.
     _contract = _coverage_contract(slug)
     rejected_rows: list = []
-    opportunities = _opportunities(pack, posture, contract=_contract,
-                                   rejected_out=rejected_rows)
+    profile_exclusions = tuple(
+        (profile.get("capability_terms") or {}).get("excluded") or ())
+    opportunities = _opportunities(
+        pack, posture, contract=_contract, rejected_out=rejected_rows,
+        excluded_terms=profile_exclusions)
     pack_kept = list(opportunities)
     # THE STORE LANE. The pack's L1 slice is capped and was selected before
     # the frame was widened, so it carries stale picks. The store holds the
@@ -1299,7 +1511,8 @@ def build_market_map(pack: Any, *, profile: dict, slug: str = "",
     try:
         extra = store_opportunities(
             captured.get("store_candidates") or {}, slug=slug, as_of=as_of,
-            rejected_out=rejected_rows)
+            rejected_out=rejected_rows,
+            excluded_terms=captured.get("store_excluded_terms") or ())
         have = {o.key for o in opportunities}
         opportunities = opportunities + tuple(
             o for o in extra if o.key not in have)
@@ -1430,6 +1643,8 @@ def build_market_map(pack: Any, *, profile: dict, slug: str = "",
                 _clean(getattr(opp, "title", "")).casefold())
 
     opportunities = tuple(sorted(opportunities, key=_opp_rank))
+    opportunities = attach_v2_targets(
+        opportunities, captured.get("evidence_pack_v2") or {})
     routes = _teaming(pack, profile, opportunities)
     contacts = _contacts(pack, slug or _norm(company.client_name),
                          opportunities, routes,
@@ -1526,7 +1741,9 @@ _FAMILY_STOP = {"the", "of", "and", "for", "a", "an", "to", "services",
                 "updated", "revision", "revised", "repost", "reposted"}
 
 
-def fetch_store_candidates(conn, *, exact_terms: Any) -> dict:
+def fetch_store_candidates(conn, *, exact_terms: Any,
+                           naics_boundary: Any = (),
+                           psc_boundary: Any = ()) -> dict:
     """The ONE store read, captured as plain rows keyed by matched term.
 
     Everything downstream of this is pure, which is what lets a press
@@ -1535,12 +1752,51 @@ def fetch_store_candidates(conn, *, exact_terms: Any) -> dict:
     not change factual output, and a render-time SQL query is exactly how
     it would.
     """
-    shaping = ("Sources Sought", "Request for Information", "Special Notice",
-               "Presolicitation")
+    shaping = ("Sources Sought", "Request for Information", "RFI",
+               "Special Notice", "Presolicitation", "Solicitation",
+               "Combined Synopsis/Solicitation", "Request for Proposal",
+               "Request for Quote")
     clause = " OR ".join("notice_type LIKE ?" for _ in shaping)
+    terms = sorted({_clean(t).casefold() for t in (exact_terms or [])
+                    if len(_clean(t)) >= 4})
     out: dict = {}
-    for term in sorted({_clean(t).casefold() for t in (exact_terms or [])
-                        if len(_clean(t)) >= 6}):
+    naics = [str(code) for code in (naics_boundary or ()) if _clean(code)]
+    psc = [str(code) for code in (psc_boundary or ()) if _clean(code)]
+
+    # A client boundary turns the store into a small, relevant universe. In
+    # that universe we can match government title wording order-free, so
+    # "translation and interpretation" finds "interpretation and
+    # translation". Description matches remain in the broader L1 analyst
+    # lane. A final client opportunity must still name the capability in its
+    # subject line, which prevents OASIS boilerplate from becoming a lead.
+    if naics or psc:
+        boundary_parts, boundary_params = [], []
+        for code in naics:
+            boundary_parts.append("naics LIKE ?")
+            boundary_params.append(f"{code}%")
+        for code in psc:
+            boundary_parts.append("psc LIKE ?")
+            boundary_params.append(f"{code}%")
+        boundary = " OR ".join(boundary_parts)
+        rows = conn.execute(
+            f"SELECT notice_id, title, notice_type, sol_number, deadline, "
+            f"posted, naics, set_aside, "
+            f"poc_name, poc_email, poc_phone, poc_title, "
+            f"poc_secondary_name, poc_secondary_email, poc_secondary_phone, "
+            f"poc_secondary_title, description_prefix, "
+            f"COALESCE(subtier, agency) org, office, url "
+            f"FROM notices WHERE ({boundary}) AND ({clause}) "
+            f"ORDER BY posted DESC",
+            (*boundary_params, *(f"%{kind}%" for kind in shaping))).fetchall()
+        from agents.golden_press.coverage_families import phrase_matches
+        for row in rows:
+            text = _clean(row["title"])
+            for term in terms:
+                if phrase_matches(term, text):
+                    out.setdefault(term, []).append(dict(row))
+        return out
+
+    for term in terms:
         rows = conn.execute(
             f"SELECT notice_id, title, notice_type, sol_number, deadline, "
             f"posted, naics, set_aside, "
@@ -1558,7 +1814,8 @@ def fetch_store_candidates(conn, *, exact_terms: Any) -> dict:
 
 def store_opportunities(source, *, exact_terms: Any = (), limit: int = 40,
                         slug: str = "", as_of: str = "",
-                        rejected_out: Any = None) -> tuple:
+                        rejected_out: Any = None,
+                        excluded_terms: Any = ()) -> tuple:
     """Live shaping records from the local notice store. Zero network.
 
     TWO RULES LEARNED BY MEASURING, both of which the pack lane lacked.
@@ -1579,6 +1836,7 @@ def store_opportunities(source, *, exact_terms: Any = (), limit: int = 40,
     #   banned in output, and neither is the government's meaning: the dash
     #   is a separator. It becomes a colon, and the artefact stays clean.
     from agents.golden_press.coverage_families import best_match, load
+    from agents.golden_press.coverage_families import phrase_matches
     contract = load(slug) if slug else {}
     if hasattr(source, "execute"):
         candidates = fetch_store_candidates(source, exact_terms=exact_terms)
@@ -1590,16 +1848,36 @@ def store_opportunities(source, *, exact_terms: Any = (), limit: int = 40,
             key = _clean(row["sol_number"]) or _clean(row["title"])
             if not key:
                 continue
+            title = _title(row["title"])
+            description = _clean(row.get("description_prefix")
+                                 if isinstance(row, dict)
+                                 else row["description_prefix"])
+            exclusion = next((phrase for phrase in excluded_terms
+                              if phrase_matches(_clean(phrase),
+                                                f"{title} {description}")), "")
+            if exclusion:
+                if rejected_out is not None:
+                    rejected_out.append({
+                        "identifier": key, "title": title[:100],
+                        "kind": NOTICE,
+                        "reason": f"excluded client term: {_clean(exclusion)}",
+                        "reason_class": "rejected_client_exclusion"})
+                continue
+            deadline = _clean(row["deadline"])[:10]
+            if deadline and _clean(as_of) and deadline < _clean(as_of)[:10]:
+                if rejected_out is not None:
+                    rejected_out.append({
+                        "identifier": key, "title": title[:100],
+                        "kind": NOTICE, "reason": "response date passed",
+                        "reason_class": "closed_historic"})
+                continue
             # THE CONTRACT IS THE GATE. A title hit is a candidate, not an
             # opportunity: the positive context gate, the controlled-family
             # triggers and the boilerplate rejections all still have to pass.
             verdict = {}
             if contract:
                 verdict = best_match(
-                    _title(row["title"]), contract,
-                    description=_clean(row.get("description_prefix")
-                                       if isinstance(row, dict)
-                                       else row["description_prefix"]))
+                    title, contract, description=description)
                 if not verdict:
                     # REJECTED IS A FINDING (operator ruling 1): the record
                     # rides the ledger with the reason the gate gave the

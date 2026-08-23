@@ -1,0 +1,62 @@
+{
+  "client_name": "JTG, inc.",
+  "capability_summary": "Language services and training for national security and civilian missions: translation and interpretation, localization of documents, websites and software, language training including less commonly taught languages, e-learning and curriculum development, language proficiency measurement and evaluation, mobile training teams, foreign media and social media intelligence analysis, human language technology and linguistic corpora, and publishing through JTG Press. Operator-supplied summary, 2026-08-19 onboarding directive.",
+  "capability_terms": {
+    "core": [
+      "translation and interpretation",
+      "interpretation and translation",
+      "translation and interpreting",
+      "language training",
+      "linguist support",
+      "Military Language Instructor",
+      "cultural advisor services",
+      "localization",
+      "language proficiency testing",
+      "foreign media monitoring",
+      "social media analysis",
+      "mobile training teams",
+      "human language technology",
+      "linguistic corpora"
+    ],
+    "adjacent": [
+      "open source intelligence",
+      "cultural awareness training",
+      "instructional design",
+      "distance learning"
+    ],
+    "excluded": [
+      "American Sign Language",
+      "audiology",
+      "sign language",
+      "speech language pathology",
+      "speech therapy",
+      "speech-language"
+    ]
+  },
+  "named_competitors_and_incumbents": [
+    "JTG, inc.",
+    "Proficiency1",
+    "JTG Press",
+    "JTG Language Research Center",
+    "SOSi (SOS International)",
+    "Mission Essential",
+    "Valiant Integrated Services",
+    "WorldWide Language Resources",
+    "Global Linguist Solutions",
+    "Alutiiq"
+  ],
+  "mission_components": [
+    "U.S. Army (TRADOC and Defense Language Institute Foreign Language Center / DLIFLC)",
+    "Department of State",
+    "DHS / FEMA",
+    "Department of Justice (Offices, Boards and Divisions and FBI)",
+    "Intelligence Community and DoD counterterrorism/CVE buyers"
+  ],
+  "naics_boundary": [
+    "541930",
+    "611630",
+    "611430",
+    "611710",
+    "541990"
+  ]
+}

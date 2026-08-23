@@ -116,7 +116,11 @@ def scope_designator(scope: Optional[dict]) -> Optional[str]:
 
 
 def _artifact_slug(name: str) -> str:
-    return "".join(c if c.isalnum() else "_" for c in (name or "")).strip("_").lower()
+    # Aligned with tools.capability._slug (one slug per identity; the
+    # per-character variant minted jtg__inc while the sweep looked for
+    # jtg_inc, measured 2026-08-19). Collapse runs to one underscore.
+    from tools.slug import client_slug
+    return client_slug(name)
 
 
 def canonical_client_name(client_ref: str,
@@ -199,11 +203,27 @@ def sweep_artifact_path(client_name: str,
     artifact, so a scoped run can never quietly build from the wrong universe
     (and vice versa)."""
     slug = _artifact_slug(client_name)
+    # DIVERGENT SLUG FAMILIES (2026-08-19): artifacts written before the
+    # slug alignment carry the per-character shape ("jtg__inc"). The
+    # canonical name wins; a missing canonical falls back to an EXISTING
+    # legacy-named artifact so history stays findable. New artifacts are
+    # always minted canonical.
+    from tools.slug import legacy_client_slug
+    legacy = legacy_client_slug(client_name)
     root = os.path.join(os.path.dirname(review_dir or REVIEW_DIR), "cleaned")
     d = gate_designator(client_name, review_dir, workstation_id)
     if d is None:
-        return os.path.join(root, f"searches_{slug}.json")
+        canonical = os.path.join(root, f"searches_{slug}.json")
+        legacy_path = os.path.join(root, f"searches_{legacy}.json")
+        if (legacy != slug and not os.path.exists(canonical)
+                and os.path.exists(legacy_path)):
+            return legacy_path
+        return canonical
     scoped = os.path.join(root, f"searches_{slug}.{d}.json")
+    legacy_scoped = os.path.join(root, f"searches_{legacy}.{d}.json")
+    if (legacy != slug and not os.path.exists(scoped)
+            and os.path.exists(legacy_scoped)):
+        return legacy_scoped
     if not os.path.exists(scoped):
         raise FileNotFoundError(
             f"gate scope designates '{d}' but {scoped} does not exist; run the "
@@ -433,7 +453,9 @@ class RevisionError(ValueError):
 
 
 def _slug(name: str) -> str:
-    return "".join(c if c.isalnum() else "_" for c in name).strip("_").lower()
+    # Same alignment as _artifact_slug: runs collapse to one underscore.
+    from tools.slug import client_slug
+    return client_slug(name)
 
 
 def _workstation_id_value(workstation_id: Optional[str]) -> Optional[str]:
@@ -452,11 +474,23 @@ def _workstation_id_value(workstation_id: Optional[str]) -> Optional[str]:
 
 def _path(client_name: str, workstation_id: Optional[str] = None,
           review_dir: Optional[str] = None) -> str:
-    """Canonical review-packet path for legacy or one exact workstation."""
+    """Canonical review-packet path for legacy or one exact workstation.
+
+    DIVERGENT SLUG FAMILIES (2026-08-19): packets written before the slug
+    alignment carry the per-character shape. Canonical wins; a missing
+    canonical falls back to an EXISTING legacy-named packet so history
+    stays readable. New packets always mint canonical."""
     root = review_dir or REVIEW_DIR
     wid = _workstation_id_value(workstation_id)
     suffix = f".{wid}" if wid is not None else ""
-    return os.path.join(root, f"{_slug(client_name)}{suffix}.review.json")
+    canonical = os.path.join(root, f"{_slug(client_name)}{suffix}.review.json")
+    from tools.slug import legacy_client_slug
+    legacy_slug = legacy_client_slug(client_name)
+    if legacy_slug != _slug(client_name) and not os.path.exists(canonical):
+        legacy = os.path.join(root, f"{legacy_slug}{suffix}.review.json")
+        if os.path.exists(legacy):
+            return legacy
+    return canonical
 
 
 def _resolved_packet_path(client_name: str,

@@ -89,6 +89,19 @@ def test_client_assets_dir_wins_over_marks_cache(tmp_path, monkeypatch):
     assert ra.client_logo("Testco").startswith("data:image/png;base64,")
 
 
+def test_client_mark_cache_uses_canonical_slug_without_review_roster(
+        tmp_path, monkeypatch):
+    marks = tmp_path / "marks"
+    marks.mkdir()
+    (marks / "jtg_inc.png").write_bytes(_PNG)
+    monkeypatch.setenv("LILA_CLIENT_MARKS_DIR", str(marks))
+    monkeypatch.setattr(ra._bm, "recognize_client_key", lambda _name: None)
+    monkeypatch.setattr(ra, "client_assets_dir", lambda _name: tmp_path / "none")
+    _clear_caches()
+
+    assert ra.client_logo("JTG, inc.").startswith("data:image/png;base64,")
+
+
 def test_partner_logo_scopes_to_client_assets_then_falls_back(tmp_path, monkeypatch):
     partners = tmp_path / "clients" / "testco" / "assets" / "partners"
     partners.mkdir(parents=True)

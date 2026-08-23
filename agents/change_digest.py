@@ -60,9 +60,8 @@ class ChangeDigestError(ValueError):
 
 
 def _slug(value: str) -> str:
-    return "".join(
-        character if character.isalnum() else "_" for character in value
-    ).strip("_").lower()
+    from tools.slug import client_slug
+    return client_slug(value)
 
 
 def _digest(value: Any) -> str:

@@ -377,7 +377,7 @@ def press_market_map(
 
     profile = profile or {}
     if inputs is None:
-        inputs = capture_inputs(profile=profile, slug=slug)
+        inputs = capture_inputs(profile=profile, slug=slug, pack=pack)
     elif "rival_footprint" not in inputs:
         # A sidecar captured before the rival lane joined the capture must
         # not silently trigger a live read inside the projection: the

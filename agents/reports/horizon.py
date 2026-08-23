@@ -798,7 +798,8 @@ def refine_horizon(payload: dict, instruction: str, engine=None, *,
 # ── persistence (data/review — gitignored, like every operational artifact) ──
 
 def _slug(name: str) -> str:
-    return "".join(c if c.isalnum() else "_" for c in name).strip("_").lower()
+    from tools.slug import client_slug
+    return client_slug(name)
 
 
 def horizon_path(client_name: str) -> Path:

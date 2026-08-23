@@ -208,7 +208,7 @@ def test_decay_reclassifies_past_windows_and_prices_press_impact(
     keeps, receipt = fr.rescreen_forecasts(frame, store_dir=str(tmp_path),
                                            today=TODAY)
     by_id = {k["source_id"]: k for k in keeps}
-    assert by_id["P1"]["window_state"] == "stated-past"
+    assert by_id["P1"]["window_state"] == "stated_past"
     assert by_id["P1"]["decay_note"] == fr.DECAY_NOTE
     assert by_id["P2"]["window_state"] == "live"        # yyyy-mm stamp
     assert by_id["P3"]["window_state"] == "unstated"
@@ -248,7 +248,7 @@ def test_fy_only_splits_unstated_and_sorts_by_fiscal_year(frame, tmp_path):
     assert by_id["F26"]["window_state"] == "fy_only"
     assert by_id["F26"]["fy"] == 2026
     assert by_id["F27"]["window_state"] == "fy_only"
-    assert by_id["F25"]["window_state"] == "stated-past"
+    assert by_id["F25"]["window_state"] == "stated_past"
     assert by_id["F25"]["decay_note"] == fr.DECAY_NOTE
     assert by_id["FNONE"]["window_state"] == "unstated"
     assert by_id["FJUNK"]["window_state"] == "unstated"

@@ -62,8 +62,8 @@ class AssessLedgerError(ValueError):
 
 
 def _slug(value: str) -> str:
-    return "".join(c if c.isalnum() else "_" for c in (value or "")) \
-        .strip("_").lower()
+    from tools.slug import client_slug
+    return client_slug(value)
 
 
 def _text(value: Any) -> str:

@@ -247,7 +247,8 @@ def score_calendar(rows: list[dict], profile, *, buyer_agencies: set | None = No
 # ── store + orchestration ────────────────────────────────────────────────────
 
 def _slug(name: str) -> str:
-    return "".join(ch if ch.isalnum() else "_" for ch in name).strip("_").lower()
+    from tools.slug import client_slug
+    return client_slug(name)
 
 
 def build_calendar(profile, *, searches: Optional[dict] = None,

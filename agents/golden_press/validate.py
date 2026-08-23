@@ -542,6 +542,13 @@ def check_contract_numbers(content: str, pack: EvidencePack) -> list[Violation]:
     decisions = getattr(pack, "decisions", None)
     if decisions:
         surfaces.append(_json.dumps(decisions, ensure_ascii=False))
+    research = getattr(pack, "research", None)
+    if research:
+        # Entity names are pack-carried text too: 'Proficiency1' is a
+        # client product division, not a minted identifier (JTG press,
+        # 2026-08-19). Same doctrine as the decisions blob.
+        surfaces.append(_json.dumps(research, ensure_ascii=False,
+                                    default=str))
     targeting = getattr(pack, "targeting", None)
     if targeting:
         # Same doctrine as the decisions blob: an id-shaped token the pack
@@ -550,7 +557,12 @@ def check_contract_numbers(content: str, pack: EvidencePack) -> list[Violation]:
         surfaces.append(_json.dumps(targeting, ensure_ascii=False,
                                     default=str))
     for blob in surfaces:
-        for token in set(_ID_TOKEN_RE.findall(blob)):
+        # The detector is uppercase-shaped; a pack-carried mixed-case name
+        # the renderer uppercases ("Proficiency1" -> a heading's
+        # PROFICIENCY1) must still count as pack-carried, so the known side
+        # scans the uppercased blob too (normalize_record_id folds case).
+        for token in set(_ID_TOKEN_RE.findall(blob)
+                         + _ID_TOKEN_RE.findall(blob.upper())):
             if any(ch.isdigit() for ch in token) \
                     and any(ch.isalpha() for ch in token):
                 known.add(normalize_record_id(token))
@@ -1130,7 +1142,7 @@ def check_targeting_band(content: str, pack: EvidencePack) -> list[Violation]:
     """
     from agents.golden_press.contract import (
         band_postures, band_provenance_classes)
-    from agents.golden_press.targets_store import admissible
+    from tools.intelligence_graph.adapter import admissible_target_observations
 
     band = _section(content, "targeting")
     if not band:
@@ -1197,7 +1209,7 @@ def check_targeting_band(content: str, pack: EvidencePack) -> list[Violation]:
 
     # A rendered contact must survive the store's own admission laws, so a
     # renderer that stopped filtering cannot ship an unlabeled identity.
-    kept, _dropped = admissible(
+    kept, _dropped = admissible_target_observations(
         {"contacts": targeting.get("contacts") or []},
         spec_ids=[s.get("spec_id") for s in (targeting.get("specs") or [])])
     if len(body_rows) > len(kept):

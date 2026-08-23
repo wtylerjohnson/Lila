@@ -4636,8 +4636,11 @@ def test_press_sidecar_token_rides_the_board_slug_family():
     runs and must not be conflated."""
     import run_refresh_press as refresh
     from agents.press_snapshot import client_slug
+    # Consolidation (2026-08-19): the shared family is now the canonical
+    # owner shape; the law under test (sidecar token and board artifacts
+    # ride ONE family) is unchanged.
     assert refresh._press_artifact_slug("Booz Allen, Inc.") \
-        == client_slug("Booz Allen, Inc.") == "booz_allen__inc"
+        == client_slug("Booz Allen, Inc.") == "booz_allen_inc"
     assert refresh._slug("Booz Allen, Inc.") == "booz_allen_inc"
 
 

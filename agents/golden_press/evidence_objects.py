@@ -236,6 +236,28 @@ class ExactMoney:
                 return f"${(self.amount / size).quantize(Decimal('0.1'))}{unit}"
         return self.display
 
+    @property
+    def has_receipt(self) -> bool:
+        """Whether a nonzero amount resolves to source evidence.
+
+        A calculated total is receipted only when each nonzero component is
+        receipted. Zero is allowed without a receipt because it may represent
+        a source-published "value not stated" state rather than spend.
+        """
+        if self.amount == Decimal("0"):
+            return True
+        if self.evidence:
+            return True
+        return bool(self.components) and all(
+            money.has_receipt for _, money in self.components)
+
+    def require_receipt(self) -> None:
+        """Reject a nonzero client-facing amount without traceable proof."""
+        if not self.has_receipt:
+            raise EvidenceError(
+                "a nonzero client-facing amount must carry source evidence "
+                "or resolve through receipted components")
+
     def as_dict(self) -> dict:
         return {
             "display": self.display, "compact": self.compact,

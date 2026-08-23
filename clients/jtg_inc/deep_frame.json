@@ -1,0 +1,23 @@
+{
+  "_provenance": "Operator order 2026-08-20 (JTG Market Map upstream rebuild): the ordered sweep vocabulary, expanded through buyer-language variants. Tier 2 terms ride both BM25 and dense; statements ride dense.",
+  "tier2": [
+    "translation and interpretation", "interpretation and translation",
+    "translation and interpreting", "interpreter services",
+    "interpreting services", "language services",
+    "language instructor services", "foreign language instruction",
+    "contract military language instructors",
+    "military language instructor", "DLITE",
+    "localization", "technical translation",
+    "cultural adaptation", "cultural advisor services",
+    "cultural advisory", "language proficiency testing",
+    "language proficiency", "media analysis",
+    "human language technology", "mobile training teams",
+    "linguist support", "linguist services", "translation services",
+    "curriculum development"
+  ],
+  "statements": [
+    "Foreign language translation, interpretation and localization services for federal agencies, including linguist support, language instruction and testing.",
+    "Contract military language instructors, foreign language training, curriculum development, mobile training teams and language proficiency evaluation for defense language programs.",
+    "Foreign media analysis, open source monitoring, cultural advisory services and human language technology supporting intelligence and security missions."
+  ]
+}

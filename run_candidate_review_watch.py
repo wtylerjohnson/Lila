@@ -88,9 +88,21 @@ def _aware_datetime(value: object, *, label: str) -> datetime:
 
 
 def _candidate_client_id(client_name: str) -> str:
-    value = re.sub(r"[^a-z0-9]+", "-", client_name.casefold()).strip("-")
+    """Canonical client id; falls back to an EXISTING legacy hyphen
+    generation dir (pre-consolidation watch shape) so history stays
+    readable. New generations always mint canonical."""
+    from tools.slug import client_slug, legacy_hyphen_client_id
+    value = client_slug(client_name)
     if not value:
         raise ValueError("client identity cannot produce a Candidate Review id")
+    legacy = legacy_hyphen_client_id(client_name)
+    if legacy != value:
+        from agents.candidate_review_v1.persistence import (
+            default_generation_state_root)
+        root = default_generation_state_root()
+        if (not (root / value / "generations").exists()
+                and (root / legacy / "generations").exists()):
+            return legacy
     return value
 
 
@@ -702,6 +714,7 @@ def run_watch_generation(
     replay_config_path: Path | str | None = None,
     replay_source_path: Path | str | None = None,
     live: bool = False,
+    observed_at: datetime | None = None,
 ) -> Path:
     """Build and persist one exact generation; return its receipt path."""
 
@@ -726,6 +739,10 @@ def run_watch_generation(
         client,
         registry_sha256=registry_sha256,
     )
+    if observed_at is not None and not live:
+        raise ValueError("observed_at is only valid for a live watch run")
+    if observed_at is not None and observed_at.utcoffset() is None:
+        raise ValueError("observed_at must be timezone-aware")
     if live:
         # A live run is a NEW observation: its as_of is the collection
         # instant, and the run id carries that instant, so two same-day
@@ -733,9 +750,11 @@ def run_watch_generation(
         # sweep) mint distinct generations instead of colliding with the
         # snapshot-diff basis guard. Offline replay stays sweep-anchored
         # and byte-deterministic exactly as before.
-        from datetime import datetime as _datetime
-        from datetime import timezone as _timezone
-        as_of = _datetime.now(_timezone.utc).replace(microsecond=0)
+        as_of = (
+            observed_at.astimezone(timezone.utc)
+            if observed_at is not None
+            else datetime.now(timezone.utc)
+        ).replace(microsecond=0)
         binding = binding.model_copy(update={
             "run_id": (f"{binding.run_id}-live-"
                        f"{as_of.strftime('%Y%m%dT%H%M%SZ')}")})

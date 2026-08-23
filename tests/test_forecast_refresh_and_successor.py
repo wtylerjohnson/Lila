@@ -177,7 +177,7 @@ def test_watch_subscribes_to_forecast_rows_and_reports_forming(tmp_path):
     # 2026-08-10 and 2026-08-18 both postdate the row's last_seen)
     assert bound["absent_from_successful_pulls"] == 2
     assert "two consecutive successful pulls" in bound["fire_signal"]
-    assert bound["window_state"] == "stated-past"
+    assert bound["window_state"] == "stated_past"
 
 
 def test_fire_signal_debounce_needs_two_pulls_and_a_healthy_ledger(

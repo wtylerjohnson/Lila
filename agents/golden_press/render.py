@@ -1270,6 +1270,16 @@ def _render_forward(idx: int, s: dict, prose: dict) -> str:
         deadline = str(r.response_deadline or "")[:10]
         (closed_notices if deadline and press_date and deadline < press_date
          else open_notices).append(r)
+    # Held records (no client-paper adjacency) obey the same L8 decay law:
+    # an expired window may render only inside the closed-windows strip.
+    held_all = [r for r in s.get("notices") or [] if r not in notices]
+    held_live = []
+    for r in held_all:
+        deadline = str(r.response_deadline or "")[:10]
+        if deadline and press_date and deadline < press_date:
+            closed_notices.append(r)
+        else:
+            held_live.append(r)
     for i, r in enumerate(open_notices[:8], start=1):
         days = ""
         deadline = str(r.response_deadline or "")[:10]
@@ -1303,6 +1313,20 @@ def _render_forward(idx: int, s: dict, prose: dict) -> str:
             'No published forecast or shapeable notice sits in an agency '
             'where the cited evidence shows client paper. The forecast '
             'screening receipt is stated in Show the work.</div></div>')
+    held = held_live
+    if held:
+        # LANE REPRESENTATION at zero adjacency (JTG press, 2026-08-19):
+        # pack-carried L1 records with no client-paper adjacency render as
+        # a links-only strip with their disposition stated. Evidence is
+        # never silently dropped, and no claim attaches (the events band's
+        # monitor-strip precedent).
+        held_rows = " · ".join(
+            _anchor(r.url, esc(r.record_id)) for r in held[:8])
+        out.append('<details class="agency t-hist"><summary class="tier">'
+                   f'SCREENED NOTICES HELD AS EVIDENCE · {len(held)} '
+                   'record(s) with no client-paper adjacency · links only'
+                   '</summary><div class="gaps"><div class="g-list">'
+                   + held_rows + '</div></div></details>')
     out.append("</section>")
     return "".join(out)
 
@@ -2121,10 +2145,10 @@ def _render_targeting(idx: int, s: dict, prose: dict) -> str:
                       f"never silent.") + '</div></div>')
 
     # ---- the enrichment layer, read from the store, never fetched here ---- #
-    from agents.golden_press.targets_store import (
-        admissible, field_provenance)
+    from tools.intelligence_graph.adapter import (
+        admissible_target_observations, target_field_provenance)
 
-    contacts, dropped = admissible(
+    contacts, dropped = admissible_target_observations(
         {"contacts": targeting.get("contacts") or []},
         spec_ids=[spec["spec_id"] for spec in specs])
     enrichment = targeting.get("enrichment_receipt")
@@ -2135,7 +2159,7 @@ def _render_targeting(idx: int, s: dict, prose: dict) -> str:
         rows = []
         withheld_numbers = 0
         for contact in contacts:
-            prov = field_provenance(contact, "name")
+            prov = target_field_provenance(contact, "name")
             # TASK 5 render policy, fail closed. org_main gets its OWN
             # labeled column and may never sit in the dial column; mobile
             # and unclassified are stored and withheld behind the switch.
@@ -2482,10 +2506,41 @@ def render_events(idx: int, s: dict, prose: dict) -> str:
            if monitor else "")
         + ". Events are a separate research surface and do not count "
           "toward evidence sufficiency.")
-    return (_band_open(idx, "events", section("events").heading,
-                       section("events").meta,
-                       _prose(prose, "band_events", fallback_lede))
-            + "".join(body) + "</section>")
+    band_html = (_band_open(idx, "events", section("events").heading,
+                            section("events").meta,
+                            _prose(prose, "band_events", fallback_lede))
+                 + "".join(body) + "</section>")
+    return _link_event_names(band_html, s.get("events") or [])
+
+
+def _link_event_names(band_html: str, events: Iterable[Any]) -> str:
+    """Linkage law, extended to event names (JTG press, 2026-08-19): a
+    composed lede may name a verified event the deterministic rows did not
+    feature; an un-anchored occurrence of a verified name is wrapped in its
+    verified URL so the citation travels with the claim."""
+    for e in events:
+        get = e.get if isinstance(e, dict) else (
+            lambda k, d=None: getattr(e, k, d))
+        name, url = str(get("name") or ""), get("url")
+        if not name or not url or not get("url_verified"):
+            continue
+        needle = esc(name)
+        if needle not in band_html:
+            continue
+        spans = [(m.start(), m.end()) for m in
+                 re.finditer(r"<a\b.*?</a>|<[^>]+>", band_html, re.S)]
+        out, last, changed = [], 0, False
+        for m in re.finditer(re.escape(needle), band_html):
+            if any(a <= m.start() < b for a, b in spans):
+                continue
+            out.append(band_html[last:m.start()])
+            out.append(_anchor(url, needle))
+            last = m.end()
+            changed = True
+        if changed:
+            out.append(band_html[last:])
+            band_html = "".join(out)
+    return band_html
 
 
 def link_loose_identifiers(content: str, records: Iterable[Any]) -> str:

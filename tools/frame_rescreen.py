@@ -459,7 +459,7 @@ def classify_window(keep: dict, today: date) -> None:
             if date(fy, 9, 30).toordinal() >= today.toordinal():
                 keep["window_state"] = "fy_only"
             else:
-                keep["window_state"] = "stated-past"
+                keep["window_state"] = "stated_past"
                 keep["decay_note"] = DECAY_NOTE
             return
         keep["window_state"] = "unstated"
@@ -469,7 +469,7 @@ def classify_window(keep: dict, today: date) -> None:
     if window_ordinal(stated) >= today.toordinal():
         keep["window_state"] = "live"
     else:
-        keep["window_state"] = "stated-past"
+        keep["window_state"] = "stated_past"
         keep["decay_note"] = DECAY_NOTE
 
 
@@ -585,7 +585,7 @@ def rescreen_forecasts(frame: dict, *, store_dir: Optional[str] = None,
     receipt["kept_window_unstated"] = sum(
         1 for k in keeps if k["window_state"] == "unstated")
     receipt["kept_stated_past"] = sum(
-        1 for k in keeps if k["window_state"] == "stated-past")
+        1 for k in keeps if k["window_state"] == "stated_past")
     # Press impact (operator review item 3): the number that changes the
     # deliverable is the live-window keep count, not records-in-store.
     receipt["press_impact_live_window_keeps"] = receipt["kept_live_window"]
@@ -593,7 +593,7 @@ def rescreen_forecasts(frame: dict, *, store_dir: Optional[str] = None,
     on_disk = {f[:-5].casefold() for f in files}
     receipt["storeless_adapters"] = sorted(registered - on_disk)
     receipt["adapterless_stores"] = sorted(on_disk - registered)
-    _STATE_RANK = {"live": 0, "fy_only": 1, "unstated": 2, "stated-past": 3}
+    _STATE_RANK = {"live": 0, "fy_only": 1, "unstated": 2, "stated_past": 3}
     keeps.sort(key=lambda k: (
         _STATE_RANK.get(k.get("window_state"), 4),
         k.get("fy") or 9999,

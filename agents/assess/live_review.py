@@ -16,8 +16,8 @@ from typing import Optional
 
 
 def _slug(value: str) -> str:
-    return "".join(c if c.isalnum() else "_" for c in (value or "")) \
-        .strip("_").lower()
+    from tools.slug import client_slug
+    return client_slug(value)
 
 
 def review_path(client_name: str, *, review_dir: Optional[str] = None) -> Path:

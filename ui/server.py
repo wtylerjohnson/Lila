@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import base64
 import glob
+import re
 import hashlib
 import hmac
 import html as html_lib
@@ -128,7 +129,17 @@ def _rel(path: str) -> str:
 
 
 def _slugify(name: str) -> str:
-    return "".join(c if c.isalnum() else "_" for c in name).strip("_").lower()
+    """One slug per client identity, aligned with tools.capability._slug.
+
+    Collapses every run of non-alphanumerics to ONE underscore. The
+    per-character version diverged on names with consecutive separators
+    ("JTG, inc." minted clients/jtg__inc while the sweep looked for
+    clients/jtg_inc, measured 2026-08-19); no pre-existing client name
+    carries a consecutive-separator run, so alignment changes no existing
+    slug.
+    """
+    from tools.slug import client_slug
+    return client_slug(name)
 
 
 def _workstation_catalog_for_slug(slug: str):

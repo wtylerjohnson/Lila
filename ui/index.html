@@ -948,7 +948,7 @@ function renderClientSidebar() {
   list.innerHTML = `
     <div style="padding:0 20px 12px"><button class="btn back sm" style="width:100%" onclick="renderHome()">← All clients</button></div>
     <div class="ccard sel" style="cursor:default">
-      <div class="nm" style="display:flex;align-items:center;gap:8px">${clientLogoImg(d.slug, d.logo_domain, 'clogo')}${esc(d.client_name)}</div>
+      <div class="nm" style="display:flex;align-items:center;gap:8px">${clientLogoImg(d.slug, d.logo_domain, 'clogo-row')}${esc(d.client_name)}</div>
       <div class="need">${esc(needLabel)}</div>
     </div>
     <h3 style="margin-top:14px">Pursuits</h3>

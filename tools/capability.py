@@ -46,7 +46,8 @@ CLIENTS_DIR = os.path.join(ROOT, "clients")
 
 
 def _slug(name: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "_", (name or "").lower()).strip("_")
+    from tools.slug import client_slug
+    return client_slug(name)
 
 
 class CapabilityTerms(BaseModel):

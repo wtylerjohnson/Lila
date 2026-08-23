@@ -1525,7 +1525,8 @@ def main() -> int:
         from tools.api.forecasts import (
             bucket_forecasts, diff_snapshots, forecast_sources, gaps_for,
             load_latest_snapshot, record_payload, record_pull,
-            save_snapshot, screen_line, store_upsert,
+            save_snapshot, screen_line, source_is_offline_safe,
+            store_upsert, strict_offline,
         )
         from tools.api.provenance import make_provenance_envelope
         from tools.api.source_catalog import source_spec
@@ -1556,6 +1557,22 @@ def main() -> int:
                     "source": src.name, "status": "not-run",
                 }
                 source_attempts.append(attempt)
+                source_rows.append(_forecast_source_summary(
+                    src.name,
+                    [],
+                    [],
+                    {"mode": "not_run", "complete": False},
+                    contract_origins=contract_origins,
+                    status="not-run",
+                ))
+                continue
+            if strict_offline() and not source_is_offline_safe(src):
+                off_labels.append(src.name)
+                source_attempts.append({
+                    "source": src.name,
+                    "status": "not-run",
+                    "note": "strict offline certification",
+                })
                 source_rows.append(_forecast_source_summary(
                     src.name,
                     [],

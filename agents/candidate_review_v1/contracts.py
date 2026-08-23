@@ -106,7 +106,8 @@ def validate_event_watch_freshness(
 
 
 def _client_slug(value: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "-", value.casefold()).strip("-")
+    from tools.slug import client_slug
+    return client_slug(value)
 
 
 FORBIDDEN_TEXT_PATTERNS = (
@@ -157,7 +158,12 @@ class ArtifactBinding(_FrozenContract):
     def _binding_is_canonical(self) -> "ArtifactBinding":
         if _CLIENT_ID_RE.fullmatch(self.client_id) is None:
             raise ValueError("client_id must be a canonical lowercase slug")
-        if _client_slug(self.client_name) != self.client_id:
+        from tools.slug import legacy_hyphen_client_id
+        if self.client_id not in (_client_slug(self.client_name),
+                                  legacy_hyphen_client_id(self.client_name)):
+            # Canonical binds new artifacts; the legacy hyphen id stays
+            # valid so pre-consolidation generations replay (read-only
+            # tolerance, never a new mint).
             raise ValueError("client name does not match canonical client_id")
         for label, value in (
             ("scope_sha256", self.scope_sha256),

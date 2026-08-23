@@ -14,6 +14,7 @@ import hashlib
 import json
 import os
 import tempfile
+import re
 import threading
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -164,7 +165,10 @@ _CREATION_LOCK = threading.RLock()
 
 
 def _slug(name: str) -> str:
-    return "".join(c if c.isalnum() else "_" for c in (name or "")).strip("_").lower()
+    # Aligned with tools.capability._slug: separator runs collapse to one
+    # underscore (the intake-to-sweep identity seam, measured 2026-08-19).
+    from tools.slug import client_slug
+    return client_slug(name)
 
 
 def _exact_agency(raw: Any) -> dict:

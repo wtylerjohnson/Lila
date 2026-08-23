@@ -1,0 +1,81 @@
+{
+  "client": "jtg_inc",
+  "as_of": "2026-08-20",
+  "source": "approved JTG capability taxonomy and operator facts",
+  "coverage_definition": "Every retained notice must name a JTG language-service, language-training, localization, cultural-advisory, media-analysis, or human-language-technology capability as the requirement subject.",
+  "normalized_federally_plausible_families": 10,
+  "active_research_families": 10,
+  "controlled_research_families": 0,
+  "disposition_coverage_percent": 100,
+  "title_required": true,
+  "positive_context_gate": [
+    "translation", "interpretation", "interpreting", "interpreter",
+    "language", "linguist", "localization", "cultural advisor",
+    "proficiency", "foreign media", "social media analysis",
+    "human language", "linguistic corpora"
+  ],
+  "families": [
+    {
+      "family": "Translation and interpretation",
+      "tier": "core", "status": "active",
+      "phrases": [
+        "translation and interpretation", "translation and interpreting",
+        "interpreter services", "interpreting services", "language services"
+      ],
+      "gov_forms": [
+        {"phrase": "language interpretation and translation enterprise", "witnessed_on": "DLITEIII"},
+        {"phrase": "translation and interpreting service", "witnessed_on": "N0017424SN0031"}
+      ]
+    },
+    {
+      "family": "Language instruction and training",
+      "tier": "core", "status": "active",
+      "phrases": [
+        "language training", "language instructor services",
+        "foreign language course instructors", "military language instructor",
+        "contract military language instructor"
+      ],
+      "gov_forms": [
+        {"phrase": "language instructor services", "witnessed_on": "19PK3326Q7081"}
+      ]
+    },
+    {
+      "family": "Linguist support", "tier": "core", "status": "active",
+      "phrases": ["linguist support", "linguistic support"]
+    },
+    {
+      "family": "Localization and cultural adaptation",
+      "tier": "core", "status": "active",
+      "phrases": ["localization", "e-learning localization", "technical translation", "cultural adaptation"]
+    },
+    {
+      "family": "Cultural advisory services",
+      "tier": "core", "status": "active",
+      "phrases": ["cultural advisor services", "cultural advisors"],
+      "gov_forms": [
+        {"phrase": "host nation cultural advisors", "witnessed_on": "FA570626R0002"}
+      ]
+    },
+    {
+      "family": "Language proficiency measurement",
+      "tier": "core", "status": "active",
+      "phrases": ["language proficiency testing", "language proficiency measurement"]
+    },
+    {
+      "family": "Foreign media analysis", "tier": "core", "status": "active",
+      "phrases": ["foreign media monitoring", "foreign media analysis"]
+    },
+    {
+      "family": "Social media analysis", "tier": "core", "status": "active",
+      "phrases": ["social media analysis"]
+    },
+    {
+      "family": "Mobile language training", "tier": "core", "status": "active",
+      "phrases": ["mobile training teams", "mobile language training"]
+    },
+    {
+      "family": "Human language technology", "tier": "core", "status": "active",
+      "phrases": ["human language technology", "linguistic corpora"]
+    }
+  ]
+}

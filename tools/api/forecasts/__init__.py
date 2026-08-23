@@ -16,6 +16,8 @@ cancelled routinely. Everything in this subpackage preserves that distinction:
 Adding an agency = one file here + one @register_source decorator.
 """
 
+import os
+
 from tools.api.forecasts import acquisition_gateway  # noqa: F401 — registration
 from tools.api.forecasts import army_acquisition_forecast  # noqa: F401 — registration
 from tools.api.forecasts import dhs_apfs  # noqa: F401 — registration side effect
@@ -42,3 +44,17 @@ def forecast_sources():
     iterates these so adding an agency never touches run_searches."""
     from tools.api import REGISTRY
     return [REGISTRY.get(n) for n in FORECAST_SOURCE_NAMES if REGISTRY.get(n)]
+
+
+def strict_offline() -> bool:
+    """Return whether this run forbids every live forecast retrieval."""
+
+    return os.environ.get("LILA_SUITE_OFFLINE", "").strip().casefold() in {
+        "1", "true", "yes", "on",
+    }
+
+
+def source_is_offline_safe(source) -> bool:
+    """Fixtures and local adapters may explicitly opt into offline execution."""
+
+    return bool(getattr(source, "offline_safe", False))

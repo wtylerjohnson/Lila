@@ -30,10 +30,11 @@ _STAGE = "candidate-review-document"
 
 
 def _client_id(client: str) -> str:
-    value = re.sub(r"[^a-z0-9]+", "-", client.casefold()).strip("-")
-    if not value:
-        raise ValueError("client identity cannot produce a Candidate Review id")
-    return value
+    """Canonical client id, shared with the watch's mint (one client, one
+    candidate-review directory); legacy hyphen dirs stay readable through
+    the same fallback."""
+    from run_candidate_review_watch import _candidate_client_id
+    return _candidate_client_id(client)
 
 
 def _atomic_write_text(path: Path, text: str) -> None:

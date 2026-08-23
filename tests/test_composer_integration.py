@@ -541,12 +541,18 @@ def test_real_refresh_adapter_handles_divergent_slug_families(hermetic):
             / f"{slug}.calibration.csv").exists()
     assert (root / "clients" / slug / "signal_board_content.json").exists()
     assert (root / "clients" / slug / "compose_trail.md").exists()
-    # press-family artifacts
+    # Consolidation law (2026-08-19): legacy-family INPUTS (the planted
+    # sweep and packet) are read through the documented fallbacks, and
+    # every NEW artifact mints the canonical slug; the legacy press name
+    # is never minted again.
     assert (root / "data" / "reports"
-            / f"{press}.federal_opportunity_signals.DO-NOT-SEND.html"
+            / f"{slug}.federal_opportunity_signals.DO-NOT-SEND.html"
             ).exists()
-    assert (root / "data" / "state" / "deltas" / press).is_dir()
-    assert not (root / "data" / "state" / "deltas" / slug).exists()
+    assert not (root / "data" / "reports"
+                / f"{press}.federal_opportunity_signals.DO-NOT-SEND.html"
+                ).exists()
+    assert (root / "data" / "state" / "deltas" / slug).is_dir()
+    assert not (root / "data" / "state" / "deltas" / press).exists()
     receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
     assert receipt["client_name"] == display
     assert receipt["slug"] == slug

@@ -1,0 +1,14 @@
+{
+  "_comment": "Operator-supplied enrichment (session paste, RocketReach page, 2026-08-19/20). Operator facts publish by construction; never gated behind pipeline corroboration. Unwired pending press consumption, same posture as the Varonis operator_facts pattern.",
+  "client_name": "JTG, inc.",
+  "facts": [
+    {"id": "J1", "fact": "Employee-owned; founded 1995; 119 employees; revenue $15.4M", "source": "operator paste (RocketReach)"},
+    {"id": "J2", "fact": "HQ 11190 Sunrise Valley Drive, Reston, Virginia 20191; phone +1 703-548-8223", "source": "operator paste (RocketReach)"},
+    {"id": "J3", "fact": "President and CEO: Ahmed Shehata (Reston, VA)", "source": "operator paste (RocketReach/ZoomInfo)"},
+    {"id": "J4", "fact": "Named staff: Shailja Batra (Director of Finance and Accounting), Tareq Awsaj (Director of Administration), Blanka Novotna (Global Vendor Manager), Michael Hale (Program Manager), Dan Alsay (Lead Systems Architect), Natalia Romanova (Program Manager), Teresa Baig (Finance and Accounting Manager), Amira Youssef (Project Manager), Selam Mekonen (Senior Project Manager)", "source": "operator paste (RocketReach)"},
+    {"id": "J5", "fact": "Primary NAICS 541930 (translation and interpretation services); SIC 73/738", "source": "operator paste (RocketReach)"},
+    {"id": "J6", "fact": "Positioning: linguistic and technological solutions producing final products indistinguishable from local native documents, websites, and software; national security relevance stated over the past decade", "source": "operator paste (RocketReach)"},
+    {"id": "J7", "fact": "Service keywords: translation, localization, interpreting, transcreation, software/website/game localization, e-learning localization, technical translation, cultural adaptation, language proficiency measurement and evaluation, mobile training teams, counter-IED and intelligence support, cross-border training", "source": "operator paste (RocketReach)"}
+  ],
+  "note_on_competitor_list": "The pasted competitor list (Cisco, Lockheed Martin, etc.) is directory co-occurrence, not market competitors; per house doctrine competitors come from a market source. The packet's researched rivals (SOSi, Mission Essential, Valiant, WWLR, GLS, Alutiiq) stand."
+}

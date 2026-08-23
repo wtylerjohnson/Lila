@@ -1,0 +1,393 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lila.local/schemas/evidence-pack-v2.schema.json",
+  "title": "LILA Evidence Pack V2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "client_name",
+    "slug",
+    "canonical_entities",
+    "canonical_requirement_families",
+    "classification_context",
+    "records",
+    "qualified_opportunity_records",
+    "held_opportunities",
+    "target_groups",
+    "workflow_contract",
+    "research_queue",
+    "incremental_cache_receipt",
+    "graph_contract_certified",
+    "graph_contract_violations",
+    "moved_records",
+    "before_after_by_class",
+    "moved_records_receipt"
+  ],
+  "properties": {
+    "schema_version": {"const": "evidence-pack-v2"},
+    "client_name": {"type": "string", "minLength": 1},
+    "slug": {"type": "string", "minLength": 1},
+    "generated_at": {"type": "string"},
+    "canonical_entities": {"type": "object"},
+    "canonical_requirement_families": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "requirement_family",
+          "canonical_record_id",
+          "family_member_ids",
+          "family_member_count",
+          "family_basis"
+        ],
+        "properties": {
+          "requirement_family": {"type": "string", "minLength": 1},
+          "canonical_record_id": {"type": ["string", "null"]},
+          "family_member_ids": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "family_member_count": {"type": "integer", "minimum": 1},
+          "family_basis": {"type": ["string", "null"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "classification_context": {
+      "type": "object",
+      "required": ["client_aliases", "canonical_entities", "as_of"],
+      "properties": {
+        "client_aliases": {"type": "array", "items": {"type": "string"}},
+        "canonical_entities": {"type": "object"},
+        "as_of": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
+    "records": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/classifiedRecord"}
+    },
+    "qualified_opportunity_records": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/qualifiedOpportunity"}
+    },
+    "held_opportunities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["record_id", "requirement_family", "qualification_state"],
+        "properties": {
+          "record_id": {"type": ["string", "null"]},
+          "requirement_family": {"type": ["string", "null"]},
+          "qualification_state": {
+            "enum": ["held_for_fit_review", "needs_eligible_route"]
+          },
+          "qualification_reason": {"type": ["string", "null"]}
+        },
+        "additionalProperties": true
+      }
+    },
+    "target_groups": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {"$ref": "#/$defs/linkedTarget"}
+      }
+    },
+    "workflow_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "roles",
+        "exclusive_write_domains",
+        "certified",
+        "violations"
+      ],
+      "properties": {
+        "schema_version": {"const": "intelligence-graph-workflow-v1"},
+        "roles": {"type": "object"},
+        "exclusive_write_domains": {"type": "object"},
+        "certified": {"const": true},
+        "violations": {"type": "array", "maxItems": 0}
+      },
+      "additionalProperties": false
+    },
+    "research_queue": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/researchQueueItem"}
+    },
+    "incremental_cache_receipt": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "adapter",
+        "client_slug",
+        "namespaces",
+        "providers"
+      ],
+      "properties": {
+        "schema_version": {"const": "incremental-cache-receipt-v1"},
+        "adapter": {"type": "string", "minLength": 1},
+        "cache_root": {"type": "string", "minLength": 1},
+        "client_slug": {"type": "string", "minLength": 1},
+        "context_hash": {"type": "string", "minLength": 1},
+        "namespaces": {"type": "object"},
+        "providers": {"type": "object"}
+      },
+      "additionalProperties": true
+    },
+    "graph_contract_certified": {"type": "boolean"},
+    "graph_contract_violations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["rule_id", "message", "evidence"],
+        "properties": {
+          "rule_id": {"type": "string", "minLength": 1},
+          "message": {"type": "string", "minLength": 1},
+          "evidence": {"type": "object"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "moved_records": {"type": "array", "items": {"type": "object"}},
+    "before_after_by_class": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["before", "after"],
+        "properties": {
+          "before": {"type": "integer", "minimum": 0},
+          "after": {"type": "integer", "minimum": 0}
+        },
+        "additionalProperties": false
+      }
+    },
+    "moved_records_receipt": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "provenance": {
+      "type": "object",
+      "required": ["kind", "confidence", "rule_id"],
+      "properties": {
+        "kind": {"enum": ["measured", "cited", "inferred"]},
+        "confidence": {"enum": ["high", "medium", "low"]},
+        "rule_id": {"type": "string", "minLength": 1},
+        "source_field": {"type": ["string", "null"]},
+        "matched_phrase": {"type": ["string", "null"]},
+        "normalized_signal": {"type": ["string", "null"]},
+        "evidence_span": {"type": ["string", "null"]}
+      },
+      "additionalProperties": true
+    },
+    "classifiedRecord": {
+      "type": "object",
+      "required": [
+        "evidence_class",
+        "commercial_route",
+        "route_relationship",
+        "window_state",
+        "relationship_provenance"
+      ],
+      "properties": {
+        "record_id": {"type": ["string", "null"]},
+        "canonical_entity": {
+          "type": ["object", "null"],
+          "properties": {
+            "canonical_id": {"type": ["string", "null"]},
+            "name": {"type": ["string", "null"]},
+            "roles": {"type": "array", "items": {"type": "string"}},
+            "matched_alias": {"type": ["string", "null"]}
+          },
+          "additionalProperties": false
+        },
+        "requirement_family": {"type": ["string", "null"]},
+        "evidence_class": {
+          "enum": [
+            "client_historical",
+            "competitive_historical",
+            "current_opportunity",
+            "forecast",
+            "event",
+            "excluded",
+            "ambiguous"
+          ]
+        },
+        "commercial_route": {
+          "enum": [
+            "direct",
+            "incumbent",
+            "named_partner_teaming",
+            "possible_subcontracting",
+            "unknown"
+          ]
+        },
+        "route_relationship": {
+          "enum": [
+            "direct",
+            "incumbent",
+            "named_partner_teaming",
+            "possible_subcontracting",
+            "unknown"
+          ]
+        },
+        "eligible_route": {"type": "boolean"},
+        "window_state": {
+          "enum": ["live", "fy_only", "unstated", "stated_past"]
+        },
+        "service_fit": {
+          "enum": ["direct", "adjacent", "unrelated", "ambiguous"]
+        },
+        "relationship_provenance": {
+          "type": "object",
+          "required": [
+            "evidence_class",
+            "commercial_route",
+            "window_state",
+            "service_fit"
+          ],
+          "additionalProperties": {"$ref": "#/$defs/provenance"}
+        }
+      },
+      "additionalProperties": true
+    },
+    "qualifiedOpportunity": {
+      "type": "object",
+      "required": [
+        "record_id",
+        "requirement_family",
+        "title",
+        "evidence_class",
+        "service_fit",
+        "window_state",
+        "commercial_route",
+        "eligible_route",
+        "linked_targets"
+      ],
+      "properties": {
+        "record_id": {"type": ["string", "null"]},
+        "requirement_family": {"type": ["string", "null"]},
+        "title": {"type": ["string", "null"]},
+        "evidence_class": {"const": "current_opportunity"},
+        "service_fit": {"enum": ["direct", "adjacent"]},
+        "window_state": {"const": "live"},
+        "commercial_route": {
+          "enum": ["direct", "incumbent", "named_partner_teaming", "possible_subcontracting"]
+        },
+        "eligible_route": {"const": true},
+        "linked_targets": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/linkedTarget"}
+        }
+      },
+      "additionalProperties": true
+    },
+    "linkedTarget": {
+      "type": "object",
+      "required": [
+        "requirement_family",
+        "opportunity_record_id",
+        "opportunity_title",
+        "role",
+        "source_kind",
+        "contact_state",
+        "provenance"
+      ],
+      "properties": {
+        "requirement_family": {"type": "string", "minLength": 1},
+        "opportunity_record_id": {"type": ["string", "null"]},
+        "opportunity_title": {"type": ["string", "null"]},
+        "role": {"type": ["string", "null"]},
+        "name": {"type": ["string", "null"]},
+        "title": {"type": ["string", "null"]},
+        "organization": {"type": ["string", "null"]},
+        "email": {"type": ["string", "null"]},
+        "phone": {"type": ["string", "null"]},
+        "linkedin": {"type": ["string", "null"]},
+        "source_kind": {
+          "enum": ["published_contact", "apollo_enrichment", "enrichment_candidate"]
+        },
+        "contact_state": {"enum": ["sourced", "enriched", "needs_enrichment"]},
+        "provenance": {"type": "string", "minLength": 1}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"source_kind": {"const": "enrichment_candidate"}}},
+          "then": {
+            "properties": {
+              "name": {"type": "null"},
+              "email": {"type": "null"},
+              "phone": {"type": "null"}
+            }
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "researchQueueItem": {
+      "type": "object",
+      "required": [
+        "queue_id",
+        "ambiguous_dimensions",
+        "reasons",
+        "evidence_class",
+        "service_fit",
+        "commercial_route",
+        "window_state",
+        "relationship_provenance",
+        "requested_resolution"
+      ],
+      "properties": {
+        "queue_id": {"type": "string", "minLength": 1},
+        "record_id": {"type": ["string", "null"]},
+        "requirement_family": {"type": ["string", "null"]},
+        "title": {"type": ["string", "null"]},
+        "source_url": {"type": ["string", "null"]},
+        "ambiguous_dimensions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": ["evidence_class", "service_fit", "route_eligibility"]
+          }
+        },
+        "reasons": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "evidence_class": {
+          "enum": [
+            "client_historical",
+            "competitive_historical",
+            "current_opportunity",
+            "forecast",
+            "event",
+            "excluded",
+            "ambiguous"
+          ]
+        },
+        "service_fit": {
+          "enum": ["direct", "adjacent", "unrelated", "ambiguous", null]
+        },
+        "commercial_route": {
+          "enum": [
+            "direct",
+            "incumbent",
+            "named_partner_teaming",
+            "possible_subcontracting",
+            "unknown",
+            null
+          ]
+        },
+        "window_state": {
+          "enum": ["live", "fy_only", "unstated", "stated_past", null]
+        },
+        "relationship_provenance": {"type": "object"},
+        "requested_resolution": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

@@ -139,6 +139,9 @@ def _money(money: Any, key: str, *, cls: str = "") -> str:
     """
     if money is None:
         return '<span class="plain-state needs">Amount research next</span>'
+    require_receipt = getattr(money, "require_receipt", None)
+    if callable(require_receipt):
+        require_receipt()
     classes = f"{cls} work-trigger".strip()
     return (f'<button class="{classes}" type="button" '
             f'data-work="{esc(key)}" aria-label="Show the evidence behind '
@@ -193,6 +196,66 @@ def _head(number: int, headline: str, deck: str, ids: EditIds, *,
 def _order(label: str, body: str, ids: EditIds) -> str:
     return (f'<div class="research-order"><strong>{esc(label)}</strong><br>'
             f'<span data-edit-id="{ids.next()}">{esc(body)}</span></div>')
+
+
+def _opportunity_targets(opp: Any, ids: EditIds) -> str:
+    """Render the target dependency directly beneath its opportunity.
+
+    The source-kind badges preserve the difference between a contact printed
+    on a government record, an operator-approved enrichment, and a role still
+    waiting for enrichment. Empty fields are omitted, never replaced with
+    generic phone numbers, inboxes, or placeholder identities.
+    """
+    targets = tuple(getattr(opp, "linked_targets", ()) or ())
+    if not targets:
+        return ""
+    cards = []
+    labels = {
+        "published_contact": "Published contact",
+        "apollo_enrichment": "Enriched target",
+        "enrichment_candidate": "Enrichment candidate",
+    }
+    for target in targets:
+        source_kind = _t(target.get("source_kind"))
+        role = _t(target.get("role")).replace("_", " ")
+        name = _t(target.get("name"))
+        title = _t(target.get("title")) or _t(target.get("role_needed"))
+        organisation = _t(target.get("organization"))
+        email = _t(target.get("email"))
+        phone = _t(target.get("phone"))
+        linkedin = _t(target.get("linkedin"))
+        details = []
+        if name:
+            details.append(f'<strong data-edit-id="{ids.next()}">{esc(name)}</strong>')
+        if title:
+            details.append(f'<span data-edit-id="{ids.next()}">{esc(title)}</span>')
+        if organisation:
+            details.append(f'<span data-edit-id="{ids.next()}">{esc(organisation)}</span>')
+        actions = []
+        if email:
+            actions.append(_link(f"mailto:{email}", email, cls="target-contact"))
+        if phone:
+            actions.append(_link("tel:" + re.sub(r"[^+0-9]", "", phone),
+                                 phone, cls="target-contact"))
+        if linkedin:
+            actions.append(_link(linkedin, "LinkedIn", cls="target-contact"))
+        cards.append(
+            '<article class="opportunity-target" '
+            f'data-source-kind="{esc(source_kind)}">'
+            '<div class="target-provenance">'
+            f'{esc(labels.get(source_kind, "Target"))}</div>'
+            f'<div class="target-role">{esc(role or "target role")}</div>'
+            + ("<div class=\"target-identity\">" + "".join(details) + "</div>"
+               if details else "")
+            + ("<div class=\"target-actions\">" + "".join(actions) + "</div>"
+               if actions else "")
+            + "</article>")
+    return (
+        '<section class="opportunity-targets" '
+        f'data-opportunity-record="{esc(opp.identifier)}">'
+        '<h3>Targets for Candidate Opportunity Pursuit</h3>'
+        '<div class="opportunity-target-grid">' + "".join(cards) +
+        "</div></section>")
 
 
 # --------------------------------------------------------------------------- #
@@ -430,7 +493,7 @@ def _opportunities(doc: FederalMarketMapDocument, ids: EditIds) -> str:
         # No published identifier: the link carries the requirement's name,
         # never a placeholder standing in for a number.
         label = ident or _t(opp.title)[:52] or "Open the official record"
-        rows.append(
+        opportunity_html = (
             # The id is the pursuit tape's landing spot: rank row -> record.
             f'<article class="opportunity-row" '
             f'id="opp-{esc(ident or opp.key)}">'
@@ -454,6 +517,7 @@ def _opportunities(doc: FederalMarketMapDocument, ids: EditIds) -> str:
             f"{esc(opp.action or opp.fit)}</p></div>"
             '<div><span class="opp-label">Published contact</span>'
             f"{contact}</div></article>")
+        rows.append(opportunity_html + _opportunity_targets(opp, ids))
 
     if rows:
         withpoc = sum(1 for o in doc.qualified_opportunities if o.contacts)

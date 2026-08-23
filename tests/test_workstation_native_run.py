@@ -611,6 +611,7 @@ def test_native_forecast_search_never_mutates_shared_forecast_state(
         name="fake_forecast",
         forecast_agency="DHS",
         enabled=True,
+        offline_safe=True,
         forecasts=lambda: [record],
         enrich_matched=enrich_matched,
     )

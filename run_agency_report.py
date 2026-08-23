@@ -56,7 +56,8 @@ class _BlockingViolation:
 
 
 def _slug(name: str) -> str:
-    return "".join(c if c.isalnum() else "_" for c in name).strip("_").lower()
+    from tools.slug import client_slug
+    return client_slug(name)
 
 
 def _jsonable(value: Any) -> Any:

@@ -44,7 +44,8 @@ REPORT_DIR = os.path.join(ROOT, "data", "reports")
 
 
 def _slug(name: str) -> str:
-    return "".join(c if c.isalnum() else "_" for c in name).strip("_").lower()
+    from tools.slug import client_slug
+    return client_slug(name)
 
 
 def _fmt_board_date(d: date) -> str:

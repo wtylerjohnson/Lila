@@ -26,7 +26,8 @@ _REVIEW = os.path.join(_ROOT, "data", "review")
 
 
 def _slug(name: str) -> str:
-    return name.lower().replace(" ", "_")
+    from tools.slug import client_slug
+    return client_slug(name)
 
 
 class SourceSystem(str, Enum):

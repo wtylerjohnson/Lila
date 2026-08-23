@@ -30,7 +30,8 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 
 
 def _slug(name: str) -> str:
-    return "".join(c if c.isalnum() else "_" for c in name).strip("_").lower()
+    from tools.slug import client_slug
+    return client_slug(name)
 
 
 def _refresh_subawards(artifact: dict, naics: list[str]) -> None:

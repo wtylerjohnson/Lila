@@ -368,7 +368,8 @@ def prefetch_agencies(keys: list[str] | None = None) -> int:
 
 
 def _slugify(name: str) -> str:
-    return "".join(c if c.isalnum() else "_" for c in name).strip("_").lower()
+    from tools.slug import client_slug
+    return client_slug(name)
 
 
 def client_domain(slug: str, name: str) -> str:
@@ -399,6 +400,10 @@ def prefetch_client_logo(client: str) -> bool:
     slug = _slugify(client)
     if find_mark(client_marks_dir(), slug):   # operator drop or prior fetch wins
         return True
+    from tools.slug import legacy_client_slug
+    legacy = legacy_client_slug(client)
+    if legacy != slug and find_mark(client_marks_dir(), legacy):
+        return True   # pre-consolidation cache entry; readable, never re-minted
     dom = client_domain(slug, client)
     dest = client_marks_dir() / f"{slug}.png"
     if fetch_mark(dom, dest):

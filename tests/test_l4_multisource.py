@@ -41,6 +41,7 @@ class _Src:
     def __init__(self, name, records, enabled=True):
         self.name = name
         self.enabled = enabled
+        self.offline_safe = True
         self._records = records
 
     def forecasts(self):

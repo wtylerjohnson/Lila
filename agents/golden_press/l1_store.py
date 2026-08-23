@@ -66,17 +66,24 @@ def _boundary_clause(naics_prefixes=None, psc_prefixes=None) -> tuple[str, list]
     return "(" + " OR ".join(parts) + ")", params
 
 
-def _has_tech_code(row) -> bool:
-    """A tech NAICS or PSC on the record itself.
+def _has_qualifying_code(row, *, naics_prefixes=None,
+                         psc_prefixes=None) -> bool:
+    """A record code inside the boundary that admitted the record.
 
-    The corridor clause admits the CLIENT's boundary, which can include codes
-    that are not tech, so tier eligibility is judged per record against the
-    shared tech prefixes rather than inherited from the query.
+    The old implementation queried with the client's boundary and then
+    re-qualified every term against the global technology prefixes. That
+    made legitimate non-IT markets impossible: a language-services record
+    in 541930 could pass JTG's boundary and still be discarded by the term
+    tier. One boundary now governs both the SQL screen and term eligibility.
     """
     naics = str(row["naics"] or "")
     psc = str(row["psc"] or "")
-    return (any(naics.startswith(p) for p in TECH_NAICS_PREFIXES)
-            or any(psc.startswith(p) for p in TECH_PSC_PREFIXES))
+    naics_basis = tuple(str(p) for p in
+                        (naics_prefixes or TECH_NAICS_PREFIXES))
+    psc_basis = tuple(str(p) for p in
+                      (psc_prefixes or TECH_PSC_PREFIXES))
+    return (any(naics.startswith(p) for p in naics_basis)
+            or any(psc.startswith(p) for p in psc_basis))
 
 
 def _tiered_capability_hits(text, terms, *, has_tech_code, distinctive,
@@ -143,6 +150,8 @@ def run_l1_from_store(
     conn: Optional[sqlite3.Connection] = None,
     cap: int = L1_PACK_CAP,
     include_awards: bool = False,
+    excluded_terms: Optional[list[str]] = None,
+    as_of: str = "",
 ) -> tuple[list[GoldenRecord], list[LaneQuery], dict]:
     """(records, queries, receipt) for the L1 lane, from the store.
 
@@ -159,6 +168,9 @@ def run_l1_from_store(
         "guards_applied": bool(entities),
         "guard_rejections": {}, "guard_killed_titles": {},
         "tier_hits": {}, "tier_rejections": {},
+        "qualifying_code_basis": "client" if (naics_boundary or psc_boundary)
+        else "default_technology",
+        "client_exclusions": 0, "closed_historic": 0,
     }
     guards = load_guards()
     # Guarded path when the caller supplies entities BY KIND plus the vendor
@@ -206,6 +218,15 @@ def run_l1_from_store(
                 continue
             text = " ".join(str(row[k] or "") for k in
                             ("title", "description_prefix"))
+            if excluded_terms:
+                from agents.golden_press.coverage_families import phrase_matches
+                if any(phrase_matches(term, text) for term in excluded_terms):
+                    receipt["client_exclusions"] += 1
+                    continue
+            deadline = str(row["deadline"] or "")[:10]
+            if deadline and as_of and deadline < str(as_of)[:10]:
+                receipt["closed_historic"] += 1
+                continue
             # TWO INDEPENDENT ROUTES IN, EACH WITH ITS OWN GUARD.
             #   capability terms -> the tier ladder, qualified by the
             #                       client's NAICS/PSC boundary
@@ -239,7 +260,9 @@ def run_l1_from_store(
             # requires a tech code AND a domain anchor before it counts.
             cap_hits = _tiered_capability_hits(
                 text, capability_terms,
-                has_tech_code=_has_tech_code(row),
+                has_tech_code=_has_qualifying_code(
+                    row, naics_prefixes=naics_boundary,
+                    psc_prefixes=psc_boundary),
                 distinctive=distinctive, guards=guards, receipt=receipt)
             hits = cap_hits + ent_hits
             if not hits:
@@ -269,8 +292,14 @@ def run_l1_from_store(
             endpoint="data/state/notice_store/notices.db (local, zero quota)",
             body={"capability_terms": capability_terms,
                   "entity_terms": entity_terms,
-                  "naics_prefixes": list(TECH_NAICS_PREFIXES),
-                  "psc_prefixes": list(TECH_PSC_PREFIXES),
+                  "naics_prefixes": list(naics_boundary
+                                         or TECH_NAICS_PREFIXES),
+                  "psc_prefixes": list(psc_boundary
+                                       or TECH_PSC_PREFIXES),
+                  "qualifying_code_basis": receipt[
+                      "qualifying_code_basis"],
+                  "excluded_terms": list(excluded_terms or ()),
+                  "as_of": str(as_of)[:10],
                   "rank_4_excluded": not include_awards,
                   "store_last_ingest": receipt["store_last_ingest"]},
             executed_at=_now_iso(),

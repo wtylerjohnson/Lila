@@ -195,9 +195,8 @@ class PressSnapshot(BaseModel):
 
 
 def client_slug(value: str) -> str:
-    return "".join(
-        character if character.isalnum() else "_" for character in value
-    ).strip("_").lower()
+    from tools.slug import client_slug
+    return client_slug(value)
 
 
 def _hash_bytes(data: bytes) -> str:

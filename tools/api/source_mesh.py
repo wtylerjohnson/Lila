@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
@@ -264,6 +265,10 @@ def collect(
     """Collect every enabled child; one failure never sinks another."""
     sources: dict[str, dict] = {}
     futures = {}
+    strict_offline = (
+        os.environ.get("LILA_SUITE_OFFLINE", "").strip().casefold()
+        in {"1", "true", "yes", "on"}
+    )
     with ThreadPoolExecutor(max_workers=len(SOURCE_IDS)) as executor:
         for source_id in SOURCE_IDS:
             if source_id == "nih_reporter" and not _nih_research_applicable(query):
@@ -289,6 +294,17 @@ def collect(
                     "record_count": 0,
                     "normalization_version": NORMALIZATION_VERSION,
                     "not_run": "switched off by the operator",
+                }
+                continue
+            if strict_offline and registry is REGISTRY:
+                sources[source_id] = {
+                    "source_id": source_id,
+                    "status": "not-run",
+                    "authoritative_url": source_spec(source_id).official_url,
+                    "retrieval_query": query.model_dump(mode="json"),
+                    "record_count": 0,
+                    "normalization_version": NORMALIZATION_VERSION,
+                    "not_run": "strict offline certification",
                 }
                 continue
             source = registry.get(source_id)

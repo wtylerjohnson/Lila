@@ -222,17 +222,16 @@ def test_live_watch_persists_records_and_the_press_replays_current_notices(
     state_root = tmp_path / "data" / "state" / "candidate_review_v1"
     watch_cli.run_watch_generation(
         "riverbed", root=tmp_path, registry_path=registry,
-        state_root=state_root, live=True)
+        state_root=state_root, live=True, observed_at=_NOW)
     assert sam.queries, "the live SAM lane never ran"
 
     # 2026-07-25 (the operator's wall): a second live pull the same day on
     # the same sweep is a NEW observation and must persist a NEW generation
     # instead of colliding with the snapshot-diff basis guard.
-    import time as _time
-    _time.sleep(1.1)
     watch_cli.run_watch_generation(
         "riverbed", root=tmp_path, registry_path=registry,
-        state_root=state_root, live=True)
+        state_root=state_root, live=True,
+        observed_at=_NOW + timedelta(seconds=1))
 
     qa_path = driver.run_candidate_review(
         "riverbed", root=tmp_path, state_root=state_root,

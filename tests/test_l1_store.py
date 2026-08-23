@@ -73,6 +73,51 @@ def test_out_of_boundary_notices_are_not_offered(store):
     assert [r.record_id for r in recs] == ["inside"]
 
 
+def test_client_boundary_also_qualifies_the_term_tier(store):
+    """A language-services code must not be admitted and then rejected by
+    the global technology-code gate."""
+    _insert(store, "dlite", ntype="Solicitation", naics="541930", psc="R608",
+            title="DLITE III Draft Solicitation",
+            desc="translation interpretation and language training services")
+    recs, queries, receipt = run_l1_from_store(
+        ["language training"], conn=store, naics_boundary=["541930"])
+    assert [record.record_id for record in recs] == ["dlite"]
+    assert receipt["qualifying_code_basis"] == "client"
+    assert queries[0].body["naics_prefixes"] == ["541930"]
+    assert queries[0].body["qualifying_code_basis"] == "client"
+
+
+def test_client_boundary_does_not_admit_wrong_domain_phrase_collision(store):
+    _insert(store, "real", naics="611630", psc="U009",
+            title="Language Instructor Services", desc="language training")
+    _insert(store, "building", naics="236220", psc="Z2JZ",
+            title="Building Maintenance at Japanese Language Training Center",
+            desc="language training center facility maintenance")
+    recs, _, _ = run_l1_from_store(
+        ["language training"], conn=store,
+        naics_boundary=["541930", "611630"])
+    assert [record.record_id for record in recs] == ["real"]
+
+
+def test_client_exclusions_and_clock_apply_before_l1_selection(store):
+    _insert(store, "current", naics="541930", psc="R608",
+            title="Translation and Interpretation Services",
+            desc="spoken translation and interpretation", deadline="2026-09-01")
+    _insert(store, "asl", naics="541930", psc="R608",
+            title="American Sign Language Interpretation Services",
+            desc="sign language interpretation", deadline="2026-09-01")
+    _insert(store, "closed", naics="541930", psc="R608",
+            title="Translation and Interpretation Services",
+            desc="spoken translation and interpretation", deadline="2026-08-19")
+    recs, _, receipt = run_l1_from_store(
+        ["translation and interpretation"], conn=store,
+        naics_boundary=["541930"], excluded_terms=["sign language"],
+        as_of="2026-08-20")
+    assert [record.record_id for record in recs] == ["current"]
+    assert receipt["client_exclusions"] == 1
+    assert receipt["closed_historic"] == 1
+
+
 def test_a_notice_with_no_capability_term_is_dropped(store):
     _insert(store, "a1", title="Unrelated buy", desc="unrelated requirement")
     recs, _, receipt = run_l1_from_store(CAPS, conn=store)

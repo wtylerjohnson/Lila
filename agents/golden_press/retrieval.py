@@ -937,7 +937,9 @@ def run_l4(
                   "naics_codes": naics_codes},
             executed_at=executed_at, result_count=len(all_records)))
     else:
-        from tools.api.forecasts import forecast_sources
+        from tools.api.forecasts import (
+            forecast_sources, source_is_offline_safe, strict_offline,
+        )
         from tools.api.source_catalog import source_spec
         from tools.toggles import toggle_key
 
@@ -950,6 +952,15 @@ def run_l4(
                     lane="L4_forecast", method=source.name,
                     endpoint=endpoint, body={"enabled": False},
                     executed_at=executed_at, note=off_note))
+                continue
+            if strict_offline() and not source_is_offline_safe(source):
+                queries.append(LaneQuery(
+                    lane="L4_forecast", method=source.name,
+                    endpoint=endpoint,
+                    body={"enabled": True, "offline": True},
+                    executed_at=executed_at,
+                    note="not run: strict offline certification",
+                ))
                 continue
             try:
                 fetched = source.forecasts()
@@ -1482,13 +1493,13 @@ def build_evidence_pack(
     # unreadable, screen_relevance falls back to TECH_* on its own.
     client_naics_boundary: Optional[list] = None
     client_psc_boundary: Optional[list] = None
+    client_excluded_terms: list[str] = []
     try:
         import json as _json
         import os as _os
         from agents.decisions.client_files import client_dir
-        _slug = "".join(
-            c if c.isalnum() else "_"
-            for c in str(getattr(strategy, "client_name", "")).lower()).strip("_")
+        from tools.slug import client_slug
+        _slug = client_slug(getattr(strategy, "client_name", ""))
         _profile_path = _os.path.join(client_dir(_slug), "profile.json")
         with open(_profile_path, encoding="utf-8") as _fh:
             _profile = _json.load(_fh)
@@ -1496,6 +1507,9 @@ def build_evidence_pack(
                                  (_profile.get("naics_boundary") or []) if c] or None
         _codes = (_profile.get("code_universe") or {})
         client_psc_boundary = [str(c) for c in (_codes.get("psc") or []) if c] or None
+        client_excluded_terms = [str(term) for term in
+                                 ((_profile.get("capability_terms") or {})
+                                  .get("excluded") or []) if term]
         if client_naics_boundary:
             _log(f"boundary: client profile supplies {len(client_naics_boundary)} "
                  f"NAICS codes {client_naics_boundary}; the global tech list is "
@@ -1523,7 +1537,9 @@ def build_evidence_pack(
             entities=entities_by_kind or None,
             vendor=getattr(strategy, "client_name", None),
             naics_boundary=client_naics_boundary,
-            psc_boundary=client_psc_boundary)
+            psc_boundary=client_psc_boundary,
+            excluded_terms=client_excluded_terms,
+            as_of=today.isoformat())
         if l1_records or (l1_receipt.get("store_rows") or 0) > 0:
             l1_status = "live"
             l1_detail = (

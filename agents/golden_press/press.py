@@ -75,8 +75,8 @@ def _write_targets_export(out_dir: Path, stem: str, pack, log) -> None:
     """
     path = out_dir / f"{stem}.apollo_targets.csv"
     try:
-        from agents.golden_press import targets_store
-        rows = targets_store.write_sequence_csv(
+        from tools.intelligence_graph.adapter import write_target_sequence_csv
+        rows = write_target_sequence_csv(
             path, getattr(pack, "targeting", None))
         log(f"Apollo-ready export: {rows} sequence row(s) -> {path.name} "
             "(operator tool, outside the certified artifact)")
@@ -800,8 +800,8 @@ def golden_press(
     # saved-inputs replay re-renders Band 09 from the same bytes.
     try:
         from agents.golden_press.targeting_rules import build_targeting
-        from agents.golden_press import targets_store
-        stored_contacts = targets_store.load(slug, root)
+        from tools.intelligence_graph.adapter import load_target_observations
+        stored_contacts = load_target_observations(slug, root)
         pack.targeting = build_targeting(pack, contacts=stored_contacts)
         _receipt = pack.targeting["receipt"]
         log(f"targeting rules: {_receipt['specs_built']} spec(s) over "
@@ -1054,6 +1054,49 @@ def golden_press(
     market_map: Optional[dict] = None
     if not scope_override:  # a scope-labelled run keeps one artifact family
         try:
+            # GRAPH CONTRACT V2 (2026-08-21). Rebuild the classified graph
+            # from this press's exact evidence bytes before projection. The
+            # Market Map must never consume a stale sidecar left by an older
+            # run. The notice store is read only and supplies published POCs;
+            # inability to build the graph fails this additive artifact rather
+            # than silently falling back to legacy classifications.
+            from agents.golden_press.evidence_pack_v2 import (
+                build_corrected_pack,
+            )
+            from tools.notice_store import connect as _graph_store_connect
+
+            _graph_conn = _graph_store_connect()
+            try:
+                graph_path, graph_payload = build_corrected_pack(
+                    slug, pack.client_name or client,
+                    root=root,
+                    pressed_pack_path=(
+                        out_dir / f"{stem}.evidence_pack.json"),
+                    pack_dir=out_dir,
+                    deep_sweep_path=(
+                        root / "data" / "state" / "retrieval" /
+                        f"deep_sweep_{slug}.json"),
+                    store_conn=_graph_conn,
+                )
+            finally:
+                _graph_conn.close()
+            if not graph_payload.get("graph_contract_certified"):
+                rule_ids = sorted({
+                    str(row.get("rule_id") or "UNKNOWN")
+                    for row in graph_payload.get(
+                        "graph_contract_violations", [])
+                })
+                raise RuntimeError(
+                    "market map graph contract failed before render: "
+                    + ", ".join(rule_ids)
+                )
+            log(
+                "market map graph contract: "
+                f"{len(graph_payload['qualified_opportunity_records'])} "
+                "qualified opportunity family/families, "
+                f"{graph_payload['counts']['opportunity_linked_targets']} "
+                f"opportunity-linked target record(s); {graph_path.name}")
+
             from agents.golden_press.market_map_press import (
                 deliver as _mm_deliver, hydrate_market_map_client_mark,
                 press_market_map,

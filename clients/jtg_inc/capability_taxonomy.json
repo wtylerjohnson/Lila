@@ -1,0 +1,61 @@
+{
+  "client_name": "jtg__inc",
+  "version": "1",
+  "updated": "2026-08-19",
+  "generated_from": "approved review packet",
+  "core": [
+    {
+      "term": "language training",
+      "mode": "stemmed"
+    },
+    {
+      "term": "linguist support",
+      "mode": "stemmed"
+    },
+    {
+      "term": "Military Language Instructor",
+      "mode": "exact_phrase"
+    },
+    {
+      "term": "localization",
+      "mode": "exact_phrase"
+    },
+    {
+      "term": "language proficiency testing",
+      "mode": "stemmed"
+    },
+    {
+      "term": "foreign media monitoring",
+      "mode": "stemmed"
+    },
+    {
+      "term": "social media analysis",
+      "mode": "stemmed"
+    },
+    {
+      "term": "mobile training teams",
+      "mode": "stemmed"
+    },
+    {
+      "term": "human language technology",
+      "mode": "stemmed"
+    },
+    {
+      "term": "linguistic corpora",
+      "mode": "stemmed"
+    }
+  ],
+  "core_pending_mode": [],
+  "adjacent": [],
+  "exclude": [],
+  "code_universe": {
+    "naics": [
+      "541930",
+      "611630",
+      "611430",
+      "611710",
+      "541990"
+    ],
+    "psc": []
+  }
+}
