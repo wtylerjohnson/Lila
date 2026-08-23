@@ -1,14 +1,14 @@
-"""The Federal Market Map press: pack in, certified artefact family out.
+"""Legacy internal Market Map studio press: pack in, migration view out.
 
 WHERE THIS SITS. This is NOT a second architecture. `golden_press` builds
 the one immutable EvidencePack through every research lane, and this module
-is an additional RENDER of that same pack: typed projection, deterministic
+is an internal RENDER of that same pack: typed projection, deterministic
 renderer, its own validator, its own artifact family (`<slug>.market_map.*`)
 beside the golden family. A replay from the saved pack re-renders the same
 document byte for byte, because nothing here re-researches anything.
 
-WHY IT IS ADDITIVE AND FAIL-SOFT. The golden family is the operator's
-existing deliverable; a Market Map defect must never cost them that press.
+WHY IT IS ADDITIVE AND FAIL-SOFT. This compatibility press cannot authorize
+the external LILA product; a studio defect must never cost the internal pack.
 Every failure here is caught, logged loudly, and recorded in the returned
 receipt, and the golden result ships exactly as it always did.
 

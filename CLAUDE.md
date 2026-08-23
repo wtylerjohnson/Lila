@@ -34,9 +34,11 @@ same session you notice the drift.
 
 ## Hard operator rules (violations burned us; do not relearn)
 
-- Report builds run through the Command Center ONLY: dashboard buttons or
+- External product builds run through the Command Center ONLY: dashboard buttons or
   its API (`POST /api/run {client_name, step, args}`, poll `/api/job/<id>`).
-  Never launch run_capture_brief.py ad hoc in bash. Diagnostic/offline
+  The only external release step is `lila_release`; Candidate Review, Signal
+  Board, capture brief, and target reports are internal or compatibility
+  surfaces. Never launch a client release ad hoc in bash. Diagnostic/offline
   scripts with no LLM spend are fine in bash.
 - Never change gate settings (search scope, approvals, release switches)
   agent-side. They encode the ENGAGEMENT, which data cannot determine.
@@ -67,7 +69,7 @@ Report press via Command Center API (the only sanctioned build path):
 
 ```
 curl -X POST http://127.0.0.1:8321/api/run -H "Content-Type: application/json" \
-  -d '{"client_name":"<Name>","step":"report","args":{"kind":"capture_brief"}}'
+  -d '{"client_name":"<Name>","step":"lila_release","args":{}}'
 ```
 
 ## LLM routing

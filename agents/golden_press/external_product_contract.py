@@ -16,12 +16,12 @@ import re
 
 _ROOT = Path(__file__).resolve().parents[2]
 CONTRACT_PATH = _ROOT / "docs" / "MARKET_MAP_CONTRACT.md"
-CONTRACT_VERSION = "market-map.v3.2026-08-23"
+CONTRACT_VERSION = "market-map.v4.2026-08-23"
 
 # Digest of the canonical ``number|id|heading`` slots approved by the operator.
 # Do not update this value without a later explicit operator instruction.
 OPERATOR_LOCKED_SLOT_SHA256 = (
-    "d860979e2cf4faeda42976feed51c9b52cd790ab2f34049fdc064a363227aafa"
+    "4ab17cc1357708e9d455242f54213fcaae106e351952ddfadd99087ca4db1b0a"
 )
 
 _ROW_RE = re.compile(

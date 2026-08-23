@@ -1,5 +1,5 @@
 # MARKET_MAP_CONTRACT.md
-## Federal Market Map · operator-locked external product contract, v3 (2026-08-23)
+## Federal Market Map · operator-locked external product contract, v4 (2026-08-23)
 
 **LOCKED OPERATOR RULING:** this is LILA's sole external product contract.
 The slot membership, names, and order below override every earlier report,
@@ -32,22 +32,21 @@ promotion. The frozen client HTML must also pass the static visual contract:
 - desktop, tablet, mobile and print renders are inspected after the final HTML
   bytes are frozen.
 
-Until the eight-slot renderer consumes the shared projection directly,
-the press receipt must name its visual lineage. A generic studio render may be
-saved for operator use, but a Red Hat-standard filename or promotion state is
-reserved for the verified executive renderer.
+The eight-slot renderer consumes the shared graph-backed projection directly.
+Any generic or seven-section studio render may still be saved for operator
+use, but it is an internal view and cannot receive external promotion state.
 
 The client slot identities are:
 
 | # | slot id | locked client heading |
 |---|---|---|
-| 1 | `priority-pursuits` | Highest Priority Pursuits |
+| 1 | `priority-pursuits` | Prioritized and Actionable |
 | 2 | `research-mesh` | NAICS + Keywords + Semantic (Research Mesh Deployment/Search) |
 | 3 | `agency-spending` | Agency Spending (in your category) |
-| 4 | `competitors` | Competitors (Identified) + Competitor Awards + Spending/Landscape |
+| 4 | `competitors` | Competitors and Landscape |
 | 5 | `federal-opportunities` | Federal Opportunities Identified + Targets Specific to Each Opportunity (listed on notice and then complemented with search and enrichment) |
 | 6 | `teaming-opportunities` | Teaming Opportunities + Teaming Targets |
-| 7 | `future-forecasts` | Future Forecasts (Agency + Budgets + News, a LILA strength), including directional graphs and vector maps |
+| 7 | `future-forecasts` | Forecasts with Directional Graphs |
 | 8 | `industry-days-events` | Industry Days + Events |
 
 ### Slot-filling law
@@ -62,7 +61,7 @@ on each press.
   zero or gap, and the next research action. It is never deleted or padded.
 - Every claim, figure, target, graph, and recommended action remains bound to
   its source evidence and retrieval time.
-- A record has one owning slot. Highest Priority Pursuits may summarize and
+- A record has one owning slot. Prioritized and Actionable may summarize and
   link to records owned below, but it never creates a duplicate evidence row.
 
 The slot payloads are:
@@ -91,6 +90,18 @@ The slot payloads are:
 Each canonical award, notice, forecast, contact, route, or event renders once
 in the slot that owns it. Executive promotions elsewhere are internal links to
 that canonical record, never duplicated cards or rows.
+
+### Complete-bundle release law
+
+`agents/golden_press/product_bundle.py` is the only external product press.
+The Command Center launches it with step `lila_release`. A successful release
+contains the scriptless client HTML, editable studio HTML, exact eight-slot
+JSON, certified Federal Pursuit Graph, pressed evidence pack, captured replay
+inputs, validation receipt, SHA-256 manifest, and deterministic ZIP. Promotion
+is atomic and fail-closed: missing operator approval, a graph violation, a
+render violation, or any changed file hash makes the current product
+non-releasable. Older output families remain readable only under the roles in
+`agents/reports/product_families.py` and cannot substitute for this bundle.
 
 The seven-section Riverbed Federal Market Map below documents the internal
 studio semantic baseline that preceded the client visual contract. It remains

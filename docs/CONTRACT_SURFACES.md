@@ -23,6 +23,18 @@ digest makes any add, remove, rename, or reorder fail loudly. No other report
 family, plan, fixture, or renderer may amend this surface. Only a later
 explicit operator instruction may change the lock.
 
+The executable consumers are
+`agents/golden_press/external_product_projection.py` and
+`agents/golden_press/external_product_render.py`. The sole external release
+transaction is `agents/golden_press/product_bundle.py`, launched by Command
+Center step `lila_release`. It must emit all eight slots, a certified graph,
+the pressed evidence and replay inputs, validation, a file-hash manifest, and
+one deterministic complete ZIP or emit nothing externally. The executable
+family registry is `agents/reports/product_families.py`; it admits exactly one
+releasable family, `lila_federal_market_map`. Signal Board, Candidate Review,
+capture brief, target report, and the seven-section studio remain internal
+views or compatibility adapters and cannot be selected by this transaction.
+
 ### counts() semantics · `agents/reports/document.py`
 The single source of truth for every count client copy may state.
 Load-bearing semantics that look like bugs but are doctrine:

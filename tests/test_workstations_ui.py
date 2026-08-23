@@ -769,18 +769,25 @@ def test_navigation_closes_overlay_and_late_detail_cannot_repaint(browser):
 
 
 def test_finale_jobs_keep_origin_and_do_not_refresh_later_selection(browser):
-    # 2026-07-24 clean pass: every finale job press is retired (capture
-    # brief flag-gated, watchlist and dossier removed). The finale carries
-    # the download, the preview, and the one Refresh control only.
+    # 2026-08-23: the finale owns exactly one external release action. Older
+    # capture-brief, views, and dossier presses remain retired here.
     page = _page(browser, viewport=(1400, 900),
                  dhs_payload=_actionable_payload(target_approved=True))
     page.goto("http://lila.test/client/netscout/workstation/agency_dhs")
     page.wait_for_selector(".btn-one-refresh")
-    assert page.query_selector(".btn-final") is None
+    release = page.locator(".btn-final")
+    assert release.count() == 1
+    assert release.inner_text().strip() == "RELEASE COMPLETE LILA BUNDLE"
     assert page.query_selector(".btn-views") is None
     assert page.query_selector(".btn-dossier") is None
-    bodies = page.evaluate("window.__runBodies || []")
-    assert bodies == []
+    release.click()
+    page.wait_for_timeout(100)
+    bodies = [body for path, body in page._lila_bodies if path == "/api/run"]
+    assert bodies[-1] == {
+        "client_name": "NETSCOUT",
+        "step": "lila_release",
+        "args": {"workstation_id": "agency_dhs"},
+    }
     page.close()
 def test_contacts_has_canonical_history_and_restores_workstation(browser):
     page = _page(browser)
@@ -1238,7 +1245,7 @@ def test_native_decision_carries_the_exact_workstation_id(browser):
     page = _page(browser, dhs_payload=_native_strategy_payload())
     page.goto("http://lila.test/client/netscout/workstation/agency_dhs")
     page.wait_for_selector(".workstation-early")
-    page.click("button:has-text('Approve + Run report')")
+    page.click("button:has-text('Approve + Refresh research')")
     page.wait_for_timeout(100)
     bodies = [body for path, body in page._lila_bodies
               if path == "/api/decide"]
@@ -1255,7 +1262,7 @@ def test_native_decision_failure_is_visible_and_recoverable(browser):
             "error": "native packet changed; reload"}})
     page.goto("http://lila.test/client/netscout/workstation/agency_dhs")
     page.wait_for_selector(".workstation-early")
-    approve = page.locator("button:has-text('Approve + Run report')")
+    approve = page.locator("button:has-text('Approve + Refresh research')")
     reject = page.locator("button:has-text('Reject')")
     approve.click()
     decision_msg = page.locator('.gate-msg[role="status"]')

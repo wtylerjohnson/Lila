@@ -139,14 +139,10 @@ def test_capture_brief_press_is_retired_by_default():
 
 
 def test_legacy_cockpit_is_curtained_and_status_line_is_honest():
-    """One-gate + one-deliverable laws (2026-07-18): the legacy per-stage
-    cockpit and the brief-as-deliverable surfaces are curtained in source
-    (machinery preserved, flags default off), and the interim status line
-    consumes the C2 seam read-only with the artifacts-on-disk fallback."""
+    """Legacy workstations stay curtained and the LILA product owns release."""
     html = open(os.path.join(os.path.dirname(srv.__file__),
                              "index.html"), encoding="utf-8").read()
     assert "const SHOW_LEGACY_WORKSTATION = false" in html
-    assert "const SHOW_CAPTURE_BRIEF = false" in html
     # 2026-07-25: the standalone approve press is retired; the Target
     # door performs the Assess sign-off and the open in one act.
     assert "/api/review/assess-approve" in html
@@ -154,24 +150,25 @@ def test_legacy_cockpit_is_curtained_and_status_line_is_honest():
     assert "if (SHOW_LEGACY_WORKSTATION) apBar.append(ap, apMsg);" not in html
     assert "chain-status" in html
     assert "row.last_press" in html
-    assert "else if (SHOW_CAPTURE_BRIEF) renderPreview(d.final_brief)" in html
+    assert "if (d.final_product) renderPreview(d.final_product);" in html
+    assert "Release complete LILA bundle" in html
     assert "LILA_LEGACY_WORKSTATION" in open(os.path.join(
         os.path.dirname(srv.__file__), "server.py"), encoding="utf-8").read()
 
 
-def test_signal_board_is_canonical_command_center_deliverable():
+def test_lila_bundle_is_canonical_command_center_deliverable():
     html = open(os.path.join(os.path.dirname(srv.__file__),
                              "index.html"), encoding="utf-8").read()
-    assert "const sb = d.signal_board || null;" in html
-    assert "clientReady: !!(sb && sb.qa_pass)" in html
-    assert "if (d.signal_board) renderPreview(d.signal_board);" in html
-    assert "/client/${d.slug}/download/signal-board.html" in html
-    assert "Download HTML — Federal Opportunity Pre-Assessment" in html
-    assert "const SHOW_CAPTURE_BRIEF = false" in html
+    assert "const product = d.final_product || null;" in html
+    assert "clientReady: !!(product && product.qa_pass)" in html
+    assert "if (d.final_product) renderPreview(d.final_product);" in html
+    assert "/client/${d.slug}/download/lila.html" in html
+    assert "/client/${d.slug}/download/lila-bundle.zip" in html
+    assert "Download complete bundle" in html
     assert ("re-sweep → relevance → compose-refresh → award re-pull "
             "→ verification → press → delta") in html
     assert "runJob('refresh_press', {}, card, run)" in html
-    assert "Refresh Signal Board" in html
+    assert "Refresh internal Signal Board" in html
 
 
 def test_command_center_roundtrips_and_previews_presentation_name(monkeypatch):
@@ -2359,14 +2356,17 @@ def test_step_cmd_maps_the_ranking_workbook():
     assert cmd[1:] == ["run_ranking_workbook.py", "--client", "Riverbed"]
 
 
-def test_the_gate_carries_the_run_report_control():
-    # 2026-07-25 operator ruling: an approved client gets one unmistakable
-    # Run report button at the gate; a pending client's approve says what
-    # it does (Approve + Run report). The bottom Refresh only navigates.
+def test_step_cmd_maps_the_one_external_release_action():
+    cmd = srv._step_cmd("lila_release", "Riverbed", {})
+    assert cmd[1:] == ["run_lila_release.py", "--client", "Riverbed", "--release"]
+
+
+def test_gate_refreshes_research_and_finale_owns_release():
     html = open(os.path.join(os.path.dirname(srv.__file__), "index.html")).read()
-    assert ">Run report</button>" in html
-    assert "Approve + Run report" in html
+    assert ">Refresh research</button>" in html
+    assert "Approve + Refresh research" in html
     assert "step: 'candidate_review'" in html
+    assert "step: 'lila_release'" in html
 
 
 def test_home_ticker_route_and_tape_exist(monkeypatch):

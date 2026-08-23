@@ -1,4 +1,4 @@
-"""FederalMarketMapDocument: the seven answers, assembled before anything.
+"""Legacy internal Market Map projection and graph-to-product source adapter.
 
 WHAT THIS CHANGES. Today the renderer derives sections from the pack inline,
 which is why the same opportunity could appear in three sections and why
@@ -8,7 +8,7 @@ renderer receives it complete. Single appearance stops being renderer
 discipline and becomes a property of the data: `opportunity_key` is a set
 key, so a duplicate cannot be constructed.
 
-EIGHT ANSWER SETS, in the order a reader needs them:
+EIGHT INTERNAL ANSWER SETS used to assemble governed source facts:
 
   company_understanding   what they sell and how we bounded the research
   category_footprint      what the government spent, by whom, through whom
@@ -18,6 +18,10 @@ EIGHT ANSWER SETS, in the order a reader needs them:
   contact_actions         who to call, by motion, with a grade
   events                  where the buyers will be
   research_demand         typed absence, computed before prose
+
+This object does not define the external slot order. The locked eight-slot
+projection in ``external_product_projection.py`` consumes it alongside the
+certified Federal Pursuit Graph.
 
 DETERMINISTIC END TO END. No model call in this module. Promotion,
 deduplication, money and source roles are all rules over the pack. The

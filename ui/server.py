@@ -105,7 +105,7 @@ def api_build():
     newest = 0.0
     for rel in ("ui/server.py", "ui/index.html",
                 "ui/signal_board_logo_editor.js", "run_searches.py",
-                "run_capture_brief.py", "run_target.py"):
+                "run_capture_brief.py", "run_lila_release.py", "run_target.py"):
         p = os.path.join(ROOT, rel)
         if os.path.exists(p):
             newest = max(newest, os.path.getmtime(p))
@@ -1101,7 +1101,7 @@ def client_foundation_documents(slug: str) -> list[dict]:
 def client_documents(slug: str, client_name: str = "",
                      foa: Optional[dict] = None,
                      workstation_id: Optional[str] = None) -> list[dict]:
-    """Every client-facing deliverable on file, newest first — the docs shelf."""
+    """Every product or internal output on file, newest first: the docs shelf."""
     if foa is None and glob.glob(os.path.join(
             REPORT_DIR, f"{slug}.federal_opportunity_signals*.html")):
         foa = release_state(
@@ -1180,6 +1180,12 @@ def client_documents(slug: str, client_name: str = "",
             "label": label, "stage": stage, "kind": kind, "fmt": fmt,
             "qa_pass": qa_pass, "path": _rel(path),
             "updated": os.path.getmtime(path),
+            "product_role": (
+                "compatibility_adapter" if kind in {
+                    "capture_brief", "federal_opportunity_assessment",
+                    "federal_opportunity_signals"
+                } else "internal_view"),
+            "external_product": False,
         })
     # Legacy working-intelligence filenames carry no scope identity.  They
     # remain visible in the client-global depository, but an exact workstation
@@ -1196,7 +1202,23 @@ def client_documents(slug: str, client_name: str = "",
                     "label": label, "stage": "Intelligence", "kind": "working",
                     "fmt": "md", "qa_pass": True, "path": _rel(p),
                     "updated": os.path.getmtime(p),
+                    "product_role": "internal_view",
+                    "external_product": False,
                 })
+        from agents.golden_press.product_bundle import product_release_state
+        product = product_release_state(slug, root=Path(ROOT))
+        if product.get("path"):
+            docs.append({
+                "label": "LILA Federal Market Map",
+                "stage": "External product",
+                "kind": "lila_federal_market_map",
+                "fmt": "html",
+                "qa_pass": bool(product.get("releasable")),
+                "path": _rel(product["path"]),
+                "updated": product.get("updated") or 0.0,
+                "product_role": "external_product",
+                "external_product": True,
+            })
     # Mirror the client's Desktop folder: everything in ~/Desktop/<Client>/ shows
     # on the shelf — including files the operator drops there by hand. The Desktop
     # folder is the human-curated set, so it wins on duplicate filenames.
@@ -1221,6 +1243,8 @@ def client_documents(slug: str, client_name: str = "",
                 # release state for them and must not badge them QA PASSED
                 "qa_pass": None, "path": path, "source": "desktop",
                 "updated": os.path.getmtime(path),
+                "product_role": "internal_view",
+                "external_product": False,
             })
     # Operator prefs: hidden docs drop off the shelf (files untouched); the
     # chosen order wins, anything unranked follows newest-first.
@@ -1615,6 +1639,10 @@ def _step_cmd(step: str, client: str, args: dict) -> list[str]:
         cmd = [py, "run_target.py", "--client", client]
     elif step == "target_report":
         cmd = [py, "run_target_report.py", "--client", client]
+    elif step == "lila_release":
+        # The only external release action. It consumes approved stored
+        # research and emits the complete hash-bound eight-slot bundle.
+        cmd = [py, "run_lila_release.py", "--client", client, "--release"]
     elif step == "report":
         kind = args.get("kind", "teaser")
         if kind == "capture_brief":
@@ -1667,7 +1695,8 @@ def _step_cmd(step: str, client: str, args: dict) -> list[str]:
         # Pre-Assessment; deterministic, zero LLM, zero network.
         cmd = [py, "run_ranking_workbook.py", "--client", client]
     elif step == "candidate_review":
-        # The ONE deliverable: the Federal Opportunity Pre-Assessment.
+        # Internal research and operator-review surface. It refreshes the
+        # governed pack consumed by the separate LILA release transaction.
         # Watch generation + document press in a single zero-LLM process
         # (same-run as_of keeps the 24h current-notice window open). The
         # step id is deliberately NOT pre_assessment: that id already names
@@ -2204,6 +2233,25 @@ def _signal_board(slug: str, foa: Optional[dict] = None) -> Optional[dict]:
     }
 
 
+def _lila_product(slug: str) -> Optional[dict]:
+    """The one external product verdict, read from its hash-bound pointer."""
+    from agents.golden_press.product_bundle import product_release_state
+
+    state = product_release_state(slug, root=Path(ROOT))
+    if not state.get("path"):
+        return None
+    return {
+        "path": _rel(state["path"]),
+        "bundle_path": _rel(state["bundle_path"])
+        if state.get("bundle_path") else None,
+        "qa_pass": bool(state.get("releasable")),
+        "reason": state.get("reason") or "release state unavailable",
+        "updated": state.get("updated") or 0.0,
+        "family": "lila_federal_market_map",
+        "release_id": state.get("release_id"),
+    }
+
+
 def _safe_client_display_name(client_name: str) -> str:
     """Presentation metadata must never replace or break exact identity."""
     try:
@@ -2243,6 +2291,7 @@ def _client_payload(slug: str, *, workstation_id: Optional[str] = None,
     # The canonical deliverable has its own field so no legacy assessment can
     # accidentally light CLIENT READY in the Command Center.
     state["signal_board"] = _signal_board(slug, foa=foa)
+    state["final_product"] = _lila_product(slug)
     # the assessment unlocks after the opportunity search + review (qualify is
     # internal and the assessment degrades gracefully without it)
     state["assess_ready"] = (state["status"] == "approved"
@@ -2868,6 +2917,43 @@ def _download_signal_board(slug: str, *, rs: Optional[dict] = None):
 def download_signal_board(slug):
     """The canonical, hash-certified Signal Board HTML."""
     return _download_signal_board(slug)
+
+
+def _download_lila_product(slug: str, *, bundle: bool):
+    """Serve only the current, hash-verified external product transaction."""
+    if not slug or _slugify(slug) != slug:
+        return "not found", 404
+    from agents.golden_press.product_bundle import product_release_state
+
+    state = product_release_state(slug, root=Path(ROOT))
+    if not state.get("releasable"):
+        return _dns(state.get("reason") or "no releasable LILA bundle")
+    targeting_block = _targeting_download_gate(slug)
+    if targeting_block is not None:
+        return targeting_block
+    selected = state.get("bundle_path" if bundle else "path")
+    if not selected or not os.path.isfile(selected):
+        return _dns("the current LILA release is incomplete")
+    from flask import send_file
+
+    return send_file(
+        selected,
+        as_attachment=True,
+        download_name=os.path.basename(selected),
+        mimetype=("application/zip" if bundle else "text/html"),
+    )
+
+
+@app.get("/client/<slug>/download/lila.html")
+def download_lila_product(slug):
+    """The scriptless eight-slot LILA product."""
+    return _download_lila_product(slug, bundle=False)
+
+
+@app.get("/client/<slug>/download/lila-bundle.zip")
+def download_lila_bundle(slug):
+    """The complete manifest-bound LILA release bundle."""
+    return _download_lila_product(slug, bundle=True)
 
 
 @app.get("/client/<slug>/download/foa.html")
@@ -5168,7 +5254,7 @@ def api_run():
         }), 409
     release_capable_assess = (
         (step == "report" and args.get("kind", "teaser") == "capture_brief")
-        or step in ("views", "agency_report")
+        or step in ("views", "agency_report", "lila_release")
     )
     if release_capable_assess:
         _, approval_status, approval_problems = _assess_release_gate(client)
@@ -5180,7 +5266,8 @@ def api_run():
                 "problems": approval_problems,
             }), 409
     release_capable_targeting = release_capable_assess or (
-        step in ("candidate_review", "views", "agency_report", "target_report")
+        step in ("candidate_review", "views", "agency_report", "target_report",
+                 "lila_release")
     )
     if release_capable_targeting:
         target_payload, target_status = _client_targets_payload(_slugify(client))
@@ -5193,7 +5280,7 @@ def api_run():
                 "problems": readiness.get("problems") or [
                     "current target inventory is unavailable"],
             }), 409
-    if step in ("contacts", "target_report"):
+    if step in ("contacts", "target_report", "lila_release"):
         from agents.review import target_gate_status
         target_ok, target_problems = target_gate_status(
             client, review_dir=REVIEW_DIR)

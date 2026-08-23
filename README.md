@@ -150,16 +150,20 @@ The result is a system that can be imaginative about where to look while remaini
 
 LILA's sole external product is an operator-locked Federal Market Map with eight permanent slots in this exact order:
 
-1. **Highest Priority Pursuits**
+1. **Prioritized and Actionable**
 2. **NAICS + Keywords + Semantic (Research Mesh Deployment/Search)**
 3. **Agency Spending (in your category)**
-4. **Competitors (Identified) + Competitor Awards + Spending/Landscape**
+4. **Competitors and Landscape**
 5. **Federal Opportunities Identified + Targets Specific to Each Opportunity (listed on notice and then complemented with search and enrichment)**
 6. **Teaming Opportunities + Teaming Targets**
-7. **Future Forecasts (Agency + Budgets + News, a LILA strength), including directional graphs and vector maps**
+7. **Forecasts with Directional Graphs**
 8. **Industry Days + Events**
 
 The slots are the permanent frame; each client run fills them with its own governed evidence, relationships, targets, visuals, and named research gaps. A slot with no qualified content remains visible with its searched universe and next action. The order is part of the product contract, not a suggested outline. Every older Pre-Assessment, Signal Board, Candidate Review, target report, and studio format is internal feedstock or a compatibility surface.
+
+**Search returns records. LILA returns the same eight answers every time, in the same order, filled with each client's evidence; an empty slot tells you what was searched.**
+
+One release action fills the slots from the certified Federal Pursuit Graph and produces the complete LILA bundle: a scriptless client HTML, editable studio HTML, exact product projection, certified graph, evidence pack, captured replay inputs, validation receipt, SHA-256 manifest, and deterministic ZIP. No partial external release is possible.
 
 ### Targeting and contact intelligence
 
@@ -184,7 +188,7 @@ A green unit test does not become a market claim. A good-looking fixture does no
 | Area | Responsibility |
 |---|---|
 | [`agents/assess/`](agents/assess/) | Immutable live, horizon, and partner ledgers; pursuit grading; approval-bound report truth |
-| [`agents/golden_press/`](agents/golden_press/) | Retrieval guards, evidence packs, decision rules, market maps, targeting, deterministic validation, and press orchestration |
+| [`agents/golden_press/`](agents/golden_press/) | Retrieval guards, evidence packs, graph-to-slot projection, standardized rendering, deterministic validation, and complete-bundle release |
 | [`tools/api/`](tools/api/) | Cataloged source adapters, official data collection, bounded coverage, and provenance |
 | [`tools/contact_graph/`](tools/contact_graph/) | Shared official-contact observations, identity resolution, grading, querying, and outreach state |
 | `tools/retrieval/` | FTS5/BM25, local dense retrieval, reciprocal rank fusion, measurement, and gated experiments |
@@ -201,6 +205,8 @@ python3 run_ui.py
 ```
 
 Open `http://127.0.0.1:8321`. Report builds run through the Command Center so scope, evidence, approvals, validation, and release state remain bound to the same operation.
+
+The Command Center's **Release complete LILA bundle** action is the sole external press. Research refreshes and older report families remain available as explicitly internal views or compatibility adapters.
 
 Run the offline suite with:
 

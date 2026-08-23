@@ -10,19 +10,16 @@ from agents.golden_press import external_product_contract as contract
 
 
 EXPECTED_SLOTS = (
-    (1, "priority-pursuits", "Highest Priority Pursuits"),
+    (1, "priority-pursuits", "Prioritized and Actionable"),
     (2, "research-mesh",
      "NAICS + Keywords + Semantic (Research Mesh Deployment/Search)"),
     (3, "agency-spending", "Agency Spending (in your category)"),
-    (4, "competitors",
-     "Competitors (Identified) + Competitor Awards + Spending/Landscape"),
+    (4, "competitors", "Competitors and Landscape"),
     (5, "federal-opportunities",
      "Federal Opportunities Identified + Targets Specific to Each Opportunity "
      "(listed on notice and then complemented with search and enrichment)"),
     (6, "teaming-opportunities", "Teaming Opportunities + Teaming Targets"),
-    (7, "future-forecasts",
-     "Future Forecasts (Agency + Budgets + News, a LILA strength), including "
-     "directional graphs and vector maps"),
+    (7, "future-forecasts", "Forecasts with Directional Graphs"),
     (8, "industry-days-events", "Industry Days + Events"),
 )
 
@@ -42,11 +39,11 @@ def test_operator_locked_external_slot_order_is_exact():
     "mutation",
     (
         lambda text: text.replace(
-            "| 1 | `priority-pursuits` | Highest Priority Pursuits |\n", ""),
+            "| 1 | `priority-pursuits` | Prioritized and Actionable |\n", ""),
         lambda text: text.replace("| 1 | `priority-pursuits`", "| 2 | `priority-pursuits`"),
-        lambda text: text.replace("Highest Priority Pursuits", "Priority Pursuits"),
+        lambda text: text.replace("Prioritized and Actionable", "Priority Pursuits"),
         lambda text: text.replace(
-            "| 1 | `priority-pursuits` | Highest Priority Pursuits |",
+            "| 1 | `priority-pursuits` | Prioritized and Actionable |",
             "| 1 | `future-forecasts` | Future Forecasts |",
         ),
     ),

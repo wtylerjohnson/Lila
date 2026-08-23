@@ -1323,6 +1323,19 @@ rename, or reorder. The seven-section and other historical renderers remain
 internal migration surfaces. Their own validators preserve internal behavior
 but cannot amend the external section contract.
 
+The graph-to-product boundary is a typed projection, not renderer inference.
+`external_product_projection.py` assigns every record one owning slot; slot 1
+contains ranked references to records owned below, and opportunity-specific
+targets remain nested beneath their qualifying slot-5 opportunity. The
+standard renderer consumes only that projection and keeps all eight slots
+visible, including named zero/gap states. `product_bundle.py` is the single
+external transaction. It refuses before promotion unless Assess and Target
+approvals are current, the graph contract is certified, the client render is
+valid, and every bundle member is bound into `manifest.json`. The current
+pointer and downloads revalidate the manifest, ZIP, and every member hash.
+Older families are classified by `agents/reports/product_families.py`; their
+continued readability is compatibility, not release eligibility.
+
 ## Operator frame tiers and the full-store re-screen (2026-08-17)
 
 - `clients/<slug>/frame_tiers.json` is the single record of an

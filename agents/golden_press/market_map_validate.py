@@ -19,8 +19,8 @@ because the assessment family already drifted in exactly that way:
   MISSING RECEIPT     a money or opportunity section with no linked record id
                       is an assertion, not evidence
 
-Contract: docs/MARKET_MAP_CONTRACT.md. §1 fixes the sections, §3 fixes these
-invariants.
+Contract: Appendix A of docs/MARKET_MAP_CONTRACT.md. These checks preserve the
+legacy internal studio invariants; they do not define the external slots.
 """
 
 from __future__ import annotations
