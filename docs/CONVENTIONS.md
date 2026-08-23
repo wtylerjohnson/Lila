@@ -931,13 +931,13 @@ Reality in the code wins. When you extend a pattern, extend it here too.
 - Full suite green is a shipping requirement:
   `.venv/bin/python -m pytest tests/ -q`.
 
-## Client-facing naming map (2026-07-19)
+## Legacy artifact naming map (2026-07-19; external status superseded 2026-08-23)
 
 - `agents/reports/lint.py::APPROVED_CLIENT_TITLES` is THE naming map:
-  approved client-facing deliverable titles by tier. "Federal Opportunity
-  Pre-Assessment" is the permanent Signal Board public title in every tier.
-  "Federal Opportunity Assessment" remains the title of the separate
-  assessment artifact family.
+  approved presentation titles for the internal compatibility artifact
+  families by tier. "Federal Opportunity Pre-Assessment" remains the locked
+  Signal Board title, but neither it nor "Federal Opportunity Assessment"
+  defines LILA's external product. The eight-slot Federal Market Map does.
 - `lint_client_terminology(html, tier="assessment")` rejects "capture
   brief" everywhere client-facing in every tier. Artifact-specific render
   and release gates enforce the exact approved title for each deliverable.
@@ -1313,15 +1313,15 @@ apexanalytix pressed zero decision rows and read as an empty market while
 the government was publishing an RFI for Audit Remediation Services at DIA.
 Before reporting a zero, check the frame against the store.
 
-## The Federal Market Map (2026-08-06)
+## The Federal Market Map (operator lock 2026-08-23)
 
-`docs/MARKET_MAP_CONTRACT.md` is the single source. Seven sections in fixed
-order, three laws the band family never had: state the gap in words (a blank
-cell is a defect), never repeat to fill space, and no prose a number could
-replace. `market_map.py` renders it and imports NO model caller, so prose has
-no door. `market_map_validate.py` enforces repeated sentences, repeated rows,
-blank cells, banned vocabulary, LLM filler, em dashes, missing receipts and
-unstated coverage. Run it against any artifact in this family before shipping.
+`docs/MARKET_MAP_CONTRACT.md` is the single source for LILA's sole external
+product. Its eight slots, names, and order are operator-locked until the
+operator explicitly changes them. `agents/golden_press/external_product_contract.py`
+parses the table and verifies its locked digest; tests fail on any add, remove,
+rename, or reorder. The seven-section and other historical renderers remain
+internal migration surfaces. Their own validators preserve internal behavior
+but cannot amend the external section contract.
 
 ## Operator frame tiers and the full-store re-screen (2026-08-17)
 

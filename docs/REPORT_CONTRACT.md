@@ -1,5 +1,9 @@
 # REPORT_CONTRACT.md
-## Federal Opportunity Pre-Assessment — canonical output contract, v1
+## Federal Opportunity Pre-Assessment - internal compatibility contract, v1
+
+External status: **NOT A CLIENT PRODUCT.** This executable legacy format may
+feed the Federal Market Map, but it cannot override or compete with LILA's
+sole external product contract in `docs/MARKET_MAP_CONTRACT.md`.
 
 Status: DRAFT for Tyler's edit. On approval, this file is committed to the repo,
 the validator enforces it, and no press ships a report that deviates from it.

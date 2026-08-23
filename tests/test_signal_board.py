@@ -1,10 +1,10 @@
-"""Golden conformance test for the Federal Opportunity Pre-Assessment format.
+"""Golden conformance test for an internal compatibility format.
 
-Doctrine (2026-07-13): LILA's client deliverable is standardized on the
-operator-locked Signal Board. The format is deterministic (no LLM composes the
-artifact) and cannot drift. Post-review (Codex) this also pins: no cross-client
-leakage, structured/escaped output, and that an EMPTY model fails conformance.
-See docs/opportunity_signals_format.md.
+The Signal Board remains internally locked and deterministic (no LLM composes
+the artifact), but it no longer defines LILA's external product. This test
+pins its compatibility behavior: no cross-client leakage, structured/escaped
+output, and an EMPTY model fails conformance. See
+docs/opportunity_signals_format.md.
 """
 import re
 from pathlib import Path

@@ -1,8 +1,9 @@
-"""Approved client-facing naming map + terminology lint.
+"""Approved legacy-artifact naming map + terminology lint.
 
-"Federal Opportunity Pre-Assessment" is the permanent Signal Board public
-title in every tier. "capture brief" stays banned everywhere client-facing,
-every tier, no exceptions.
+"Federal Opportunity Pre-Assessment" remains the locked Signal Board
+compatibility title in every tier. "capture brief" stays banned everywhere
+client-facing, every tier, no exceptions. These names do not define the
+external eight-slot product contract.
 """
 from agents.reports.lint import (
     APPROVED_CLIENT_TITLES,

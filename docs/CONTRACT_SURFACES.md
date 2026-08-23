@@ -12,6 +12,17 @@ code. The protocol, when a task requires touching one:
 
 ## The surfaces
 
+### External product slots · `docs/MARKET_MAP_CONTRACT.md`
+
+The Federal Market Map is LILA's sole external product. Its eight slots,
+names, and order are operator-locked by the 2026-08-23 ruling. The slots are a
+fixed schema that each client press fills with governed evidence; a zero or
+research gap fills its slot honestly rather than removing it. The executable
+owner is `agents/golden_press/external_product_contract.py`, whose locked
+digest makes any add, remove, rename, or reorder fail loudly. No other report
+family, plan, fixture, or renderer may amend this surface. Only a later
+explicit operator instruction may change the lock.
+
 ### counts() semantics · `agents/reports/document.py`
 The single source of truth for every count client copy may state.
 Load-bearing semantics that look like bugs but are doctrine:

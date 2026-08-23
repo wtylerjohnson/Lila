@@ -1,8 +1,9 @@
 """Deterministic Federal Opportunity Pre-Assessment renderer.
 
-Standardizes LILA's client deliverable on the operator-LOCKED "Signal Board"
-format (docs/reference/federal_opportunity_signals.reference.html, spec at
-docs/opportunity_signals_format.md). NO LLM composes this artifact: the locked
+Preserves LILA's internal compatibility "Signal Board" format
+(docs/reference/federal_opportunity_signals.reference.html, spec at
+docs/opportunity_signals_format.md). It does not define the external product
+slots in docs/MARKET_MAP_CONTRACT.md. NO LLM composes this artifact: the locked
 template is a fixed shell (structure, labels, CSS, doctrine wording) and this
 module fills only per-report data slots from pipeline data, so every report is
 byte-identical in format, carries no LLM voice, and cannot drift. Conformance is

@@ -1,4 +1,7 @@
-# Federal Opportunity Pre-Assessment — the committed deliverable format
+# Federal Opportunity Pre-Assessment - internal signal-board format
+
+External status: **NOT A CLIENT PRODUCT.** This frozen legacy format may feed
+the Federal Market Map, but it cannot override or compete with LILA's sole external product contract in `docs/MARKET_MAP_CONTRACT.md`.
 
 The client deliverable's committed gold standard is
 [`docs/reference/federal_opportunity_signals.reference.html`](reference/federal_opportunity_signals.reference.html)

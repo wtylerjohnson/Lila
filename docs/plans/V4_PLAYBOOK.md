@@ -436,18 +436,12 @@ Implementation: V4.4 (gate/flow + basic stage motion); V4.5/V5
 (motion depth).
 
 ### One Deliverable law
-ONE DELIVERABLE LAW (operator ruling 2026-07-18): LILA produces
-exactly ONE client-facing artifact: the Signal Board in the
-Insignary format, client-titled per the naming tiers (Federal
-Opportunity Assessment; Pre-Assessment for the provisional/demo
-tier). Every chain, press surface, and acceptance test targets this
-single output. The capture-brief document format
-(run_capture_brief.py's 4-beat chapter deliverable) is RETIRED from
-all client-delivery surfaces: it is not a deliverable, its outputs
-are internal feedstock at most (fact packs, review directives feed
-the composer). The V4-ACCEPT done-test asserts the pressed artifact
-is the Signal Board and nothing else. Any future second deliverable
-requires an explicit operator ruling amending this law.
+SUPERSEDED BY OPERATOR RULING 2026-08-23: LILA's sole external product
+is the eight-slot Federal Market Map in `docs/MARKET_MAP_CONTRACT.md`.
+The Signal Board, Pre-Assessment, capture brief, Candidate Review, and
+target report are internal feedstock or compatibility surfaces. The
+external slot names and order remain locked until the operator changes
+them explicitly.
 
 ### KNOWN REDS ledger (green = zero failures beyond this list)
 (empty as of the 2026-07-18 V4.1 merges: refresh-delta cleared the

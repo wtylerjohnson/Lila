@@ -1,7 +1,8 @@
-"""REPORT_CONTRACT loader: the ONE band-list source (contract §1).
+"""Internal REPORT_CONTRACT loader: the one legacy band-list source (§1).
 
-docs/REPORT_CONTRACT.md is the canonical output contract. This module parses
-its §1 band table and §0 L7 banned-vocabulary law so validate.py, compose.py
+docs/REPORT_CONTRACT.md is the internal compatibility contract for this report
+family. It cannot override the external product slots. This module parses its
+§1 band table and §0 L7 banned-vocabulary law so validate.py, compose.py
 and render.py all derive their band lists from the same bytes. The old
 triplication (GOLDEN_BAND_ORDER / doctrine.SECTIONS / renderer literals) is
 retired: a band exists because the contract says so, numbered by its position

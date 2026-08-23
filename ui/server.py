@@ -1990,8 +1990,8 @@ def client_workstation_page(slug, workstation_id):
 # route preserved intact behind this flag for later resurrection.
 SALES_VIEW_ENABLED = os.environ.get("LILA_SALES_VIEW", "") == "1"
 
-# one deliverable law (2026-07-18): the Signal Board is the product; the
-# capture-brief press is retired from the Command Center. The runner, its
+# Legacy compatibility law: the Signal Board remains an internal press
+# surface; the capture-brief press is retired from the Command Center. The runner, its
 # arbiters, and its tests stay intact; this flag resurrects the press.
 CAPTURE_BRIEF_ENABLED = os.environ.get("LILA_CAPTURE_BRIEF", "") == "1"
 
@@ -5072,14 +5072,16 @@ def api_run():
     if any(isinstance(key, str) and key.startswith("_lila_") for key in args):
         return jsonify({"error": "args contains a reserved server field"}), 400
 
-    # one deliverable law (2026-07-18): the capture-brief press refuses
-    # before any packet or gate work; the Signal Board is the product.
+    # Legacy compatibility law: the capture-brief press refuses before any
+    # packet or gate work. The locked eight-slot Federal Market Map is the
+    # external product; this route remains retired rather than creating a
+    # competing output.
     if (step == "report" and args.get("kind") == "capture_brief"
             and not CAPTURE_BRIEF_ENABLED):
-        return jsonify({"error": "the capture-brief press is retired "
-                        "(one deliverable law, 2026-07-18); the Signal "
-                        "Board is the product. Set LILA_CAPTURE_BRIEF=1 "
-                        "to resurrect."}), 403
+        return jsonify({"error": "the capture-brief press is retired; "
+                        "the operator-locked Federal Market Map is LILA's "
+                        "external product. Set LILA_CAPTURE_BRIEF=1 only "
+                        "for internal compatibility use."}), 403
 
     # Compatibility migration: omission is accepted only by resolving the
     # one unambiguous legacy-current row. A posted dormant/stale id never

@@ -144,15 +144,22 @@ LILA uses models where interpretation helps and deterministic code where the ans
 
 The result is a system that can be imaginative about where to look while remaining conservative about what it claims.
 
-## What LILA produces
-
-### Federal Opportunity Pre-Assessment
-
-A release-gated signal board for what is live now: qualified solicitation families, fit evidence, deadlines, route decisions, source coverage, and the exact records behind the board.
+## What LILA delivers
 
 ### Federal Market Map
 
-An evidence-dense view of the client’s federal market: priority opportunities, buyer spending, competitive positions, teaming routes, forecasts, events, account decisions, and opportunity-specific targets. Numbers reconcile to their source records, and displayed relationships come from the same governed intelligence layer.
+LILA's sole external product is an operator-locked Federal Market Map with eight permanent slots in this exact order:
+
+1. **Highest Priority Pursuits**
+2. **NAICS + Keywords + Semantic (Research Mesh Deployment/Search)**
+3. **Agency Spending (in your category)**
+4. **Competitors (Identified) + Competitor Awards + Spending/Landscape**
+5. **Federal Opportunities Identified + Targets Specific to Each Opportunity (listed on notice and then complemented with search and enrichment)**
+6. **Teaming Opportunities + Teaming Targets**
+7. **Future Forecasts (Agency + Budgets + News, a LILA strength), including directional graphs and vector maps**
+8. **Industry Days + Events**
+
+The slots are the permanent frame; each client run fills them with its own governed evidence, relationships, targets, visuals, and named research gaps. A slot with no qualified content remains visible with its searched universe and next action. The order is part of the product contract, not a suggested outline. Every older Pre-Assessment, Signal Board, Candidate Review, target report, and studio format is internal feedstock or a compatibility surface.
 
 ### Targeting and contact intelligence
 

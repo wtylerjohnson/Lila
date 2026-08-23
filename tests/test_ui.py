@@ -105,7 +105,7 @@ def test_run_endpoint_refuses_unapproved(monkeypatch, tmp_path):
 def test_run_endpoint_refuses_release_capable_assess_without_current_approval(
         monkeypatch, step, args):
     _bind_run_workstation(monkeypatch)
-    # one deliverable law: the capture-brief press is flag-gated off by
+    # External-slot law: the capture-brief press is flag-gated off by
     # default; this test's subject is the release gate, so raise the flag
     monkeypatch.setattr(srv, "CAPTURE_BRIEF_ENABLED", True)
     monkeypatch.setattr(
@@ -128,14 +128,14 @@ def test_run_endpoint_refuses_release_capable_assess_without_current_approval(
 
 
 def test_capture_brief_press_is_retired_by_default():
-    """One deliverable law (2026-07-18): the capture-brief press refuses
-    flag-off before any packet or gate work; the Signal Board is the
-    product. LILA_CAPTURE_BRIEF=1 resurrects the press."""
+    """External-slot law (2026-08-23): the capture-brief press refuses
+    flag-off before any packet or gate work. LILA_CAPTURE_BRIEF=1 resurrects
+    that internal compatibility press, not a competing external product."""
     r = srv.app.test_client().post("/api/run", json={
         "client_name": "Anyco", "step": "report",
         "args": {"kind": "capture_brief"}})
     assert r.status_code == 403
-    assert "one deliverable law" in r.get_json()["error"]
+    assert "operator-locked Federal Market Map" in r.get_json()["error"]
 
 
 def test_legacy_cockpit_is_curtained_and_status_line_is_honest():

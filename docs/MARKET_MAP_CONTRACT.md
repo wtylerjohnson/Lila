@@ -1,12 +1,18 @@
 # MARKET_MAP_CONTRACT.md
-## Federal Market Map · canonical output contract, v2 (2026-08-15)
+## Federal Market Map · operator-locked external product contract, v3 (2026-08-23)
+
+**LOCKED OPERATOR RULING:** this is LILA's sole external product contract.
+The slot membership, names, and order below override every earlier report,
+Signal Board, Candidate Review, Market Map, and planning-document sequence in
+the repository. No agent may add, remove, rename, split, combine, or reorder a
+slot. Only a later explicit instruction from the operator may amend it.
 
 ### Client-rendering lineage
 
 The client-facing visual reference is the 14 August 2026 Red Hat / TD SYNNEX
 diligence-ready deliverable. Its contract is black, white and red; sans-serif;
-logo-led; evidence-linked; executive-first; and organized as thirteen clearly
-numbered sections. The older warm-paper Riverbed shell remains an internal
+logo-led; evidence-linked; executive-first; and organized as eight fixed
+product slots. The older warm-paper Riverbed shell remains an internal
 studio surface while its data model is migrated, but it must not be promoted
 or described as the Red Hat-standard client deliverable.
 
@@ -26,37 +32,70 @@ promotion. The frozen client HTML must also pass the static visual contract:
 - desktop, tablet, mobile and print renders are inspected after the final HTML
   bytes are frozen.
 
-Until the thirteen-section renderer consumes the shared projection directly,
+Until the eight-slot renderer consumes the shared projection directly,
 the press receipt must name its visual lineage. A generic studio render may be
 saved for operator use, but a Red Hat-standard filename or promotion state is
 reserved for the verified executive renderer.
 
-The client section identities are:
+The client slot identities are:
 
-| # | id | client heading |
+| # | slot id | locked client heading |
 |---|---|---|
-| 1 | `priority` | Priority campaigns and evidence |
-| 2 | `orientation` | Market map orientation |
-| 3 | `motions` | Recommended account motions |
-| 4 | `keywords` | Keywords and NAICS codes identified |
-| 5 | `scope` | Research scope and definitions |
-| 6 | `footprint` | Agency footprint |
-| 7 | `competition` | Competitive footprint |
-| 8 | `opportunities` | Federal opportunities |
-| 9 | `forecasts` | Agency forecasts |
-| 10 | `channels` | Teaming and subcontracting routes |
-| 11 | `targets` | Targets |
-| 12 | `events` | Industry days and events |
-| 13 | `references` | References and receipts |
+| 1 | `priority-pursuits` | Highest Priority Pursuits |
+| 2 | `research-mesh` | NAICS + Keywords + Semantic (Research Mesh Deployment/Search) |
+| 3 | `agency-spending` | Agency Spending (in your category) |
+| 4 | `competitors` | Competitors (Identified) + Competitor Awards + Spending/Landscape |
+| 5 | `federal-opportunities` | Federal Opportunities Identified + Targets Specific to Each Opportunity (listed on notice and then complemented with search and enrichment) |
+| 6 | `teaming-opportunities` | Teaming Opportunities + Teaming Targets |
+| 7 | `future-forecasts` | Future Forecasts (Agency + Budgets + News, a LILA strength), including directional graphs and vector maps |
+| 8 | `industry-days-events` | Industry Days + Events |
+
+### Slot-filling law
+
+The eight slots are the permanent product frame. Their client-specific
+contents are filled from the governed research mesh and Federal Pursuit Graph
+on each press.
+
+- Every slot always exists and always renders in the locked order.
+- Evidence changes the contents of a slot, never the slot schema.
+- A slot with no qualified content states the searched universe, the observed
+  zero or gap, and the next research action. It is never deleted or padded.
+- Every claim, figure, target, graph, and recommended action remains bound to
+  its source evidence and retrieval time.
+- A record has one owning slot. Highest Priority Pursuits may summarize and
+  link to records owned below, but it never creates a duplicate evidence row.
+
+The slot payloads are:
+
+1. `priority-pursuits` fills with LILA's ranked pursuits and the evidence,
+   route, timing, owner, and next action that justify each priority.
+2. `research-mesh` fills with the client frame, NAICS boundary, approved
+   keywords, semantic concepts, deployed source/search lanes, and search
+   receipts.
+3. `agency-spending` fills with category-specific agency obligations and the
+   exact award records and arithmetic behind them.
+4. `competitors` fills with identified competitors, their relevant awards,
+   spending evidence, incumbent positions, and competitive landscape.
+5. `federal-opportunities` fills with qualified federal opportunities and a
+   target set specific to each opportunity. Published notice contacts render
+   first; governed search and approved enrichment complement the missing roles.
+6. `teaming-opportunities` fills with evidence-backed teaming routes and the
+   partner targets required to act on each route.
+7. `future-forecasts` fills with agency forecasts, budget direction, and
+   relevant federal or market news, plus evidence-bound directional graphs and
+   vector maps where the underlying data supports them.
+8. `industry-days-events` fills with relevant industry days and events, the
+   official registration or agenda evidence, and the pursuit-specific reason
+   to attend.
 
 Each canonical award, notice, forecast, contact, route, or event renders once
-in the section that owns it. Executive promotions elsewhere are internal
-links to that canonical record, never duplicated cards or rows.
+in the slot that owns it. Executive promotions elsewhere are internal links to
+that canonical record, never duplicated cards or rows.
 
 The seven-section Riverbed Federal Market Map below documents the internal
 studio semantic baseline that preceded the client visual contract. It remains
 useful for data invariants during migration, but the client-rendering lineage
-and thirteen-section sequence above control anything promoted as an executive
+and eight-slot sequence above control anything promoted as an executive
 deliverable.
 
 **Why this document exists at all.** The assessment family drifted. A press
@@ -72,7 +111,7 @@ enforced *density*. This contract enforces both.
 
 Everything below this heading documents the seven-section internal studio
 renderer only. It is retained for migration tests and does not override the
-thirteen-section client-rendering contract or the manifest above.
+eight-slot client-rendering contract or the manifest above.
 
 ### A0. THE THREE LAWS THIS FAMILY ADDS
 
@@ -191,5 +230,5 @@ event renders without a live-verified link.
 
 The internal studio render is conformant when its validator passes every
 Appendix A3 invariant and every Appendix A2 required field. Client promotion
-still requires the thirteen-section visual contract, manifest, and rendered
+still requires the eight-slot visual contract, manifest, and rendered
 checks at the top of this document.

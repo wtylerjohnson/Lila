@@ -1,7 +1,9 @@
 # CLAUDE.md · LILA session contract
 
-LILA turns SAM.gov/USAspending data into client-facing Federal Opportunity
-Assessments (internal name: capture brief). Read this file, then
+LILA reconstructs client-specific federal markets across its governed source
+mesh. Its sole external product is the operator-locked Federal Market Map in
+`docs/MARKET_MAP_CONTRACT.md`; every older report family is internal feedstock
+or a compatibility surface. Read this file, then
 [docs/CONVENTIONS.md](docs/CONVENTIONS.md) and
 [docs/CONTRACT_SURFACES.md](docs/CONTRACT_SURFACES.md), before writing code.
 Deep background: [README.md](README.md), [pipeline/LEARNINGS.md](pipeline/LEARNINGS.md),

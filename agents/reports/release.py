@@ -13,7 +13,8 @@ Rules encoded here:
   .assessment.client view pair (filename contract), and — for all-scope
   gates only — the hash-certified Signal Board and legacy capture_brief
   pairs. Once either Signal Board sibling exists, that family is the sole
-  all-scope client deliverable; retired families remain history only.
+  all-scope internal compatibility artifact; retired families remain history
+  only. This resolver does not define the external product contract.
 - ONE time basis: every candidate is ordered by its html mtime. Sidecar
   freshness/pairing is a validity check on the stable candidate, never the
   ordering key (a sidecar written after the html must not outrank a newer
@@ -489,9 +490,10 @@ def release_state(client_name: str, *, report_dir: str,
         exact_client_name=exact_client_name,
         presentation_name=presentation_name)
     if designator is None:
-        # One Deliverable law: once either Signal Board sibling exists, that
-        # family is the all-scope product.  Newer retired assessment/capture
-        # artifacts remain shelf history and cannot mask or supersede it.
+        # Internal release-selection law: once either Signal Board sibling
+        # exists, that family owns the all-scope compatibility surface. Newer
+        # retired assessment/capture artifacts remain shelf history and cannot
+        # mask or supersede it. The external product slots are defined elsewhere.
         signal_cands = [
             candidate for candidate in cands
             if candidate["family"] in {"signal_board", "signal_board_bad"}
