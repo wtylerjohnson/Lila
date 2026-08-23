@@ -159,6 +159,26 @@ def test_hygiene_disclaimer_scripts_emdashes(golden):
 def test_agency_seals_embedded(golden):
     html, m = golden["html"], golden["manifest"]
     embedded = html.count("data:image/png;base64,")
-    assert embedded == m["agency_seals_embedded"], (
-        f"embedded seal images: {embedded} (manifest: "
-        f"{m['agency_seals_embedded']})")
+    assert embedded == m["embedded_png_images"], (
+        f"embedded PNG images: {embedded} (manifest: "
+        f"{m['embedded_png_images']})")
+
+    # The old manifest called every embedded PNG an agency seal, which made
+    # client and GTM logo changes look like agency-mark drift. Agency marks
+    # are now counted only from their typed render element and pinned by key
+    # in render order. This keeps the test fail-closed without conflating
+    # unrelated brand assets with official federal marks.
+    opening_tags = re.findall(
+        r'<[^>]+\bdata-brand-kind="agency"[^>]*>\s*'
+        r'<img\b[^>]*\bsrc="data:image/png;base64,',
+        html,
+    )
+    agency_keys = []
+    for tag in opening_tags:
+        key = re.search(r'\bdata-brand-key="([^"]+)"', tag)
+        assert key is not None, f"typed agency mark has no key: {tag[:160]}"
+        agency_keys.append(key.group(1))
+    assert len(agency_keys) == m["agency_seal_instances"], (
+        f"agency seal instances: {len(agency_keys)} (manifest: "
+        f"{m['agency_seal_instances']})")
+    assert agency_keys == m["agency_seal_keys"]

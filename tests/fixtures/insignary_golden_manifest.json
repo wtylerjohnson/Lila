@@ -35,5 +35,15 @@
   "agency_marks_disclaimer": "no affiliation or endorsement",
   "script_tags": 0,
   "em_dashes": 0,
-  "agency_seals_embedded": 8
+  "embedded_png_images": 13,
+  "agency_seal_instances": 7,
+  "agency_seal_keys": [
+    "agency:doc",
+    "agency:dhs",
+    "agency:va",
+    "agency:dod",
+    "agency:doc",
+    "agency:dhs",
+    "agency:va"
+  ]
 }
