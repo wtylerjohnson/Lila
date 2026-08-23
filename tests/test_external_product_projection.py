@@ -6,6 +6,8 @@ import base64
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+
 from agents.golden_press.external_product_contract import load_external_product_slots
 from agents.golden_press.external_product_projection import (
     build_external_product_document,
@@ -173,10 +175,61 @@ def test_scriptless_renderer_carries_all_slots_marks_sources_and_visuals(monkeyp
     assert verdict["ok"], verdict["violations"]
     assert "<script" in studio.lower()
     assert "<script" not in client.lower()
-    assert client.count('data-slot-id="') == 8
+    assert client.count('<section class="plain-section product-slot') == 8
+    assert client.count('class="product-slot-intro"') == 8
     assert 'class="product-svg direction-graph"' in client
     assert 'class="product-svg vector-map"' in client
     assert "https://sam.gov/opp/notice-1/view" in client
+    assert client.count('class="receipt-print"') == 8
+    assert 'href="url"' not in client
+    assert ">label ↗</a>" not in client
+    assert ">NOTICE-1 ↗</a>" in client
+    assert "@page{size:letter;margin:.42in}" in client
+    assert "grid-template-columns:repeat(2,minmax(0,1fr))" in client
+    assert "break-inside:avoid;page-break-inside:avoid;overflow:hidden" in client
+
+
+def test_print_media_uses_paginated_layout_and_static_receipts(monkeypatch, tmp_path):
+    pytest.importorskip("playwright.sync_api")
+    from playwright.sync_api import sync_playwright
+    from tools.export_pdf import find_chrome
+
+    from agents.reports import report_assets
+    monkeypatch.setattr(report_assets, "client_logo", lambda _name: _mark())
+    monkeypatch.setattr(report_assets, "gtm_logo", _mark)
+    _studio, client = render_external_product(_document())
+    artifact = tmp_path / "lila-print-contract.html"
+    artifact.write_text(client, encoding="utf-8")
+
+    with sync_playwright() as manager:
+        browser = manager.chromium.launch(
+            headless=True, executable_path=find_chrome())
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.emulate_media(media="print")
+        page.goto(artifact.as_uri(), wait_until="load")
+        state = page.evaluate("""() => {
+          const style = (selector) => getComputedStyle(document.querySelector(selector));
+          return {
+            recordDisplay: style('[data-slot-id="research-mesh"] .product-records').display,
+            recordColumns: style('[data-slot-id="research-mesh"] .product-records').gridTemplateColumns.split(' ').length,
+            visualBreak: style('.product-visual').breakInside,
+            introBreak: style('.product-slot-intro').breakInside,
+            duplicateSummary: style('.product-slot-summary').display,
+            interactiveReceipt: style('.receipts-appendix .inline-work').display,
+            printReceipt: style('.receipts-appendix .receipt-print').display,
+          };
+        }""")
+        browser.close()
+
+    assert state == {
+        "recordDisplay": "grid",
+        "recordColumns": 2,
+        "visualBreak": "avoid",
+        "introBreak": "avoid",
+        "duplicateSummary": "none",
+        "interactiveReceipt": "none",
+        "printReceipt": "block",
+    }
 
 
 def test_slot_with_no_content_remains_as_named_gap():

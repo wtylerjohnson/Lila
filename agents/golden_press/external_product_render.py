@@ -13,12 +13,13 @@ from agents.golden_press.external_product_contract import load_external_product_
 from agents.golden_press.external_product_projection import ExternalProductDocument
 
 
-EXTERNAL_PRODUCT_RENDER_VERSION = "lila-eight-slot-render.v1.2026-08-23"
+EXTERNAL_PRODUCT_RENDER_VERSION = "lila-eight-slot-render.v2.2026-08-23"
 
 
 _PRODUCT_CSS = r"""
 .product-css-sentinel{display:contents}
 .product-slot{scroll-margin-top:32px}
+.product-slot-intro{min-width:0}
 .product-slot-summary{max-width:900px;margin:0 0 22px;color:var(--muted);font-size:15px;line-height:1.65}
 .product-slot-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:0 0 22px}
 .product-metric{border:1px solid var(--line);background:var(--paper-deep);padding:15px;min-width:0}
@@ -58,7 +59,28 @@ _PRODUCT_CSS = r"""
 .product-reference{color:var(--muted);font-size:11px;font-family:var(--mono);margin-top:10px}
 .product-status{white-space:nowrap}
 @media(max-width:720px){.product-records,.product-visuals{grid-template-columns:1fr}.product-slot-metrics{grid-template-columns:1fr 1fr}.product-fields{grid-template-columns:1fr}.product-fields dd{margin-bottom:5px}}
-@media print{.product-records,.product-visuals{display:block}.product-record,.product-visual{margin:0 0 12px}.product-source{color:#000;text-decoration:underline}}
+@page{size:letter;margin:.42in}
+@media print{
+html,body,.memo{background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.memo{box-shadow:none}
+.product-slot{padding-top:28px;padding-bottom:10px}
+.product-slot-gap{padding-top:18px;padding-bottom:6px;break-inside:avoid;page-break-inside:avoid}
+.product-slot-intro{break-inside:avoid;page-break-inside:avoid;break-after:avoid;page-break-after:avoid}
+.product-slot .plain-head{margin-bottom:14px;padding-bottom:11px;break-after:avoid;page-break-after:avoid}
+.product-slot-summary{display:none}
+.product-slot-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:14px;break-inside:avoid;page-break-inside:avoid}
+.product-metric{padding:11px}
+.product-records{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start}
+.product-slot[data-slot-id="priority-pursuits"] .product-records,.product-slot[data-slot-id="federal-opportunities"] .product-records{grid-template-columns:1fr}
+.product-record{margin:0;break-inside:avoid;page-break-inside:avoid;padding:13px;overflow:hidden}
+.product-fields{gap:5px 9px;margin-top:9px}
+.product-source{color:#000;text-decoration:underline;overflow-wrap:anywhere;word-break:break-word}
+.product-gap{margin-top:8px;padding:11px;break-inside:avoid;page-break-inside:avoid}
+.product-visuals{display:block;margin-top:12px}
+.product-visual{margin:0 0 10px;padding:12px;break-inside:avoid;page-break-inside:avoid;overflow:hidden}
+.product-svg{max-height:230px}
+.report-foot{break-inside:avoid;page-break-inside:avoid;margin-top:24px}
+}
 """
 
 
@@ -96,6 +118,8 @@ def _source_link(record: dict) -> str:
     if not url:
         return ""
     label = record.get("source_id") or "Open source record"
+    if _http(label):
+        label = "Open source record"
     return (f'<a class="product-source" href="{esc(url)}" target="_blank" '
             f'rel="noopener noreferrer">{esc(label)} ↗</a>')
 
@@ -270,15 +294,18 @@ def render_slot(slot: Any) -> str:
                       for row in slot.records)
     gaps = "".join(f'<div class="product-gap">{esc(gap)}</div>'
                    for gap in slot.gaps)
+    status_class = " product-slot-gap" if slot.status == "gap" else ""
     return (
-        f'<section class="plain-section product-slot" id="{esc(slot.slot_id)}" '
+        f'<section class="plain-section product-slot{status_class}" id="{esc(slot.slot_id)}" '
         f'data-slot-id="{esc(slot.slot_id)}" data-slot-number="{slot.number}">'
+        '<div class="product-slot-intro">'
         '<div class="plain-head">'
         f'<span class="plain-number">{slot.number}</span><div>'
         f'<h2>{esc(slot.heading)}</h2><p>{esc(slot.summary)}</p></div>'
         f'<span class="plain-state product-status">{esc(slot.status)}</span></div>'
         f'<p class="product-slot-summary">{esc(slot.summary)}</p>'
         + _metrics(slot.metrics)
+        + '</div>'
         + ('<div class="product-records">' + records + "</div>" if records else "")
         + _visuals(slot.visuals) + gaps + "</section>")
 
@@ -290,8 +317,10 @@ def _work_details(doc: ExternalProductDocument) -> dict:
         for record in slot.records:
             url = _http(record.get("source_url"))
             if url:
-                sources.append({"label": record.get("source_id")
-                                 or record.get("title"), "url": url})
+                label = record.get("source_id") or record.get("title")
+                if _http(label):
+                    label = "Open source record"
+                sources.append([label, url])
         details[f"slot-{slot.number}"] = {
             "title": slot.heading,
             "summary": slot.summary,

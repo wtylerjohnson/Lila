@@ -30,7 +30,7 @@ import re
 from pathlib import Path
 from typing import Any, Callable, Optional
 
-MARKET_MAP_PRESS_VERSION = "market_map_press.v1.2026-08-07"
+MARKET_MAP_PRESS_VERSION = "market_map_press.v1.1.2026-08-23"
 
 _EMDASH = "—"
 _STUDIO_SELECTOR = re.compile(
@@ -80,30 +80,42 @@ def _receipts_appendix(receipts: dict) -> str:
             f'<a class="source-link" href="{url}" target="_blank" '
             f'rel="noopener noreferrer">{label} ↗</a> '
             for label, url in (entry.get("sources") or []) if url)
-        blocks.append(
-            f'<details class="inline-work" id="receipt-{key}">'
-            f"<summary>{title}</summary>"
+        body = (
             f'<p class="receipt-copy">{summary}</p>'
             + (f'<p class="receipt-copy"><b>How it was computed:</b> '
                f"{formula}</p>" if formula else "")
-            + (f'<p class="record-links">{links}</p>' if links else "")
-            + "</details>")
+            + (f'<p class="record-links">{links}</p>' if links else ""))
+        blocks.append(
+            f'<details class="inline-work" id="receipt-{key}">'
+            f"<summary>{title}</summary>"
+            + body + "</details>"
+            '<section class="receipt-print" aria-hidden="true">'
+            f"<h3>{title}</h3>" + body + "</section>")
     return (
         '<aside class="method-ledger receipts-appendix" id="receipts">'
         "<h2>Receipts</h2>"
         '<p class="source-line">Every figure above links here; each entry '
         "names what was counted and the records it came from.</p>"
         + "".join(blocks) +
-        "<style>.receipts-appendix{margin:34px 0}"
+        "<style>.receipts-appendix{margin:34px 0;background:#fff}"
         ".receipts-appendix .inline-work{padding:8px 0;"
         "border-bottom:1px solid var(--rule)}"
+        ".receipts-appendix .receipt-print{display:none}"
         ".receipts-appendix .receipt-copy{max-width:920px;"
         "color:var(--ink-soft);font-size:12px;line-height:1.5}"
         ".receipts-appendix .record-links{display:flex;flex-wrap:wrap;"
         "gap:8px 14px}"
         "a.work-trigger,button.work-trigger{color:inherit}"
         "a.work-trigger{text-decoration:none}"
-        "@media print{.receipts-appendix .inline-work>*{display:block}}"
+        "@media print{.receipts-appendix{break-before:page;page-break-before:always;"
+        "margin:0;padding-top:0}.receipts-appendix .inline-work{display:none}"
+        ".receipts-appendix .receipt-print{display:block;padding:7px 0;"
+        "border-bottom:1px solid var(--rule);break-inside:avoid;"
+        "page-break-inside:avoid}.receipts-appendix .receipt-print h3{"
+        "margin:0 0 3px;font-size:13px}.receipts-appendix .receipt-copy{"
+        "margin:2px 0;font-size:9px;line-height:1.35}"
+        ".receipts-appendix .record-links{margin:4px 0;font-size:8px;"
+        "line-height:1.3}}"
         "</style></aside>")
 
 
