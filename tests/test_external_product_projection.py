@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import base64
-from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -56,7 +55,18 @@ def _market_map():
 def _graph():
     notice = {
         "record_id": "NOTICE-1", "title": "Language Support Services",
+        "description": "Cleared interpretation and translation support.",
         "agency": "Department of State", "office": "Acquisitions",
+        "sub_agency": "Diplomatic Security", "naics": "541930",
+        "psc": "R608", "notice_type": "Solicitation",
+        "set_aside": "Total Small Business Set-Aside",
+        "posted_date": "2026-08-01", "solicitation_number": "19AQMM26R0001",
+        "contact_name": "Alex Buyer", "contact_email": "alex@example.gov",
+        "fit_basis": "approved core capability evidence",
+        "route_basis": "client attests small business",
+        "window_basis": "published response deadline is live",
+        "matched_sentence": "interpretation and translation support",
+        "retrieved_at": "2026-08-23T09:00:00Z",
         "response_deadline": "2026-09-30", "evidence_class": "current_opportunity",
         "service_fit": "direct", "window_state": "live",
         "commercial_route": "direct", "eligible_route": True,
@@ -71,7 +81,12 @@ def _graph():
     }
     forecast = {
         "record_id": "FORECAST-1", "title": "Future Language Program",
+        "description": "Planned multilingual support for overseas posts.",
         "agency": "Department of State", "evidence_class": "forecast",
+        "sub_agency": "Bureau of Administration", "naics": "541930",
+        "fiscal_year": "2027", "anticipated_solicitation": "2027-02-01",
+        "anticipated_award": "2027-06-15",
+        "small_business_poc": "Sam POC <sam@example.gov>",
         "service_fit": "direct", "window_state": "fy_only",
         "commercial_route": "unknown", "estimated_value_range": "$5M-$10M",
         "url": "https://example.gov/forecast/1",
@@ -115,7 +130,11 @@ def _graph():
         "held_opportunities": [],
         "workflow_contract": {"certified": True},
         "incremental_cache_receipt": {
-            "providers": {"embeddings": {"exists": True}},
+            "cache_root": "/Users/example/private/cache",
+            "providers": {"embeddings": {
+                "exists": True,
+                "path": "/Users/example/private/cache/dense_vectors.db",
+            }},
         },
     }
 
@@ -232,6 +251,41 @@ def test_teaming_slot_rejects_ambiguous_excluded_and_unrelated_graph_rows():
     assert validate_external_product_document(document) == []
 
 
+def test_external_spending_and_competition_hold_non_direct_fit_records():
+    graph = _graph()
+    graph["records"].extend((
+        {
+            "record_id": "AWARD-RIVAL-REVIEW",
+            "title": "Generic technology award", "recipient": "Rival Inc",
+            "evidence_class": "competitive_historical",
+            "service_fit": "ambiguous", "commercial_route": "incumbent",
+            "obligated_dollars": 9_000_000,
+            "url": "https://www.usaspending.gov/award/AWARD-RIVAL-REVIEW",
+        },
+        {
+            "record_id": "AWARD-CLIENT-OTHER",
+            "title": "Unrelated facilities award", "recipient": "Acme",
+            "evidence_class": "client_historical",
+            "service_fit": "unrelated", "commercial_route": "direct",
+            "obligated_dollars": 8_000_000,
+            "url": "https://www.usaspending.gov/award/AWARD-CLIENT-OTHER",
+        },
+    ))
+
+    document = build_external_product_document(
+        market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
+        profile={}, client_name="Acme", slug="acme", as_of="2026-08-23")
+    by_id = {slot.slot_id: slot for slot in document.slots}
+
+    assert [row["source_id"] for row in by_id["competitors"].records] == [
+        "AWARD-RIVAL"]
+    assert by_id["competitors"].coverage["fit_review_holds"] == 1
+    assert [row["source_id"] for row in by_id["agency-spending"].records] == [
+        "AWARD-CLIENT"]
+    assert by_id["agency-spending"].coverage["fit_review_holds"] == 1
+    assert by_id["agency-spending"].metrics[0]["value"] == "$1,200,000.00"
+
+
 def test_synthetic_teaming_route_cannot_bypass_certified_graph_admission():
     market_map = _market_map()
     market_map.teaming_routes = (SimpleNamespace(
@@ -292,6 +346,83 @@ def test_forecasts_and_live_opportunities_are_separate_and_targets_stay_bound():
     assert live[0]["targets"][0]["requirement_family"] == live[0]["requirement_family"]
     assert {visual["type"] for visual in by_id["future-forecasts"].visuals} == {
         "directional_graph", "relationship_vector_map"}
+    assert live[0]["summary"] == \
+        "Cleared interpretation and translation support."
+    assert live[0]["naics"] == "541930"
+    assert live[0]["contact_email"] == "alex@example.gov"
+    assert future[0]["summary"] == \
+        "Planned multilingual support for overseas posts."
+    assert future[0]["anticipated_award"] == "2027-06-15"
+    assert {section["heading"] for section in future[0]["detail_sections"]} >= {
+        "Full published scope", "Acquisition", "Forecast timing"}
+
+
+def test_slot_one_is_deadline_ordered_and_never_claims_a_rank():
+    graph = _graph()
+    later = graph["qualified_opportunity_records"][0]
+    earlier = {
+        **later,
+        "record_id": "NOTICE-2",
+        "notice_id": "NOTICE-2",
+        "title": "Earlier Interpreter Requirement",
+        "response_due": "2026-08-31",
+        "response_deadline": "2026-08-31",
+        "source_url": "https://sam.gov/opp/notice-2/view",
+        "url": "https://sam.gov/opp/notice-2/view",
+        "requirement_family": "family-2",
+        "linked_targets": [],
+    }
+    graph["qualified_opportunity_records"].append(earlier)
+
+    document = build_external_product_document(
+        market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
+        profile={}, client_name="Acme", slug="acme", as_of="2026-08-23")
+    actions = document.slots[0].records
+
+    assert [row["title"] for row in actions] == [
+        "Earlier Interpreter Requirement", "Language Support Services"]
+    assert [row["action_order"] for row in actions] == [1, 2]
+    assert all("priority" not in row for row in actions)
+
+
+def test_long_scope_is_excerpted_for_scan_but_preserved_in_detail():
+    graph = _graph()
+    full_scope = " ".join(
+        ["Detailed published forecast requirement \ufffd"] * 40)
+    forecast = next(row for row in graph["records"]
+                    if row["evidence_class"] == "forecast")
+    forecast["description"] = full_scope
+
+    document = build_external_product_document(
+        market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
+        profile={}, client_name="Acme", slug="acme", as_of="2026-08-23")
+    rendered = next(slot for slot in document.slots
+                    if slot.slot_id == "future-forecasts").records[0]
+    scope = next(section for section in rendered["detail_sections"]
+                 if section["heading"] == "Full published scope")
+
+    assert len(rendered["summary"]) <= 523
+    assert rendered["summary"].endswith("...")
+    assert scope["fields"][0]["value"] == full_scope.replace("\ufffd", "-")
+
+
+def test_raw_and_canonical_record_counts_are_both_explicit():
+    graph = _graph()
+    graph["records"].append({
+        **graph["records"][2], "obligated_dollars": 500_000,
+    })
+
+    document = build_external_product_document(
+        market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
+        profile={}, client_name="Acme", slug="acme", as_of="2026-08-23")
+
+    assert document.source_receipt["graph_records_raw"] == 6
+    assert document.source_receipt["graph_records"] == 5
+    assert document.source_receipt["graph_indexed_records"] == 5
+    assert document.graph_receipt["incremental_cache_receipt"][
+        "cache_root"] == "local-artifact:cache"
+    assert document.graph_receipt["incremental_cache_receipt"]["providers"][
+        "embeddings"]["path"] == "local-artifact:dense_vectors.db"
 
 
 def test_scriptless_renderer_carries_all_slots_marks_sources_and_visuals(monkeypatch):
@@ -313,6 +444,13 @@ def test_scriptless_renderer_carries_all_slots_marks_sources_and_visuals(monkeyp
     assert 'href="url"' not in client
     assert ">label ↗</a>" not in client
     assert ">NOTICE-1 ↗</a>" in client
+    assert "Evidence and decision detail" in client
+    assert "Cleared interpretation and translation support." in client
+    assert "19AQMM26R0001" in client
+    assert "approved core capability evidence" in client
+    assert "Deadline-ordered action" in client
+    assert "Ranked pursuit" not in client
+    assert "Qualified category obligations: $1,200,000.00 = $1,200,000.00" in client
     assert "@page{size:letter;margin:.42in}" in client
     assert "grid-template-columns:repeat(2,minmax(0,1fr))" in client
     assert "break-inside:avoid;page-break-inside:avoid;overflow:hidden" in client

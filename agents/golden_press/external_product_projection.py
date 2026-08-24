@@ -11,6 +11,9 @@ rows.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field, is_dataclass
+from datetime import datetime
+from decimal import Decimal
+from pathlib import PurePath
 import re
 from typing import Any, Iterable, Optional
 from urllib.parse import urlsplit
@@ -21,7 +24,7 @@ from agents.golden_press.external_product_contract import (
 )
 
 
-EXTERNAL_PRODUCT_PROJECTION_VERSION = "lila-external-product.v2.2026-08-23"
+EXTERNAL_PRODUCT_PROJECTION_VERSION = "lila-external-product.v3.2026-08-24"
 
 _USASPENDING_NONE_AWARD = re.compile(
     r"^https?://(?:www\.)?usaspending\.gov/award/"
@@ -66,7 +69,7 @@ def _get(value: Any, key: str, default: Any = None) -> Any:
 
 
 def _text(value: Any) -> str:
-    return " ".join(str(value or "").split())
+    return " ".join(str(value or "").replace("\ufffd", "-").split())
 
 
 def _serial(value: Any) -> Any:
@@ -76,6 +79,12 @@ def _serial(value: Any) -> Any:
         return {str(key): _serial(item) for key, item in value.items()}
     if isinstance(value, (list, tuple, set, frozenset)):
         return [_serial(item) for item in value]
+    if isinstance(value, str):
+        clean = value.replace("\ufffd", "-")
+        if clean.startswith("/") or clean.casefold().startswith("file://"):
+            clean = clean.removeprefix("file://")
+            return f"local-artifact:{PurePath(clean).name or 'available'}"
+        return clean
     return value
 
 
@@ -149,18 +158,6 @@ def _evidence_rows(value: Any) -> list[dict]:
     return [keyed[key] for key in sorted(keyed)]
 
 
-def _money(value: Any) -> Optional[dict]:
-    if value is None:
-        return None
-    return {
-        "display": _text(_get(value, "display")),
-        "amount": _get(value, "amount"),
-        "basis": _text(_get(value, "basis")),
-        "population": _text(_get(value, "population")),
-        "evidence": _evidence_rows(_get(value, "evidence", ())),
-    }
-
-
 def _graph_index(graph: dict) -> dict[str, dict]:
     return {
         _text(row.get("record_id")): row
@@ -173,30 +170,220 @@ def _source_from_graph(row: dict) -> str:
     return _http_url(row.get("source_url") or row.get("url"))
 
 
+_DETAIL_SECTIONS = (
+    ("Full published scope", (
+        ("description", "Scope"),
+    )),
+    ("Acquisition", (
+        ("sub_agency", "Sub-agency"),
+        ("notice_type", "Instrument"),
+        ("instrument", "Instrument"),
+        ("solicitation_number", "Solicitation number"),
+        ("naics", "NAICS"),
+        ("psc", "PSC"),
+        ("set_aside", "Set-aside"),
+        ("posted_date", "Posted"),
+        ("response_deadline", "Response deadline"),
+        ("period_start", "Period start"),
+        ("period_end", "Period end"),
+        ("potential_end_date", "Potential end"),
+        ("vehicle", "Vehicle"),
+        ("vehicle_class", "Vehicle class"),
+        ("parent_award_id", "Parent award"),
+        ("incumbent_name", "Incumbent"),
+    )),
+    ("Forecast timing", (
+        ("fiscal_year", "Fiscal year"),
+        ("anticipated_solicitation", "Anticipated solicitation"),
+        ("anticipated_solicitation_close", "Anticipated close"),
+        ("anticipated_award", "Anticipated award"),
+        ("small_business_poc", "Small-business POC"),
+    )),
+    ("Published contact", (
+        ("contact_name", "Name"),
+        ("contact_email", "Email"),
+        ("contact_phone", "Phone"),
+        ("contact_secondary_email", "Secondary email"),
+    )),
+    ("Why LILA kept it", (
+        ("evidence_basis", "Evidence class basis"),
+        ("fit_basis", "Fit basis"),
+        ("route_basis", "Route basis"),
+        ("window_basis", "Window basis"),
+        ("matched_sentence", "Matched evidence"),
+        ("match_route", "Retrieval route"),
+        ("relevance_method", "Relevance method"),
+        ("qualification_reason", "Qualification reason"),
+    )),
+    ("Lineage", (
+        ("canonical_entity", "Canonical entity"),
+        ("canonical_record_id", "Canonical record"),
+        ("requirement_family", "Requirement family"),
+        ("family_member_ids", "Family members"),
+        ("retrieved_at", "Retrieved"),
+    )),
+)
+
+
+def _detail_sections(row: dict) -> list[dict]:
+    """Keep decision-useful research detail through the product boundary."""
+    sections: list[dict] = []
+    for heading, fields in _DETAIL_SECTIONS:
+        values = []
+        seen: set[tuple[str, str]] = set()
+        for key, label in fields:
+            value = row.get(key)
+            if value in (None, "", [], {}):
+                continue
+            marker = (label, repr(value))
+            if marker in seen:
+                continue
+            seen.add(marker)
+            values.append({"key": key, "label": label, "value": _serial(value)})
+        if values:
+            sections.append({"heading": heading, "fields": values})
+    provenance = row.get("relationship_provenance") or {}
+    provenance_fields = []
+    for dimension in sorted(provenance):
+        proof = provenance.get(dimension) or {}
+        if not isinstance(proof, dict):
+            continue
+        parts = [
+            _text(proof.get("evidence")),
+            (f"{_text(proof.get('confidence'))} confidence"
+             if _text(proof.get("confidence")) else ""),
+            (f"{_text(proof.get('kind'))} basis"
+             if _text(proof.get("kind")) else ""),
+        ]
+        value = "; ".join(part for part in parts if part)
+        if value:
+            provenance_fields.append({
+                "key": dimension,
+                "label": dimension.replace("_", " ").title(),
+                "value": value,
+            })
+    if provenance_fields:
+        sections.append({
+            "heading": "Decision provenance",
+            "fields": provenance_fields,
+        })
+    return sections
+
+
+def _record_receipts(row: dict) -> list[dict]:
+    receipts = list(_evidence_rows(
+        row.get("evidence_receipts") or row.get("evidence") or ()))
+    source_url = _source_from_graph(row)
+    source_id = _text(row.get("record_id") or row.get("notice_id"))
+    if source_url and not any(
+            receipt.get("source_id") == source_id
+            and receipt.get("source_url") == source_url
+            for receipt in receipts):
+        receipts.append({
+            "source_id": source_id,
+            "source_kind": _text(row.get("source") or row.get("lane")
+                                 or row.get("evidence_class")),
+            "source_url": source_url,
+            "label": _text(row.get("title")) or source_id,
+        })
+    return _evidence_rows(receipts)
+
+
+def _excerpt(value: Any, limit: int = 520) -> str:
+    text = _text(value)
+    if len(text) <= limit:
+        return text
+    clipped = text[:limit].rsplit(" ", 1)[0].rstrip(" ,;:")
+    return clipped + "..."
+
+
 def _graph_record(row: dict, *, kind: str, summary: str = "") -> dict:
     record_id = _text(row.get("record_id") or row.get("notice_id"))
-    return {
+    record = {
         "record_key": _record_key(kind, record_id),
         "ownership_key": _record_key("graph-record", record_id),
         "kind": kind,
         "source_id": record_id,
         "title": _text(row.get("title")) or record_id,
-        "summary": _text(summary),
+        "summary": _excerpt(
+            summary or row.get("summary") or row.get("description")),
         "source_url": _source_from_graph(row),
         "agency": _text(row.get("agency")),
+        "sub_agency": _text(row.get("sub_agency")
+                            or _get(row.get("buyer") or {}, "sub_agency")),
         "office": _text(row.get("office")),
         "recipient": _text(row.get("recipient")),
         "response_date": _text(
-            row.get("response_due") or row.get("response_deadline")),
+            row.get("response_due") or row.get("response_deadline")
+            or row.get("anticipated_solicitation_close")
+            or row.get("anticipated_solicitation")
+            or row.get("anticipated_award")),
         "value": row.get("published_value") or row.get("obligated_dollars")
                  or row.get("ceiling_dollars") or row.get("estimated_value_range"),
+        "naics": _text(row.get("naics") or row.get("naics_code")),
+        "psc": _text(row.get("psc") or row.get("psc_code")),
+        "instrument": _text(row.get("instrument") or row.get("notice_type")),
+        "set_aside": _text(row.get("set_aside") or row.get("access_rule")),
+        "posted_date": _text(row.get("posted_date")),
+        "solicitation_number": _text(row.get("solicitation_number")),
+        "period_start": _text(row.get("period_start")),
+        "period_end": _text(row.get("period_end")),
+        "potential_end_date": _text(row.get("potential_end_date")),
+        "vehicle": _text(row.get("vehicle")),
+        "vehicle_class": _text(row.get("vehicle_class")),
+        "parent_award_id": _text(row.get("parent_award_id")),
+        "incumbent_name": _text(row.get("incumbent_name")),
+        "fiscal_year": _text(row.get("fiscal_year")),
+        "anticipated_solicitation": _text(row.get("anticipated_solicitation")),
+        "anticipated_solicitation_close": _text(
+            row.get("anticipated_solicitation_close")),
+        "anticipated_award": _text(row.get("anticipated_award")),
+        "small_business_poc": _text(row.get("small_business_poc")),
+        "contact_name": _text(row.get("contact_name")),
+        "contact_email": _text(row.get("contact_email")),
+        "contact_phone": _text(row.get("contact_phone")),
+        "contact_secondary_email": _text(row.get("contact_secondary_email")),
         "evidence_class": _text(row.get("evidence_class")),
         "service_fit": _text(row.get("service_fit")),
         "window_state": _text(row.get("window_state")),
         "commercial_route": _text(row.get("commercial_route")),
         "relationship_provenance": _serial(
             row.get("relationship_provenance") or {}),
+        "detail_sections": _detail_sections(row),
+        "evidence_receipts": _record_receipts(row),
     }
+    return record
+
+
+def _canonical_graph_rows(rows: list[dict]) -> list[dict]:
+    """Use one stable row per source identity at the render boundary."""
+    positions: dict[str, int] = {}
+    canonical: list[dict] = []
+
+    def quality(row: dict) -> tuple[int, float, int, str]:
+        populated = sum(value not in (None, "", [], {}) for value in row.values())
+        obligation = row.get("obligated_dollars")
+        amount = (float(obligation)
+                  if isinstance(obligation, (int, float))
+                  and not isinstance(obligation, bool) else float("-inf"))
+        return (
+            1 if amount != float("-inf") else 0,
+            amount,
+            populated,
+            repr(sorted(row.items())),
+        )
+
+    for row in rows:
+        record_id = _text(row.get("record_id"))
+        key = record_id or f"anonymous:{len(canonical) + 1}"
+        if key not in positions:
+            positions[key] = len(canonical)
+            canonical.append(row)
+            continue
+        index = positions[key]
+        if quality(row) > quality(canonical[index]):
+            canonical[index] = row
+    return canonical
 
 
 def _external_teaming_record(row: dict) -> bool:
@@ -267,17 +454,69 @@ def _slot_status(records: Iterable[dict], metrics: Iterable[dict]) -> str:
     return "populated" if tuple(records) or tuple(metrics) else "gap"
 
 
-def _metric(label: str, value: Any, note: str = "", evidence: Any = ()) -> dict:
+def _metric(label: str, value: Any, note: str = "", evidence: Any = (),
+            formula: str = "") -> dict:
     return {
         "label": label,
         "value": value,
         "note": _text(note),
         "evidence": _serial(evidence or []),
+        "formula": _text(formula),
     }
 
 
+def _obligation_metric(label: str, rows: list[dict]) -> Optional[dict]:
+    components: list[Decimal] = []
+    evidence: list[dict] = []
+    for row in rows:
+        value = row.get("value")
+        if not isinstance(value, (int, float)) or isinstance(value, bool):
+            continue
+        components.append(Decimal(str(value)))
+        evidence.extend(row.get("evidence_receipts") or [])
+    if not components:
+        return None
+    total = sum(components, Decimal("0"))
+    display = f"${total:,.2f}"
+    formula = " + ".join(f"${value:,.2f}" for value in components)
+    formula += f" = {display}"
+    return _metric(
+        label, display,
+        f"Sum of {len(components)} canonical, directly fitted award record(s).",
+        evidence, formula,
+    )
+
+
+def _date_order(value: Any) -> tuple[int, str]:
+    text = _text(value)
+    if not text:
+        return (1, "")
+    normalized = text.replace("Z", "+00:00")
+    try:
+        return (0, datetime.fromisoformat(normalized).date().isoformat())
+    except ValueError:
+        pass
+    for pattern in ("%m/%d/%Y", "%Y/%m/%d", "%Y"):
+        try:
+            return (0, datetime.strptime(text, pattern).date().isoformat())
+        except ValueError:
+            continue
+    return (1, text.casefold())
+
+
+def _action_order(rows: list[dict]) -> list[dict]:
+    return sorted(
+        rows,
+        key=lambda row: (
+            _date_order(row.get("response_date")),
+            _text(row.get("title")).casefold(),
+            _text(row.get("source_id")),
+        ),
+    )
+
+
 def _priority_records(opportunities: list[dict], forecasts: list[dict]) -> list[dict]:
-    source = opportunities[:7] or forecasts[:5]
+    source = _action_order(opportunities)[:7] or _action_order(forecasts)[:5]
     rows = []
     for index, row in enumerate(source, start=1):
         target_count = len(row.get("targets") or [])
@@ -285,7 +524,8 @@ def _priority_records(opportunities: list[dict], forecasts: list[dict]) -> list[
             "reference_key": row["record_key"],
             "reference_slot_id": (
                 "federal-opportunities" if opportunities else "future-forecasts"),
-            "priority": index,
+            "action_order": index,
+            "ordering_basis": "published timing, earliest stated date first",
             "title": row.get("title"),
             "why": _text(row.get("priority_basis") or row.get("service_fit")
                          or row.get("summary")),
@@ -372,11 +612,11 @@ def build_external_product_document(
 
     profile = profile or {}
     contract_slots = load_external_product_slots()
-    graph_rows = list(graph_payload.get("records") or [])
-    graph_index = _graph_index(graph_payload)
+    graph_rows_raw = list(graph_payload.get("records") or [])
+    graph_rows = _canonical_graph_rows(graph_rows_raw)
+    graph_index = _graph_index({"records": graph_rows})
     company = _get(market_map, "company_understanding")
     footprint = _get(market_map, "category_footprint")
-    competition = _get(market_map, "competitive_position")
 
     claimed: set[str] = set()
 
@@ -416,8 +656,12 @@ def build_external_product_document(
 
     # Slot 4 owns competitive award evidence.
     competitor_rows: list[dict] = []
+    competitor_fit_holds = 0
     for raw in graph_rows:
         if raw.get("evidence_class") != "competitive_historical":
+            continue
+        if raw.get("service_fit") != "direct":
+            competitor_fit_holds += 1
             continue
         row = _graph_record(raw, kind="competitive-award")
         if claim(row):
@@ -463,33 +707,29 @@ def build_external_product_document(
 
     # Slot 3 owns client/category spending records not assigned elsewhere.
     spending_rows: list[dict] = []
+    spending_fit_holds = 0
     for raw in graph_rows:
         if raw.get("evidence_class") != "client_historical":
+            continue
+        if raw.get("service_fit") != "direct":
+            spending_fit_holds += 1
             continue
         row = _graph_record(raw, kind="category-award")
         if claim(row):
             spending_rows.append(row)
 
-    spending_metrics: list[dict] = []
-    total = _money(_get(footprint, "total"))
-    if total:
-        spending_metrics.append(_metric(
-            "Cited category obligations", total.get("display") or total.get("amount"),
-            _text(_get(footprint, "meaning")), total.get("evidence")))
-    for agency, money, count in (_get(footprint, "by_agency", ()) or ()): 
-        amount = _money(money) or {}
-        spending_metrics.append(_metric(
-            _text(agency), amount.get("display") or amount.get("amount"),
-            f"{int(count or 0)} cited award record(s)", amount.get("evidence")))
+    spending_total = _obligation_metric(
+        "Qualified category obligations", spending_rows)
+    spending_metrics = ([spending_total] if spending_total else []) + [
+        _metric("Qualified category awards", len(spending_rows),
+                "Canonical client awards with direct capability-fit evidence."),
+        _metric("Fit-review holds", spending_fit_holds,
+                "Client awards preserved in research but not counted in-category."),
+    ]
 
-    competitor_metrics: list[dict] = []
-    competitor_total = _money(_get(competition, "total"))
-    if competitor_total:
-        competitor_metrics.append(_metric(
-            "Competitor obligations", competitor_total.get("display")
-            or competitor_total.get("amount"),
-            "Sum of the cited competitive award records.",
-            competitor_total.get("evidence")))
+    competitor_total = _obligation_metric(
+        "Qualified competitor obligations", competitor_rows)
+    competitor_metrics = [competitor_total] if competitor_total else []
 
     approved, pending, rejected = _profile_terms(profile, company)
     naics = sorted({_text(code) for code in (
@@ -550,10 +790,12 @@ def build_external_product_document(
         if claim(row):
             event_rows.append(row)
 
+    opportunity_rows = _action_order(opportunity_rows)
+    forecast_rows = _action_order(forecast_rows)
     priorities = _priority_records(opportunity_rows, forecast_rows)
     priority_metrics = [
-        _metric("Ranked pursuits", len(priorities),
-                "References the owned opportunity or forecast record below."),
+        _metric("Action sequence", len(priorities),
+                "Deadline-ordered references to the owned records below."),
         _metric("Named targets", sum(len(r.get("targets") or [])
                                      for r in opportunity_rows),
                 "Targets remain bound to their qualifying opportunity."),
@@ -568,7 +810,8 @@ def build_external_product_document(
             (() if priorities else (
                 "No pursuit cleared the current qualification boundary; resolve "
                 "the displayed graph and coverage holds before promotion.",)),
-            {"ranked_from": "qualified opportunities, then forecasts"}),
+            {"ordered_from": "qualified opportunities, then forecasts",
+             "ordering_basis": "published timing, earliest stated date first"}),
         "research-mesh": ProductSlot(
             2, "research-mesh", contract_slots[1].heading,
             "populated", "The approved vocabulary, boundaries, query lanes, and receipts used to find this market.",
@@ -583,21 +826,37 @@ def build_external_product_document(
             tuple(spending_metrics), tuple(spending_rows), (),
             (() if spending_rows or spending_metrics else (
                 "No category spending record is qualified in this edition; re-run the award lane under the approved frame.",)),
-            {"record_count": int(_get(footprint, "record_count", 0) or 0),
+            {"qualified_awards": len(spending_rows),
+             "fit_review_holds": spending_fit_holds,
+             "classified_client_awards": len(spending_rows) + spending_fit_holds,
              "period": _text(_get(footprint, "period"))}),
         "competitors": ProductSlot(
             4, "competitors", contract_slots[3].heading,
             _slot_status(competitor_rows, competitor_metrics),
             "Named product competitors and the federal award evidence that establishes their position.",
-            tuple(competitor_metrics), tuple(competitor_rows), (),
+            tuple(competitor_metrics + [
+                _metric("Qualified competitive awards", len(competitor_rows),
+                        "Canonical directly fitted awards tied to approved competitors."),
+                _metric("Fit-review holds", competitor_fit_holds,
+                        "Competitor awards preserved in research but not promoted into the landscape."),
+            ] if competitor_rows else competitor_metrics),
+            tuple(competitor_rows), (),
             (() if competitor_rows else (
                 "No identified competitor has a qualified award record in the current evidence pack; preserve this as an observed zero and continue award research.",)),
-            {"screened": int(_get(competition, "screened", 0) or 0)}),
+            {"qualified_awards": len(competitor_rows),
+             "fit_review_holds": competitor_fit_holds,
+             "classified_competitor_awards": (
+                 len(competitor_rows) + competitor_fit_holds)}),
         "federal-opportunities": ProductSlot(
             5, "federal-opportunities", contract_slots[4].heading,
             _slot_status(opportunity_rows, ()),
             "Qualified current federal opportunities with published contacts first and governed enrichment beneath each record.",
-            (), tuple(opportunity_rows), (),
+            (
+                _metric("Qualified opportunities", len(opportunity_rows),
+                        "Cleared evidence, fit, window, and route."),
+                _metric("Held for review", len(graph_payload.get("held_opportunities") or []),
+                        "Preserved in the graph, not promoted into the client action list."),
+            ), tuple(opportunity_rows), (),
             (() if opportunity_rows else (
                 "No current opportunity cleared evidence, fit, window, and route eligibility together; held records remain in the graph receipt.",)),
             {"qualified": len(opportunity_rows),
@@ -640,11 +899,18 @@ def build_external_product_document(
     }
     source_receipt = {
         "evidence_pack_generated_at": _text(_get(evidence_pack, "generated_at")),
-        "evidence_records": len(_get(evidence_pack, "records", ()) or ()),
+        "evidence_records_raw": len(_get(evidence_pack, "records", ()) or ()),
+        "evidence_records": len({
+            _text(_get(row, "record_id")) or f"anonymous:{index}"
+            for index, row in enumerate(_get(evidence_pack, "records", ()) or ())
+        }),
         "query_count": len(query_rows),
         "lane_count": len(lane_rows),
+        "graph_records_raw": len(graph_rows_raw),
         "graph_records": len(graph_rows),
         "graph_indexed_records": len(graph_index),
+        "record_identity_receipt": _serial(
+            graph_payload.get("record_identity_receipt") or {}),
     }
     return ExternalProductDocument(
         schema_version=EXTERNAL_PRODUCT_PROJECTION_VERSION,

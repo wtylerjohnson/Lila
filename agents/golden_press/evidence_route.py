@@ -38,6 +38,8 @@ import re
 from pathlib import Path
 from typing import Any, Optional
 
+from agents.partnering.blockers import parse_set_aside
+
 EVIDENCE_CLASSES = (
     "client_historical", "competitive_historical", "current_opportunity",
     "forecast", "event", "excluded", "ambiguous")
@@ -47,27 +49,9 @@ ROUTE_RELATIONSHIPS = (
 WINDOW_STATES = ("live", "fy_only", "unstated", "stated_past")
 SERVICE_FITS = ("direct", "adjacent", "unrelated", "ambiguous")
 PROVENANCE_TYPES = ("measured", "cited", "inferred")
-CLASSIFIER_VERSION = "evidence-route-v2-graph-contract"
+CLASSIFIER_VERSION = "evidence-route-v3-set-aside-truth"
 
 _ROOT = Path(__file__).resolve().parents[2]
-
-#: Set-aside access rules the named client cannot pursue directly unless
-#: its profile carries the matching certification. Conservative: only the
-#: certifications the profile affirmatively states unlock these.
-_RESTRICTED_ACCESS = {
-    "sba": "small business set-aside",
-    "8a": "8(a) set-aside",
-    "8an": "8(a) sole source",
-    "wosb": "women-owned small business set-aside",
-    "edwosb": "economically disadvantaged WOSB set-aside",
-    "sdvosbc": "service-disabled veteran-owned set-aside",
-    "sdvosbs": "SDVOSB sole source",
-    "vsa": "veteran-owned set-aside",
-    "hzc": "HUBZone set-aside",
-    "hzs": "HUBZone sole source",
-    "iee": "Indian economic enterprise set-aside",
-    "isbee": "Indian small business economic enterprise set-aside",
-}
 
 _INCUMBENT_RE = re.compile(
     r"\b([A-Z][A-Za-z&.,'\- ]{2,40}?)\s+(?:has|have)\s+(?:provided|"
@@ -134,7 +118,12 @@ def canonical_entities(client_name: str, *, pack_aliases: Any = None,
             aliases.append(bare)
         add(name, "competitor", "approved packet market entity", aliases)
     for name in (route_facts or {}).get("validated_competitors") or []:
-        add(str(name), "competitor", "operator route facts")
+        display = str(name)
+        forms = re.findall(r"\(([^)]+)\)", display)
+        bare = re.sub(r"\s*\([^)]*\)", "", display).strip()
+        if bare and _norm(bare) != _norm(display):
+            forms.append(bare)
+        add(display, "competitor", "operator route facts", forms)
     for name in (route_facts or {}).get("named_partners") or []:
         add(str(name), "partner", "operator named partner or teaming route")
 
@@ -188,7 +177,14 @@ def validated_competitors(packet: Optional[dict] = None,
         if bare and _norm(bare) != base:
             out[_norm(bare)] = f"approved packet research entity: {name}"
     for name in (route_facts or {}).get("validated_competitors") or []:
-        out[_norm(name)] = "operator route facts: validated competitor"
+        display = str(name)
+        basis = f"operator route facts: validated competitor {display}"
+        out[_norm(display)] = basis
+        for form in re.findall(r"\(([^)]+)\)", display):
+            out[_norm(form)] = basis
+        bare = re.sub(r"\s*\([^)]*\)", "", display).strip()
+        if bare:
+            out[_norm(bare)] = basis
     return out
 
 
@@ -585,15 +581,61 @@ def classify_route(record: dict, ctx: dict) -> dict:
                         for k in ("title", "description"))
         m = _INCUMBENT_RE.search(text)
         set_aside = str(record.get("set_aside") or "").strip()
-        code = set_aside.casefold().replace("total_small_business", "sba")
-        restricted = None
-        for key, label in _RESTRICTED_ACCESS.items():
-            if code == key or key in code.split():
-                restricted = label
-                break
-        certs = {str(c).casefold()
+        source_fields = record.get("source_fields") or {}
+        set_aside_code = str(
+            record.get("set_aside_code") or record.get("type_set_aside")
+            or source_fields.get("set_aside_code")
+            or source_fields.get("type_set_aside") or "").strip()
+        if not set_aside and not set_aside_code:
+            return {
+                "route_relationship": "incumbent" if m else "unknown",
+                "commercial_route": "incumbent" if m else "unknown",
+                "eligible_route": False,
+                "route_basis": (
+                    ("notice names incumbent '" + m.group(1).strip()
+                     + "', but publishes no set-aside status; direct "
+                       "eligibility remains unresolved")
+                    if m else
+                    "notice publishes no set-aside status; direct eligibility "
+                    "remains unresolved"
+                ),
+            }
+        combined = " ".join((set_aside, set_aside_code)).casefold()
+        if "sole source" in combined or "sole-source" in combined:
+            return {
+                "route_relationship": "incumbent" if m else "unknown",
+                "commercial_route": "incumbent" if m else "unknown",
+                "eligible_route": False,
+                "route_basis": "sole-source notice is intelligence, not a direct opening",
+            }
+        access = parse_set_aside(set_aside, set_aside_code)
+        if access and not access.get("recognized"):
+            access = _route_specific_set_aside(set_aside, set_aside_code)
+        if access is None:
+            if m:
+                return {"route_relationship": "incumbent",
+                        "commercial_route": "incumbent",
+                        "eligible_route": True,
+                        "route_basis": "notice states unrestricted access and "
+                                       f"names incumbent '{m.group(1).strip()}'"}
+            return {"route_relationship": "direct",
+                    "commercial_route": "direct", "eligible_route": True,
+                    "route_basis": "notice affirmatively states unrestricted access"}
+        if not access.get("recognized"):
+            return {
+                "route_relationship": "incumbent" if m else "unknown",
+                "commercial_route": "incumbent" if m else "unknown",
+                "eligible_route": False,
+                "route_basis": f"set-aside '{set_aside or set_aside_code}' is "
+                               "not recognized; eligibility requires review",
+            }
+        certs = {str(c).casefold().strip()
                  for c in (ctx.get("client_certifications") or [])}
-        if restricted and not (certs & _cert_tokens(code)):
+        required = str(access.get("required_cert") or "small business")
+        required_aliases = _certification_aliases(required)
+        qualifies = bool(certs & required_aliases)
+        restricted = set_aside or set_aside_code
+        if not qualifies:
             if m:
                 return {"route_relationship": "named_partner_teaming",
                         "commercial_route": "named_partner_teaming",
@@ -616,8 +658,8 @@ def classify_route(record: dict, ctx: dict) -> dict:
                                    f"'{m.group(1).strip()}'"}
         return {"route_relationship": "direct",
                 "commercial_route": "direct", "eligible_route": True,
-                "route_basis": "open access rule; direct response "
-                               "available"}
+                "route_basis": f"client attests {required}; access rule "
+                               f"'{restricted}' permits a direct response"}
 
     if lane == "L4_forecast":
         return {"route_relationship": "direct",
@@ -628,25 +670,40 @@ def classify_route(record: dict, ctx: dict) -> dict:
             "evidence for this lane"}
 
 
-def _cert_tokens(set_aside_code: str) -> set[str]:
-    """Certifications that unlock a restricted access rule."""
-    code = set_aside_code.casefold()
-    out: set[str] = set()
-    if "8a" in code:
-        out.add("8(a)")
-    if "wosb" in code:
-        out.add("wosb")
-    if "sdvosb" in code or "vsa" in code:
-        out.add("sdvosb")
-    if "hz" in code:
-        out.add("hubzone")
-    if "sba" in code or "small" in code:
-        out.add("small business")
-    if "iee" in code:
-        out.add("indian economic enterprise")
-    if "isbee" in code:
-        out.add("indian small business economic enterprise")
-    return out
+def _certification_aliases(required: str) -> set[str]:
+    """Human-readable and SAM-code forms that satisfy one access rule."""
+    key = required.casefold().strip()
+    aliases = {
+        "8(a)": {"8(a)", "8a"},
+        "hubzone": {"hubzone", "hzc", "hzs"},
+        "sdvosb": {"sdvosb", "service-disabled veteran-owned small business"},
+        "edwosb": {"edwosb", "economically disadvantaged wosb"},
+        "wosb": {"wosb", "women-owned small business"},
+        "vosb": {"vosb", "veteran-owned small business"},
+        "iee": {"iee", "indian economic enterprise"},
+        "isbee": {"isbee", "indian small business economic enterprise"},
+        "small business": {"small business", "sba"},
+    }
+    return aliases.get(key, {key})
+
+
+def _route_specific_set_aside(label: str, code: str) -> dict:
+    """Route-only access rules not yet attested by partnering blockers."""
+    text = " ".join((label, code)).upper()
+    rules = (
+        (("ISBEE", "INDIAN SMALL BUSINESS ECONOMIC ENTERPRISE"), "ISBEE"),
+        (("IEE", "INDIAN ECONOMIC ENTERPRISE"), "IEE"),
+        (("VSA", "VETERAN-OWNED SMALL BUSINESS"), "VOSB"),
+    )
+    for forms, required in rules:
+        if any(form in text for form in forms):
+            return {
+                "requires_small": True,
+                "required_cert": required,
+                "recognized": True,
+            }
+    return {"requires_small": None, "required_cert": None,
+            "recognized": False}
 
 
 def build_context(client_name: str, slug: str, *,

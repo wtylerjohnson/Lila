@@ -112,6 +112,98 @@ def dedupe_requirements(rows: list[dict]) -> list[dict]:
     return canonicalize_requirement_families(rows)
 
 
+_RECORD_IDENTITY_FIELDS = (
+    "title", "description", "agency", "sub_agency", "recipient",
+    "obligated_dollars", "ceiling_dollars", "period_start", "period_end",
+    "potential_end_date", "url", "retrieved_at",
+)
+
+
+def canonicalize_record_ids(rows: list[dict]) -> tuple[list[dict], dict]:
+    """Collapse repeated source identities before classification or rollup.
+
+    The first observed position remains stable. When duplicate award rows
+    disagree, prefer the greatest stated obligation for award identities, then
+    the most complete row. A partial action amount must not replace the same
+    award's larger total obligation.
+    Every conflict remains visible in the receipt.
+    """
+    grouped: dict[str, list[dict]] = {}
+    order: list[str] = []
+    anonymous = 0
+    for raw in rows:
+        row = dict(raw)
+        record_id = str(row.get("record_id") or "").strip()
+        if record_id:
+            key = f"record:{record_id}"
+        else:
+            anonymous += 1
+            key = f"anonymous:{anonymous}"
+        if key not in grouped:
+            grouped[key] = []
+            order.append(key)
+        grouped[key].append(row)
+
+    def quality(row: dict) -> tuple:
+        populated = sum(
+            row.get(field) not in (None, "", [], {})
+            for field in _RECORD_IDENTITY_FIELDS
+        )
+        obligation = row.get("obligated_dollars")
+        stated_obligation = (
+            float(obligation)
+            if isinstance(obligation, (int, float)) and not isinstance(obligation, bool)
+            else float("-inf")
+        )
+        return (
+            1 if stated_obligation != float("-inf") else 0,
+            stated_obligation,
+            1 if row.get("detail_enriched") is True else 0,
+            populated,
+            json.dumps(row, ensure_ascii=False, sort_keys=True, default=str),
+        )
+
+    kept: list[dict] = []
+    duplicates: list[dict] = []
+    for key in order:
+        members = grouped[key]
+        selected = max(members, key=quality)
+        kept.append(selected)
+        if len(members) == 1:
+            continue
+        conflicts: dict[str, list[Any]] = {}
+        for field in _RECORD_IDENTITY_FIELDS:
+            values = []
+            seen = set()
+            for member in members:
+                value = member.get(field)
+                marker = json.dumps(
+                    value, ensure_ascii=False, sort_keys=True, default=str)
+                if marker in seen:
+                    continue
+                seen.add(marker)
+                values.append(value)
+            if len(values) > 1:
+                conflicts[field] = values
+        duplicates.append({
+            "record_id": selected.get("record_id"),
+            "input_rows": len(members),
+            "discarded_rows": len(members) - 1,
+            "selected_obligated_dollars": selected.get("obligated_dollars"),
+            "conflicts": conflicts,
+        })
+    return kept, {
+        "input_records_raw": len(rows),
+        "canonical_records": len(kept),
+        "record_duplicates_collapsed": len(rows) - len(kept),
+        "duplicate_record_ids": duplicates,
+        "selection_rule": (
+            "preserve first identity position; choose greatest stated award "
+            "obligation, then detail-enriched, then most complete, then stable JSON"
+        ),
+    }
+
+
 def build_target_groups(opportunities: list[dict], *,
                         incumbents: Optional[dict[str, str]] = None,
                         enrichments: Optional[list[dict]] = None,
@@ -444,11 +536,55 @@ def qualify_opportunities(records: list[dict], ctx: dict
             "buyer": {"agency": row.get("agency"),
                       "sub_agency": row.get("sub_agency"),
                       "office": row.get("office")},
+            "summary": row.get("description"),
+            "description": row.get("description"),
+            "naics": row.get("naics") or row.get("naics_code"),
+            "psc": row.get("psc") or row.get("psc_code"),
             "instrument": row.get("notice_type"),
+            "set_aside": row.get("set_aside"),
             "access_rule": row.get("set_aside") or "none stated",
+            "posted_date": row.get("posted_date") or row.get("posted"),
+            "solicitation_number": (
+                row.get("solicitation_number") or row.get("sol_number")
+                or (row.get("source_fields") or {}).get("sol_number")
+            ),
             "response_due": row.get("response_deadline"),
             "published_value": row.get("ceiling_dollars")
                                or row.get("estimated_value_range"),
+            "vehicle": row.get("vehicle"),
+            "parent_award_id": row.get("parent_award_id"),
+            "vehicle_class": row.get("vehicle_class"),
+            "incumbent_name": row.get("incumbent_name"),
+            "period_start": row.get("period_start"),
+            "period_end": row.get("period_end"),
+            "potential_end_date": row.get("potential_end_date"),
+            "anticipated_solicitation": row.get("anticipated_solicitation"),
+            "anticipated_solicitation_close": row.get(
+                "anticipated_solicitation_close"),
+            "anticipated_award": row.get("anticipated_award"),
+            "fiscal_year": row.get("fiscal_year"),
+            "small_business_poc": row.get("small_business_poc"),
+            "contact_name": row.get("contact_name"),
+            "contact_email": row.get("contact_email"),
+            "contact_phone": row.get("contact_phone"),
+            "contact_secondary_email": row.get("contact_secondary_email"),
+            "evidence_basis": row.get("evidence_basis"),
+            "fit_basis": row.get("fit_basis"),
+            "route_basis": row.get("route_basis"),
+            "window_basis": row.get("window_basis"),
+            "matched_sentence": row.get("matched_sentence"),
+            "match_route": row.get("match_route"),
+            "relevance_method": row.get("relevance_method"),
+            "canonical_entity": row.get("canonical_entity"),
+            "canonical_record_id": row.get("canonical_record_id"),
+            "family_member_ids": row.get("family_member_ids"),
+            "retrieved_at": row.get("retrieved_at"),
+            "evidence_receipts": [{
+                "source_id": row.get("record_id"),
+                "source_kind": "notice",
+                "source_url": row.get("url"),
+                "label": row.get("title"),
+            }],
             "evidence_class": row.get("evidence_class"),
             "service_fit": row.get("service_fit"),
             "window_state": row.get("window_state"),
@@ -596,7 +732,8 @@ def build_corrected_pack(slug: str, client_name: str, *,
         for row in sweep.get("records") or []:
             if str(row.get("record_id")) not in known:
                 sweep_rows.append(dict(row, source_sweep="deep_sweep"))
-    every = records + sweep_rows
+    every_raw = records + sweep_rows
+    every, record_identity_receipt = canonicalize_record_ids(every_raw)
 
     classified = []
     for record in every:
@@ -661,6 +798,10 @@ def build_corrected_pack(slug: str, client_name: str, *,
             if r.get("qualification_state") == "held_for_fit_review"),
         "ambiguous_research_queue": len(research_queue),
         "requirement_duplicates_collapsed": dropped_dupes,
+        "input_records_raw": record_identity_receipt["input_records_raw"],
+        "canonical_records": record_identity_receipt["canonical_records"],
+        "record_duplicates_collapsed": record_identity_receipt[
+            "record_duplicates_collapsed"],
     }
 
     payload = {
@@ -692,6 +833,7 @@ def build_corrected_pack(slug: str, client_name: str, *,
             "as_of": ctx["as_of"],
         },
         "counts": counts,
+        "record_identity_receipt": record_identity_receipt,
         "records": final,
         "qualified_opportunities": [r["record_id"] for r in opportunities],
         "qualified_opportunity_records": [r["qualified"]

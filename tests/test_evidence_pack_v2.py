@@ -5,6 +5,7 @@ import json
 from agents.golden_press.evidence_pack_v2 import (
     build_move_receipt,
     build_target_groups,
+    canonicalize_record_ids,
     canonicalize_requirement_families,
 )
 from agents.golden_press.market_map_projection import (
@@ -39,6 +40,29 @@ def test_requirement_family_collapses_lifecycle_postings():
     assert len(kept) == 1
     assert kept[0]["canonical_record_id"] == "sol-1"
     assert kept[0]["family_member_ids"] == ["sol-1", "ss-1"]
+
+
+def test_record_identity_collapses_duplicate_award_and_receipts_conflict():
+    record_id = "CONT_AWD_FA855526FB003_9700_FA855526DB003_9700"
+    rows = [
+        {"record_id": record_id, "title": "Language support",
+         "obligated_dollars": 2_896_292.43, "recipient": "Provider",
+         "period_start": "2025-10-01", "period_end": "2026-09-30",
+         "url": "https://example.gov/partial"},
+        {"record_id": record_id, "title": "Language support",
+         "obligated_dollars": 4_213_817.34},
+        {"record_id": "other", "title": "Other award"},
+    ]
+
+    canonical, receipt = canonicalize_record_ids(rows)
+
+    assert [row["record_id"] for row in canonical] == [record_id, "other"]
+    assert canonical[0]["obligated_dollars"] == 4_213_817.34
+    assert receipt["input_records_raw"] == 3
+    assert receipt["canonical_records"] == 2
+    assert receipt["record_duplicates_collapsed"] == 1
+    assert receipt["duplicate_record_ids"][0]["conflicts"][
+        "obligated_dollars"] == [2_896_292.43, 4_213_817.34]
 
 
 def test_vertical_target_path_keeps_sources_distinct_and_removal_cascades():

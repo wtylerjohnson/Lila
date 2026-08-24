@@ -1325,10 +1325,19 @@ but cannot amend the external section contract.
 
 The graph-to-product boundary is a typed projection, not renderer inference.
 `external_product_projection.py` assigns every record one owning slot; slot 1
-contains ranked references to records owned below, and opportunity-specific
-targets remain nested beneath their qualifying slot-5 opportunity. The
-standard renderer consumes only that projection and keeps all eight slots
-visible, including named zero/gap states. `product_bundle.py` is the single
+contains deadline-ordered action references to records owned below unless a
+separately proven ranking model supplies an explicit score. It never paints an
+input position as a rank. Opportunity-specific targets remain nested beneath
+their qualifying slot-5 opportunity. The projection must preserve each owned
+record's decision-useful evidence envelope: full summary, acquisition codes,
+published contacts, dates and value, vehicle and incumbent context, forecast
+milestones, match basis, route/fit/window reasoning, source receipts, and
+decision provenance. The renderer decides the reading hierarchy; it must not
+erase research at the projection boundary. Raw and canonical record counts are
+reported separately, and blank set-aside data leaves direct eligibility
+unresolved rather than implying full-and-open access. The standard renderer
+consumes only that projection and keeps all eight slots visible, including
+named zero/gap states. `product_bundle.py` is the single
 external transaction. It refuses before promotion unless Assess and Target
 approvals are current, the graph contract is certified, the client render is
 valid, and every bundle member is bound into `manifest.json`. The current

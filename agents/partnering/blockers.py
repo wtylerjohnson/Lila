@@ -72,10 +72,11 @@ def parse_set_aside(label: Optional[str], code: Optional[str]) -> Optional[dict]
     cod = (code or "").strip().upper()
     if not lab and not cod:
         return None
-    if any(u in lab for u in _UNRESTRICTED) and not cod:
+    if any(u in lab for u in _UNRESTRICTED) and (not cod or cod == lab):
         return None
     for substrings, codes, cert in _SET_ASIDE_RULES:
-        if any(s in lab for s in substrings) or (cod and cod in codes):
+        if (any(s in lab for s in substrings) or lab in codes
+                or (cod and cod in codes)):
             return {"requires_small": True, "required_cert": cert, "recognized": True}
     return {"requires_small": None, "required_cert": None, "recognized": False}
 

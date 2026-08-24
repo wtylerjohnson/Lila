@@ -214,6 +214,35 @@ def test_indian_set_aside_requires_eligible_route(ctx):
     assert route["eligible_route"] is True
 
 
+def test_long_set_aside_labels_and_blank_access_fail_closed(ctx):
+    base = {
+        "lane": "L1_notice",
+        "title": "Translation and Interpretation Services",
+        "description": "language services",
+        "response_deadline": "2026-09-30",
+    }
+    small = er.classify_route(
+        {**base, "set_aside": "Total Small Business Set-Aside"}, ctx)
+    assert small["commercial_route"] == "direct"
+    assert small["eligible_route"] is True
+
+    sdvosb = er.classify_route(
+        {**base, "set_aside": (
+            "Service-Disabled Veteran-Owned Small Business Set-Aside")}, ctx)
+    assert sdvosb["commercial_route"] == "possible_subcontracting"
+    assert sdvosb["eligible_route"] is False
+
+    blank = er.classify_route({**base, "set_aside": ""}, ctx)
+    assert blank["commercial_route"] == "unknown"
+    assert blank["eligible_route"] is False
+    assert "unresolved" in blank["route_basis"]
+
+    unrestricted = er.classify_route(
+        {**base, "set_aside": "No Set aside used"}, ctx)
+    assert unrestricted["commercial_route"] == "direct"
+    assert unrestricted["eligible_route"] is True
+
+
 def test_relationship_provenance_is_structured(ctx):
     row = er.classify_record(
         _award("MAXIMUS FEDERAL SERVICES, INC.",
@@ -239,6 +268,7 @@ def test_access_restricted_stays_partner_route_never_direct(ctx):
     open_route = er.classify_route(
         dict(sdvosb, set_aside=""), ctx)
     assert open_route["route_relationship"] == "incumbent"
+    assert open_route["eligible_route"] is False
     assert "Nexus Universal" in open_route["route_basis"]
 
     # small-business set-aside with the client's own certification: direct

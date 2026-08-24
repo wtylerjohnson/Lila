@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import html
 import json
-import math
 import re
 from typing import Any
 from urllib.parse import urlsplit
@@ -16,7 +15,7 @@ from agents.golden_press.external_product_projection import (
 )
 
 
-EXTERNAL_PRODUCT_RENDER_VERSION = "lila-eight-slot-render.v3.2026-08-23"
+EXTERNAL_PRODUCT_RENDER_VERSION = "lila-eight-slot-render.v4.2026-08-24"
 
 
 _PRODUCT_CSS = r"""
@@ -29,7 +28,8 @@ _PRODUCT_CSS = r"""
 .product-metric span{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.09em}
 .product-metric strong{display:block;margin-top:7px;font-family:var(--mono);font-size:19px;overflow-wrap:anywhere}
 .product-metric small{display:block;margin-top:6px;color:var(--muted);line-height:1.45}
-.product-records{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.product-records{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+.product-slot[data-slot-id="research-mesh"] .product-records,.product-slot[data-slot-id="industry-days-events"] .product-records{grid-template-columns:repeat(3,minmax(0,1fr))}
 .product-record{border:1px solid var(--line);background:var(--paper);padding:17px;min-width:0;break-inside:avoid}
 .product-record-kind{display:block;color:var(--accent);font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px}
 .product-record h3{font-size:17px;line-height:1.3;margin:0 0 8px;overflow-wrap:anywhere}
@@ -44,6 +44,13 @@ _PRODUCT_CSS = r"""
 .product-targets h4{margin:0 0 9px;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
 .product-target{border-left:2px solid var(--accent);padding:7px 9px;margin:7px 0;background:var(--paper-deep);font-size:11px;line-height:1.45}
 .product-target strong{display:block;font-size:12px}
+.product-detail{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.product-detail summary{cursor:pointer;color:var(--accent);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.product-detail-section{margin-top:12px}
+.product-detail-section h4,.product-receipts h4{margin:0 0 8px;font-size:10px;letter-spacing:.07em;text-transform:uppercase}
+.product-detail-section .product-fields{margin-top:0}
+.product-receipts{margin-top:13px;padding-top:11px;border-top:1px solid var(--line)}
+.product-receipt{display:block;margin:6px 0;color:var(--link);font-family:var(--mono);font-size:10px;overflow-wrap:anywhere}
 .product-gap{margin:15px 0 0;border:1px dashed var(--accent);padding:14px;color:var(--muted);font-size:13px;line-height:1.55}
 .product-visuals{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:18px}
 .product-visual{border:1px solid var(--line);background:var(--paper-deep);padding:14px;min-width:0}
@@ -61,7 +68,8 @@ _PRODUCT_CSS = r"""
 .vector-map{min-height:180px}
 .product-reference{color:var(--muted);font-size:11px;font-family:var(--mono);margin-top:10px}
 .product-status{white-space:nowrap}
-@media(max-width:720px){.product-records,.product-visuals{grid-template-columns:1fr}.product-slot-metrics{grid-template-columns:1fr 1fr}.product-fields{grid-template-columns:1fr}.product-fields dd{margin-bottom:5px}}
+@media(max-width:980px){.product-slot[data-slot-id="research-mesh"] .product-records,.product-slot[data-slot-id="industry-days-events"] .product-records{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:720px){.product-records,.product-slot[data-slot-id="research-mesh"] .product-records,.product-slot[data-slot-id="industry-days-events"] .product-records,.product-visuals{grid-template-columns:1fr}.product-slot-metrics{grid-template-columns:1fr 1fr}.product-fields{grid-template-columns:1fr}.product-fields dd{margin-bottom:5px}}
 @page{size:letter;margin:.42in}
 @media print{
 html,body,.memo{background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -74,8 +82,12 @@ html,body,.memo{background:#fff!important;-webkit-print-color-adjust:exact;print
 .product-slot-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:14px;break-inside:avoid;page-break-inside:avoid}
 .product-metric{padding:11px}
 .product-records{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start}
+.product-slot[data-slot-id="research-mesh"] .product-records,.product-slot[data-slot-id="industry-days-events"] .product-records{grid-template-columns:repeat(2,minmax(0,1fr))}
 .product-slot[data-slot-id="priority-pursuits"] .product-records,.product-slot[data-slot-id="federal-opportunities"] .product-records{grid-template-columns:1fr}
 .product-record{margin:0;break-inside:avoid;page-break-inside:avoid;padding:13px;overflow:hidden}
+.product-detail{break-inside:avoid;page-break-inside:avoid}
+.product-detail summary{display:none}
+.product-detail>.product-detail-section{display:block!important}
 .product-fields{gap:5px 9px;margin-top:9px}
 .product-source{color:#000;text-decoration:underline;overflow-wrap:anywhere;word-break:break-word}
 .product-gap{margin-top:8px;padding:11px;break-inside:avoid;page-break-inside:avoid}
@@ -129,10 +141,14 @@ def _source_link(record: dict) -> str:
 
 def _fields(record: dict) -> str:
     labels = (
-        ("agency", "Agency"), ("office", "Office"),
+        ("agency", "Agency"), ("sub_agency", "Sub-agency"),
+        ("office", "Office"),
         ("recipient", "Recipient"), ("response_date", "Timing"),
         ("value", "Published value"), ("commercial_route", "Route"),
         ("window_state", "Window"), ("service_fit", "Fit"),
+        ("naics", "NAICS"), ("psc", "PSC"),
+        ("instrument", "Instrument"), ("set_aside", "Set-aside"),
+        ("solicitation_number", "Solicitation number"),
         ("role", "Relationship"), ("target_role", "Target role"),
         ("person", "Named person"), ("date", "Date"),
         ("location", "Location"), ("status", "Status"),
@@ -147,6 +163,45 @@ def _fields(record: dict) -> str:
         rows.append(f"<dt>{esc(label)}</dt><dd>{esc(_display_value(value))}</dd>")
     return ('<dl class="product-fields">' + "".join(rows) + "</dl>"
             if rows else "")
+
+
+def _detail_sections(record: dict) -> str:
+    sections = []
+    for section in record.get("detail_sections") or []:
+        rows = []
+        for field in section.get("fields") or []:
+            value = field.get("value")
+            if value in (None, "", [], {}):
+                continue
+            rows.append(
+                f'<dt>{esc(field.get("label"))}</dt>'
+                f'<dd>{esc(_display_value(value))}</dd>')
+        if rows:
+            sections.append(
+                '<section class="product-detail-section">'
+                f'<h4>{esc(section.get("heading"))}</h4>'
+                '<dl class="product-fields">' + "".join(rows) + "</dl></section>")
+    if not sections:
+        return ""
+    return ('<details class="product-detail">'
+            '<summary>Evidence and decision detail</summary>'
+            + "".join(sections) + "</details>")
+
+
+def _receipt_links(record: dict) -> str:
+    links = []
+    for receipt in record.get("evidence_receipts") or []:
+        url = _http(receipt.get("source_url"))
+        if not url:
+            continue
+        label = receipt.get("label") or receipt.get("source_id") or "Source record"
+        links.append(
+            f'<a class="product-receipt" href="{esc(url)}" target="_blank" '
+            f'rel="noopener noreferrer">{esc(label)} ↗</a>')
+    if not links:
+        return ""
+    return ('<div class="product-receipts"><h4>Evidence receipts</h4>'
+            + "".join(links) + "</div>")
 
 
 def _targets(record: dict) -> str:
@@ -178,8 +233,8 @@ def _priority(record: dict) -> str:
             fields.append(f"<dt>{esc(label)}</dt><dd>{esc(_display_value(value))}</dd>")
     return (
         '<article class="product-record product-priority">'
-        f'<div class="product-priority-rank">{int(record.get("priority") or 0):02d}</div>'
-        '<div><span class="product-record-kind">Ranked pursuit</span>'
+        f'<div class="product-priority-rank">{int(record.get("action_order") or 0):02d}</div>'
+        '<div><span class="product-record-kind">Deadline-ordered action</span>'
         f'<h3>{esc(record.get("title"))}</h3>'
         f'<p>{esc(record.get("why"))}</p>'
         + ('<dl class="product-fields">' + "".join(fields) + "</dl>" if fields else "")
@@ -199,6 +254,8 @@ def _record(record: dict, *, include_targets: bool = False) -> str:
         + (f'<p>{esc(summary)}</p>' if summary else "")
         + _fields(record)
         + _source_link(record)
+        + _receipt_links(record)
+        + _detail_sections(record)
         + (_targets(record) if include_targets else "")
         + "</article>")
 
@@ -324,12 +381,33 @@ def _work_details(doc: ExternalProductDocument) -> dict:
                 if _http(label):
                     label = "Open source record"
                 sources.append([label, url])
+        formulas = []
+        for metric in slot.metrics:
+            formula = str(metric.get("formula") or "").strip()
+            if formula:
+                formulas.append(f"{metric.get('label')}: {formula}")
+            for receipt in metric.get("evidence") or []:
+                url = _http(receipt.get("source_url") or receipt.get("url"))
+                if not url:
+                    continue
+                label = (receipt.get("label") or receipt.get("source_id")
+                         or "Source record")
+                sources.append([label, url])
+        unique_sources = []
+        seen_sources = set()
+        for label, url in sources:
+            key = (str(label), url)
+            if key in seen_sources:
+                continue
+            seen_sources.add(key)
+            unique_sources.append([label, url])
         details[f"slot-{slot.number}"] = {
             "title": slot.heading,
             "summary": slot.summary,
-            "formula": (f"{len(slot.records)} owned record(s); "
+            "formula": ("; ".join(formulas) if formulas else
+                        f"{len(slot.records)} owned record(s); "
                         f"{len(slot.gaps)} named gap(s)."),
-            "sources": sources[:60],
+            "sources": unique_sources[:60],
         }
     return details
 
@@ -341,9 +419,9 @@ def _coverage(doc: ExternalProductDocument) -> list[dict]:
     return [
         {"label": "Product slots", "value": "8 / 8",
          "note": "Operator-locked order", "work": "slot-1"},
-        {"label": "Priority pursuits",
+        {"label": "Actionable pursuits",
          "value": len(by_id["priority-pursuits"].records),
-         "note": "Ranked references", "work": "slot-1"},
+         "note": "Deadline-ordered references", "work": "slot-1"},
         {"label": "Qualified opportunities", "value": len(opportunities.records),
          "note": "Current evidence and eligible route", "work": "slot-5"},
         {"label": "Opportunity targets", "value": targets,
@@ -353,7 +431,7 @@ def _coverage(doc: ExternalProductDocument) -> list[dict]:
 
 def _ticker(doc: ExternalProductDocument) -> list[dict]:
     slot = next(item for item in doc.slots if item.slot_id == "priority-pursuits")
-    return [{"label": f"{row.get('priority'):02d} · {row.get('title')}", "url": ""}
+    return [{"label": f"{row.get('action_order'):02d} · {row.get('title')}", "url": ""}
             for row in slot.records]
 
 
@@ -431,6 +509,9 @@ def validate_external_product_document(doc: ExternalProductDocument) -> list[dic
     if "—" in text:
         violations.append({"rule": "em_dash", "detail":
                            "an em dash appears in output-reachable product data"})
+    if re.search(r"(?:/Users/|/home/|file://)", text, re.I):
+        violations.append({"rule": "local_path", "detail":
+                           "a local filesystem path appears in external product data"})
     return violations
 
 
@@ -454,6 +535,9 @@ def validate_external_product_html(client_html: str, doc: ExternalProductDocumen
     if "—" in re.sub(r"<[^>]+>", " ", client_html):
         violations.append({"rule": "em_dash", "detail":
                            "an em dash appears in rendered client text"})
+    if re.search(r"(?:/Users/|/home/|file://)", client_html, re.I):
+        violations.append({"rule": "local_path", "detail":
+                           "a local filesystem path appears in the client artifact"})
     unstyled = unstyled_in_context(client_html)
     if unstyled:
         violations.append({"rule": "unstyled_classes", "detail":
