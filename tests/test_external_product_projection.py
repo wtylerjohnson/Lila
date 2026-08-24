@@ -45,7 +45,11 @@ def _market_map():
         teaming_routes=(SimpleNamespace(
             organisation="Prime Partner", role="prime", agency="State",
             why="Holds relevant federal paper.", target_role="capture lead",
-            person="", action="Open a teaming conversation.", evidence=()),),
+            person="", action="Open a teaming conversation.",
+            evidence=(SimpleNamespace(
+                source_id="ROUTE-SAFE", source_kind="notice",
+                source_url="https://sam.gov/opp/route-safe/view",
+                label="Supported teaming route"),)),),
     )
 
 
@@ -88,11 +92,19 @@ def _graph():
         "obligated_dollars": 1200000,
         "url": "https://www.usaspending.gov/award/AWARD-CLIENT",
     }
+    safe_route = {
+        "record_id": "ROUTE-SAFE", "title": "Prime access route",
+        "agency": "Department of State",
+        "evidence_class": "current_opportunity", "service_fit": "direct",
+        "window_state": "live", "commercial_route": "named_partner_teaming",
+        "route_relationship": "named_partner_teaming", "eligible_route": True,
+        "url": "https://sam.gov/opp/route-safe/view",
+    }
     return {
         "schema_version": "evidence-pack-v2",
         "graph_contract_certified": True,
         "graph_contract_violations": [],
-        "records": [notice, forecast, competitor, client_award],
+        "records": [notice, forecast, competitor, client_award, safe_route],
         "qualified_opportunity_records": [{
             **notice, "response_due": notice["response_deadline"],
             "source_url": notice["url"], "linked_targets": [target],
@@ -151,6 +163,123 @@ def test_each_evidence_record_has_one_owning_slot_and_priority_only_references()
     priority = document.slots[0]
     assert priority.records[0]["reference_slot_id"] == "federal-opportunities"
     assert "record_key" not in priority.records[0]
+
+
+def test_graph_identity_cannot_own_both_opportunity_and_teaming_slots():
+    graph = _graph()
+    graph["records"].append({
+        **graph["records"][0],
+        "route_relationship": "named_partner_teaming",
+        "commercial_route": "named_partner_teaming",
+    })
+
+    document = build_external_product_document(
+        market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
+        profile={"capability_terms": {"core": ["language services"]},
+                 "inferred_naics": ["541930"]},
+        client_name="Acme", slug="acme", as_of="2026-08-23")
+    by_id = {slot.slot_id: slot for slot in document.slots}
+
+    assert [row["source_id"] for row in
+            by_id["federal-opportunities"].records] == ["NOTICE-1"]
+    assert "NOTICE-1" not in {
+        row["source_id"] for row in by_id["teaming-opportunities"].records}
+    assert validate_external_product_document(document) == []
+
+
+def test_teaming_slot_rejects_ambiguous_excluded_and_unrelated_graph_rows():
+    graph = _graph()
+    graph["records"].extend((
+        {
+            "record_id": "ROUTE-AMBIGUOUS",
+            "title": "Unresolved partner paper",
+            "evidence_class": "ambiguous",
+            "service_fit": "direct",
+            "route_relationship": "named_partner_teaming",
+            "commercial_route": "named_partner_teaming",
+            "eligible_route": True,
+            "url": "https://www.usaspending.gov/award/ROUTE-AMBIGUOUS",
+        },
+        {
+            "record_id": "ROUTE-EXCLUDED",
+            "title": "Out of scope partner paper",
+            "evidence_class": "excluded",
+            "service_fit": "unrelated",
+            "route_relationship": "named_partner_teaming",
+            "commercial_route": "named_partner_teaming",
+            "eligible_route": True,
+            "url": "https://www.usaspending.gov/award/ROUTE-EXCLUDED",
+        },
+        {
+            "record_id": "ROUTE-ADJACENT",
+            "title": "Weakly adjacent partner paper",
+            "evidence_class": "client_historical",
+            "service_fit": "adjacent",
+            "route_relationship": "named_partner_teaming",
+            "commercial_route": "named_partner_teaming",
+            "eligible_route": True,
+            "url": "https://www.usaspending.gov/award/ROUTE-ADJACENT",
+        },
+    ))
+
+    document = build_external_product_document(
+        market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
+        profile={}, client_name="Acme", slug="acme", as_of="2026-08-23")
+    teaming = next(slot for slot in document.slots
+                   if slot.slot_id == "teaming-opportunities")
+
+    assert [row["source_id"] for row in teaming.records] == ["ROUTE-SAFE"]
+    assert validate_external_product_document(document) == []
+
+
+def test_synthetic_teaming_route_cannot_bypass_certified_graph_admission():
+    market_map = _market_map()
+    market_map.teaming_routes = (SimpleNamespace(
+        organisation="Unsupported Prime", role="prime", agency="State",
+        why="Legacy synthesis promoted an excluded award.",
+        target_role="capture lead", person="", action="Call the prime.",
+        evidence=(SimpleNamespace(
+            source_id="ROUTE-EXCLUDED", source_kind="award",
+            source_url="https://www.usaspending.gov/award/ROUTE-EXCLUDED",
+            label="Excluded route"),)),)
+    graph = _graph()
+    graph["records"].append({
+        "record_id": "ROUTE-EXCLUDED", "title": "Out of scope paper",
+        "evidence_class": "excluded", "service_fit": "unrelated",
+        "route_relationship": "named_partner_teaming",
+        "commercial_route": "named_partner_teaming", "eligible_route": True,
+        "url": "https://www.usaspending.gov/award/ROUTE-EXCLUDED",
+    })
+
+    document = build_external_product_document(
+        market_map=market_map, graph_payload=graph, evidence_pack=_pack(),
+        profile={}, client_name="Acme", slug="acme", as_of="2026-08-23")
+    teaming = next(slot for slot in document.slots
+                   if slot.slot_id == "teaming-opportunities")
+
+    assert [row["source_id"] for row in teaming.records] == ["ROUTE-SAFE"]
+    assert "ROUTE-EXCLUDED" not in {
+        row["source_id"] for row in teaming.records}
+    assert validate_external_product_document(document) == []
+
+
+def test_external_projection_repairs_nonresolving_usaspending_award_route():
+    graph = _graph()
+    client_award = next(row for row in graph["records"]
+                        if row["record_id"] == "AWARD-CLIENT")
+    client_award["url"] = (
+        "https://www.usaspending.gov/award/"
+        "CONT_AWD_AWARDCLIENT_9700_-NONE-_-NONE-")
+
+    document = build_external_product_document(
+        market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
+        profile={}, client_name="Acme", slug="acme", as_of="2026-08-23")
+    spending = next(slot for slot in document.slots
+                    if slot.slot_id == "agency-spending")
+
+    assert spending.records[0]["source_url"] == (
+        "https://api.usaspending.gov/api/v2/awards/"
+        "CONT_AWD_AWARDCLIENT_9700_-NONE-_-NONE-/")
 
 
 def test_forecasts_and_live_opportunities_are_separate_and_targets_stay_bound():

@@ -24,10 +24,14 @@ Laws the renderer must respect (all upstream-enforced, test-pinned in
    own paper and never competition. `ambiguous` rows never enter
    competitive totals or competitor visuals; they may render only in an
    explicitly-labeled unresolved/receipts surface.
-2. Teaming/access value renders from `route_relationship`
-   (`named_partner_teaming`, `possible_subcontracting`), independent of
-   the class dimension. MAXIMUS, InDyne and CAE arrive as
-   `named_partner_teaming` routes, not competitors.
+2. Route classification remains independent of evidence classification, but
+   the external eight-slot projection is stricter than this internal pack
+   surface. Slot 6 may render a graph route only when it is direct-fit,
+   eligible, and neither `ambiguous` nor `excluded`. An unresolved partner
+   identity remains an internal research lead until separate evidence promotes
+   a qualified route. MAXIMUS, InDyne and CAE may still arrive as
+   `named_partner_teaming` classifications, never as competitors, without
+   thereby becoming external recommendations.
 3. Live pursuits render ONLY `evidence_class == "current_opportunity"`
    (a live response window is upstream-guaranteed). `excluded` closed
    notices never render as live.

@@ -10,10 +10,13 @@ from typing import Any
 from urllib.parse import urlsplit
 
 from agents.golden_press.external_product_contract import load_external_product_slots
-from agents.golden_press.external_product_projection import ExternalProductDocument
+from agents.golden_press.external_product_projection import (
+    ExternalProductDocument,
+    record_ownership_key,
+)
 
 
-EXTERNAL_PRODUCT_RENDER_VERSION = "lila-eight-slot-render.v2.2026-08-23"
+EXTERNAL_PRODUCT_RENDER_VERSION = "lila-eight-slot-render.v3.2026-08-23"
 
 
 _PRODUCT_CSS = r"""
@@ -399,7 +402,7 @@ def validate_external_product_document(doc: ExternalProductDocument) -> list[dic
             violations.append({"rule": "silent_gap", "detail":
                                f"{slot.slot_id} is empty without a named next action"})
         for row in slot.records:
-            key = row.get("record_key")
+            key = record_ownership_key(row)
             if not key:
                 continue  # Slot 1 references, it does not own evidence rows.
             if key in owned:

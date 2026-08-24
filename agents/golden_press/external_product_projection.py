@@ -21,7 +21,13 @@ from agents.golden_press.external_product_contract import (
 )
 
 
-EXTERNAL_PRODUCT_PROJECTION_VERSION = "lila-external-product.v1.2026-08-23"
+EXTERNAL_PRODUCT_PROJECTION_VERSION = "lila-external-product.v2.2026-08-23"
+
+_USASPENDING_NONE_AWARD = re.compile(
+    r"^https?://(?:www\.)?usaspending\.gov/award/"
+    r"((?:CONT_AWD|CONT_IDV)_[^/?#]+_-NONE-_-NONE-)/?(?:[?#].*)?$",
+    re.I,
+)
 
 
 @dataclass(frozen=True)
@@ -79,13 +85,46 @@ def _http_url(value: Any) -> str:
         parsed = urlsplit(url)
     except ValueError:
         return ""
-    return url if parsed.scheme in {"http", "https"} and parsed.netloc else ""
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        return ""
+    unresolved = _USASPENDING_NONE_AWARD.match(url)
+    if unresolved:
+        return ("https://api.usaspending.gov/api/v2/awards/"
+                f"{unresolved.group(1)}/")
+    return url
 
 
 def _record_key(kind: Any, identity: Any) -> str:
     clean_kind = _text(kind).casefold().replace(" ", "-") or "record"
     clean_identity = _text(identity) or "unnumbered"
     return f"{clean_kind}:{clean_identity}"
+
+
+_GRAPH_PRESENTATION_KINDS = frozenset({
+    "notice", "forecast", "competitive-award", "category-award",
+    "teaming-route", "event",
+})
+
+_EXTERNAL_TEAMING_RELATIONSHIPS = frozenset({
+    "named_partner_teaming", "possible_subcontracting",
+})
+
+
+def record_ownership_key(row: dict) -> str:
+    """Return presentation-independent identity for one external record.
+
+    A graph record may be displayed with different presentation kinds while
+    retaining one underlying identity.  Synthetic route, query, lane, and
+    pack-event rows keep their own record keys unless their producer supplies
+    an explicit ownership key.
+    """
+    explicit = _text(row.get("ownership_key"))
+    if explicit:
+        return explicit
+    source_id = _text(row.get("source_id"))
+    if source_id and _text(row.get("kind")) in _GRAPH_PRESENTATION_KINDS:
+        return _record_key("graph-record", source_id)
+    return _text(row.get("record_key"))
 
 
 def _evidence_rows(value: Any) -> list[dict]:
@@ -138,6 +177,7 @@ def _graph_record(row: dict, *, kind: str, summary: str = "") -> dict:
     record_id = _text(row.get("record_id") or row.get("notice_id"))
     return {
         "record_key": _record_key(kind, record_id),
+        "ownership_key": _record_key("graph-record", record_id),
         "kind": kind,
         "source_id": record_id,
         "title": _text(row.get("title")) or record_id,
@@ -157,6 +197,16 @@ def _graph_record(row: dict, *, kind: str, summary: str = "") -> dict:
         "relationship_provenance": _serial(
             row.get("relationship_provenance") or {}),
     }
+
+
+def _external_teaming_record(row: dict) -> bool:
+    """Return whether certified graph evidence may support a Slot 6 action."""
+    return (
+        row.get("route_relationship") in _EXTERNAL_TEAMING_RELATIONSHIPS
+        and row.get("evidence_class") not in {"ambiguous", "excluded"}
+        and row.get("service_fit") == "direct"
+        and row.get("eligible_route") is True
+    )
 
 
 def _profile_terms(profile: dict, company: Any) -> tuple[list[str], list[str], list[str]]:
@@ -331,7 +381,7 @@ def build_external_product_document(
     claimed: set[str] = set()
 
     def claim(row: dict) -> bool:
-        key = row["record_key"]
+        key = record_ownership_key(row)
         if key in claimed:
             return False
         claimed.add(key)
@@ -374,32 +424,40 @@ def build_external_product_document(
             competitor_rows.append(row)
 
     # Slot 6 owns partner/teaming evidence that has not already been assigned.
+    # Market Map routes are presentation enrichments, not an alternate admission
+    # path. Every one must resolve to certified, client-admissible graph evidence.
     teaming_rows: list[dict] = []
-    for raw in graph_rows:
-        if raw.get("route_relationship") != "named_partner_teaming":
-            continue
-        row = _graph_record(raw, kind="teaming-route")
-        if claim(row):
-            teaming_rows.append(row)
     for index, route in enumerate(_get(market_map, "teaming_routes", ()) or (), start=1):
         evidence = _evidence_rows(_get(route, "evidence", ()))
-        source_id = next((r["source_id"] for r in evidence if r["source_id"]),
-                         f"route-{index}")
+        qualified_evidence = [
+            receipt for receipt in evidence
+            if _external_teaming_record(graph_index.get(receipt["source_id"], {}))
+        ]
+        if not qualified_evidence:
+            continue
+        source_id = qualified_evidence[0]["source_id"]
         row = {
             "record_key": _record_key("teaming-route", source_id),
+            "ownership_key": _record_key("graph-record", source_id),
             "kind": "teaming_route",
             "source_id": source_id,
             "title": _text(_get(route, "organisation")) or "Teaming route",
             "summary": _text(_get(route, "why")),
-            "source_url": next((r["source_url"] for r in evidence
+            "source_url": next((r["source_url"] for r in qualified_evidence
                                 if r["source_url"]), ""),
             "agency": _text(_get(route, "agency")),
             "role": _text(_get(route, "role")),
             "target_role": _text(_get(route, "target_role")),
             "person": _text(_get(route, "person")),
             "next_action": _text(_get(route, "action")),
-            "evidence": evidence,
+            "evidence": qualified_evidence,
         }
+        if claim(row):
+            teaming_rows.append(row)
+    for raw in graph_rows:
+        if not _external_teaming_record(raw):
+            continue
+        row = _graph_record(raw, kind="teaming-route")
         if claim(row):
             teaming_rows.append(row)
 
@@ -602,4 +660,5 @@ __all__ = (
     "ExternalProductDocument",
     "ProductSlot",
     "build_external_product_document",
+    "record_ownership_key",
 )
