@@ -31,7 +31,10 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from flask import Flask, jsonify, redirect, request, send_from_directory
+from flask import (
+    Flask, has_request_context, jsonify, redirect, request,
+    send_from_directory,
+)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
@@ -1205,8 +1208,7 @@ def client_documents(slug: str, client_name: str = "",
                     "product_role": "internal_view",
                     "external_product": False,
                 })
-        from agents.golden_press.product_bundle import product_release_state
-        product = product_release_state(slug, root=Path(ROOT))
+        product = _current_lila_product_state(slug)
         if product.get("path"):
             docs.append({
                 "label": "LILA Federal Market Map",
@@ -1642,7 +1644,15 @@ def _step_cmd(step: str, client: str, args: dict) -> list[str]:
     elif step == "lila_release":
         # The only external release action. It consumes approved stored
         # research and emits the complete hash-bound eight-slot bundle.
-        cmd = [py, "run_lila_release.py", "--client", client, "--release"]
+        target_set_sha256 = args.get("_lila_target_set_sha256")
+        if (not isinstance(target_set_sha256, str)
+                or not re.fullmatch(r"[0-9a-f]{64}", target_set_sha256)):
+            raise ValueError(
+                "LILA release has no exact current target-set binding")
+        cmd = [
+            py, "run_lila_release.py", "--client", client, "--release",
+            "--target-set-sha256", target_set_sha256,
+        ]
     elif step == "report":
         kind = args.get("kind", "teaser")
         if kind == "capture_brief":
@@ -2233,11 +2243,28 @@ def _signal_board(slug: str, foa: Optional[dict] = None) -> Optional[dict]:
     }
 
 
-def _lila_product(slug: str) -> Optional[dict]:
-    """The one external product verdict, read from its hash-bound pointer."""
+def _current_lila_product_state(slug: str) -> dict:
+    """Revalidate the product against the exact live target inventory."""
     from agents.golden_press.product_bundle import product_release_state
 
-    state = product_release_state(slug, root=Path(ROOT))
+    pointer = Path(ROOT) / "data" / "releases" / slug / "current.json"
+    if not pointer.is_file():
+        return product_release_state(slug, root=Path(ROOT))
+    if has_request_context():
+        payload, status = _client_targets_payload(slug)
+    else:
+        with app.test_request_context("/"):
+            payload, status = _client_targets_payload(slug)
+    targets = (payload or {}).get("targets")
+    if status != 200 or not isinstance(targets, list):
+        targets = None
+    return product_release_state(
+        slug, root=Path(ROOT), target_inventory=targets)
+
+
+def _lila_product(slug: str) -> Optional[dict]:
+    """The one external product verdict, read from its hash-bound pointer."""
+    state = _current_lila_product_state(slug)
     if not state.get("path"):
         return None
     return {
@@ -2923,9 +2950,7 @@ def _download_lila_product(slug: str, *, bundle: bool):
     """Serve only the current, hash-verified external product transaction."""
     if not slug or _slugify(slug) != slug:
         return "not found", 404
-    from agents.golden_press.product_bundle import product_release_state
-
-    state = product_release_state(slug, root=Path(ROOT))
+    state = _current_lila_product_state(slug)
     if not state.get("releasable"):
         return _dns(state.get("reason") or "no releasable LILA bundle")
     targeting_block = _targeting_download_gate(slug)
@@ -3855,34 +3880,26 @@ def _target_bucket(entry: dict, prime_names: set) -> str:
     graded solicitations; CANDIDATE targets come from watchlist sightings
     and hand-added names; PRIME targets are contacts at teaming primes
     (matched by organization name)."""
-    blob = " ".join(str(entry.get(k) or "") for k in
-                    ("title", "agency", "org", "company", "source_note")).lower()
-    if any(p for p in prime_names if p and p in blob):
-        return "prime"
-    return {"pursuit": "solicitation",
-            "watchlist": "candidate",
-            "manual": "candidate"}.get(entry.get("reason_kind"), "candidate")
+    from agents.targeting_inventory import target_bucket
+
+    return target_bucket(entry, prime_names)
 
 
 def _client_prime_names(slug: str, *, searches: Optional[dict] = None,
                         workstation_id: Optional[str] = None) -> set:
     """Teaming-prime organization names from the client's sweep artifact:
     subaward primes plus buyer-map product vendors."""
-    names: set = set()
+    from agents.targeting_inventory import prime_names_from_searches
+
     try:
         if searches is None:
             p = os.path.join(CLEANED_DIR, _sweep_name(
                 slug, workstation_id=workstation_id))
             with open(p, encoding="utf-8") as f:
                 searches = json.load(f)
-        r = (searches.get("results") or {})
-        for pr in (r.get("subawards") or {}).get("primes") or []:
-            nm = str(pr.get("name") or "").strip().lower()
-            if nm:
-                names.add(nm.split(",")[0][:40])
     except Exception:
-        pass
-    return names
+        searches = None
+    return prime_names_from_searches(searches)
 
 
 @app.get("/api/client/<slug>/targets")
@@ -3898,8 +3915,8 @@ def api_client_targets(slug):
                    list yet; one click promotes them to targets.
     """
     from datetime import date as _date
-    from tools.contact_graph.names import normalize_name
-    from tools.contact_graph.outreach import OutreachReadError, _entry_id
+    from agents.targeting_inventory import project_target_inventory
+    from tools.contact_graph.outreach import OutreachReadError
     if "/" in slug or ".." in slug:
         return jsonify({"error": "bad slug"}), 400
     bound, error = _bound_aux_workstation(slug)
@@ -3907,37 +3924,11 @@ def api_client_targets(slug):
         return error
     today = _date.today()
 
-    # why-map: notice id -> the reason a person seen there is a target
     doc = (_assessment_doc(
         slug, searches=bound["searches"],
         workstation_id=bound["workstation_id"])
         if bound is not None else _assessment_doc(slug))
-    notice_reason: dict[str, dict] = {}
-    if doc is not None:
-        for p in doc.board.pursuits:
-            ref = {"kind": "pursuit", "rank": p.rank,
-                   "label": f"POC on pursuit #{p.rank} · {p.title}"}
-            notice_reason[p.source_id] = ref
-            for a in p.amendments:
-                if a.get("source_id"):
-                    notice_reason[a["source_id"]] = ref
-        for e in doc.watchlist.entries:
-            if e.id and e.id not in notice_reason:
-                notice_reason[e.id] = {
-                    "kind": "watchlist", "rank": 90,
-                    "label": f"sighted on watchlist item · {e.title or e.id}"}
-
     profiles, _review, obs = _contacts_snapshot()
-    person_reason: dict[tuple, dict] = {}
-    for o in obs:
-        r = notice_reason.get(o.notice_id)
-        if not r:
-            continue
-        key = (normalize_name(o.person_name), (o.agency or "").lower())
-        cur = person_reason.get(key)
-        if cur is None or r["rank"] < cur["rank"]:
-            person_reason[key] = r
-
     try:
         outreach_entries = _outreach().render(recover_corrupt=False)
     except OutreachReadError as exc:
@@ -3945,50 +3936,31 @@ def api_client_targets(slug):
             "error": f"outreach list is unavailable: {exc}",
             "state": "unavailable",
         }), 503
-    targets, out_ids = [], set()
-    for e in outreach_entries:
-        reason = ({"kind": "manual", "rank": 50, "label": "added for this client"}
-                  if e.get("client") == slug else None)
-        pr = person_reason.get((e.get("normalized_name"),
-                                (e.get("agency") or "").lower()))
-        if pr and (reason is None or pr["rank"] < reason["rank"]):
-            reason = pr
-        if reason is None:
-            continue  # no reason, not a target — find them in the database
-        out_ids.add(e["id"])
-        targets.append({**e, "reason": reason["label"],
-                        "reason_kind": reason["kind"], "reason_rank": reason["rank"]})
     prime_names = _client_prime_names(
         slug,
         searches=bound["searches"] if bound is not None else None,
         workstation_id=bound["workstation_id"] if bound is not None else None,
     )
-    for t in targets:
-        t["bucket"] = _target_bucket(t, prime_names)
-
-    pocs = []
-    for p in profiles:
-        r = person_reason.get((p.normalized_name, (p.agency or "").lower()))
-        if not r or _entry_id(p.normalized_name, p.agency) in out_ids:
-            continue
-        row = _profile_row(p, today)
-        row.update(reason=r["label"], reason_kind=r["kind"], reason_rank=r["rank"])
-        row["bucket"] = _target_bucket(row, prime_names)
-        pocs.append(row)
-
-    targets.sort(key=lambda t: (t["reason_rank"], -(t.get("sighting_count") or 0)))
-    pocs.sort(key=lambda t: (t["reason_rank"], -(t.get("sighting_count") or 0)))
+    projection = project_target_inventory(
+        slug=slug,
+        document=doc,
+        profiles=profiles,
+        observations=obs,
+        outreach_entries=outreach_entries,
+        prime_names=prime_names,
+        today=today,
+        logo_domain=agency_domain,
+    )
+    targets = projection["targets"]
+    pocs = projection["pursuit_pocs"]
     changed = _aux_snapshot_changed(bound)
     if changed:
         return changed
     from agents.review import (
         load_targeting_plan,
-        targeting_play_key,
         targeting_review_status,
     )
     exact_client = canonical_client_name(slug, REVIEW_DIR)
-    for target in targets:
-        target["play_id"] = targeting_play_key(target.get("reason") or "")
     targeting_ready, targeting_problems = targeting_review_status(
         exact_client, targets, review_dir=REVIEW_DIR)
     return jsonify({
@@ -5280,6 +5252,17 @@ def api_run():
                 "problems": readiness.get("problems") or [
                     "current target inventory is unavailable"],
             }), 409
+        if step == "lila_release":
+            targets = (target_payload or {}).get("targets")
+            if not isinstance(targets, list):
+                return jsonify({
+                    "error": "current target inventory is unavailable",
+                    "targeting_review_approved": False,
+                }), 409
+            from agents.review import targeting_target_set_sha256
+            args = dict(args)
+            args["_lila_target_set_sha256"] = (
+                targeting_target_set_sha256(targets))
     if step in ("contacts", "target_report", "lila_release"):
         from agents.review import target_gate_status
         target_ok, target_problems = target_gate_status(

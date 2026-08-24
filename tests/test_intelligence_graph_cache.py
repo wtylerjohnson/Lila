@@ -247,3 +247,22 @@ def test_adapter_receipts_existing_system_ownership(tmp_path):
         "migrated_consumer"
     assert receipt["providers"]["renderer"]["kind"] == \
         "graph_backed_consumer"
+
+
+def test_semantic_receipt_is_identical_for_cold_and_warm_cache(tmp_path):
+    record = _notice("A", "Translation and Interpretation Services")
+    cold = _adapter(tmp_path)
+    cold.classify_record(record)
+
+    warm = _adapter(tmp_path)
+    warm.classify_record(record)
+
+    assert cold.receipt()["actions"] != warm.receipt()["actions"]
+    assert cold.semantic_receipt() == warm.semantic_receipt()
+    semantic = cold.semantic_receipt()
+    assert semantic["schema_version"] == \
+        "incremental-cache-semantic-receipt-v1"
+    serialized = repr(semantic)
+    for forbidden in (
+            "cache_root", "exists", "hits", "misses", "actions", "path"):
+        assert forbidden not in serialized

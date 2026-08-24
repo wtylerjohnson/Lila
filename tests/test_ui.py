@@ -232,6 +232,44 @@ def test_run_endpoint_allows_current_approval_and_leaves_teaser_unchanged(
     ]
 
 
+def test_release_job_carries_the_exact_live_target_set_hash(monkeypatch):
+    from agents.review import targeting_target_set_sha256
+
+    _bind_run_workstation(monkeypatch)
+    monkeypatch.setattr(
+        srv, "load_packet",
+        lambda _client, **_kwargs: SimpleNamespace(
+            status=srv.ReviewStatus.APPROVED, search_scope=None))
+    monkeypatch.setattr(
+        srv, "_assess_release_gate",
+        lambda _client: (None, "approved", []))
+    targets = [{
+        "id": "target-1", "person_name": "A. Buyer",
+        "source_url": "https://sam.gov/notice",
+    }]
+    monkeypatch.setattr(
+        srv, "_client_targets_payload",
+        lambda _slug: ({
+            "targets": targets,
+            "targeting_readiness": {"ready": True, "problems": []},
+        }, 200))
+    monkeypatch.setattr(
+        "agents.review.target_gate_status", lambda *_args, **_kwargs: (True, []))
+    launched = []
+    monkeypatch.setattr(
+        srv, "start_job",
+        lambda step, client, args: launched.append(
+            (step, client, args)) or "job-1")
+
+    response = srv.app.test_client().post("/api/run", json={
+        "client_name": "Testco", "step": "lila_release", "args": {}})
+
+    assert response.status_code == 200
+    assert launched[0][0:2] == ("lila_release", "Testco")
+    assert launched[0][2]["_lila_target_set_sha256"] == (
+        targeting_target_set_sha256(targets))
+
+
 def test_refresh_endpoint_binds_stateful_adapter_and_one_job_lock(monkeypatch):
     """The UI refresh is the persisted C3 handshake, not a bare runner call."""
     _bind_run_workstation(monkeypatch, client_name="Mark43")
@@ -2357,8 +2395,40 @@ def test_step_cmd_maps_the_ranking_workbook():
 
 
 def test_step_cmd_maps_the_one_external_release_action():
-    cmd = srv._step_cmd("lila_release", "Riverbed", {})
-    assert cmd[1:] == ["run_lila_release.py", "--client", "Riverbed", "--release"]
+    target_set_sha256 = "a" * 64
+    cmd = srv._step_cmd("lila_release", "Riverbed", {
+        "_lila_target_set_sha256": target_set_sha256})
+    assert cmd[1:] == [
+        "run_lila_release.py", "--client", "Riverbed", "--release",
+        "--target-set-sha256", target_set_sha256,
+    ]
+    with pytest.raises(ValueError, match="target-set binding"):
+        srv._step_cmd("lila_release", "Riverbed", {})
+
+
+def test_lila_shelf_state_forwards_the_live_target_inventory(
+        tmp_path, monkeypatch):
+    import agents.golden_press.product_bundle as product_bundle
+
+    pointer = tmp_path / "data" / "releases" / "riverbed" / "current.json"
+    pointer.parent.mkdir(parents=True)
+    pointer.write_text("{}\n", encoding="utf-8")
+    targets = [{"id": "target-1", "source_url": "https://sam.gov/notice"}]
+    seen = {}
+    monkeypatch.setattr(srv, "ROOT", str(tmp_path))
+    monkeypatch.setattr(
+        srv, "_client_targets_payload",
+        lambda _slug: ({"targets": targets}, 200))
+    monkeypatch.setattr(
+        product_bundle, "product_release_state",
+        lambda slug, **kwargs: seen.update(
+            {"slug": slug, **kwargs}) or {"releasable": False})
+
+    with srv.app.test_request_context("/"):
+        srv._current_lila_product_state("riverbed")
+
+    assert seen["slug"] == "riverbed"
+    assert seen["target_inventory"] == targets
 
 
 def test_gate_refreshes_research_and_finale_owns_release():

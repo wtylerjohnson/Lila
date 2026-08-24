@@ -21,7 +21,9 @@ from agents.review import (  # noqa: E402
     approve_target,
     load_target_approval,
     save_targeting_plan,
+    targeting_review_binding_receipt,
     targeting_review_status,
+    targeting_target_set_sha256,
     validate_targeting_plan,
     revoke_target,
     target_gate_status,
@@ -140,6 +142,33 @@ class TestTargetingReviewCompletion:
             review_dir=str(tmp_path))
         assert validate_targeting_plan(plan, targets) == []
         approve_targeting_review("Testco", targets, review_dir=str(tmp_path))
+        receipt, bound, binding_problems = targeting_review_binding_receipt(
+            "Testco", targets=targets, review_dir=str(tmp_path))
+        assert bound is True and binding_problems == []
+        assert set(receipt) >= {
+            "target_set_sha256", "plan_sha256",
+            "assess_approval_sha256", "target_unlock_sha256",
+        }
+        target_set_sha256 = targeting_target_set_sha256(targets)
+        receipt_by_hash, bound_by_hash, hash_problems = (
+            targeting_review_binding_receipt(
+                "Testco", expected_target_set_sha256=target_set_sha256,
+                review_dir=str(tmp_path)))
+        assert bound_by_hash is True and hash_problems == []
+        assert receipt_by_hash == receipt
+        _receipt, bound_without_inventory, missing_problems = (
+            targeting_review_binding_receipt(
+                "Testco", review_dir=str(tmp_path)))
+        assert bound_without_inventory is False
+        assert any("inventory binding is required" in problem
+                   for problem in missing_problems)
+        _receipt, stale_hash_bound, stale_hash_problems = (
+            targeting_review_binding_receipt(
+                "Testco", expected_target_set_sha256="f" * 64,
+                review_dir=str(tmp_path)))
+        assert stale_hash_bound is False
+        assert any("inventory changed" in problem
+                   for problem in stale_hash_problems)
         ready, problems = targeting_review_status(
             "Testco", targets, review_dir=str(tmp_path))
         assert ready is True and problems == []
@@ -150,6 +179,10 @@ class TestTargetingReviewCompletion:
         assert any("inventory changed" in p for p in problems)
 
         revoke_target("Testco", review_dir=str(tmp_path))
+        _receipt, bound, binding_problems = targeting_review_binding_receipt(
+            "Testco", targets=targets, review_dir=str(tmp_path))
+        assert bound is False
+        assert any("Target is locked" in p for p in binding_problems)
         approve_target("Testco", note="reopened after review",
                        review_dir=str(tmp_path))
         ready, problems = targeting_review_status(

@@ -51,7 +51,7 @@ from agents.golden_press.evidence_objects import (
     CLAIM_RECIPIENT, CLAIM_SPEND, EVENT, FORECAST, NOTICE, CoverageState,
     EvidenceReference, ExactMoney, complete, partial, research_next)
 
-MARKET_MAP_PROJECTION_VERSION = "market_map_projection.v1.2026-08-07"
+MARKET_MAP_PROJECTION_VERSION = "market_map_projection.v2.2026-08-24"
 
 _HEX = re.compile(r"^[0-9a-f]{32}$", re.I)
 
@@ -321,7 +321,8 @@ def commercial_meaning(footprint: CategoryFootprint) -> str:
 # --------------------------------------------------------------------------- #
 # The assembler
 # --------------------------------------------------------------------------- #
-def _company(pack: Any, profile: dict, posture: dict) -> CompanyUnderstanding:
+def _company(pack: Any, profile: dict, posture: dict, *,
+             pending_terms: Any = _LIVE) -> CompanyUnderstanding:
     from agents.golden_press.client_identity import audit_client_identity
     from agents.golden_press.market_map import _strip_internal
     from agents.golden_press.rollups import resolve_relationship
@@ -339,7 +340,9 @@ def _company(pack: Any, profile: dict, posture: dict) -> CompanyUnderstanding:
     core = tuple((profile.get("capability_terms") or {}).get("core") or ())
     approved = tuple(profile.get("discovered_terms_approved") or ())
     rejected = tuple(profile.get("discovered_terms_rejected") or {})
-    pending = tuple(_pending_terms(profile))
+    pending = tuple(
+        _pending_terms(profile) if pending_terms is _LIVE
+        else (pending_terms or ()))
     confirmations = []
     if pending:
         confirmations.append(
@@ -479,12 +482,13 @@ def _footprint(pack: Any, contract: Any = None) -> CategoryFootprint:
 
 
 def _rival_footprint(slug: str,
-                     measured: Any = None) -> Optional[CategoryFootprint]:
+                     measured: Any = _LIVE) -> Optional[CategoryFootprint]:
     """Category spend measured as the federal awards the named rivals hold."""
     from agents.golden_press.rival_footprint import load_cached, summarise
 
-    if measured is None:
+    if measured is _LIVE:
         measured = load_cached(slug) if slug else {}
+    measured = measured or {}
     rows = [r for r in summarise(measured) if r["awards"]]
     if not rows:
         return None
@@ -557,7 +561,7 @@ def _rival_footprint(slug: str,
 
 
 def _competition(pack: Any, profile: dict, slug: str = "",
-                 measured: Any = None) -> CompetitivePosition:
+                 measured: Any = _LIVE) -> CompetitivePosition:
     """The named product rivals, ALWAYS published, enriched where measured.
 
     THE OPERATOR'S NAMED SET IS THE ANSWER, NOT A CANDIDATE. This function
@@ -577,8 +581,9 @@ def _competition(pack: Any, profile: dict, slug: str = "",
     from agents.golden_press.rival_footprint import load_cached, summarise
 
     stated = product_competitors(profile)
-    if measured is None:
+    if measured is _LIVE:
         measured = load_cached(slug) if slug else {}
+    measured = measured or {}
     by_name = {row["name"]: row for row in summarise(measured)}
 
     competitors = []
@@ -853,7 +858,8 @@ def _fit_terms(opp: Any) -> str:
     return ""
 
 
-def _teaming(pack: Any, profile: dict, opportunities: tuple) -> tuple:
+def _teaming(pack: Any, profile: dict, opportunities: tuple, *,
+             contract: Any = _LIVE) -> tuple:
     """Paper holders and what each unlocks. SEPARATE from competitors.
 
     An award proves a paper holder. It does NOT prove an open opportunity,
@@ -873,8 +879,10 @@ def _teaming(pack: Any, profile: dict, opportunities: tuple) -> tuple:
     # client has a coverage contract, at least one of the holder's records
     # must clear it, title plus description.
     from agents.golden_press.coverage_families import best_match
-    slug_for_gate = _norm(getattr(pack, "client_name", ""))
-    contract = _coverage_contract(slug_for_gate)
+    if contract is _LIVE:
+        slug_for_gate = _norm(getattr(pack, "client_name", ""))
+        contract = _coverage_contract(slug_for_gate)
+    contract = contract or {}
 
     def _in_market(record: Any) -> bool:
         if not contract:
@@ -1175,8 +1183,25 @@ def _contract_terms(slug: str) -> tuple:
             coverage_report(contract))
 
 
+def _load_record_rulings(slug: str) -> dict:
+    """Read the operator-owned ruling payload during live capture only."""
+    import json as _json
+    from pathlib import Path as _Path
+
+    path = (_Path(__file__).resolve().parents[2] / "clients" / _clean(slug)
+            / "record_rulings.json")
+    if not _clean(slug) or not path.exists():
+        return {}
+    try:
+        payload = _json.loads(path.read_text(encoding="utf-8"))
+    except (ValueError, OSError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
 def _apply_record_rulings(slug: str, opportunities: tuple,
-                          rejected_rows: list) -> tuple:
+                          rejected_rows: list, *,
+                          rulings_payload: Any = _LIVE) -> tuple:
     """Operator rulings by identifier, applied last and receipted always.
 
     `clients/<slug>/record_rulings.json` is OPERATOR-OWNED: it encodes the
@@ -1188,21 +1213,18 @@ def _apply_record_rulings(slug: str, opportunities: tuple,
     application lands in the receipt, so the artifact can say which rows
     the operator ruled and why.
     """
-    import json as _json
     from dataclasses import replace as _replace
-    from pathlib import Path as _Path
 
     receipt = {"applied": [], "rejected": 0, "reclassified": 0}
-    path = (_Path(__file__).resolve().parents[2] / "clients" / _clean(slug)
-            / "record_rulings.json")
-    if not _clean(slug) or not path.exists():
+    payload = (_load_record_rulings(slug)
+               if rulings_payload is _LIVE else (rulings_payload or {}))
+    if not isinstance(payload, dict):
         return opportunities, receipt
-    try:
-        rulings = {_clean(r.get("identifier")): r for r in
-                   (_json.loads(path.read_text(encoding="utf-8"))
-                    .get("rulings") or []) if _clean(r.get("identifier"))}
-    except (ValueError, OSError):
-        return opportunities, receipt
+    rulings = {
+        _clean(row.get("identifier")): row
+        for row in (payload.get("rulings") or [])
+        if isinstance(row, dict) and _clean(row.get("identifier"))
+    }
     kept: list = []
     for opp in opportunities:
         rule = rulings.get(_clean(opp.identifier))
@@ -1430,7 +1452,8 @@ def attach_v2_targets(opportunities: tuple, payload: dict) -> tuple:
     return tuple(attached)
 
 
-def capture_inputs(*, profile: dict, slug: str = "", pack: Any = None) -> dict:
+def capture_inputs(*, profile: dict, slug: str = "", pack: Any = None,
+                   evidence_pack_v2: Any = _LIVE) -> dict:
     """Every press-time store read, performed ONCE and returned as data.
 
     The projection consuming this is pure, so a press that saves this
@@ -1439,7 +1462,8 @@ def capture_inputs(*, profile: dict, slug: str = "", pack: Any = None) -> dict:
     """
     from tools.intelligence_graph.adapter import load_target_observations
 
-    contract_terms, _coverage = _contract_terms(slug)
+    contract = _coverage_contract(slug)
+    contract_terms, coverage_report = _contract_terms(slug)
     terms = sorted(set(list(contract_terms) + _exact_terms(profile)
                        + _pack_notice_terms(pack)), key=str.casefold)
     naics_boundary, psc_boundary = _profile_boundaries(profile)
@@ -1464,7 +1488,13 @@ def capture_inputs(*, profile: dict, slug: str = "", pack: Any = None) -> dict:
                 (profile.get("capability_terms") or {}).get("excluded") or []),
             "targets_payload": load_target_observations(slug),
             "rival_footprint": load_cached(slug) if slug else {},
-            "evidence_pack_v2": _load_evidence_pack_v2(slug)}
+            "coverage_contract": contract,
+            "coverage_report": coverage_report,
+            "pending_terms": _pending_terms(profile),
+            "record_rulings": _load_record_rulings(slug),
+            "evidence_pack_v2": (
+                _load_evidence_pack_v2(slug)
+                if evidence_pack_v2 is _LIVE else (evidence_pack_v2 or {}))}
 
 
 def build_market_map(pack: Any, *, profile: dict, slug: str = "",
@@ -1474,7 +1504,6 @@ def build_market_map(pack: Any, *, profile: dict, slug: str = "",
     from agents.golden_press.prime_posture import derive_posture
 
     posture = derive_posture(pack)
-    company = _company(pack, profile, posture)
     # The capture happens BEFORE any lane that reads a store, so one press
     # has one view of the world and the sidecar carries all of it.
     captured: dict = {}
@@ -1482,8 +1511,12 @@ def build_market_map(pack: Any, *, profile: dict, slug: str = "",
         captured = capture_inputs(profile=profile, slug=slug, pack=pack)
     else:
         captured = inputs
+    company = _company(
+        pack, profile, posture,
+        pending_terms=captured.get("pending_terms", ()))
     measured_rivals = captured.get("rival_footprint")
-    footprint = _footprint(pack, _coverage_contract(slug))
+    contract = captured.get("coverage_contract") or {}
+    footprint = _footprint(pack, contract)
     if not footprint.record_count:
         # THE MARKET IS WHAT THE NAMED RIVALS WIN. When the pack's own award
         # lane holds nothing in this capability market, the category is not
@@ -1501,7 +1534,7 @@ def build_market_map(pack: Any, *, profile: dict, slug: str = "",
     # REJECTED IS A FINDING, NOT A DELETION: every rejected record rides the
     # receipts with its reason, so the artifact says "screened and
     # rejected", never silently thins the set.
-    _contract = _coverage_contract(slug)
+    _contract = contract
     rejected_rows: list = []
     profile_exclusions = tuple(
         (profile.get("capability_terms") or {}).get("excluded") or ())
@@ -1631,7 +1664,8 @@ def build_market_map(pack: Any, *, profile: dict, slug: str = "",
     # personalization pass must never overwrite an operator decision: three
     # ruled records were stomped back to "status check" exactly that way.
     opportunities, ruling_receipt = _apply_record_rulings(
-        slug, opportunities, rejected_rows)
+        slug, opportunities, rejected_rows,
+        rulings_payload=captured.get("record_rulings") or {})
     # RANK BY WHAT CAN BE ACTED ON TODAY. An opportunity whose point of
     # contact has a direct number is workable this afternoon; one with only
     # an inbox is workable this week; one with neither is a research order.
@@ -1649,7 +1683,7 @@ def build_market_map(pack: Any, *, profile: dict, slug: str = "",
     opportunities = tuple(sorted(opportunities, key=_opp_rank))
     opportunities = attach_v2_targets(
         opportunities, captured.get("evidence_pack_v2") or {})
-    routes = _teaming(pack, profile, opportunities)
+    routes = _teaming(pack, profile, opportunities, contract=_contract)
     contacts = _contacts(pack, slug or _norm(company.client_name),
                          opportunities, routes,
                          targets_payload=captured.get("targets_payload"))

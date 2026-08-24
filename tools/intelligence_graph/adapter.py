@@ -335,6 +335,34 @@ class ExistingSystemsGraphAdapter:
             "providers": self._provider_map(),
         }
 
+    def semantic_receipt(self) -> dict:
+        """Return only inputs that can change the graph's meaning.
+
+        ``receipt`` remains the operator diagnostic for cache performance and
+        local store availability.  Those observations differ between a cold
+        and warm workstation, so they cannot enter a reproducible evidence
+        graph.  This receipt records ownership and versioned dependencies but
+        deliberately excludes cache paths, existence checks, hit/miss counts,
+        invalidations, and pruning actions.
+        """
+        providers = {
+            name: {
+                key: value
+                for key, value in sorted(provider.items())
+                if key in {"owner", "kind", "access", "producer"}
+            }
+            for name, provider in sorted(self._provider_map().items())
+        }
+        return {
+            "schema_version": "incremental-cache-semantic-receipt-v1",
+            "adapter": ADAPTER_VERSION,
+            "client_slug": self.slug,
+            "context_hash": self._context_hash,
+            "semantic_dependencies": dict(sorted(
+                self.semantic_dependencies.items())),
+            "providers": providers,
+        }
+
 
 def load_target_observations(
     slug: str, root: str | os.PathLike | None = None,

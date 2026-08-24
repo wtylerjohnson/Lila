@@ -1,9 +1,9 @@
 """Operator-locked external product slot contract.
 
 The slot table in ``docs/MARKET_MAP_CONTRACT.md`` is the human-readable
-source of truth. This loader makes it executable and binds it to the digest of
-the operator's 2026-08-23 ruling. A slot change must therefore be an
-explicit contract amendment, not incidental renderer work.
+source of truth. The operator ratified the current headings and their digest
+on 2026-08-24. This loader makes that ruling executable so a slot change must
+be an explicit contract amendment, not incidental renderer work.
 """
 
 from __future__ import annotations

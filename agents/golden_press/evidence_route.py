@@ -50,7 +50,7 @@ ROUTE_RELATIONSHIPS = (
 WINDOW_STATES = ("live", "fy_only", "unstated", "stated_past")
 SERVICE_FITS = ("direct", "adjacent", "unrelated", "ambiguous")
 PROVENANCE_TYPES = ("measured", "cited", "inferred")
-CLASSIFIER_VERSION = "evidence-route-v6-forecast-clock-truth"
+CLASSIFIER_VERSION = "evidence-route-v7-utc-window-truth"
 
 _ROOT = Path(__file__).resolve().parents[2]
 
@@ -421,43 +421,50 @@ def classify_service_fit(record: dict, ctx: dict) -> dict:
 
 
 def _instant(value: Any) -> Optional[datetime]:
-    """Return a comparable UTC instant only when the source states a clock."""
+    """Normalize published temporal precision to one comparable UTC instant.
+
+    A source date means the end of that UTC day, and a source year means the
+    end of that UTC year. A timestamp must state its timezone; treating a
+    naive local timestamp as UTC would invent deadline precision.
+    """
     text = str(value or "").strip()
-    if not text or "T" not in text:
+    if not text:
         return None
-    try:
-        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
-    except ValueError:
+
+    if "T" in text:
+        try:
+            parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        if parsed.tzinfo is None or parsed.utcoffset() is None:
+            return None
+        return parsed.astimezone(timezone.utc)
+
+    parsed_date = None
+    for pattern in ("%Y-%m-%d", "%m/%d/%Y", "%Y/%m/%d"):
+        try:
+            parsed_date = datetime.strptime(text, pattern)
+            break
+        except ValueError:
+            continue
+    if parsed_date is None and re.fullmatch(r"\d{4}", text):
+        parsed_date = datetime(int(text), 12, 31)
+    if parsed_date is None:
         return None
-    if parsed.tzinfo is None:
-        return None
-    return parsed.astimezone(timezone.utc)
+    return parsed_date.replace(
+        hour=23, minute=59, second=59, microsecond=999999,
+        tzinfo=timezone.utc)
 
 
 def _window_is_past(deadline: Any, as_of: Any) -> bool:
-    """Compare exact instants when both exist, otherwise compare dates."""
+    """Compare a deadline and classification clock at one UTC precision."""
     deadline_at = _instant(deadline)
     classified_at = _instant(as_of)
-    if deadline_at is not None and classified_at is not None:
-        return deadline_at < classified_at
-    def calendar_date(value: Any):
-        text = str(value or "").strip()
-        if not text:
-            return None
-        try:
-            return datetime.fromisoformat(text.replace("Z", "+00:00")).date()
-        except ValueError:
-            pass
-        for pattern in ("%m/%d/%Y", "%Y/%m/%d", "%Y"):
-            try:
-                return datetime.strptime(text, pattern).date()
-            except ValueError:
-                continue
-        return None
-
-    deadline_date = calendar_date(deadline)
-    as_of_date = calendar_date(as_of)
-    return bool(deadline_date and as_of_date and deadline_date < as_of_date)
+    return bool(
+        deadline_at is not None
+        and classified_at is not None
+        and deadline_at < classified_at
+    )
 
 
 def classify_window(record: dict, ctx: dict) -> dict:
@@ -466,10 +473,17 @@ def classify_window(record: dict, ctx: dict) -> dict:
     as_of = str(ctx.get("as_of") or "")
     if lane == "L1_notice":
         published = str(record.get("response_deadline") or "")
-        date = published[:10]
-        if not date:
+        if not published:
             return {"window_state": "unstated",
                     "window_basis": "notice response date not published"}
+        if _instant(published) is None or _instant(as_of) is None:
+            return {
+                "window_state": "unstated",
+                "window_basis": (
+                    f"published response deadline {published} cannot be "
+                    "compared without a timezone-aware classification clock"
+                ),
+            }
         if _window_is_past(published, as_of):
             return {"window_state": "stated_past",
                     "window_basis": f"published response deadline {published} is past"}
@@ -481,9 +495,9 @@ def classify_window(record: dict, ctx: dict) -> dict:
                         record.get("anticipated_solicitation") or
                         record.get("anticipated_solicitation_close") or
                         record.get("response_deadline") or "")
-        date = published[:10]
         fiscal = str(record.get("fiscal_year") or record.get("fy") or "").strip()
-        if date:
+        if published and _instant(published) is not None \
+                and _instant(as_of) is not None:
             if _window_is_past(published, as_of):
                 return {"window_state": "stated_past",
                         "window_basis": f"published forecast date {published} is past"}
@@ -492,6 +506,14 @@ def classify_window(record: dict, ctx: dict) -> dict:
         if fiscal:
             return {"window_state": "fy_only",
                     "window_basis": f"forecast states {fiscal} only"}
+        if published:
+            return {
+                "window_state": "unstated",
+                "window_basis": (
+                    f"published forecast date {published} cannot be compared "
+                    "without timezone-aware temporal precision"
+                ),
+            }
         return {"window_state": "unstated",
                 "window_basis": "forecast date not published"}
     return {"window_state": "unstated",

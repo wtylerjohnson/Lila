@@ -159,6 +159,41 @@ def test_same_day_notice_uses_timezone_aware_deadline_instant(ctx):
     assert "2026-08-24T11:00:00-05:00" in classified["window_basis"]
 
 
+def test_date_only_deadline_means_end_of_utc_day(ctx):
+    notice = {
+        "lane": "L1_notice",
+        "title": "Translation and Interpretation Services",
+        "description": "",
+        "response_deadline": "2026-08-24",
+        "set_aside": "",
+    }
+
+    same_day = er.classify_record(
+        notice, dict(ctx, as_of="2026-08-24T23:59:59Z"))
+    next_day = er.classify_record(
+        notice, dict(ctx, as_of="2026-08-25T00:00:00Z"))
+
+    assert same_day["window_state"] == "live"
+    assert next_day["window_state"] == "stated_past"
+
+
+def test_naive_deadline_timestamp_has_unknown_window(ctx):
+    notice = {
+        "lane": "L1_notice",
+        "title": "Translation and Interpretation Services",
+        "description": "",
+        "response_deadline": "2026-08-24T11:00:00",
+        "set_aside": "",
+    }
+
+    classified = er.classify_record(
+        notice, dict(ctx, as_of="2026-08-24T18:00:00Z"))
+
+    assert classified["window_state"] == "unstated"
+    assert classified["evidence_class"] == "ambiguous"
+    assert "timezone-aware" in classified["window_basis"]
+
+
 def test_forecast_uses_published_anticipated_solicitation_clock(ctx):
     forecast = {
         "lane": "L4_forecast",

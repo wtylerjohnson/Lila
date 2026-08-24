@@ -27,6 +27,7 @@ from typing import Any, Optional
 
 from agents.golden_press import evidence_route as er
 from tools.intelligence_graph.adapter import ExistingSystemsGraphAdapter
+from tools.intelligence_graph.cache import canonicalize as canonicalize_cache_value
 from tools.intelligence_graph.workflow import (
     build_ambiguity_queue,
     workflow_contract_receipt,
@@ -36,8 +37,22 @@ SCHEMA_VERSION = "evidence-pack-v2"
 _ROOT = Path(__file__).resolve().parents[2]
 
 
-def _now_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+def _aware_utc_iso(value: str | datetime, field: str) -> str:
+    """Normalize an explicitly supplied aware instant to UTC."""
+    if isinstance(value, datetime):
+        parsed = value
+    else:
+        text = str(value or "").strip()
+        if "T" not in text:
+            raise ValueError(f"{field} must be a timezone-aware timestamp")
+        try:
+            parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise ValueError(
+                f"{field} must be a timezone-aware timestamp") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError(f"{field} must be a timezone-aware timestamp")
+    return parsed.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 _LIFECYCLE_WORDS = re.compile(
@@ -769,6 +784,8 @@ def _move_receipt_markdown(client_name: str, payload: dict) -> str:
 
 
 def build_corrected_pack(slug: str, client_name: str, *,
+                         classification_as_of: str | datetime,
+                         captured_at: str | datetime,
                          root: Optional[Path] = None,
                          pressed_pack_path: Optional[Path] = None,
                          pack_dir: Optional[Path] = None,
@@ -778,11 +795,13 @@ def build_corrected_pack(slug: str, client_name: str, *,
                          research_gaps: Optional[list] = None,
                          enrichments: Optional[list[dict]] = None,
                          target_roles: Optional[dict[str, list[dict]]] = None,
-                         classification_as_of: Optional[str] = None,
                          graph_adapter: Optional[
                              ExistingSystemsGraphAdapter] = None,
                          cache_dir: Optional[Path] = None,
                          ) -> tuple[Path, dict]:
+    classification_clock = _aware_utc_iso(
+        classification_as_of, "classification_as_of")
+    capture_clock = _aware_utc_iso(captured_at, "captured_at")
     base = Path(root) if root else _ROOT
     pack_dir = (Path(pack_dir) if pack_dir is not None else
                 base / "data" / "state" / "candidate_review_v1" / slug)
@@ -790,17 +809,9 @@ def build_corrected_pack(slug: str, client_name: str, *,
                          if pressed_pack_path is not None else
                          pack_dir / f"{slug}.golden_report.evidence_pack.json")
     pressed = json.loads(pressed_pack_path.read_text(encoding="utf-8"))
-    generated_at = _now_iso()
-    effective_classification_as_of = classification_as_of
-    if (classification_as_of
-            and re.fullmatch(r"\d{4}-\d{2}-\d{2}", classification_as_of)
-            and classification_as_of == generated_at[:10]):
-        # A same-day release needs clock-level deadline truth. Historical
-        # replays retain their explicit business date.
-        effective_classification_as_of = generated_at
     ctx = er.build_context(
         client_name, slug, pack=pressed, root=base,
-        as_of=effective_classification_as_of)
+        as_of=classification_clock)
     adapter = graph_adapter or ExistingSystemsGraphAdapter(
         root=base,
         slug=slug,
@@ -895,7 +906,9 @@ def build_corrected_pack(slug: str, client_name: str, *,
         "schema_version": SCHEMA_VERSION,
         "client_name": client_name,
         "slug": slug,
-        "generated_at": generated_at,
+        "captured_at": capture_clock,
+        # Compatibility alias retained for existing graph consumers.
+        "generated_at": capture_clock,
         "base_pack_generated_at": pressed.get("generated_at"),
         "canonical_entities": ctx.get("canonical_entities", {}),
         "canonical_requirement_families": [{
@@ -905,20 +918,10 @@ def build_corrected_pack(slug: str, client_name: str, *,
             "family_member_count": int(row.get("family_member_count") or 1),
             "family_basis": row.get("family_basis"),
         } for row in final if row.get("requirement_family")],
-        "classification_context": {
-            "client_aliases": sorted(ctx["client_aliases"]),
-            "validated_competitors": ctx["validated_competitors"],
-            "named_partners": ctx["named_partners"],
-            "scope_terms": ctx["scope_terms"],
-            "core_terms": ctx.get("core_terms", []),
-            "adjacent_terms": ctx.get("adjacent_terms", []),
-            "core_signal_pairs": ctx.get("core_signal_pairs", []),
-            "adjacent_signal_pairs": ctx.get("adjacent_signal_pairs", []),
-            "excluded_terms": ctx.get("excluded_terms", []),
-            "excluded_codes": ctx.get("excluded_codes", []),
-            "canonical_entities": ctx.get("canonical_entities", {}),
-            "as_of": ctx["as_of"],
-        },
+        # Ship the same complete, JSON-stable semantic context whose hash is
+        # recorded by the graph adapter. Omitting a classifier input would make
+        # the receipt self-consistent but not provenance-complete.
+        "classification_context": canonicalize_cache_value(ctx),
         "counts": counts,
         "record_identity_receipt": record_identity_receipt,
         "records": final,
@@ -947,7 +950,7 @@ def build_corrected_pack(slug: str, client_name: str, *,
         "research_gaps": list(research_gaps or []),
         "workflow_contract": workflow_contract_receipt(),
         "research_queue": research_queue,
-        "incremental_cache_receipt": adapter.receipt(),
+        "incremental_cache_receipt": adapter.semantic_receipt(),
     }
     payload["graph_contract_violations"] = validate_graph_contract(payload)
     payload["graph_contract_certified"] = not bool(

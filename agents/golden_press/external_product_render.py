@@ -5,6 +5,7 @@ from __future__ import annotations
 import html
 import json
 import re
+from html.parser import HTMLParser
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -13,12 +14,161 @@ from agents.golden_press.external_product_projection import (
     ExternalProductDocument,
     record_ownership_key,
 )
+from agents.golden_press.release_snapshot import canonical_slot_sha256
 
 
-EXTERNAL_PRODUCT_RENDER_VERSION = "lila-eight-slot-render.v6.2026-08-24"
+EXTERNAL_PRODUCT_RENDER_VERSION = "lila-eight-slot-render.v7.2026-08-24"
 
 _LOCAL_PATH = re.compile(
     r"(?:file://|(?:^|[\"'\s(=:])/(?:users|home)/)", re.I | re.M)
+
+_EXECUTABLE_HTML_TAGS = frozenset({
+    "applet", "base", "embed", "foreignobject", "frame", "frameset",
+    "iframe", "link", "object", "portal", "script",
+})
+_SVG_MUTATION_TAGS = frozenset({
+    "animate", "animatemotion", "animatetransform", "set",
+})
+_URL_ATTRIBUTES = frozenset({
+    "action", "background", "cite", "data", "formaction", "href", "ping",
+    "poster", "src", "srcset", "xlink:href", "xml:base",
+})
+_CSS_VALUE_ATTRIBUTES = frozenset({
+    "clip-path", "cursor", "fill", "filter", "marker-end", "marker-mid",
+    "marker-start", "mask", "stroke", "style",
+})
+_CSS_URL = re.compile(r"url\s*\(\s*(['\"]?)(.*?)\1\s*\)", re.I | re.S)
+_CSS_COMMENT = re.compile(r"/\*.*?\*/", re.S)
+_CSS_HEX_ESCAPE = re.compile(r"\\([0-9a-fA-F]{1,6})[\t\n\f\r ]?")
+_CSS_SIMPLE_ESCAPE = re.compile(r"\\([^\n\r\f])")
+
+
+def _compact_active_value(value: Any) -> str:
+    decoded = html.unescape(str(value or ""))
+    return re.sub(r"[\x00-\x20\x7f]+", "", decoded).casefold()
+
+
+def _safe_html_url(tag: str, attribute: str, value: str) -> bool:
+    raw = html.unescape(str(value or "")).strip()
+    if not raw:
+        return True
+    compact = _compact_active_value(raw)
+    if attribute in {"href", "xlink:href"} and compact.startswith("#"):
+        return True
+    if attribute == "src" and tag == "img":
+        return compact.startswith("data:image/") and "," in raw
+    if attribute not in {"href", "xlink:href"} or tag not in {"a", "area"}:
+        return False
+    try:
+        parsed = urlsplit(raw)
+    except ValueError:
+        return False
+    return parsed.scheme.casefold() in {"http", "https"} and bool(parsed.netloc)
+
+
+def _active_css_reason(value: str) -> str:
+    css = _CSS_COMMENT.sub("", html.unescape(str(value or "")))
+    css = _CSS_HEX_ESCAPE.sub(lambda match: chr(int(match.group(1), 16)), css)
+    css = _CSS_SIMPLE_ESCAPE.sub(lambda match: match.group(1), css)
+    compact = _compact_active_value(css)
+    for token in (
+            "@import", "expression(", "javascript:", "vbscript:",
+            "-moz-binding", "image-set("):
+        if token in compact:
+            return token.rstrip("(:")
+    if re.search(r"(?:^|[;{])behavior:", compact):
+        return "behavior"
+    for match in _CSS_URL.finditer(css):
+        target = html.unescape(match.group(2)).strip()
+        compact_target = _compact_active_value(target)
+        if (compact_target.startswith("#")
+                or compact_target.startswith("data:image/")):
+            continue
+        return "non-local CSS URL"
+    return ""
+
+
+class _ExternalProductHtmlSafetyParser(HTMLParser):
+    """Reject active HTML while preserving the product's static visuals."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.violations: list[dict] = []
+        self._seen: set[tuple[str, str]] = set()
+        self._style_depth = 0
+
+    def _add(self, rule: str, detail: str) -> None:
+        key = (rule, detail)
+        if key in self._seen:
+            return
+        self._seen.add(key)
+        self.violations.append({"rule": rule, "detail": detail})
+
+    def _inspect_tag(self, tag: str,
+                     attrs: list[tuple[str, str | None]]) -> None:
+        tag = tag.casefold()
+        if tag in _EXECUTABLE_HTML_TAGS:
+            rule = ("script_in_client_artifact" if tag == "script"
+                    else "executable_tag_in_client_artifact")
+            self._add(rule, f"the client artifact contains <{tag}>")
+        if tag in _SVG_MUTATION_TAGS:
+            self._add("active_svg_mutation_in_client_artifact",
+                      f"the client artifact contains active SVG <{tag}>")
+        values = [(str(name).casefold(), "" if value is None else str(value))
+                  for name, value in attrs]
+        attr_map = dict(values)
+        if (tag == "meta"
+                and attr_map.get("http-equiv", "").strip().casefold() == "refresh"):
+            self._add("meta_refresh_in_client_artifact",
+                      "the client artifact contains meta refresh")
+        for name, value in values:
+            if name.startswith("on"):
+                self._add("event_handler_in_client_artifact",
+                          f"the client artifact contains the {name} handler")
+            if name == "srcdoc":
+                self._add("srcdoc_in_client_artifact",
+                          "the client artifact contains srcdoc")
+            if name in _URL_ATTRIBUTES and not _safe_html_url(tag, name, value):
+                self._add("active_url_in_client_artifact",
+                          f"the client artifact contains an unsafe {name} URL")
+            if name in _CSS_VALUE_ATTRIBUTES:
+                reason = _active_css_reason(value)
+                if reason:
+                    self._add("active_css_in_client_artifact",
+                              f"the client artifact contains active CSS: {reason}")
+
+    def handle_starttag(self, tag: str,
+                        attrs: list[tuple[str, str | None]]) -> None:
+        self._inspect_tag(tag, attrs)
+        if tag.casefold() == "style":
+            self._style_depth += 1
+
+    def handle_startendtag(self, tag: str,
+                           attrs: list[tuple[str, str | None]]) -> None:
+        self._inspect_tag(tag, attrs)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag.casefold() == "style" and self._style_depth:
+            self._style_depth -= 1
+
+    def handle_data(self, data: str) -> None:
+        if not self._style_depth:
+            return
+        reason = _active_css_reason(data)
+        if reason:
+            self._add("active_css_in_client_artifact",
+                      f"the client artifact contains active CSS: {reason}")
+
+
+def _external_html_safety_violations(client_html: str) -> list[dict]:
+    parser = _ExternalProductHtmlSafetyParser()
+    try:
+        parser.feed(client_html)
+        parser.close()
+    except (AssertionError, ValueError) as exc:
+        parser._add("invalid_client_html",
+                    f"the client artifact could not be parsed: {type(exc).__name__}")
+    return parser.violations
 
 
 _PRODUCT_CSS = r"""
@@ -636,7 +786,9 @@ def _ticker(doc: ExternalProductDocument) -> list[dict]:
     } for row in slot.records]
 
 
-def render_external_product(doc: ExternalProductDocument) -> tuple[str, str]:
+def render_external_product(
+    doc: ExternalProductDocument, *, render_assets: Any = None,
+) -> tuple[str, str]:
     """Return editable studio HTML and the scriptless client artifact."""
     from agents.golden_press.market_map_press import _client_export
     from agents.golden_press.market_map_skeleton import EditIds, build_document
@@ -645,33 +797,46 @@ def render_external_product(doc: ExternalProductDocument) -> tuple[str, str]:
     ids = EditIds(prefix="lila")
     content = "".join(render_slot(slot) for slot in doc.slots)
     details = _work_details(doc)
+    classification_as_of = (
+        doc.source_receipt.get("classification_as_of") or doc.as_of)
     studio = build_document(
         client_name=doc.client_name, slug=doc.slug, stamp=doc.as_of,
         title="LILA Federal Market Map",
         standfirst=("Eight permanent product slots filled from the governed "
                     "research mesh and Federal Pursuit Graph."),
         edition=f"{doc.client_name} · Complete LILA edition",
-        edition_note=(f"Research pressed {doc.as_of}. Every record remains "
+        edition_note=(f"Evidence classified {classification_as_of}. Every record remains "
                       "bound to its owning slot and source evidence."),
         coverage=_coverage(doc), sections=sections, content=content,
         ticker_items=_ticker(doc), work_details=details,
         footer_note=("LILA Federal Market Map. Eight fixed slots, one owning "
                      "slot per record, and named gaps instead of silent blanks."),
-        ids=ids,
+        ids=ids, render_assets=render_assets,
     )
     studio = studio.replace("</style>", _PRODUCT_CSS + "\n</style>", 1)
     client = _client_export(studio, receipts=details)
     return studio, client
 
 
-def validate_external_product_document(doc: ExternalProductDocument) -> list[dict]:
+def validate_external_product_document(
+    doc: ExternalProductDocument, *, contract_slots: Any = None,
+) -> list[dict]:
     violations: list[dict] = []
-    contract = load_external_product_slots()
-    expected = [(slot.number, slot.slot_id, slot.heading) for slot in contract]
+    contract = (
+        load_external_product_slots() if contract_slots is None
+        else tuple(contract_slots))
+    expected = [(
+        int(slot.get("number") if isinstance(slot, dict) else slot.number),
+        str(slot.get("slot_id") if isinstance(slot, dict) else slot.slot_id),
+        str(slot.get("heading") if isinstance(slot, dict) else slot.heading),
+    ) for slot in contract]
     actual = [(slot.number, slot.slot_id, slot.heading) for slot in doc.slots]
     if actual != expected:
         violations.append({"rule": "slot_contract", "detail":
                            f"slot sequence {actual!r} does not match the operator lock"})
+    if canonical_slot_sha256(contract) != doc.contract_sha256:
+        violations.append({"rule": "slot_contract_digest", "detail":
+                           "slot rows do not match the product contract digest"})
     owned: dict[str, str] = {}
     owned_rows: dict[str, dict] = {}
     for slot in doc.slots:
@@ -776,11 +941,15 @@ def validate_external_product_document(doc: ExternalProductDocument) -> list[dic
     return violations
 
 
-def validate_external_product_html(client_html: str, doc: ExternalProductDocument) -> dict:
+def validate_external_product_html(
+    client_html: str, doc: ExternalProductDocument, *,
+    contract_slots: Any = None,
+) -> dict:
     from agents.golden_press.client_visual_contract import validate_client_visual_contract
     from agents.golden_press.style_contract import unstyled_in_context
 
-    violations = validate_external_product_document(doc)
+    violations = validate_external_product_document(
+        doc, contract_slots=contract_slots)
     order = re.findall(r'<section[^>]*data-slot-id="([^"]+)"', client_html)
     expected = [slot.slot_id for slot in doc.slots]
     if order != expected:
@@ -790,9 +959,7 @@ def validate_external_product_html(client_html: str, doc: ExternalProductDocumen
         if slot.heading not in client_html:
             violations.append({"rule": "rendered_heading", "detail":
                                f"locked heading is absent: {slot.heading}"})
-    if "<script" in client_html.casefold():
-        violations.append({"rule": "script_in_client_artifact", "detail":
-                           "the client artifact contains script"})
+    violations.extend(_external_html_safety_violations(client_html))
     if "—" in re.sub(r"<[^>]+>", " ", client_html):
         violations.append({"rule": "em_dash", "detail":
                            "an em dash appears in rendered client text"})

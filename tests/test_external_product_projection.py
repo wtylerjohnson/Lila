@@ -132,10 +132,14 @@ def _graph():
         "held_opportunities": [],
         "workflow_contract": {"certified": True},
         "incremental_cache_receipt": {
-            "cache_root": "/Users/example/private/cache",
+            "schema_version": "incremental-cache-semantic-receipt-v1",
+            "adapter": "existing-systems-graph-adapter-v2",
+            "client_slug": "acme",
+            "context_hash": "context-hash",
+            "semantic_dependencies": {"rule_version": "rules-v1"},
             "providers": {"embeddings": {
-                "exists": True,
-                "path": "/Users/example/private/cache/dense_vectors.db",
+                "owner": "tools.retrieval.dense",
+                "kind": "existing_sqlite_sidecar",
             }},
         },
     }
@@ -670,10 +674,41 @@ def test_raw_and_canonical_record_counts_are_both_explicit():
     assert document.source_receipt["graph_final_records"] == 6
     assert document.source_receipt["graph_projection_canonical_records"] == 5
     assert document.source_receipt["graph_indexed_records"] == 5
-    assert document.graph_receipt["incremental_cache_receipt"][
-        "cache_root"] == "local-artifact:cache"
-    assert document.graph_receipt["incremental_cache_receipt"]["providers"][
-        "embeddings"]["path"] == "local-artifact:dense_vectors.db"
+    cache = document.graph_receipt["incremental_cache_receipt"]
+    assert cache["schema_version"] == \
+        "incremental-cache-semantic-receipt-v1"
+    assert cache["providers"]["embeddings"] == {
+        "owner": "tools.retrieval.dense",
+        "kind": "existing_sqlite_sidecar",
+    }
+    assert "cache_root" not in cache
+    assert "exists" not in repr(cache)
+    assert "path" not in repr(cache)
+
+
+def test_slot_two_does_not_treat_provider_existence_as_a_run_receipt():
+    graph = _graph()
+    graph["incremental_cache_receipt"]["providers"]["embeddings"].update({
+        "exists": True,
+        "path": "/Users/example/private/cache/dense_vectors.db",
+    })
+    pack = _pack()
+    pack.queries = [SimpleNamespace(
+        lane="L1_notice", method="BM25 full-text search",
+        endpoint="https://sam.gov/api", body={"keywords": ["language"]},
+        result_count=10, kept_after_screen=2, note="text-only run")]
+
+    document = build_external_product_document(
+        market_map=_market_map(), graph_payload=graph, evidence_pack=pack,
+        profile={}, client_name="Acme", slug="acme", as_of="2026-08-23")
+    slot = next(row for row in document.slots
+                if row.slot_id == "research-mesh")
+    receipt_metric = next(row for row in slot.metrics
+                          if row["label"] == "Semantic retrieval receipt")
+
+    assert receipt_metric["value"] == "not captured"
+    assert any("no run-bound dense/vector receipt" in gap
+               for gap in slot.gaps)
 
 
 def test_scriptless_renderer_carries_all_slots_marks_sources_and_visuals(monkeypatch):
@@ -708,6 +743,93 @@ def test_scriptless_renderer_carries_all_slots_marks_sources_and_visuals(monkeyp
     assert 'class="product-ledger product-research-ledger"' in client
     assert "Replayable query receipt" in client
     assert ".product-detail, .product-review-evidence {display:none!important}" in client
+
+
+@pytest.mark.parametrize(("injection", "expected_rule"), (
+    ("<script>alert(1)</script>", "script_in_client_artifact"),
+    ('<iframe src="https://attacker.example/"></iframe>',
+     "executable_tag_in_client_artifact"),
+    ('<div onpointerenter="alert(1)">unsafe</div>',
+     "event_handler_in_client_artifact"),
+    ('<div srcdoc="&lt;script&gt;alert(1)&lt;/script&gt;"></div>',
+     "srcdoc_in_client_artifact"),
+    ('<a href="java&#x0a;script:alert(1)">unsafe</a>',
+     "active_url_in_client_artifact"),
+    ('<meta http-equiv="refresh" content="0;url=https://attacker.example/">',
+     "meta_refresh_in_client_artifact"),
+    ('<style>@import url(https://attacker.example/x.css);</style>',
+     "active_css_in_client_artifact"),
+    ('<div style="background-image:url(jav&#x61;script:alert(1))">unsafe</div>',
+     "active_css_in_client_artifact"),
+    (r'<style>.x{background:url(j\61vascript:alert(1))}</style>',
+     "active_css_in_client_artifact"),
+    ('<svg><path fill="url(https://attacker.example/f.svg)"></path></svg>',
+     "active_css_in_client_artifact"),
+    ('<svg><image href="https://attacker.example/tracker.png"></image></svg>',
+     "active_url_in_client_artifact"),
+    ('<svg><use href="https://attacker.example/icons.svg#mark"></use></svg>',
+     "active_url_in_client_artifact"),
+    ('<style>.x{background-image:image-set("https://attacker.example/x.png" 1x)}</style>',
+     "active_css_in_client_artifact"),
+    ("<div style=\"background-image:-webkit-image-set('https://attacker.example/x.png' 1x)\"></div>",
+     "active_css_in_client_artifact"),
+    ('<svg><animate attributeName="href" values="javascript:alert(1)"></animate></svg>',
+     "active_svg_mutation_in_client_artifact"),
+    ('<svg><set attributeName="href" to="javascript:alert(1)"></set></svg>',
+     "active_svg_mutation_in_client_artifact"),
+))
+def test_external_html_validator_rejects_active_tampering(
+        monkeypatch, injection, expected_rule):
+    from agents.reports import report_assets
+    monkeypatch.setattr(report_assets, "client_logo", lambda _name: _mark())
+    monkeypatch.setattr(report_assets, "gtm_logo", _mark)
+    document = _document()
+    _studio, client = render_external_product(document)
+    tampered = client.replace("</body>", injection + "</body>")
+
+    verdict = validate_external_product_html(tampered, document)
+
+    assert verdict["ok"] is False
+    assert expected_rule in {row["rule"] for row in verdict["violations"]}
+
+
+def test_external_html_validator_preserves_safe_links_fragments_and_marks(
+        monkeypatch):
+    from agents.reports import report_assets
+    monkeypatch.setattr(report_assets, "client_logo", lambda _name: _mark())
+    monkeypatch.setattr(report_assets, "gtm_logo", _mark)
+    document = _document()
+    _studio, client = render_external_product(document)
+    safe = (
+        '<a href="https://example.gov/record">Federal record</a>'
+        '<a href="#priority-pursuits">Priority pursuits</a>'
+        '<svg><use href="#productArrow"></use></svg>'
+        f'<img alt="Acme supplemental mark" src="{_mark()}">')
+    supplemented = client.replace("</body>", safe + "</body>")
+
+    verdict = validate_external_product_html(supplemented, document)
+
+    assert verdict["ok"], verdict["violations"]
+
+
+def test_renderer_escapes_a_hostile_dynamic_record_title(monkeypatch):
+    from agents.reports import report_assets
+    monkeypatch.setattr(report_assets, "client_logo", lambda _name: _mark())
+    monkeypatch.setattr(report_assets, "gtm_logo", _mark)
+    graph = _graph()
+    hostile = 'Language <img src=x onerror="alert(1)"> Support'
+    graph["records"][0]["title"] = hostile
+    graph["qualified_opportunity_records"][0]["title"] = hostile
+    document = build_external_product_document(
+        market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
+        profile={}, client_name="Acme", slug="acme", as_of="2026-08-23")
+
+    _studio, client = render_external_product(document)
+    verdict = validate_external_product_html(client, document)
+
+    assert hostile not in client
+    assert "&lt;img src=x onerror=&quot;alert(1)&quot;&gt;" in client
+    assert verdict["ok"], verdict["violations"]
 
 
 def test_web_url_home_path_is_not_misclassified_as_a_local_path():

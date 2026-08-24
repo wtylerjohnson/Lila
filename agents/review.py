@@ -1440,6 +1440,78 @@ def targeting_review_status(client_name: str, targets: list[dict], *,
     return (not problems, problems)
 
 
+def targeting_review_binding_receipt(
+    client_name: str, *, targets: Optional[list[dict]] = None,
+    expected_target_set_sha256: Optional[str] = None,
+    review_dir: Optional[str] = None,
+) -> tuple[Optional[dict], bool, list[str]]:
+    """Return the exact, currently bound Targeting Review release receipt.
+
+    The release boundary must provide either the current target inventory or
+    the exact inventory hash derived by the Control Room at job launch. The
+    former also validates the action plan against the live rows; the latter
+    preserves that exact binding across the child-process boundary.
+    """
+    problems: list[str] = []
+    unlocked, gate_problems = target_gate_status(
+        client_name, review_dir=review_dir)
+    if not unlocked:
+        problems.extend(gate_problems)
+    plan = load_targeting_plan(client_name, review_dir)
+    approval = load_targeting_review(client_name, review_dir)
+    if approval is None:
+        return None, False, problems + [
+            "Targeting Review has not been approved"]
+
+    keys = (
+        "target_set_sha256", "plan_sha256",
+        "assess_approval_sha256", "target_unlock_sha256",
+    )
+    receipt = {
+        "version": approval.get("version"),
+        "approved_at": approval.get("approved_at"),
+        "approved_by": approval.get("approved_by"),
+        **{key: approval.get(key) for key in keys},
+    }
+    for key in keys:
+        value = receipt.get(key)
+        if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value):
+            problems.append(f"Targeting Review has no exact {key} binding")
+
+    plan_body = json.dumps(
+        plan, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    if receipt.get("plan_sha256") != hashlib.sha256(
+            plan_body.encode("utf-8")).hexdigest():
+        problems.append("target action plan changed after Targeting Review approval")
+    if receipt.get("assess_approval_sha256") != _assess_approval_sha256(
+            client_name, review_dir):
+        problems.append("Assess approval binding changed after Targeting Review approval")
+    if receipt.get("target_unlock_sha256") != _target_unlock_sha256(
+            client_name, review_dir):
+        problems.append("Target unlock binding changed after Targeting Review approval")
+    if expected_target_set_sha256 is not None and not re.fullmatch(
+            r"[0-9a-f]{64}", expected_target_set_sha256):
+        problems.append("current target inventory binding is not a SHA-256")
+    if targets is not None:
+        current_target_set_sha256 = targeting_target_set_sha256(targets)
+        problems.extend(validate_targeting_plan(plan, targets))
+        if (expected_target_set_sha256 is not None
+                and expected_target_set_sha256 != current_target_set_sha256):
+            problems.append(
+                "supplied target inventory disagrees with its launch binding")
+        if receipt.get("target_set_sha256") != current_target_set_sha256:
+            problems.append(
+                "target inventory changed after Targeting Review approval")
+    elif expected_target_set_sha256 is not None:
+        if receipt.get("target_set_sha256") != expected_target_set_sha256:
+            problems.append(
+                "target inventory changed after Targeting Review approval")
+    else:
+        problems.append(
+            "current target inventory binding is required for release")
+    return receipt, not problems, problems
+
+
 def effective_query_terms(strategy, spec, *, source: Optional[str] = None
                           ) -> list[str]:
     """THE terms a source searches with — one owner (2026-07-12).

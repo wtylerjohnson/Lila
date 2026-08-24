@@ -10,21 +10,26 @@ rows.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field, is_dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from decimal import Decimal
-from pathlib import PurePath
 import re
 from typing import Any, Iterable, Optional
 from urllib.parse import urlsplit
 
 from agents.golden_press.external_product_contract import (
     CONTRACT_VERSION,
+    OPERATOR_LOCKED_SLOT_SHA256,
+    ExternalProductSlot,
     load_external_product_slots,
+)
+from agents.golden_press.release_snapshot import (
+    canonical_slot_sha256,
+    canonicalize_release_value,
 )
 
 
-EXTERNAL_PRODUCT_PROJECTION_VERSION = "lila-external-product.v5.2026-08-24"
+EXTERNAL_PRODUCT_PROJECTION_VERSION = "lila-external-product.v6.2026-08-24"
 
 _USASPENDING_NONE_AWARD = re.compile(
     r"^https?://(?:www\.)?usaspending\.gov/award/"
@@ -52,6 +57,7 @@ class ProductSlot:
 class ExternalProductDocument:
     schema_version: str
     contract_version: str
+    contract_sha256: str
     client_name: str
     slug: str
     as_of: str
@@ -74,19 +80,27 @@ def _text(value: Any) -> str:
 
 
 def _serial(value: Any) -> Any:
-    if is_dataclass(value):
-        return {key: _serial(item) for key, item in asdict(value).items()}
-    if isinstance(value, dict):
-        return {str(key): _serial(item) for key, item in value.items()}
-    if isinstance(value, (list, tuple, set, frozenset)):
-        return [_serial(item) for item in value]
-    if isinstance(value, str):
-        clean = value
-        if clean.startswith("/") or clean.casefold().startswith("file://"):
-            clean = clean.removeprefix("file://")
-            return f"local-artifact:{PurePath(clean).name or 'available'}"
-        return clean
-    return value
+    return canonicalize_release_value(value)
+
+
+def _contract_slots(value: Any) -> tuple[ExternalProductSlot, ...]:
+    if value is None:
+        return load_external_product_slots()
+    rows = []
+    for raw in value:
+        if isinstance(raw, dict):
+            rows.append(ExternalProductSlot(
+                number=int(raw.get("number")),
+                slot_id=str(raw.get("slot_id") or ""),
+                heading=" ".join(str(raw.get("heading") or "").split()),
+            ))
+        else:
+            rows.append(ExternalProductSlot(
+                number=int(getattr(raw, "number")),
+                slot_id=str(getattr(raw, "slot_id")),
+                heading=" ".join(str(getattr(raw, "heading")).split()),
+            ))
+    return tuple(rows)
 
 
 def _http_url(value: Any) -> str:
@@ -854,11 +868,16 @@ def build_external_product_document(
     client_name: str,
     slug: str,
     as_of: str,
+    contract_slots: Any = None,
+    contract_version: str = CONTRACT_VERSION,
+    contract_sha256: str = OPERATOR_LOCKED_SLOT_SHA256,
 ) -> ExternalProductDocument:
     """Assign the certified graph and preserved research to eight slots."""
 
     profile = profile or {}
-    contract_slots = load_external_product_slots()
+    contract_slots = _contract_slots(contract_slots)
+    if canonical_slot_sha256(contract_slots) != contract_sha256:
+        raise ValueError("external product slot rows do not match their digest")
     graph_rows_raw = list(graph_payload.get("records") or [])
     graph_rows = _canonical_graph_rows(graph_rows_raw)
     graph_index = _graph_index({"records": graph_rows})
@@ -1031,11 +1050,9 @@ def build_external_product_document(
     lane_rows = _lane_rows(evidence_pack)
     mesh_records = query_rows + lane_rows
     graph_cache = graph_payload.get("incremental_cache_receipt") or {}
-    providers = graph_cache.get("providers") or {}
-    embedding = providers.get("embeddings") or {}
-    semantic_evidenced = bool(embedding.get("exists") or any(
+    semantic_evidenced = bool(any(
         any(token in _text(row.get("method")).casefold()
-            for token in ("semantic", "dense", "embedding", "vector", "bm25", "fts"))
+            for token in ("semantic", "dense", "embedding", "vector"))
         for row in query_rows))
     mesh_metrics = [
         _metric("Approved search terms", len(approved),
@@ -1237,6 +1254,9 @@ def build_external_product_document(
     source_receipt = {
         "evidence_pack_generated_at": _text(_get(evidence_pack, "generated_at")),
         "graph_generated_at": _text(graph_payload.get("generated_at")),
+        "graph_captured_at": _text(graph_payload.get("captured_at")),
+        "classification_as_of": _text(
+            (graph_payload.get("classification_context") or {}).get("as_of")),
         "evidence_records_raw": len(_get(evidence_pack, "records", ()) or ()),
         "evidence_records": len({
             _text(_get(row, "record_id")) or f"anonymous:{index}"
@@ -1261,7 +1281,8 @@ def build_external_product_document(
     }
     return ExternalProductDocument(
         schema_version=EXTERNAL_PRODUCT_PROJECTION_VERSION,
-        contract_version=CONTRACT_VERSION,
+        contract_version=contract_version,
+        contract_sha256=contract_sha256,
         client_name=_text(client_name), slug=_text(slug), as_of=_text(as_of),
         slots=slots, graph_receipt=graph_receipt,
         source_receipt=source_receipt,

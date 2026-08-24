@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 import agents.golden_press.evidence_pack_v2 as evidence_pack_v2
 
 from agents.golden_press.evidence_pack_v2 import (
@@ -314,6 +316,8 @@ def test_schema_pins_the_graph_contract():
     assert "canonical_entities" in schema["required"]
     assert "canonical_requirement_families" in schema["required"]
     assert "incremental_cache_receipt" in schema["required"]
+    assert "captured_at" in schema["required"]
+    assert "generated_at" in schema["required"]
     assert "workflow_contract" in schema["required"]
     assert "research_queue" in schema["required"]
     assert "graph_contract_certified" in schema["required"]
@@ -329,3 +333,61 @@ def test_schema_pins_the_graph_contract():
     queue_item = schema["$defs"]["researchQueueItem"]
     assert "ambiguous_dimensions" in queue_item["required"]
     assert queue_item["properties"]["ambiguous_dimensions"]["minItems"] == 1
+    cache = schema["properties"]["incremental_cache_receipt"]
+    assert cache["properties"]["schema_version"]["const"] == \
+        "incremental-cache-semantic-receipt-v1"
+    assert "cache_root" not in cache["properties"]
+    assert "namespaces" not in cache["properties"]
+
+
+def test_corrected_pack_requires_explicit_aware_clocks(tmp_path):
+    with pytest.raises(TypeError, match="classification_as_of"):
+        evidence_pack_v2.build_corrected_pack(
+            "client", "Client", root=tmp_path)
+
+    with pytest.raises(ValueError, match="classification_as_of"):
+        evidence_pack_v2.build_corrected_pack(
+            "client", "Client",
+            classification_as_of="2026-08-24",
+            captured_at="2026-08-24T18:00:00Z",
+            root=tmp_path,
+        )
+
+    with pytest.raises(ValueError, match="captured_at"):
+        evidence_pack_v2.build_corrected_pack(
+            "client", "Client",
+            classification_as_of="2026-08-24T18:00:00Z",
+            captured_at="2026-08-24T18:00:00",
+            root=tmp_path,
+        )
+
+
+def test_corrected_pack_uses_frozen_clocks_and_semantic_receipt(tmp_path):
+    pack_dir = tmp_path / "pack"
+    pack_dir.mkdir()
+    pressed_path = pack_dir / "client.golden_report.evidence_pack.json"
+    pressed_path.write_text(json.dumps({
+        "generated_at": "2026-08-24T17:00:00Z",
+        "client_entity_aliases": [],
+        "records": [],
+    }), encoding="utf-8")
+
+    _path, payload = evidence_pack_v2.build_corrected_pack(
+        "client", "Client",
+        classification_as_of="2026-08-24T11:00:00-06:00",
+        captured_at="2026-08-24T17:05:00+00:00",
+        root=tmp_path,
+        pack_dir=pack_dir,
+        pressed_pack_path=pressed_path,
+        cache_dir=tmp_path / "cache",
+    )
+
+    assert payload["classification_context"]["as_of"] == \
+        "2026-08-24T17:00:00Z"
+    assert payload["captured_at"] == "2026-08-24T17:05:00Z"
+    assert payload["generated_at"] == payload["captured_at"]
+    receipt = payload["incremental_cache_receipt"]
+    assert receipt["schema_version"] == \
+        "incremental-cache-semantic-receipt-v1"
+    assert "cache_root" not in receipt
+    assert "actions" not in receipt

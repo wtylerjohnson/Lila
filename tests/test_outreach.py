@@ -468,3 +468,19 @@ def test_client_targets_every_name_has_a_reason(rail, client, tmp_path, monkeypa
     pocs = {p["person_name"]: p for p in data["pursuit_pocs"]}
     assert "Nora Poc" in pocs and "pursuit #1" in pocs["Nora Poc"]["reason"]
     assert "Jane Smith" not in pocs
+
+    # The release process re-reads the same governed inputs without importing
+    # Flask.  Its exact target rows must remain identical to the UI response.
+    release_root = tmp_path / "release_root"
+    release_review = release_root / "data" / "review"
+    release_cleaned = release_root / "data" / "cleaned"
+    release_review.mkdir(parents=True)
+    release_cleaned.mkdir(parents=True)
+    (release_review / "testco.review.json").write_bytes(
+        (review / "testco.review.json").read_bytes())
+    (release_cleaned / "searches_testco.json").write_bytes(
+        (cleaned / "searches_testco.json").read_bytes())
+    from agents.targeting_inventory import load_target_inventory
+
+    assert load_target_inventory(
+        "Testco", release_root, today=TODAY) == data["targets"]

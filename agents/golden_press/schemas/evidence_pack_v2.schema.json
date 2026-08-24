@@ -7,6 +7,8 @@
     "schema_version",
     "client_name",
     "slug",
+    "captured_at",
+    "generated_at",
     "canonical_entities",
     "canonical_requirement_families",
     "classification_context",
@@ -27,7 +29,8 @@
     "schema_version": {"const": "evidence-pack-v2"},
     "client_name": {"type": "string", "minLength": 1},
     "slug": {"type": "string", "minLength": 1},
-    "generated_at": {"type": "string"},
+    "captured_at": {"type": "string", "format": "date-time"},
+    "generated_at": {"type": "string", "format": "date-time"},
     "canonical_entities": {"type": "object"},
     "canonical_requirement_families": {
       "type": "array",
@@ -131,19 +134,44 @@
         "schema_version",
         "adapter",
         "client_slug",
-        "namespaces",
+        "context_hash",
+        "semantic_dependencies",
         "providers"
       ],
       "properties": {
-        "schema_version": {"const": "incremental-cache-receipt-v1"},
+        "schema_version": {
+          "const": "incremental-cache-semantic-receipt-v1"
+        },
         "adapter": {"type": "string", "minLength": 1},
-        "cache_root": {"type": "string", "minLength": 1},
         "client_slug": {"type": "string", "minLength": 1},
         "context_hash": {"type": "string", "minLength": 1},
-        "namespaces": {"type": "object"},
-        "providers": {"type": "object"}
+        "semantic_dependencies": {
+          "type": "object",
+          "required": [
+            "as_of",
+            "schema_version",
+            "rule_version",
+            "model_version",
+            "configuration_hash",
+            "deterministic_seed"
+          ],
+          "additionalProperties": true
+        },
+        "providers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "owner": {"type": "string", "minLength": 1},
+              "kind": {"type": "string", "minLength": 1},
+              "access": {"type": "string", "minLength": 1},
+              "producer": {"type": "string", "minLength": 1}
+            },
+            "additionalProperties": false
+          }
+        }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "graph_contract_certified": {"type": "boolean"},
     "graph_contract_violations": {

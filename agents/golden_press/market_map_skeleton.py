@@ -48,7 +48,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-MARKET_MAP_SKELETON_VERSION = "market_map_skeleton.v1.2026-08-07"
+MARKET_MAP_SKELETON_VERSION = "market_map_skeleton.v2.2026-08-24"
 
 _ASSETS = Path(__file__).resolve().parents[2] / "assets" / "market_map"
 
@@ -253,17 +253,33 @@ def build_document(*, client_name: str, slug: str, stamp: str,
                    edition_note: str, coverage: Any, sections: Any,
                    content: str, ticker_items: Any = (),
                    work_details: Any = None, footer_note: str = "",
-                   ids: Any = None) -> str:
+                   ids: Any = None, render_assets: Any = None) -> str:
     """Assemble the complete, self-contained Market Map document."""
     ids = ids or EditIds()
     display = " ".join(str(client_name).split())
     underscored = re.sub(r"[^A-Za-z0-9]+", "_", display).strip("_")
     report_id = f"{slug}-federal-market-map-{stamp}"
-    # Local-only identity resolution. The live intake/press path may hydrate
-    # these caches; replay consumes exactly what is already on disk.
-    from agents.reports.report_assets import client_logo, gtm_logo
-    client_mark = client_logo(display)
-    gtm_mark = gtm_logo()
+    if render_assets is None:
+        # Live capture resolves every external input once. A pure replay
+        # supplies these values and never reads template or mark stores.
+        from agents.reports.report_assets import client_logo, gtm_logo
+        client_mark = client_logo(display)
+        gtm_mark = gtm_logo()
+        css = load_css()
+        runtime_source = load_runtime()
+    else:
+        required = {"css", "runtime", "client_mark", "gtm_mark"}
+        missing = sorted(required - set(render_assets))
+        if missing:
+            raise SkeletonError(
+                f"frozen render assets are incomplete: {missing}")
+        client_mark = str(render_assets["client_mark"])
+        gtm_mark = str(render_assets["gtm_mark"])
+        css = str(render_assets["css"])
+        runtime_source = str(render_assets["runtime"])
+        if _DATA_MARK not in runtime_source:
+            raise SkeletonError(
+                "the frozen runtime has no data injection point")
 
     coverage_html = []
     for item in (coverage or []):
@@ -281,7 +297,7 @@ def build_document(*, client_name: str, slug: str, stamp: str,
             f'{value_html}<small data-edit-id="{ids.next()}">{esc(note)}'
             f"</small></div>")
 
-    runtime = load_runtime().replace(_DATA_MARK, work_data(work_details))
+    runtime = runtime_source.replace(_DATA_MARK, work_data(work_details))
 
     return (
         "<!doctype html>\n"
@@ -293,7 +309,7 @@ def build_document(*, client_name: str, slug: str, stamp: str,
         f"<title>{esc(display)} · Federal Market Map</title>\n"
         f'<meta name="description" content="{esc(display)} federal market map, '
         f'{esc(stamp)}.">\n'
-        f"<style>\n{load_css()}\n</style>\n</head>\n<body>\n"
+        f"<style>\n{css}\n</style>\n</head>\n<body>\n"
         + TOOLBAR
         + ticker(ticker_items)
         + '<main class="memo">'

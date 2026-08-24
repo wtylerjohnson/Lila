@@ -1069,6 +1069,8 @@ def golden_press(
             try:
                 graph_path, graph_payload = build_corrected_pack(
                     slug, pack.client_name or client,
+                    classification_as_of=pack.generated_at,
+                    captured_at=pack.generated_at,
                     root=root,
                     pressed_pack_path=(
                         out_dir / f"{stem}.evidence_pack.json"),
