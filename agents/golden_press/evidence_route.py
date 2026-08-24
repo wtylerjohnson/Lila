@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import json
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
@@ -49,7 +50,7 @@ ROUTE_RELATIONSHIPS = (
 WINDOW_STATES = ("live", "fy_only", "unstated", "stated_past")
 SERVICE_FITS = ("direct", "adjacent", "unrelated", "ambiguous")
 PROVENANCE_TYPES = ("measured", "cited", "inferred")
-CLASSIFIER_VERSION = "evidence-route-v3-set-aside-truth"
+CLASSIFIER_VERSION = "evidence-route-v6-forecast-clock-truth"
 
 _ROOT = Path(__file__).resolve().parents[2]
 
@@ -419,31 +420,75 @@ def classify_service_fit(record: dict, ctx: dict) -> dict:
             "fit_basis": "no approved client capability signal in record scope"}
 
 
+def _instant(value: Any) -> Optional[datetime]:
+    """Return a comparable UTC instant only when the source states a clock."""
+    text = str(value or "").strip()
+    if not text or "T" not in text:
+        return None
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return None
+    return parsed.astimezone(timezone.utc)
+
+
+def _window_is_past(deadline: Any, as_of: Any) -> bool:
+    """Compare exact instants when both exist, otherwise compare dates."""
+    deadline_at = _instant(deadline)
+    classified_at = _instant(as_of)
+    if deadline_at is not None and classified_at is not None:
+        return deadline_at < classified_at
+    def calendar_date(value: Any):
+        text = str(value or "").strip()
+        if not text:
+            return None
+        try:
+            return datetime.fromisoformat(text.replace("Z", "+00:00")).date()
+        except ValueError:
+            pass
+        for pattern in ("%m/%d/%Y", "%Y/%m/%d", "%Y"):
+            try:
+                return datetime.strptime(text, pattern).date()
+            except ValueError:
+                continue
+        return None
+
+    deadline_date = calendar_date(deadline)
+    as_of_date = calendar_date(as_of)
+    return bool(deadline_date and as_of_date and deadline_date < as_of_date)
+
+
 def classify_window(record: dict, ctx: dict) -> dict:
     """Normalize the record clock independently of fit and route."""
     lane = str(record.get("lane") or "")
-    as_of = str(ctx.get("as_of") or "")[:10]
+    as_of = str(ctx.get("as_of") or "")
     if lane == "L1_notice":
-        date = str(record.get("response_deadline") or "")[:10]
+        published = str(record.get("response_deadline") or "")
+        date = published[:10]
         if not date:
             return {"window_state": "unstated",
                     "window_basis": "notice response date not published"}
-        if as_of and date < as_of:
+        if _window_is_past(published, as_of):
             return {"window_state": "stated_past",
-                    "window_basis": f"published response date {date} is past"}
+                    "window_basis": f"published response deadline {published} is past"}
         return {"window_state": "live",
-                "window_basis": f"published response date {date}"}
+                "window_basis": f"published response deadline {published}"}
     if lane == "L4_forecast":
-        date = str(record.get("release_date") or
-                   record.get("estimated_release_date") or
-                   record.get("response_deadline") or "")[:10]
+        published = str(record.get("release_date") or
+                        record.get("estimated_release_date") or
+                        record.get("anticipated_solicitation") or
+                        record.get("anticipated_solicitation_close") or
+                        record.get("response_deadline") or "")
+        date = published[:10]
         fiscal = str(record.get("fiscal_year") or record.get("fy") or "").strip()
         if date:
-            if as_of and date < as_of:
+            if _window_is_past(published, as_of):
                 return {"window_state": "stated_past",
-                        "window_basis": f"published forecast date {date} is past"}
+                        "window_basis": f"published forecast date {published} is past"}
             return {"window_state": "live",
-                    "window_basis": f"published forecast date {date}"}
+                    "window_basis": f"published forecast date {published}"}
         if fiscal:
             return {"window_state": "fy_only",
                     "window_basis": f"forecast states {fiscal} only"}

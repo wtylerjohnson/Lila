@@ -15,20 +15,43 @@ from agents.golden_press.external_product_projection import (
 )
 
 
-EXTERNAL_PRODUCT_RENDER_VERSION = "lila-eight-slot-render.v4.2026-08-24"
+EXTERNAL_PRODUCT_RENDER_VERSION = "lila-eight-slot-render.v6.2026-08-24"
+
+_LOCAL_PATH = re.compile(
+    r"(?:file://|(?:^|[\"'\s(=:])/(?:users|home)/)", re.I | re.M)
 
 
 _PRODUCT_CSS = r"""
 .product-css-sentinel{display:contents}
 .product-slot{scroll-margin-top:32px}
 .product-slot-intro{min-width:0}
-.product-slot-summary{max-width:900px;margin:0 0 22px;color:var(--muted);font-size:15px;line-height:1.65}
 .product-slot-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:0 0 22px}
 .product-metric{border:1px solid var(--line);background:var(--paper-deep);padding:15px;min-width:0}
 .product-metric span{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.09em}
 .product-metric strong{display:block;margin-top:7px;font-family:var(--mono);font-size:19px;overflow-wrap:anywhere}
 .product-metric small{display:block;margin-top:6px;color:var(--muted);line-height:1.45}
 .product-records{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+.product-ledger{display:block;margin-top:18px;border:1px solid var(--line);background:var(--paper-deep)}
+.product-ledger>summary{cursor:pointer;padding:14px 16px;color:var(--ink);font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.product-ledger>summary span{color:var(--muted);font-family:var(--mono);font-weight:400}
+.product-ledger-body{padding:0 16px 16px}
+.product-ledger-note{margin:0 0 13px;color:var(--muted);font-size:12px;line-height:1.5}
+.product-review-queue{margin-top:22px;padding-top:17px;border-top:2px solid var(--line-strong)}
+.product-review-queue>summary{font-size:14px}
+.product-review-records{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+.product-review-record{border-style:dashed;background:var(--paper-deep)}
+.product-review-record[data-decision-state="out_of_scope"]{opacity:.82}
+.product-decision-state{display:inline-block;margin:0 0 8px;padding:4px 7px;border:1px solid var(--accent);color:var(--accent);font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.product-review-reasons{margin:12px 0 0;padding:0;list-style:none}
+.product-review-reasons li{margin:6px 0;padding-left:12px;border-left:2px solid var(--accent);font-size:11px;line-height:1.45}
+.product-decision-action{margin-top:12px;padding:10px;background:var(--paper);font-size:11px;line-height:1.5}
+.product-review-evidence{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.product-review-evidence>summary{cursor:pointer;color:var(--accent);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.product-priority-group{margin-top:17px}
+.product-priority-group>h3{margin:0 0 10px;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.product-priority-decisions{margin-top:18px}
+.product-priority-decision{grid-template-columns:70px minmax(0,1fr)}
+.product-action-order.product-decision-badge{width:62px;font-size:9px;text-transform:uppercase}
 .product-slot[data-slot-id="research-mesh"] .product-records,.product-slot[data-slot-id="industry-days-events"] .product-records{grid-template-columns:repeat(3,minmax(0,1fr))}
 .product-record{border:1px solid var(--line);background:var(--paper);padding:17px;min-width:0;break-inside:avoid}
 .product-record-kind{display:block;color:var(--accent);font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px}
@@ -39,7 +62,7 @@ _PRODUCT_CSS = r"""
 .product-fields dd{margin:0;font-size:12px;overflow-wrap:anywhere}
 .product-source{display:inline-block;margin-top:12px;color:var(--link);font-family:var(--mono);font-size:11px;overflow-wrap:anywhere}
 .product-priority{display:grid;grid-template-columns:42px minmax(0,1fr);gap:13px}
-.product-priority-rank{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border:1px solid var(--accent);color:var(--accent);font-family:var(--mono);font-weight:700}
+.product-action-order{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border:1px solid var(--accent);color:var(--accent);font-family:var(--mono);font-weight:700}
 .product-targets{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
 .product-targets h4{margin:0 0 9px;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
 .product-target{border-left:2px solid var(--accent);padding:7px 9px;margin:7px 0;background:var(--paper-deep);font-size:11px;line-height:1.45}
@@ -69,7 +92,7 @@ _PRODUCT_CSS = r"""
 .product-reference{color:var(--muted);font-size:11px;font-family:var(--mono);margin-top:10px}
 .product-status{white-space:nowrap}
 @media(max-width:980px){.product-slot[data-slot-id="research-mesh"] .product-records,.product-slot[data-slot-id="industry-days-events"] .product-records{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:720px){.product-records,.product-slot[data-slot-id="research-mesh"] .product-records,.product-slot[data-slot-id="industry-days-events"] .product-records,.product-visuals{grid-template-columns:1fr}.product-slot-metrics{grid-template-columns:1fr 1fr}.product-fields{grid-template-columns:1fr}.product-fields dd{margin-bottom:5px}}
+@media(max-width:720px){.product-records,.product-review-records,.product-slot[data-slot-id="research-mesh"] .product-records,.product-slot[data-slot-id="industry-days-events"] .product-records,.product-visuals{grid-template-columns:1fr}.product-slot-metrics{grid-template-columns:1fr 1fr}.product-fields{grid-template-columns:1fr}.product-fields dd{margin-bottom:5px}}
 @page{size:letter;margin:.42in}
 @media print{
 html,body,.memo{background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -78,22 +101,27 @@ html,body,.memo{background:#fff!important;-webkit-print-color-adjust:exact;print
 .product-slot-gap{padding-top:18px;padding-bottom:6px;break-inside:avoid;page-break-inside:avoid}
 .product-slot-intro{break-inside:avoid;page-break-inside:avoid;break-after:avoid;page-break-after:avoid}
 .product-slot .plain-head{margin-bottom:14px;padding-bottom:11px;break-after:avoid;page-break-after:avoid}
-.product-slot-summary{display:none}
 .product-slot-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:14px;break-inside:avoid;page-break-inside:avoid}
 .product-metric{padding:11px}
 .product-records{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start}
+.product-review-queue{break-before:auto;page-break-before:auto;break-inside:auto;page-break-inside:auto;margin-top:16px;padding-top:12px}
+.product-review-queue>h3,.product-review-queue>p{break-after:avoid;page-break-after:avoid}
+.product-review-records{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start}
 .product-slot[data-slot-id="research-mesh"] .product-records,.product-slot[data-slot-id="industry-days-events"] .product-records{grid-template-columns:repeat(2,minmax(0,1fr))}
 .product-slot[data-slot-id="priority-pursuits"] .product-records,.product-slot[data-slot-id="federal-opportunities"] .product-records{grid-template-columns:1fr}
+.product-slot[data-slot-id="federal-opportunities"] .product-review-records{grid-template-columns:1fr}
 .product-record{margin:0;break-inside:avoid;page-break-inside:avoid;padding:13px;overflow:hidden}
-.product-detail{break-inside:avoid;page-break-inside:avoid}
-.product-detail summary{display:none}
-.product-detail>.product-detail-section{display:block!important}
+.product-detail,.product-review-evidence{display:none!important}
+.product-research-ledger>.product-ledger-body,.product-review-queue:not([open])>.product-ledger-body{display:none!important}
+.product-ledger>summary{padding:10px 12px;break-inside:avoid;page-break-inside:avoid}
+.product-review-queue[open]>.product-ledger-body{padding:0 0 10px}
+.product-review-record{break-inside:auto;page-break-inside:auto;overflow:visible}
 .product-fields{gap:5px 9px;margin-top:9px}
 .product-source{color:#000;text-decoration:underline;overflow-wrap:anywhere;word-break:break-word}
 .product-gap{margin-top:8px;padding:11px;break-inside:avoid;page-break-inside:avoid}
 .product-visuals{display:block;margin-top:12px}
 .product-visual{margin:0 0 10px;padding:12px;break-inside:avoid;page-break-inside:avoid;overflow:hidden}
-.product-svg{max-height:230px}
+.product-svg{max-height:180px}
 .report-foot{break-inside:avoid;page-break-inside:avoid;margin-top:24px}
 }
 """
@@ -231,33 +259,154 @@ def _priority(record: dict) -> str:
         value = record.get(key)
         if value not in (None, ""):
             fields.append(f"<dt>{esc(label)}</dt><dd>{esc(_display_value(value))}</dd>")
+    kind = record.get("reference_kind")
+    label = {
+        "decision_required": "Decision required",
+        "forecast_action": "Forecast action",
+        "qualified_action": "Qualified opportunity",
+    }.get(kind, "Deadline-ordered action")
+    decision_required = kind == "decision_required"
+    badge = ("Review" if decision_required else
+             f"{int(record.get('action_order') or 0):02d}")
+    classes = ("product-record product-priority product-priority-decision"
+               if decision_required else "product-record product-priority")
+    owner_label = {
+        "federal-opportunities": "Federal Opportunities Identified",
+        "future-forecasts": "Future Forecasts",
+    }.get(record.get("reference_slot_id"), "its evidence slot")
     return (
-        '<article class="product-record product-priority">'
-        f'<div class="product-priority-rank">{int(record.get("action_order") or 0):02d}</div>'
-        '<div><span class="product-record-kind">Deadline-ordered action</span>'
+        f'<article class="{classes}">'
+        f'<div class="product-action-order{" product-decision-badge" if decision_required else ""}">{esc(badge)}</div>'
+        f'<div><span class="product-record-kind">{esc(label)}</span>'
         f'<h3>{esc(record.get("title"))}</h3>'
         f'<p>{esc(record.get("why"))}</p>'
         + ('<dl class="product-fields">' + "".join(fields) + "</dl>" if fields else "")
-        + f'<div class="product-reference">Owned in slot {esc(record.get("reference_slot_id"))} · {esc(record.get("reference_key"))}</div>'
+        + f'<div class="product-reference">Full evidence appears in {esc(owner_label)}.</div>'
         + "</div></article>")
 
 
-def _record(record: dict, *, include_targets: bool = False) -> str:
+def _record(
+    record: dict, *, include_targets: bool = False, review: bool = False,
+) -> str:
     if "reference_key" in record:
         return _priority(record)
     summary = record.get("summary") or record.get("next_action") or ""
-    return (
-        '<article class="product-record" '
-        f'data-record-key="{esc(record.get("record_key"))}">'
-        f'<span class="product-record-kind">{esc(record.get("kind"))}</span>'
-        f'<h3>{esc(record.get("title"))}</h3>'
-        + (f'<p>{esc(summary)}</p>' if summary else "")
+    if (" ".join(str(summary).split()).casefold()
+            == " ".join(str(record.get("title") or "").split()).casefold()):
+        summary = ""
+    classes = "product-record product-review-record" if review else "product-record"
+    decision_state = record.get("decision_state") or "needs_review"
+    reasons = "".join(
+        f"<li>{esc(reason)}</li>" for reason in record.get("reasons") or [])
+    decision = (
+        f'<span class="product-decision-state">{esc(decision_state.replace("_", " "))}</span>'
+        + ('<ul class="product-review-reasons">' + reasons + '</ul>'
+           if reasons else "")
+        + (f'<div class="product-decision-action"><strong>Decision action:</strong> '
+           f'{esc(record.get("decision_action"))}</div>'
+           if record.get("decision_action") else "")
+        if review else ""
+    )
+    evidence = (
+        '<details class="product-review-evidence">'
+        '<summary>Full evidence record</summary>'
         + _fields(record)
-        + _source_link(record)
         + _receipt_links(record)
         + _detail_sections(record)
+        + '</details>'
+        if review else (
+            _fields(record) + _receipt_links(record) + _detail_sections(record))
+    )
+    return (
+        f'<article class="{classes}" '
+        f'data-record-key="{esc(record.get("record_key"))}" '
+        f'data-decision-state="{esc(decision_state if review else "")}">'
+        + decision
+        + f'<span class="product-record-kind">{esc(record.get("kind"))}</span>'
+        + f'<h3>{esc(record.get("title"))}</h3>'
+        + (f'<p>{esc(summary)}</p>' if summary else "")
+        + _source_link(record)
+        + evidence
         + (_targets(record) if include_targets else "")
         + "</article>")
+
+
+def _review_queue(slot: Any) -> str:
+    if not slot.review_records:
+        return ""
+    opportunity = slot.slot_id == "federal-opportunities"
+    heading = ("Needs review before pursuit" if opportunity
+               else "Held outside qualified totals")
+    note = (
+        "These current notices remain visible with the exact evidence decision "
+        "that blocks promotion. They are not pursuit recommendations."
+        if opportunity else
+        "These records remain visible for adjudication or context, but their "
+        "figures are excluded from qualified totals."
+    )
+    records = "".join(_record(row, review=True)
+                      for row in slot.review_records)
+    open_attribute = " open" if opportunity else ""
+    review_count = sum(
+        row.get("decision_state") == "needs_review"
+        for row in slot.review_records)
+    context_count = sum(
+        row.get("decision_state") == "out_of_scope"
+        for row in slot.review_records)
+    count_label = (
+        f"{len(slot.review_records)} record(s)"
+        if opportunity else
+        f"{review_count} review; {context_count} context"
+    )
+    return (
+        f'<details class="product-ledger product-review-queue"{open_attribute}>'
+        f'<summary>{esc(heading)} <span>· {esc(count_label)}</span></summary>'
+        '<div class="product-ledger-body">'
+        f'<p class="product-ledger-note">{esc(note)}</p>'
+        f'<div class="product-review-records">{records}</div></div></details>'
+    )
+
+
+def _priority_groups(records: Any) -> str:
+    qualified = [row for row in records
+                 if row.get("reference_kind") != "decision_required"]
+    decisions = [row for row in records
+                 if row.get("reference_kind") == "decision_required"]
+    sections = []
+    if qualified:
+        sections.append(
+            '<div class="product-priority-group">'
+            '<h3>Qualified actions</h3>'
+            '<div class="product-records">'
+            + "".join(_priority(row) for row in qualified)
+            + '</div></div>')
+    if decisions:
+        sections.append(
+            '<details class="product-ledger product-priority-decisions" open>'
+            f'<summary>Decisions to resolve <span>· {len(decisions)} record(s)</span></summary>'
+            '<div class="product-ledger-body product-records">'
+            + "".join(_priority(row) for row in decisions)
+            + '</div></details>')
+    return "".join(sections)
+
+
+def _record_ledger(slot: Any, records: str) -> str:
+    if not records:
+        return ""
+    if slot.slot_id == "priority-pursuits":
+        return _priority_groups(slot.records)
+    if slot.slot_id == "research-mesh":
+        query_count = sum(
+            row.get("kind") == "research_query" for row in slot.records)
+        lane_count = sum(
+            row.get("kind") == "source_lane" for row in slot.records)
+        return (
+            '<details class="product-ledger product-research-ledger">'
+            f'<summary>Research execution ledger <span>· {query_count} queries + {lane_count} source lanes</span></summary>'
+            '<div class="product-ledger-body">'
+            '<p class="product-ledger-note">Every query body, execution time, method, result count, and retained count remains inspectable here.</p>'
+            f'<div class="product-records">{records}</div></div></details>')
+    return '<div class="product-records">' + records + "</div>"
 
 
 def _metrics(metrics: Any) -> str:
@@ -324,9 +473,9 @@ def _vector_map(visual: dict) -> str:
         y = 40 + index * ((height - 80) / max(1, len(agencies) - 1))
         x = 430
         items.append(
-            f'<line class="product-svg-edge" x1="{root_x+30}" y1="{root_y:.1f}" x2="{x-52}" y2="{y:.1f}" />'
-            f'<rect class="product-svg-node" x="{x-50}" y="{y-15:.1f}" width="150" height="30" rx="4" />'
-            f'<text class="product-svg-label" x="{x+25}" y="{y+3:.1f}" text-anchor="middle">{esc(str(agency)[:24])}</text>')
+            f'<line class="product-svg-edge" x1="{root_x+30}" y1="{root_y:.1f}" x2="{x-58}" y2="{y:.1f}" />'
+            f'<rect class="product-svg-node" x="{x-48}" y="{y-15:.1f}" width="180" height="30" rx="4" />'
+            f'<text class="product-svg-label" x="{x-36}" y="{y+3:.1f}" text-anchor="start">{esc(str(agency)[:30])}</text>')
     return (f'<svg class="product-svg vector-map" viewBox="0 0 {width} {height}" role="img" aria-label="Forecast relationship vector map">'
             + "".join(items) + "</svg>")
 
@@ -363,10 +512,10 @@ def render_slot(slot: Any) -> str:
         f'<span class="plain-number">{slot.number}</span><div>'
         f'<h2>{esc(slot.heading)}</h2><p>{esc(slot.summary)}</p></div>'
         f'<span class="plain-state product-status">{esc(slot.status)}</span></div>'
-        f'<p class="product-slot-summary">{esc(slot.summary)}</p>'
         + _metrics(slot.metrics)
         + '</div>'
-        + ('<div class="product-records">' + records + "</div>" if records else "")
+        + _record_ledger(slot, records)
+        + _review_queue(slot)
         + _visuals(slot.visuals) + gaps + "</section>")
 
 
@@ -374,10 +523,18 @@ def _work_details(doc: ExternalProductDocument) -> dict:
     details = {}
     for slot in doc.slots:
         sources = []
-        for record in slot.records:
+        for record in tuple(slot.records) + tuple(slot.review_records):
             url = _http(record.get("source_url"))
             if url:
-                label = record.get("source_id") or record.get("title")
+                if slot.slot_id == "research-mesh":
+                    host = urlsplit(url).netloc.casefold()
+                    label = (
+                        "USAspending search API endpoint; exact query is in Slot 2"
+                        if host.endswith("usaspending.gov") else
+                        record.get("title") or "Research source endpoint"
+                    )
+                else:
+                    label = record.get("source_id") or record.get("title")
                 if _http(label):
                     label = "Open source record"
                 sources.append([label, url])
@@ -396,18 +553,50 @@ def _work_details(doc: ExternalProductDocument) -> dict:
         unique_sources = []
         seen_sources = set()
         for label, url in sources:
-            key = (str(label), url)
+            key = url if slot.slot_id == "research-mesh" else (str(label), url)
             if key in seen_sources:
                 continue
             seen_sources.add(key)
             unique_sources.append([label, url])
+        if slot.slot_id == "priority-pursuits":
+            qualified = sum(
+                row.get("reference_kind") != "decision_required"
+                for row in slot.records)
+            decisions = sum(
+                row.get("reference_kind") == "decision_required"
+                for row in slot.records)
+            population = (
+                f"{qualified} qualified action reference(s); "
+                f"{decisions} decision-queue reference(s); "
+                f"{len(slot.gaps)} named gap(s)"
+            )
+        elif slot.slot_id == "research-mesh":
+            queries = sum(
+                row.get("kind") == "research_query" for row in slot.records)
+            lanes = sum(
+                row.get("kind") == "source_lane" for row in slot.records)
+            population = (
+                f"{queries} exact query receipt(s); {lanes} source-lane "
+                f"receipt(s); {len(slot.gaps)} named gap(s)"
+            )
+        else:
+            population = (
+                f"{len(slot.records)} qualified/owned record(s); "
+                f"{len(slot.review_records)} non-qualified record(s); "
+                f"{len(slot.gaps)} named gap(s)"
+            )
+            review_required = slot.coverage.get("review_required")
+            out_of_scope = slot.coverage.get("out_of_scope")
+            if review_required is not None or out_of_scope is not None:
+                population += (
+                    f" ({int(review_required or 0)} review-required; "
+                    f"{int(out_of_scope or 0)} out-of-scope)"
+                )
         details[f"slot-{slot.number}"] = {
             "title": slot.heading,
             "summary": slot.summary,
-            "formula": ("; ".join(formulas) if formulas else
-                        f"{len(slot.records)} owned record(s); "
-                        f"{len(slot.gaps)} named gap(s)."),
-            "sources": unique_sources[:60],
+            "formula": "; ".join(formulas + [population]) + ".",
+            "sources": unique_sources,
         }
     return details
 
@@ -416,14 +605,20 @@ def _coverage(doc: ExternalProductDocument) -> list[dict]:
     by_id = {slot.slot_id: slot for slot in doc.slots}
     opportunities = by_id["federal-opportunities"]
     targets = sum(len(row.get("targets") or []) for row in opportunities.records)
+    qualified_actions = sum(
+        row.get("reference_kind") != "decision_required"
+        for row in by_id["priority-pursuits"].records)
     return [
         {"label": "Product slots", "value": "8 / 8",
          "note": "Operator-locked order", "work": "slot-1"},
-        {"label": "Actionable pursuits",
-         "value": len(by_id["priority-pursuits"].records),
-         "note": "Deadline-ordered references", "work": "slot-1"},
+        {"label": "Deadline-ordered actions",
+         "value": qualified_actions,
+         "note": "Qualified actions; decisions are a separate queue", "work": "slot-1"},
         {"label": "Qualified opportunities", "value": len(opportunities.records),
          "note": "Current evidence and eligible route", "work": "slot-5"},
+        {"label": "Opportunities needing review",
+         "value": len(opportunities.review_records),
+         "note": "Visible with exact blockers", "work": "slot-5"},
         {"label": "Opportunity targets", "value": targets,
          "note": "Bound beneath their opportunity", "work": "slot-5"},
     ]
@@ -431,8 +626,14 @@ def _coverage(doc: ExternalProductDocument) -> list[dict]:
 
 def _ticker(doc: ExternalProductDocument) -> list[dict]:
     slot = next(item for item in doc.slots if item.slot_id == "priority-pursuits")
-    return [{"label": f"{row.get('action_order'):02d} · {row.get('title')}", "url": ""}
-            for row in slot.records]
+    return [{
+        "label": (
+            ("Decision queue · " if row.get("reference_kind") == "decision_required"
+             else f"{int(row.get('action_order') or 0):02d} · ")
+            + f"{row.get('title')}"
+        ),
+        "url": "",
+    } for row in slot.records]
 
 
 def render_external_product(doc: ExternalProductDocument) -> tuple[str, str]:
@@ -472,6 +673,7 @@ def validate_external_product_document(doc: ExternalProductDocument) -> list[dic
         violations.append({"rule": "slot_contract", "detail":
                            f"slot sequence {actual!r} does not match the operator lock"})
     owned: dict[str, str] = {}
+    owned_rows: dict[str, dict] = {}
     for slot in doc.slots:
         if slot.status not in {"populated", "gap"}:
             violations.append({"rule": "slot_status", "detail":
@@ -479,7 +681,7 @@ def validate_external_product_document(doc: ExternalProductDocument) -> list[dic
         if slot.status == "gap" and not slot.gaps:
             violations.append({"rule": "silent_gap", "detail":
                                f"{slot.slot_id} is empty without a named next action"})
-        for row in slot.records:
+        for row in tuple(slot.records) + tuple(slot.review_records):
             key = record_ownership_key(row)
             if not key:
                 continue  # Slot 1 references, it does not own evidence rows.
@@ -487,10 +689,23 @@ def validate_external_product_document(doc: ExternalProductDocument) -> list[dic
                 violations.append({"rule": "duplicate_record_owner", "detail":
                                    f"{key} appears in {owned[key]} and {slot.slot_id}"})
             owned[key] = slot.slot_id
+            owned_rows[key] = row
             url = row.get("source_url")
             if url and not _http(url):
                 violations.append({"rule": "invalid_source_url", "detail":
                                    f"{key} has a non-HTTP(S) source URL"})
+        for row in slot.review_records:
+            key = record_ownership_key(row)
+            if (not str(row.get("decision_state") or "").strip()
+                    or row.get("decision_state") == "qualified"):
+                violations.append({"rule": "review_decision_state", "detail":
+                                   f"{key} has no typed review decision"})
+            if not row.get("reason_codes") or not row.get("blocking_dimensions"):
+                violations.append({"rule": "review_reason", "detail":
+                                   f"{key} has no reason codes or blocking dimensions"})
+            if not row.get("reasons") or not row.get("decision_action"):
+                violations.append({"rule": "review_action", "detail":
+                                   f"{key} has no evidence reason or decision action"})
         if slot.slot_id == "federal-opportunities":
             for row in slot.records:
                 family = row.get("requirement_family")
@@ -498,6 +713,52 @@ def validate_external_product_document(doc: ExternalProductDocument) -> list[dic
                     if target.get("requirement_family") not in {None, "", family}:
                         violations.append({"rule": "target_lineage", "detail":
                                            f"target for {target.get('requirement_family')} is nested under {family}"})
+            visible_current = sorted({
+                str(row.get("source_id") or "")
+                for row in tuple(slot.records) + tuple(slot.review_records)
+                if row.get("source_id")
+            })
+            expected_current = sorted(
+                doc.graph_receipt.get("current_opportunity_ids") or [])
+            if visible_current != expected_current:
+                violations.append({
+                    "rule": "current_opportunity_conservation",
+                    "detail": (f"slot 5 current ids {visible_current!r} do not "
+                               f"match graph ids {expected_current!r}"),
+                })
+    for row in doc.slots[0].records:
+        reference = row.get("reference_key")
+        reference_slot = row.get("reference_slot_id")
+        if reference not in owned or owned.get(reference) != reference_slot:
+            violations.append({"rule": "priority_reference", "detail":
+                               f"{reference!r} does not resolve to {reference_slot!r}"})
+            continue
+        target = owned_rows[reference]
+        target_state = str(target.get("decision_state") or "qualified")
+        reference_state = str(row.get("decision_state") or "")
+        reference_kind = row.get("reference_kind")
+        if reference_state != target_state:
+            violations.append({"rule": "decision_reference_state", "detail":
+                               f"{reference!r} copies {reference_state!r} but its owned record is {target_state!r}"})
+        if reference_kind == "decision_required" and target_state == "qualified":
+            violations.append({"rule": "decision_reference_state", "detail":
+                               f"{reference!r} is typed decision_required but resolves to a qualified record"})
+        elif reference_kind == "qualified_action" and target_state != "qualified":
+            violations.append({"rule": "decision_reference_state", "detail":
+                               f"{reference!r} is typed qualified_action but resolves to {target_state!r}"})
+        elif reference_kind == "forecast_action" and target.get("kind") != "forecast":
+            violations.append({"rule": "decision_reference_state", "detail":
+                               f"{reference!r} is typed forecast_action but does not resolve to a forecast"})
+        elif reference_kind not in {
+                "decision_required", "qualified_action", "forecast_action"}:
+            violations.append({"rule": "decision_reference_state", "detail":
+                               f"{reference!r} has unsupported reference kind {reference_kind!r}"})
+    if not doc.graph_receipt.get("current_opportunity_conserved", False):
+        violations.append({"rule": "current_opportunity_conservation", "detail":
+                           "the projection receipt reports a lost current opportunity"})
+    if doc.graph_receipt.get("orphan_held_opportunity_ids"):
+        violations.append({"rule": "orphan_held_opportunity", "detail":
+                           "held opportunity ids do not resolve to graph records"})
     if not doc.graph_receipt.get("certified"):
         violations.append({"rule": "graph_not_certified", "detail":
                            "the Federal Pursuit Graph contract is not certified"})
@@ -509,7 +770,7 @@ def validate_external_product_document(doc: ExternalProductDocument) -> list[dic
     if "—" in text:
         violations.append({"rule": "em_dash", "detail":
                            "an em dash appears in output-reachable product data"})
-    if re.search(r"(?:/Users/|/home/|file://)", text, re.I):
+    if _LOCAL_PATH.search(text):
         violations.append({"rule": "local_path", "detail":
                            "a local filesystem path appears in external product data"})
     return violations
@@ -535,7 +796,7 @@ def validate_external_product_html(client_html: str, doc: ExternalProductDocumen
     if "—" in re.sub(r"<[^>]+>", " ", client_html):
         violations.append({"rule": "em_dash", "detail":
                            "an em dash appears in rendered client text"})
-    if re.search(r"(?:/Users/|/home/|file://)", client_html, re.I):
+    if _LOCAL_PATH.search(client_html):
         violations.append({"rule": "local_path", "detail":
                            "a local filesystem path appears in the client artifact"})
     unstyled = unstyled_in_context(client_html)

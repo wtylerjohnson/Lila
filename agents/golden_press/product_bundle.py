@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import shutil
 import tempfile
 import zipfile
@@ -23,8 +24,10 @@ from agents.golden_press.external_product_render import (
 from agents.reports.product_families import external_product_family
 
 
-PRODUCT_BUNDLE_VERSION = "lila-complete-bundle.v1.2026-08-23"
+PRODUCT_BUNDLE_VERSION = "lila-complete-bundle.v2.2026-08-24"
 CURRENT_POINTER_VERSION = "lila-release-pointer.v1"
+_LOCAL_PATH = re.compile(
+    rb"(?:file://|(?:^|[\"'\s(=:])/(?:users|home)/)", re.I | re.M)
 
 
 class ProductReleaseError(RuntimeError):
@@ -75,6 +78,76 @@ def _write(path: Path, payload: bytes) -> None:
         handle.write(payload)
         handle.flush()
         os.fsync(handle.fileno())
+
+
+def _portable_sidecar(value: Any, *, root: Path) -> Any:
+    """Copy a JSON sidecar while replacing host-local path values.
+
+    The graph and captured inputs remain unchanged in memory for projection and
+    diagnostics.  Only their outgoing replay copies become portable.  Evidence
+    fields are otherwise preserved verbatim; an embedded local path that is not
+    itself a path value is refused by the whole-bundle gate below.
+    """
+    if isinstance(value, dict):
+        return {
+            str(key): _portable_sidecar(item, root=root)
+            for key, item in value.items()
+        }
+    if isinstance(value, (list, tuple)):
+        return [_portable_sidecar(item, root=root) for item in value]
+    if isinstance(value, (set, frozenset)):
+        return [
+            _portable_sidecar(item, root=root)
+            for item in sorted(value, key=repr)
+        ]
+    if isinstance(value, Path):
+        value = str(value)
+    if not isinstance(value, str):
+        return value
+
+    folded = value.casefold()
+    if folded.startswith("file://"):
+        local = value[len("file://"):]
+    elif folded.startswith(("/users/", "/home/")):
+        local = value
+    else:
+        return value
+    path = Path(local)
+    try:
+        return path.resolve(strict=False).relative_to(root).as_posix()
+    except (OSError, ValueError):
+        return f"local-artifact:{path.name or 'available'}"
+
+
+def _refuse_local_path_leaks(payloads: dict[str, bytes]) -> None:
+    """Fail closed when any outgoing bundle member exposes a host-local path."""
+    leaking = _local_path_leaks(payloads)
+    if leaking:
+        raise ProductReleaseBlocked([
+            "local filesystem path appears in outgoing bundle member: " + name
+            for name in leaking
+        ])
+
+
+def _local_path_leaks(payloads: dict[str, bytes]) -> list[str]:
+    """Name payloads that expose a host-local path marker."""
+    return [
+        name for name, payload in sorted(payloads.items())
+        if _LOCAL_PATH.search(payload)
+    ]
+
+
+def _archive_local_path_leaks(bundle_path: Path) -> list[str]:
+    """Scan every stored ZIP member, including unlisted legacy members."""
+    leaks = []
+    with zipfile.ZipFile(bundle_path) as archive:
+        for info in archive.infolist():
+            if info.is_dir():
+                continue
+            if (_LOCAL_PATH.search(info.filename.encode("utf-8")) or
+                    _LOCAL_PATH.search(archive.read(info))):
+                leaks.append(info.filename)
+    return sorted(leaks)
 
 
 def _authorization(client_name: str, root: Path) -> dict:
@@ -131,7 +204,7 @@ def _load_pack(root: Path, slug: str):
 
 
 def _build_graph(root: Path, slug: str, client_name: str,
-                 pressed_pack_path: Path) -> tuple[Path, dict]:
+                 pressed_pack_path: Path, *, as_of: str) -> tuple[Path, dict]:
     from agents.golden_press.evidence_pack_v2 import build_corrected_pack
 
     connection = None
@@ -144,6 +217,11 @@ def _build_graph(root: Path, slug: str, client_name: str,
         return build_corrected_pack(
             slug, client_name, root=root,
             pressed_pack_path=pressed_pack_path,
+            deep_sweep_path=(
+                root / "data" / "state" / "retrieval" /
+                f"deep_sweep_{slug}.json"
+            ),
+            classification_as_of=as_of,
             store_conn=connection,
         )
     finally:
@@ -175,15 +253,34 @@ def _deterministic_zip(path: Path, files: list[Path], *, root: Path,
 def _validate_existing_release(release_dir: Path) -> Optional[ProductReleaseResult]:
     manifest_path = release_dir / "manifest.json"
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+        manifest_bytes = manifest_path.read_bytes()
+        manifest = json.loads(manifest_bytes.decode("utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
         return None
-    for name, receipt in (manifest.get("files") or {}).items():
+    if manifest.get("schema_version") != PRODUCT_BUNDLE_VERSION:
+        return None
+    files = manifest.get("files")
+    if not isinstance(files, dict):
+        return None
+    stored_payloads = {"manifest.json": manifest_bytes}
+    for name, receipt in files.items():
         path = release_dir / name
-        if not path.is_file() or _sha_file(path) != receipt.get("sha256"):
+        try:
+            payload = path.read_bytes()
+        except OSError:
             return None
+        if _sha_bytes(payload) != (receipt or {}).get("sha256"):
+            return None
+        stored_payloads[name] = payload
+    if _local_path_leaks(stored_payloads):
+        return None
     bundle_path = release_dir / manifest.get("bundle_name", "")
     if not bundle_path.is_file():
+        return None
+    try:
+        if _archive_local_path_leaks(bundle_path):
+            return None
+    except (OSError, zipfile.BadZipFile, RuntimeError):
         return None
     return ProductReleaseResult(
         release_id=manifest.get("release_id", release_dir.name),
@@ -224,7 +321,8 @@ def build_complete_bundle(
     family = external_product_family()
     pressed_pack_path, pack = _load_pack(root, slug)
     profile = _load_profile(root, slug)
-    graph_path, graph = _build_graph(root, slug, client_name, pressed_pack_path)
+    graph_path, graph = _build_graph(
+        root, slug, client_name, pressed_pack_path, as_of=as_of)
     if not graph.get("graph_contract_certified"):
         problems = [
             f"graph contract: {row.get('rule_id')}: {row.get('message')}"
@@ -251,9 +349,9 @@ def build_complete_bundle(
         ])
 
     product_bytes = _json_bytes(product.to_dict())
-    graph_bytes = _json_bytes(graph)
+    graph_bytes = _json_bytes(_portable_sidecar(graph, root=root))
     evidence_bytes = pressed_pack_path.read_bytes()
-    inputs_bytes = _json_bytes(captured_inputs)
+    inputs_bytes = _json_bytes(_portable_sidecar(captured_inputs, root=root))
     validation_bytes = _json_bytes({
         **validation,
         "authorization": authorization,
@@ -302,6 +400,7 @@ def build_complete_bundle(
                 "manifest.json binds every file by SHA-256.\n"
             ).encode("utf-8"),
         }
+        _refuse_local_path_leaks(payloads)
         for name, payload in payloads.items():
             _write(staging / name, payload)
         file_receipts = {
@@ -329,6 +428,10 @@ def build_complete_bundle(
             "files": file_receipts,
         }
         manifest_bytes = _json_bytes(manifest)
+        _refuse_local_path_leaks({
+            **payloads,
+            "manifest.json": manifest_bytes,
+        })
         _write(staging / "manifest.json", manifest_bytes)
         zip_members = [staging / name for name in payloads] + [staging / "manifest.json"]
         _deterministic_zip(staging / bundle_name, zip_members,
@@ -375,8 +478,9 @@ def build_complete_bundle(
 
 
 def product_release_state(slug: str, *, root: Path) -> dict:
-    """Validate the current complete bundle without deriving a second verdict."""
-    pointer_path = Path(root) / "data" / "releases" / slug / "current.json"
+    """Validate hashes and re-read the current operator authorization gates."""
+    root = Path(root).resolve()
+    pointer_path = root / "data" / "releases" / slug / "current.json"
     try:
         pointer = json.loads(pointer_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
@@ -395,21 +499,66 @@ def product_release_state(slug: str, *, root: Path) -> dict:
             problems.append(f"{label} is missing")
         elif _sha_file(path) != expected:
             problems.append(f"{label} hash changed")
+    manifest_bytes = b""
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+        manifest_bytes = manifest_path.read_bytes()
+        manifest = json.loads(manifest_bytes.decode("utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
         manifest = {}
         problems.append("manifest is unreadable")
+    if manifest.get("schema_version") != PRODUCT_BUNDLE_VERSION:
+        problems.append(
+            "manifest schema version is not current: expected "
+            f"{PRODUCT_BUNDLE_VERSION}")
+    if manifest_bytes and _LOCAL_PATH.search(manifest_bytes):
+        problems.append("local filesystem path appears in manifest.json")
     if manifest.get("release_eligible") is not True:
         problems.append("manifest is not release eligible")
+    client_name = manifest.get("client_name")
+    if not isinstance(client_name, str) or not client_name.strip():
+        problems.append("manifest has no client identity for current authorization")
+    else:
+        try:
+            current_authorization = _authorization(client_name, root)
+        except Exception as exc:  # noqa: BLE001 - current release state fails closed
+            problems.append(
+                "operator authorization is unavailable: "
+                f"{type(exc).__name__}: {exc}")
+        else:
+            if not current_authorization.get("authorized"):
+                problems.extend(
+                    str(problem) for problem in (
+                        current_authorization.get("problems") or
+                        ["operator authorization is not current"]
+                    )
+                )
     release_dir = manifest_path.parent
     for name, receipt in sorted((manifest.get("files") or {}).items()):
         member = release_dir / name
         expected = (receipt or {}).get("sha256")
         if not member.is_file():
             problems.append(f"bundle member is missing: {name}")
-        elif not expected or _sha_file(member) != expected:
+            continue
+        try:
+            payload = member.read_bytes()
+        except OSError:
+            problems.append(f"bundle member is unreadable: {name}")
+            continue
+        if not expected or _sha_bytes(payload) != expected:
             problems.append(f"bundle member hash changed: {name}")
+        if _LOCAL_PATH.search(payload):
+            problems.append(
+                f"local filesystem path appears in bundle member: {name}")
+    if bundle_path.is_file():
+        try:
+            archive_leaks = _archive_local_path_leaks(bundle_path)
+        except (OSError, zipfile.BadZipFile, RuntimeError):
+            problems.append("bundle archive is unreadable")
+        else:
+            problems.extend(
+                "local filesystem path appears in archive member: " + name
+                for name in archive_leaks
+            )
     if not html_path.is_file():
         problems.append("primary HTML is missing")
     return {

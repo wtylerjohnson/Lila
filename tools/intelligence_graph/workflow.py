@@ -133,14 +133,23 @@ def build_ambiguity_queue(records: list[dict]) -> list[dict]:
             dimensions.append("evidence_class")
             reasons.append(str(row.get("evidence_basis") or
                                "evidence class is ambiguous"))
-        if row.get("service_fit") == "ambiguous":
+        if row.get("service_fit") in {"ambiguous", "adjacent"}:
             dimensions.append("service_fit")
-            reasons.append(str(row.get("service_fit_basis") or
-                               "service fit is ambiguous"))
-        if row.get("qualification_state") == "needs_eligible_route":
+            reasons.append(str(row.get("fit_basis") or
+                               row.get("service_fit_basis") or
+                               "service fit requires review"))
+        decision = row.get("projection_decision") or {}
+        if (row.get("qualification_state") == "needs_eligible_route" or
+                "route_eligibility" in
+                (decision.get("blocking_dimensions") or [])):
             dimensions.append("route_eligibility")
-            reasons.append(str(row.get("qualification_reason") or
-                               "eligible commercial route is unresolved"))
+            route_reasons = [
+                reason for reason in (decision.get("reasons") or [])
+                if reason and reason not in reasons
+            ]
+            reasons.extend(route_reasons or [str(
+                row.get("qualification_reason") or
+                "eligible commercial route is unresolved")])
         if not dimensions:
             continue
         record_id = row.get("record_id")

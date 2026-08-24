@@ -392,6 +392,34 @@ def validate_graph_contract(payload: dict) -> list[dict]:
             "canonical requirement family appears more than once",
             requirement_family=family)
 
+    current_ids = {
+        str(row.get("record_id"))
+        for row in records
+        if row.get("evidence_class") == "current_opportunity"
+        and row.get("record_id")
+    }
+    qualified_ids = {
+        str(row.get("record_id"))
+        for row in qualified if row.get("record_id")
+    }
+    held_ids = {
+        str(row.get("record_id"))
+        for row in (payload.get("held_opportunities") or [])
+        if row.get("record_id")
+    }
+    if (qualified_ids & held_ids or
+            current_ids != qualified_ids | held_ids):
+        add(
+            "G008_CURRENT_OPPORTUNITY_PARTITION",
+            "current opportunities must partition exactly into qualified and held records",
+            current_ids=sorted(current_ids),
+            qualified_ids=sorted(qualified_ids),
+            held_ids=sorted(held_ids),
+            overlap=sorted(qualified_ids & held_ids),
+            missing=sorted(current_ids - qualified_ids - held_ids),
+            unexpected=sorted((qualified_ids | held_ids) - current_ids),
+        )
+
     for row in records:
         record_id = row.get("record_id")
         evidence_class = row.get("evidence_class")
@@ -507,14 +535,52 @@ def qualify_opportunities(records: list[dict], ctx: dict
         fit = _technical_fit(row, ctx)
         eligibility = _eligibility(row, ctx)
         route = er.classify_route(row, ctx)
+        reason_codes: list[str] = []
+        blocking_dimensions: list[str] = []
+        reasons: list[str] = []
+
         if not fit["fit"]:
-            row["qualification_state"] = "held_for_fit_review"
-            row["qualification_reason"] = fit["basis"]
-            held_rows.append(row)
-            continue
+            fit_class = str(fit.get("fit_class") or "ambiguous")
+            reason_codes.append({
+                "adjacent": "FIT_ADJACENT_REVIEW",
+                "ambiguous": "FIT_AMBIGUOUS",
+                "unrelated": "FIT_OUT_OF_SCOPE",
+            }.get(fit_class, "FIT_REVIEW_REQUIRED"))
+            blocking_dimensions.append("service_fit")
+            reasons.append(str(fit.get("basis") or
+                               "service fit requires review"))
+
         if not eligibility["eligible_route"]:
-            row["qualification_state"] = "needs_eligible_route"
-            row["qualification_reason"] = eligibility["basis"]
+            route_class = str(route.get("commercial_route") or "unknown")
+            reason_codes.append(
+                "DIRECT_ROUTE_INELIGIBLE"
+                if route_class == "possible_subcontracting"
+                else "ROUTE_ELIGIBILITY_UNRESOLVED")
+            blocking_dimensions.append("route_eligibility")
+            reasons.append(str(eligibility.get("basis") or
+                               "eligible commercial route is unresolved"))
+
+        if blocking_dimensions:
+            decision_action = (
+                "Resolve service fit and a commercially eligible route before pursuit."
+                if set(blocking_dimensions) == {"service_fit", "route_eligibility"}
+                else "Confirm the matched requirement scope before pursuit."
+                if blocking_dimensions == ["service_fit"]
+                else "Confirm the direct or teaming access route before pursuit."
+            )
+            row["projection_decision"] = {
+                "disposition": "needs_review",
+                "reason_codes": list(dict.fromkeys(reason_codes)),
+                "blocking_dimensions": list(dict.fromkeys(blocking_dimensions)),
+                "reasons": list(dict.fromkeys(reasons)),
+                "decision_action": decision_action,
+            }
+            row["qualification_state"] = (
+                "held_for_fit_review"
+                if "service_fit" in blocking_dimensions
+                else "needs_eligible_route")
+            row["qualification_reason"] = "; ".join(
+                row["projection_decision"]["reasons"])
             held_rows.append(row)
             continue
 
@@ -524,6 +590,15 @@ def qualify_opportunities(records: list[dict], ctx: dict
             row["incumbent_name"] = incumbent
             row["incumbent_basis"] = "named in notice text"
         row["qualification_state"] = "qualified"
+        row["projection_decision"] = {
+            "disposition": "qualified",
+            "reason_codes": [],
+            "blocking_dimensions": [],
+            "reasons": [],
+            "decision_action": str(
+                route.get("route_basis") or
+                "Work the evidenced direct route before the published deadline"),
+        }
         row["qualified"] = {
             "notice_id": row.get("record_id"),
             "record_id": row.get("record_id"),
@@ -595,6 +670,7 @@ def qualify_opportunities(records: list[dict], ctx: dict
             "relationship_provenance": row.get(
                 "relationship_provenance"),
             "next_route": route,
+            "projection_decision": row["projection_decision"],
         }
         qualified_rows.append(row)
     return qualified_rows, incumbents, held_rows
@@ -702,6 +778,7 @@ def build_corrected_pack(slug: str, client_name: str, *,
                          research_gaps: Optional[list] = None,
                          enrichments: Optional[list[dict]] = None,
                          target_roles: Optional[dict[str, list[dict]]] = None,
+                         classification_as_of: Optional[str] = None,
                          graph_adapter: Optional[
                              ExistingSystemsGraphAdapter] = None,
                          cache_dir: Optional[Path] = None,
@@ -713,7 +790,17 @@ def build_corrected_pack(slug: str, client_name: str, *,
                          if pressed_pack_path is not None else
                          pack_dir / f"{slug}.golden_report.evidence_pack.json")
     pressed = json.loads(pressed_pack_path.read_text(encoding="utf-8"))
-    ctx = er.build_context(client_name, slug, pack=pressed, root=base)
+    generated_at = _now_iso()
+    effective_classification_as_of = classification_as_of
+    if (classification_as_of
+            and re.fullmatch(r"\d{4}-\d{2}-\d{2}", classification_as_of)
+            and classification_as_of == generated_at[:10]):
+        # A same-day release needs clock-level deadline truth. Historical
+        # replays retain their explicit business date.
+        effective_classification_as_of = generated_at
+    ctx = er.build_context(
+        client_name, slug, pack=pressed, root=base,
+        as_of=effective_classification_as_of)
     adapter = graph_adapter or ExistingSystemsGraphAdapter(
         root=base,
         slug=slug,
@@ -808,7 +895,7 @@ def build_corrected_pack(slug: str, client_name: str, *,
         "schema_version": SCHEMA_VERSION,
         "client_name": client_name,
         "slug": slug,
-        "generated_at": _now_iso(),
+        "generated_at": generated_at,
         "base_pack_generated_at": pressed.get("generated_at"),
         "canonical_entities": ctx.get("canonical_entities", {}),
         "canonical_requirement_families": [{
@@ -846,6 +933,12 @@ def build_corrected_pack(slug: str, client_name: str, *,
             "evidence_class": r.get("evidence_class"),
             "commercial_route": r.get("commercial_route"),
             "eligible_route": r.get("eligible_route"),
+            "projection_decision": r.get("projection_decision") or {},
+            "reason_codes": list(
+                (r.get("projection_decision") or {}).get("reason_codes") or []),
+            "blocking_dimensions": list(
+                (r.get("projection_decision") or {}).get(
+                    "blocking_dimensions") or []),
         } for r in held_opportunities],
         "target_groups": target_groups,
         "moved_records": moved,

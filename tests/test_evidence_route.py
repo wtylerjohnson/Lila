@@ -140,6 +140,44 @@ def test_closed_notice_is_never_a_live_pursuit(ctx):
         "ambiguous"
 
 
+def test_same_day_notice_uses_timezone_aware_deadline_instant(ctx):
+    notice = {
+        "lane": "L1_notice",
+        "title": "Translation and Interpretation Services",
+        "description": "",
+        "response_deadline": "2026-08-24T11:00:00-05:00",
+        "set_aside": "",
+    }
+    before = dict(ctx, as_of="2026-08-24T15:59:59Z")
+    after = dict(ctx, as_of="2026-08-24T16:00:01Z")
+
+    assert er.classify_record(notice, before)["evidence_class"] == \
+        "current_opportunity"
+    classified = er.classify_record(notice, after)
+    assert classified["window_state"] == "stated_past"
+    assert classified["evidence_class"] == "excluded"
+    assert "2026-08-24T11:00:00-05:00" in classified["window_basis"]
+
+
+def test_forecast_uses_published_anticipated_solicitation_clock(ctx):
+    forecast = {
+        "lane": "L4_forecast",
+        "title": "Future Language Program",
+        "description": "translation and interpretation services",
+        "anticipated_solicitation": "07/20/2026",
+        "anticipated_award": "09/01/2026",
+        "fiscal_year": "2026",
+    }
+
+    classified = er.classify_record(
+        forecast, dict(ctx, as_of="2026-08-24T18:00:00Z"))
+
+    assert classified["evidence_class"] == "forecast"
+    assert classified["window_state"] == "stated_past"
+    assert "07/20/2026" in classified["window_basis"]
+    assert "successor refresh" in classified["evidence_basis"]
+
+
 def test_aerobics_and_generic_instructor_records_fail_fit(ctx):
     for title in ("Aerobics Instructor Services",
                   "Fitness and Wellness Instructor",
@@ -225,6 +263,16 @@ def test_long_set_aside_labels_and_blank_access_fail_closed(ctx):
         {**base, "set_aside": "Total Small Business Set-Aside"}, ctx)
     assert small["commercial_route"] == "direct"
     assert small["eligible_route"] is True
+
+    sam_variant = er.classify_route(
+        {**base, "set_aside": "Small Business Set Aside - Total"}, ctx)
+    assert sam_variant["commercial_route"] == "direct"
+    assert sam_variant["eligible_route"] is True
+
+    veteran = er.classify_route(
+        {**base, "set_aside": "Veteran-Owned Small Business Set Aside"}, ctx)
+    assert veteran["commercial_route"] == "possible_subcontracting"
+    assert veteran["eligible_route"] is False
 
     sdvosb = er.classify_route(
         {**base, "set_aside": (

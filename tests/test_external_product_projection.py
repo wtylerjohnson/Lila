@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+from dataclasses import replace
 from types import SimpleNamespace
 
 import pytest
@@ -13,6 +14,7 @@ from agents.golden_press.external_product_projection import (
 )
 from agents.golden_press.external_product_render import (
     render_external_product,
+    render_slot,
     validate_external_product_document,
     validate_external_product_html,
 )
@@ -110,7 +112,7 @@ def _graph():
     safe_route = {
         "record_id": "ROUTE-SAFE", "title": "Prime access route",
         "agency": "Department of State",
-        "evidence_class": "current_opportunity", "service_fit": "direct",
+        "evidence_class": "teaming_evidence", "service_fit": "direct",
         "window_state": "live", "commercial_route": "named_partner_teaming",
         "route_relationship": "named_partner_teaming", "eligible_route": True,
         "url": "https://sam.gov/opp/route-safe/view",
@@ -163,6 +165,85 @@ def _document():
         client_name="Acme", slug="acme", as_of="2026-08-23")
 
 
+def _add_review_notices(graph: dict) -> None:
+    fit_hold = {
+        "record_id": "NOTICE-FIT", "title": "Near-term adjacent requirement",
+        "description": "Published instructional design requirement body.",
+        "agency": "Department of the Navy", "sub_agency": "NAVSUP",
+        "office": "Fleet Logistics Center", "naics": "611710", "psc": "U008",
+        "notice_type": "Solicitation", "set_aside": "Total Small Business",
+        "response_deadline": "2026-08-27", "evidence_class": "current_opportunity",
+        "service_fit": "adjacent", "fit_basis": "approved adjacent capability",
+        "window_state": "live", "commercial_route": "direct",
+        "eligible_route": True, "route_basis": "eligible small-business route",
+        "url": "https://sam.gov/opp/notice-fit/view",
+        "requirement_family": "family-fit", "retrieved_at": "2026-08-23T09:00:00Z",
+        "projection_decision": {
+            "disposition": "needs_review",
+            "reason_codes": ["FIT_ADJACENT_REVIEW"],
+            "blocking_dimensions": ["service_fit"],
+            "reasons": ["approved adjacent capability"],
+            "decision_action": "Confirm the matched requirement scope before pursuit.",
+        },
+    }
+    route_hold = {
+        "record_id": "NOTICE-ROUTE", "title": "Unresolved-access language work",
+        "description": "Published translation requirement with access unstated.",
+        "agency": "Department of the Army", "naics": "541930", "psc": "R608",
+        "notice_type": "Presolicitation", "set_aside": "",
+        "response_deadline": "2026-08-25", "evidence_class": "current_opportunity",
+        "service_fit": "direct", "fit_basis": "approved core capability",
+        "window_state": "live", "commercial_route": "unknown",
+        "eligible_route": False,
+        "route_basis": "notice publishes no set-aside status; direct eligibility remains unresolved",
+        "url": "https://sam.gov/opp/notice-route/view",
+        "requirement_family": "family-route", "contact_email": "buyer@example.mil",
+    }
+    both_hold = {
+        "record_id": "NOTICE-BOTH", "title": "Ambiguous restricted training",
+        "description": "Instructional technology services.",
+        "agency": "Department of the Navy", "naics": "611710", "psc": "U009",
+        "notice_type": "Solicitation", "set_aside": "SDVOSB Set-Aside",
+        "response_deadline": "2026-08-24", "evidence_class": "current_opportunity",
+        "service_fit": "ambiguous", "fit_basis": "broad capability stem requires review",
+        "window_state": "live", "commercial_route": "possible_subcontracting",
+        "eligible_route": False,
+        "route_basis": "access rule requires SDVOSB and bars direct pursuit",
+        "url": "https://sam.gov/opp/notice-both/view",
+        "requirement_family": "family-both",
+        "projection_decision": {
+            "disposition": "needs_review",
+            "reason_codes": ["FIT_AMBIGUOUS", "DIRECT_ROUTE_INELIGIBLE"],
+            "blocking_dimensions": ["service_fit", "route_eligibility"],
+            "reasons": [
+                "broad capability stem requires review",
+                "access rule requires SDVOSB and bars direct pursuit",
+            ],
+            "decision_action": (
+                "Resolve service fit and a commercially eligible route before pursuit."),
+        },
+    }
+    graph["records"].extend((fit_hold, route_hold, both_hold))
+    graph["held_opportunities"].extend((
+        {"record_id": "NOTICE-FIT", "requirement_family": "family-fit",
+         "qualification_state": "held_for_fit_review",
+         "qualification_reason": "approved adjacent capability"},
+        {"record_id": "NOTICE-ROUTE", "requirement_family": "family-route",
+         "qualification_state": "needs_eligible_route",
+         "qualification_reason": "direct eligibility remains unresolved",
+         "projection_decision": {
+             "disposition": "needs_review",
+             "reason_codes": ["ROUTE_ELIGIBILITY_UNRESOLVED"],
+             "blocking_dimensions": ["route_eligibility"],
+             "reasons": ["direct eligibility remains unresolved"],
+             "decision_action": "Confirm the direct or teaming access route before pursuit.",
+         }},
+        {"record_id": "NOTICE-BOTH", "requirement_family": "family-both",
+         "qualification_state": "held_for_fit_review",
+         "qualification_reason": "broad capability stem requires review"},
+    ))
+
+
 def test_graph_maps_into_exact_operator_locked_slots():
     document = _document()
     expected = load_external_product_slots()
@@ -175,7 +256,7 @@ def test_each_evidence_record_has_one_owning_slot_and_priority_only_references()
     document = _document()
     owners = {}
     for slot in document.slots:
-        for row in slot.records:
+        for row in tuple(slot.records) + tuple(slot.review_records):
             if row.get("record_key"):
                 assert row["record_key"] not in owners
                 owners[row["record_key"]] = slot.slot_id
@@ -279,10 +360,24 @@ def test_external_spending_and_competition_hold_non_direct_fit_records():
 
     assert [row["source_id"] for row in by_id["competitors"].records] == [
         "AWARD-RIVAL"]
-    assert by_id["competitors"].coverage["fit_review_holds"] == 1
+    assert [row["source_id"] for row in
+            by_id["competitors"].review_records] == ["AWARD-RIVAL-REVIEW"]
+    assert by_id["competitors"].review_records[0]["decision_state"] == \
+        "needs_review"
+    assert by_id["competitors"].review_records[0]["reason_codes"] == [
+        "FIT_AMBIGUOUS"]
+    assert by_id["competitors"].coverage["review_required"] == 1
+    assert by_id["competitors"].coverage["out_of_scope"] == 0
     assert [row["source_id"] for row in by_id["agency-spending"].records] == [
         "AWARD-CLIENT"]
-    assert by_id["agency-spending"].coverage["fit_review_holds"] == 1
+    assert [row["source_id"] for row in
+            by_id["agency-spending"].review_records] == ["AWARD-CLIENT-OTHER"]
+    assert by_id["agency-spending"].review_records[0]["decision_state"] == \
+        "out_of_scope"
+    assert by_id["agency-spending"].review_records[0]["reason_codes"] == [
+        "FIT_OUT_OF_SCOPE"]
+    assert by_id["agency-spending"].coverage["review_required"] == 0
+    assert by_id["agency-spending"].coverage["out_of_scope"] == 1
     assert by_id["agency-spending"].metrics[0]["value"] == "$1,200,000.00"
 
 
@@ -357,6 +452,157 @@ def test_forecasts_and_live_opportunities_are_separate_and_targets_stay_bound():
         "Full published scope", "Acquisition", "Forecast timing"}
 
 
+def test_current_opportunity_holds_are_lossless_owned_and_decision_typed():
+    graph = _graph()
+    _add_review_notices(graph)
+
+    document = build_external_product_document(
+        market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
+        profile={}, client_name="Acme", slug="acme", as_of="2026-08-23")
+    by_id = {slot.slot_id: slot for slot in document.slots}
+    opportunities = by_id["federal-opportunities"]
+
+    assert [row["source_id"] for row in opportunities.records] == ["NOTICE-1"]
+    assert [row["source_id"] for row in opportunities.review_records] == [
+        "NOTICE-BOTH", "NOTICE-ROUTE", "NOTICE-FIT"]
+    reviews = {row["source_id"]: row for row in opportunities.review_records}
+    assert reviews["NOTICE-FIT"]["summary"] == \
+        "Published instructional design requirement body."
+    assert reviews["NOTICE-FIT"]["naics"] == "611710"
+    assert reviews["NOTICE-FIT"]["source_url"] == \
+        "https://sam.gov/opp/notice-fit/view"
+    assert reviews["NOTICE-FIT"]["reason_codes"] == ["FIT_ADJACENT_REVIEW"]
+    assert reviews["NOTICE-FIT"]["projection_decision"] == \
+        graph["records"][-3]["projection_decision"]
+    assert reviews["NOTICE-ROUTE"]["reason_codes"] == [
+        "ROUTE_ELIGIBILITY_UNRESOLVED"]
+    assert reviews["NOTICE-ROUTE"]["projection_decision"] == \
+        graph["held_opportunities"][-2]["projection_decision"]
+    assert reviews["NOTICE-ROUTE"]["contact_email"] == "buyer@example.mil"
+    assert reviews["NOTICE-BOTH"]["reason_codes"] == [
+        "FIT_AMBIGUOUS", "DIRECT_ROUTE_INELIGIBLE"]
+    assert reviews["NOTICE-BOTH"]["projection_decision"] == \
+        graph["records"][-1]["projection_decision"]
+    assert reviews["NOTICE-BOTH"]["blocking_dimensions"] == [
+        "service_fit", "route_eligibility"]
+    assert all(row["decision_state"] == "needs_review"
+               and row["reasons"] and row["decision_action"]
+               for row in opportunities.review_records)
+    assert document.graph_receipt["current_opportunity_conserved"] is True
+    assert document.graph_receipt["current_opportunity_ids"] == [
+        "NOTICE-1", "NOTICE-BOTH", "NOTICE-FIT", "NOTICE-ROUTE"]
+    assert validate_external_product_document(document) == []
+
+    actions = by_id["priority-pursuits"].records
+    assert [row["title"] for row in actions] == [
+        "Language Support Services", "Ambiguous restricted training",
+        "Unresolved-access language work", "Near-term adjacent requirement"]
+    assert [row["reference_kind"] for row in actions] == [
+        "qualified_action", "decision_required", "decision_required",
+        "decision_required"]
+    assert [row["action_order"] for row in actions] == [1, None, None, None]
+    assert [row["decision_order"] for row in actions] == [None, 1, 2, 3]
+    decision_required_text = repr([
+        row for row in actions
+        if row["reference_kind"] == "decision_required"
+    ]).casefold()
+    assert "ranked" not in decision_required_text
+    assert "pursued" not in decision_required_text
+
+
+def test_validation_rejects_a_current_opportunity_removed_from_review_queue():
+    graph = _graph()
+    _add_review_notices(graph)
+    document = build_external_product_document(
+        market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
+        profile={}, client_name="Acme", slug="acme", as_of="2026-08-23")
+    slot = next(item for item in document.slots
+                if item.slot_id == "federal-opportunities")
+    broken_slot = replace(slot, review_records=slot.review_records[1:])
+    broken = replace(document, slots=tuple(
+        broken_slot if item.slot_id == "federal-opportunities" else item
+        for item in document.slots))
+
+    assert "current_opportunity_conservation" in {
+        row["rule"] for row in validate_external_product_document(broken)}
+
+
+def test_renderer_separates_review_queue_and_never_adds_targets_to_holds(monkeypatch):
+    from agents.reports import report_assets
+    monkeypatch.setattr(report_assets, "client_logo", lambda _name: _mark())
+    monkeypatch.setattr(report_assets, "gtm_logo", _mark)
+    graph = _graph()
+    _add_review_notices(graph)
+    document = build_external_product_document(
+        market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
+        profile={}, client_name="Acme", slug="acme", as_of="2026-08-23")
+
+    _studio, client = render_external_product(document)
+
+    assert "Needs review before pursuit" in client
+    assert "These current notices remain visible" in client
+    assert client.count('class="product-record product-review-record"') == 3
+    assert "Decision required" in client
+    assert "They are not pursuit recommendations" in client
+    assert '<details class="product-ledger product-review-queue" open>' in client
+    assert client.count("Full evidence record") == 3
+    assert "Full evidence appears in Federal Opportunities Identified." in client
+    assert "graph-record:" not in client
+    assert "Qualified actions" in client
+    assert "Decisions to resolve" in client
+    review_html = client.split("Needs review before pursuit", 1)[1].split(
+        'data-slot-id="teaming-opportunities"', 1)[0]
+    assert "Targets specific to this opportunity" not in review_html
+    assert validate_external_product_html(client, document)["ok"] is True
+
+
+def test_priority_reference_state_must_match_its_owned_record():
+    document = _document()
+    priority = document.slots[0]
+    forged_row = {**priority.records[0],
+                  "reference_kind": "decision_required",
+                  "decision_state": "needs_review"}
+    forged_priority = replace(priority, records=(forged_row,))
+    forged = replace(document, slots=(forged_priority,) + document.slots[1:])
+
+    assert "decision_reference_state" in {
+        row["rule"] for row in validate_external_product_document(forged)}
+
+
+def test_nonqualified_award_ledgers_are_collapsed_but_lossless(monkeypatch):
+    from agents.reports import report_assets
+    monkeypatch.setattr(report_assets, "client_logo", lambda _name: _mark())
+    monkeypatch.setattr(report_assets, "gtm_logo", _mark)
+    graph = _graph()
+    graph["records"].extend((
+        {"record_id": "AWARD-RIVAL-REVIEW", "title": "",
+         "recipient": "Rival Inc", "agency": "Department of State",
+         "evidence_class": "competitive_historical",
+         "service_fit": "ambiguous", "commercial_route": "incumbent",
+         "description": "Preserved competitive evidence body.",
+         "url": "https://www.usaspending.gov/award/AWARD-RIVAL-REVIEW"},
+        {"record_id": "AWARD-CLIENT-OTHER", "title": "AWARD-CLIENT-OTHER",
+         "recipient": "Acme", "agency": "Department of the Navy",
+         "evidence_class": "client_historical", "service_fit": "unrelated",
+         "commercial_route": "direct",
+         "description": "Preserved out-of-scope evidence body.",
+         "url": "https://www.usaspending.gov/award/AWARD-CLIENT-OTHER"},
+    ))
+    document = build_external_product_document(
+        market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
+        profile={}, client_name="Acme", slug="acme", as_of="2026-08-23")
+
+    _studio, client = render_external_product(document)
+
+    assert client.count(
+        '<details class="product-ledger product-review-queue">') == 2
+    assert "Preserved competitive evidence body." in client
+    assert "Preserved out-of-scope evidence body." in client
+    assert "Rival Inc - Department of State" in client
+    assert "Acme - Department of the Navy" in client
+    assert validate_external_product_html(client, document)["ok"] is True
+
+
 def test_slot_one_is_deadline_ordered_and_never_claims_a_rank():
     graph = _graph()
     later = graph["qualified_opportunity_records"][0]
@@ -373,6 +619,7 @@ def test_slot_one_is_deadline_ordered_and_never_claims_a_rank():
         "linked_targets": [],
     }
     graph["qualified_opportunity_records"].append(earlier)
+    graph["records"].append(earlier)
 
     document = build_external_product_document(
         market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
@@ -382,7 +629,8 @@ def test_slot_one_is_deadline_ordered_and_never_claims_a_rank():
     assert [row["title"] for row in actions] == [
         "Earlier Interpreter Requirement", "Language Support Services"]
     assert [row["action_order"] for row in actions] == [1, 2]
-    assert all("priority" not in row for row in actions)
+    assert all("priority" not in row and row["reference_kind"] == "qualified_action"
+               for row in actions)
 
 
 def test_long_scope_is_excerpted_for_scan_but_preserved_in_detail():
@@ -403,7 +651,7 @@ def test_long_scope_is_excerpted_for_scan_but_preserved_in_detail():
 
     assert len(rendered["summary"]) <= 523
     assert rendered["summary"].endswith("...")
-    assert scope["fields"][0]["value"] == full_scope.replace("\ufffd", "-")
+    assert scope["fields"][0]["value"] == full_scope
 
 
 def test_raw_and_canonical_record_counts_are_both_explicit():
@@ -416,8 +664,11 @@ def test_raw_and_canonical_record_counts_are_both_explicit():
         market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
         profile={}, client_name="Acme", slug="acme", as_of="2026-08-23")
 
-    assert document.source_receipt["graph_records_raw"] == 6
-    assert document.source_receipt["graph_records"] == 5
+    assert document.source_receipt["graph_input_records_raw"] == 6
+    assert document.source_receipt["graph_identity_canonical_records"] == 6
+    assert document.source_receipt["graph_requirement_duplicates_collapsed"] == 0
+    assert document.source_receipt["graph_final_records"] == 6
+    assert document.source_receipt["graph_projection_canonical_records"] == 5
     assert document.source_receipt["graph_indexed_records"] == 5
     assert document.graph_receipt["incremental_cache_receipt"][
         "cache_root"] == "local-artifact:cache"
@@ -448,12 +699,41 @@ def test_scriptless_renderer_carries_all_slots_marks_sources_and_visuals(monkeyp
     assert "Cleared interpretation and translation support." in client
     assert "19AQMM26R0001" in client
     assert "approved core capability evidence" in client
-    assert "Deadline-ordered action" in client
+    assert "Qualified opportunity" in client
     assert "Ranked pursuit" not in client
     assert "Qualified category obligations: $1,200,000.00 = $1,200,000.00" in client
     assert "@page{size:letter;margin:.42in}" in client
     assert "grid-template-columns:repeat(2,minmax(0,1fr))" in client
     assert "break-inside:avoid;page-break-inside:avoid;overflow:hidden" in client
+    assert 'class="product-ledger product-research-ledger"' in client
+    assert "Replayable query receipt" in client
+    assert ".product-detail, .product-review-evidence {display:none!important}" in client
+
+
+def test_web_url_home_path_is_not_misclassified_as_a_local_path():
+    graph = _graph()
+    graph["records"][0]["url"] = "https://agency.gov/home/opportunities/notice-1"
+    graph["qualified_opportunity_records"][0]["url"] = \
+        "https://agency.gov/home/opportunities/notice-1"
+    graph["qualified_opportunity_records"][0]["source_url"] = \
+        "https://agency.gov/home/opportunities/notice-1"
+
+    document = build_external_product_document(
+        market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
+        profile={}, client_name="Acme", slug="acme", as_of="2026-08-23")
+
+    assert not any(
+        row["rule"] == "local_path"
+        for row in validate_external_product_document(document))
+
+
+def test_each_slot_summary_renders_once():
+    slot = _document().slots[0]
+
+    rendered = render_slot(slot)
+
+    assert rendered.count(slot.summary) == 1
+    assert "product-slot-summary" not in rendered
 
 
 def test_print_media_uses_paginated_layout_and_static_receipts(monkeypatch, tmp_path):
@@ -481,7 +761,7 @@ def test_print_media_uses_paginated_layout_and_static_receipts(monkeypatch, tmp_
             recordColumns: style('[data-slot-id="research-mesh"] .product-records').gridTemplateColumns.split(' ').length,
             visualBreak: style('.product-visual').breakInside,
             introBreak: style('.product-slot-intro').breakInside,
-            duplicateSummary: style('.product-slot-summary').display,
+            duplicateSummaryPresent: Boolean(document.querySelector('.product-slot-summary')),
             interactiveReceipt: style('.receipts-appendix .inline-work').display,
             printReceipt: style('.receipts-appendix .receipt-print').display,
           };
@@ -493,7 +773,7 @@ def test_print_media_uses_paginated_layout_and_static_receipts(monkeypatch, tmp_
         "recordColumns": 2,
         "visualBreak": "avoid",
         "introBreak": "avoid",
-        "duplicateSummary": "none",
+        "duplicateSummaryPresent": False,
         "interactiveReceipt": "none",
         "printReceipt": "block",
     }

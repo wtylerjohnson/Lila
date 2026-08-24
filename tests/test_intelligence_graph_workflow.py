@@ -47,7 +47,10 @@ def test_research_queue_contains_only_classifier_ambiguity():
          "evidence_basis": "scope can support two evidence classes"},
         {"record_id": "fit", "evidence_class": "current_opportunity",
          "service_fit": "ambiguous", "window_state": "live",
-         "service_fit_basis": "scope text is incomplete"},
+         "fit_basis": "scope text is incomplete"},
+        {"record_id": "adjacent", "evidence_class": "current_opportunity",
+         "service_fit": "adjacent", "window_state": "live",
+         "fit_basis": "adjacent capability evidence needs a decision"},
         {"record_id": "route", "evidence_class": "current_opportunity",
          "service_fit": "direct", "window_state": "live",
          "qualification_state": "needs_eligible_route"},
@@ -63,9 +66,11 @@ def test_research_queue_contains_only_classifier_ambiguity():
     ]
     queued = build_ambiguity_queue(records)
     assert [row["record_id"] for row in queued] == [
-        "evidence", "fit", "route"]
+        "adjacent", "evidence", "fit", "route"]
     assert queued == build_ambiguity_queue(records)
-    assert queued[2]["ambiguous_dimensions"] == ["route_eligibility"]
+    assert queued[0]["reasons"] == [
+        "adjacent capability evidence needs a decision"]
+    assert queued[3]["ambiguous_dimensions"] == ["route_eligibility"]
 
 
 def test_test_plan_runs_full_suite_only_at_milestone():

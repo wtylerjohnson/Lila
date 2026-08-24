@@ -186,4 +186,5 @@ def test_graph_contract_receipt_catches_cross_relationship_violations():
         "G003_PAST_WINDOW_CANNOT_BE_CURRENT",
         "G004_DIRECT_ROUTE_REQUIRES_ELIGIBILITY",
         "G005_TARGETS_REQUIRE_QUALIFIED_OPPORTUNITY",
+        "G008_CURRENT_OPPORTUNITY_PARTITION",
     }

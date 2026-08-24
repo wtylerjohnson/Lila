@@ -82,7 +82,16 @@
           "qualification_state": {
             "enum": ["held_for_fit_review", "needs_eligible_route"]
           },
-          "qualification_reason": {"type": ["string", "null"]}
+          "qualification_reason": {"type": ["string", "null"]},
+          "reason_codes": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1}
+          },
+          "blocking_dimensions": {
+            "type": "array",
+            "items": {"enum": ["service_fit", "route_eligibility"]}
+          },
+          "projection_decision": {"$ref": "#/$defs/projectionDecision"}
         },
         "additionalProperties": true
       }
@@ -247,9 +256,37 @@
             "service_fit"
           ],
           "additionalProperties": {"$ref": "#/$defs/provenance"}
-        }
+        },
+        "projection_decision": {"$ref": "#/$defs/projectionDecision"}
       },
       "additionalProperties": true
+    },
+    "projectionDecision": {
+      "type": "object",
+      "required": [
+        "disposition",
+        "reason_codes",
+        "blocking_dimensions",
+        "reasons",
+        "decision_action"
+      ],
+      "properties": {
+        "disposition": {"enum": ["qualified", "needs_review"]},
+        "reason_codes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "blocking_dimensions": {
+          "type": "array",
+          "items": {"enum": ["service_fit", "route_eligibility"]}
+        },
+        "reasons": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "decision_action": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
     },
     "qualifiedOpportunity": {
       "type": "object",

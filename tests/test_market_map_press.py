@@ -114,6 +114,52 @@ def test_client_export_converts_every_receipt_button_to_a_native_link():
     assert 'id="receipt-report"' in client
 
 
+def test_client_export_escapes_receipts_and_rejects_unsafe_links_and_keys():
+    source = (
+        '<main><button class="edition-meta" type="button" '
+        'data-work="report"><span>Open receipt</span></button></main>')
+    receipts = {
+        "report": {
+            "title": 'Title </summary><img src=x onerror="alert(1)">',
+            "summary": 'Summary <b onclick="alert(2)">raw</b> & "quoted"',
+            "formula": 'A < B & "C"',
+            "sources": [
+                ['Label <svg onload="alert(3)"> & "quoted"',
+                 'https://example.gov/record?q="quoted"&part=1'],
+                ["JavaScript", "javascript:alert(4)"],
+                ["Data", "data:text/html,<script>alert(5)</script>"],
+                ["File", "file:///Users/example/private.json"],
+                ["Relative", "/records/local-only"],
+            ],
+        },
+        'unsafe"><img src=x onerror="alert(6)">': {
+            "title": "Unsafe receipt must not render",
+            "summary": "Unsafe key",
+            "formula": "1 + 1",
+            "sources": [],
+        },
+    }
+
+    client = _client_export(source, receipts)
+
+    assert 'href="#receipt-report"' in client
+    assert 'id="receipt-report"' in client
+    assert "Unsafe receipt must not render" not in client
+    assert "&lt;/summary&gt;&lt;img" in client
+    assert 'Summary &lt;b onclick=&quot;' in client
+    assert 'raw&lt;/b&gt; &amp; &quot;' in client
+    assert 'A &lt; B &amp; &quot;' in client
+    assert 'Label &lt;svg onload=&quot;' in client
+    assert ('href="https://example.gov/record?q=&quot;quoted&quot;&amp;part=1"'
+            in client)
+    assert not re.search(r'<[^>]+\son(?:error|load|click)\s*=', client, re.I)
+    assert 'href="javascript:' not in client
+    assert 'href="data:' not in client
+    assert 'href="file:' not in client
+    assert 'href="/records/' not in client
+    assert "/Users/example" not in client
+
+
 def test_live_press_hydrates_client_mark_only_when_intake_has_a_site(
         tmp_path, monkeypatch):
     from agents.reports import report_assets

@@ -2,11 +2,15 @@ from __future__ import annotations
 
 import json
 
+import agents.golden_press.evidence_pack_v2 as evidence_pack_v2
+
 from agents.golden_press.evidence_pack_v2 import (
     build_move_receipt,
     build_target_groups,
     canonicalize_record_ids,
     canonicalize_requirement_families,
+    qualify_opportunities,
+    validate_graph_contract,
 )
 from agents.golden_press.market_map_projection import (
     Opportunity,
@@ -224,6 +228,84 @@ def test_moved_record_receipt_has_before_after_counts():
     assert totals["client_historical"] == {"before": 0, "after": 1}
 
 
+def test_opportunity_decision_records_every_blocking_dimension(monkeypatch):
+    row = {
+        "record_id": "notice-dual-hold",
+        "requirement_family": "family-dual-hold",
+        "evidence_class": "current_opportunity",
+    }
+    monkeypatch.setattr(
+        evidence_pack_v2, "_technical_fit",
+        lambda *_args: {
+            "fit": False,
+            "fit_class": "ambiguous",
+            "basis": "broad capability stem requires review",
+        })
+    monkeypatch.setattr(
+        evidence_pack_v2, "_eligibility",
+        lambda *_args: {
+            "eligible_route": False,
+            "basis": "restricted set-aside bars direct pursuit",
+        })
+    monkeypatch.setattr(
+        evidence_pack_v2.er, "classify_route",
+        lambda *_args: {
+            "commercial_route": "possible_subcontracting",
+            "eligible_route": False,
+            "route_basis": "restricted set-aside bars direct pursuit",
+        })
+
+    qualified, _incumbents, held = qualify_opportunities([row], {})
+
+    assert qualified == []
+    assert held == [row]
+    decision = row["projection_decision"]
+    assert decision["disposition"] == "needs_review"
+    assert decision["reason_codes"] == [
+        "FIT_AMBIGUOUS", "DIRECT_ROUTE_INELIGIBLE"]
+    assert decision["blocking_dimensions"] == [
+        "service_fit", "route_eligibility"]
+    assert decision["reasons"] == [
+        "broad capability stem requires review",
+        "restricted set-aside bars direct pursuit",
+    ]
+    assert row["qualification_state"] == "held_for_fit_review"
+
+
+def test_graph_contract_requires_exhaustive_disjoint_opportunity_partition():
+    current = {
+        "record_id": "notice-held",
+        "requirement_family": "family-held",
+        "evidence_class": "current_opportunity",
+        "commercial_route": "unknown",
+        "eligible_route": False,
+        "window_state": "live",
+    }
+    payload = {
+        "records": [current],
+        "classification_context": {
+            "client_aliases": [], "named_partners": []},
+        "canonical_requirement_families": [{
+            "requirement_family": "family-held"}],
+        "qualified_opportunity_records": [],
+        "held_opportunities": [{
+            "record_id": "notice-held",
+            "requirement_family": "family-held",
+            "qualification_state": "needs_eligible_route",
+        }],
+        "target_groups": {},
+    }
+    assert not any(
+        row["rule_id"] == "G008_CURRENT_OPPORTUNITY_PARTITION"
+        for row in validate_graph_contract(payload))
+
+    payload["held_opportunities"] = []
+    violation = next(
+        row for row in validate_graph_contract(payload)
+        if row["rule_id"] == "G008_CURRENT_OPPORTUNITY_PARTITION")
+    assert violation["evidence"]["missing"] == ["notice-held"]
+
+
 def test_schema_pins_the_graph_contract():
     path = ("agents/golden_press/schemas/evidence_pack_v2.schema.json")
     schema = json.loads(open(path, encoding="utf-8").read())
@@ -239,8 +321,11 @@ def test_schema_pins_the_graph_contract():
     record = schema["$defs"]["classifiedRecord"]["properties"]
     for key in ("canonical_entity", "requirement_family", "evidence_class",
                 "commercial_route", "window_state",
-                "relationship_provenance"):
+                "relationship_provenance", "projection_decision"):
         assert key in record
+    decision = schema["$defs"]["projectionDecision"]
+    assert decision["properties"]["disposition"]["enum"] == [
+        "qualified", "needs_review"]
     queue_item = schema["$defs"]["researchQueueItem"]
     assert "ambiguous_dimensions" in queue_item["required"]
     assert queue_item["properties"]["ambiguous_dimensions"]["minItems"] == 1

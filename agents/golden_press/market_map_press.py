@@ -25,17 +25,43 @@ under the same promotion law as the golden family.
 
 from __future__ import annotations
 
+import html
 import json
 import re
 from pathlib import Path
 from typing import Any, Callable, Optional
+from urllib.parse import urlsplit
 
-MARKET_MAP_PRESS_VERSION = "market_map_press.v1.1.2026-08-23"
+MARKET_MAP_PRESS_VERSION = "market_map_press.v1.2.2026-08-24"
 
 _EMDASH = "—"
 _STUDIO_SELECTOR = re.compile(
     r"(?:\.studio-(?:toolbar|status)\b|\.is-editing\b|"
     r"\.logo-slot\.is-drop\b|\[data-(?:edit-id|edit-link|action)\b)")
+_RECEIPT_KEY = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$")
+
+
+def _safe_receipts(receipts: Any) -> dict:
+    """Receipt entries whose keys are safe, stable HTML fragment ids."""
+    if not isinstance(receipts, dict):
+        return {}
+    return {
+        str(key): entry
+        for key, entry in receipts.items()
+        if _RECEIPT_KEY.fullmatch(str(key))
+    }
+
+
+def _receipt_url(value: Any) -> str:
+    """An absolute web receipt URL, or empty for every non-web scheme."""
+    url = str(value or "").strip()
+    try:
+        parsed = urlsplit(url)
+    except ValueError:
+        return ""
+    if parsed.scheme.casefold() not in {"http", "https"} or not parsed.netloc:
+        return ""
+    return url
 
 
 def _lint(html: str) -> list:
@@ -68,25 +94,29 @@ def _receipts_appendix(receipts: dict) -> str:
     `<details>`, and every former trigger becomes an anchor to its entry.
     Print forces them open, so the paper copy carries the evidence too.
     """
+    receipts = _safe_receipts(receipts)
     if not receipts:
         return ""
     blocks = []
     for key in sorted(receipts):
         entry = receipts[key] or {}
-        title = str(entry.get("title") or key)
-        summary = str(entry.get("summary") or "")
-        formula = str(entry.get("formula") or "")
+        safe_key = html.escape(key, quote=True)
+        title = html.escape(str(entry.get("title") or key), quote=True)
+        summary = html.escape(str(entry.get("summary") or ""), quote=True)
+        formula = html.escape(str(entry.get("formula") or ""), quote=True)
         links = "".join(
-            f'<a class="source-link" href="{url}" target="_blank" '
-            f'rel="noopener noreferrer">{label} ↗</a> '
-            for label, url in (entry.get("sources") or []) if url)
+            f'<a class="source-link" href="{html.escape(url, quote=True)}" '
+            f'target="_blank" rel="noopener noreferrer">'
+            f'{html.escape(str(label or ""), quote=True)} ↗</a> '
+            for label, raw_url in (entry.get("sources") or [])
+            if (url := _receipt_url(raw_url)))
         body = (
             f'<p class="receipt-copy">{summary}</p>'
             + (f'<p class="receipt-copy"><b>How it was computed:</b> '
                f"{formula}</p>" if formula else "")
             + (f'<p class="record-links">{links}</p>' if links else ""))
         blocks.append(
-            f'<details class="inline-work" id="receipt-{key}">'
+            f'<details class="inline-work" id="receipt-{safe_key}">'
             f"<summary>{title}</summary>"
             + body + "</details>"
             '<section class="receipt-print" aria-hidden="true">'
@@ -298,14 +328,15 @@ def _client_export(html: str, receipts: Any = None) -> str:
     delivery mechanism changes from runtime to native HTML.
     """
     out = html
+    safe_receipts = _safe_receipts(receipts)
     # BEFORE attribute stripping: triggers become anchors to their receipt.
-    if receipts:
+    if safe_receipts:
         def _to_anchor(match: Any) -> str:
             attrs, label = match.group(1), match.group(2)
             key_m = re.search(r'data-work="([^"]+)"', attrs)
             if not key_m:
                 return match.group(0)
-            if key_m.group(1) not in receipts:
+            if key_m.group(1) not in safe_receipts:
                 # Leave the invalid runtime-only control visible so the
                 # client visual contract rejects the export.  Silently
                 # converting it to prose would hide missing evidence.
@@ -347,7 +378,7 @@ def _client_export(html: str, receipts: Any = None) -> str:
 
     out = re.sub(r"(<style[^>]*>)(.*?)</style>", _scrub_css, out,
                  flags=re.S | re.I)
-    appendix = _receipts_appendix(receipts)
+    appendix = _receipts_appendix(safe_receipts)
     if appendix and "</main>" in out:
         out = out.replace("</main>", appendix + "</main>", 1)
     elif appendix:

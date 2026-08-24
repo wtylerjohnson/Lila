@@ -49,6 +49,9 @@ def test_parse_set_aside_recognition_table():
     assert parse_set_aside("No Set aside used", "") is None
     total = parse_set_aside("Total Small Business Set-Aside (FAR 19.5)", "")
     assert total == {"requires_small": True, "required_cert": None, "recognized": True}
+    sam_variant = parse_set_aside("Small Business Set Aside - Total", "")
+    assert sam_variant == {
+        "requires_small": True, "required_cert": None, "recognized": True}
     # EDWOSB matches before WOSB — ordering is load-bearing
     ed = parse_set_aside("SBA Certified Economically Disadvantaged WOSB (EDWOSB) "
                          "Program Set-Aside (FAR 19.15)", "")

@@ -1345,6 +1345,20 @@ pointer and downloads revalidate the manifest, ZIP, and every member hash.
 Older families are classified by `agents/reports/product_families.py`; their
 continued readability is compatibility, not release eligibility.
 
+A projection failure is a typed decision, not deletion. Every current
+opportunity partitions exactly into either `qualified_opportunity_records` or
+`held_opportunities`; the external product preserves every held record in Slot
+5 `review_records` with the upstream `projection_decision`, full record body,
+reason codes, blocking dimensions, and next decision. Slot 1 may reference
+those rows only as `decision_required`, never as ranked or recommended
+pursuits. Non-direct client and competitor awards remain visible in their
+owning-slot review ledgers while staying outside qualified dollar totals. The
+release-state reader rechecks current Assess and Target authorization rather
+than trusting the stored manifest alone. External receipt HTML escapes every
+field and accepts only absolute HTTP(S) links; the bundle transaction emits
+portable sidecars and refuses any outgoing member that still exposes a
+host-local path.
+
 ## Operator frame tiers and the full-store re-screen (2026-08-17)
 
 - `clients/<slug>/frame_tiers.json` is the single record of an
