@@ -26,6 +26,7 @@ from agents.golden_press.market_map_skeleton import MARKET_MAP_SKELETON_VERSION
 from agents.golden_press.market_map_validate import BANNED_VOCABULARY
 from agents.golden_press.records import EvidencePack
 from agents.golden_press.release_snapshot import (
+    LIVE_RELEASE_PURPOSE,
     ReleaseSnapshot,
     canonical_json_bytes,
     contains_local_path,
@@ -198,7 +199,9 @@ def compile_release_snapshot(snapshot: ReleaseSnapshot) -> CompiledRelease:
             "<body>", "<body>" + _FIXTURE_BANNER, 1)
     validation = validate_external_product_html(
         client_html, product, contract_slots=snapshot.contract_slots,
-        render_assets=snapshot.render_assets)
+        render_assets=snapshot.render_assets,
+        require_opportunity_agency_seal=(
+            snapshot.purpose == LIVE_RELEASE_PURPOSE))
     if not validation.get("ok"):
         details = [
             f"{row.get('rule')}: {row.get('detail')}"

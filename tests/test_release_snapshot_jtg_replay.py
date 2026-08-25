@@ -182,6 +182,13 @@ def test_real_jtg_snapshot_double_replay_is_byte_identical_and_non_promotable(
     validation = json.loads(first.payloads["validation.json"])
     assert validation["ok"] is True
     assert validation["violations"] == []
+    card_receipt = validation["opportunity_card_contract"]
+    assert card_receipt["agency_seal_policy"] == "recorded_only"
+    assert card_receipt["rendered_agency_seals"] == 0
+    assert card_receipt["cards_without_agency_seal"] == (
+        len(slot_five["records"]) + len(slot_five["review_records"]))
+    assert card_receipt["rendered_official_source_actions"] == (
+        card_receipt["expected_cards"] * 2)
     assert validation["classification_as_of"] == snapshot.classification_as_of
     assert snapshot.classification_as_of in first.payloads[
         first.primary_html].decode("utf-8")

@@ -326,6 +326,147 @@ def test_target_inventory_is_rederived_after_compilation(
     assert [client_name for client_name, _root in calls] == ["Acme", "Acme"]
 
 
+def test_normal_release_action_promotes_deterministic_card_bearing_bundle(
+        tmp_path, monkeypatch):
+    from agents.review import targeting_target_set_sha256
+
+    targets = []
+    target_sha256 = targeting_target_set_sha256(targets)
+    authorization = copy.deepcopy(APPROVED_AUTHORIZATION)
+    authorization["targeting_review"]["target_set_sha256"] = target_sha256
+
+    notice = {
+        "record_id": "NOTICE-CARD-1",
+        "title": "Language Support Services",
+        "description": "Interpretation and translation support.",
+        "agency": "Department of State",
+        "office": "Acquisitions",
+        "naics": "541930",
+        "psc": "R608",
+        "notice_type": "Solicitation",
+        "posted_date": "2026-08-20",
+        "response_deadline": "2026-09-30",
+        "evidence_class": "current_opportunity",
+        "service_fit": "direct",
+        "fit_basis": "approved core capability evidence",
+        "window_state": "live",
+        "commercial_route": "possible_subcontracting",
+        "eligible_route": False,
+        "route_action": "team",
+        "route_basis": "an eligible prime is required",
+        "requirement_family": "language-support",
+        "url": "https://sam.gov/opp/notice-card-1/view",
+    }
+    graph = _graph()
+    graph.update({
+        "records": [notice],
+        "qualified_opportunity_records": [{
+            **notice,
+            "source_url": notice["url"],
+            "response_due": notice["response_deadline"],
+            "linked_targets": [],
+            "technical_fit": {"basis": "approved core capability evidence"},
+        }],
+        "target_groups": {},
+        "counts": {"input_records_raw": 1, "canonical_records": 1},
+        "record_identity_receipt": {
+            "input_records_raw": 1,
+            "canonical_records": 1,
+        },
+    })
+    base = _snapshot(tmp_path)
+    inputs = copy.deepcopy(base.market_map_inputs)
+    inputs["evidence_pack_v2"] = graph
+    render_assets = copy.deepcopy(base.render_assets)
+    render_assets.update({
+        "agency_marks": {"agency:dos": _mark()},
+        "organization_marks": {},
+    })
+    snapshot = ReleaseSnapshot.create(
+        purpose=base.purpose,
+        client_name=base.client_name,
+        slug=base.slug,
+        business_as_of=base.business_as_of,
+        classification_as_of=base.classification_as_of,
+        captured_at=base.captured_at,
+        contract_slots=base.contract_slots,
+        versions=base.versions,
+        authorization=authorization,
+        profile=base.profile,
+        graph=graph,
+        market_map_inputs=inputs,
+        render_assets=render_assets,
+        root=tmp_path,
+        evidence_pack_bytes=base.evidence_pack_bytes,
+        source_evidence_pack_bytes=base.source_evidence_pack_bytes,
+    )
+
+    monkeypatch.setattr(
+        bundle, "capture_release_snapshot", lambda **_kwargs: snapshot)
+    release_root = tmp_path / "release-root"
+    result = bundle.build_complete_bundle(
+        client_name="Acme",
+        slug="acme",
+        root=release_root,
+        as_of="2026-08-24",
+        release_requested=True,
+        authorization_fn=lambda *_args: copy.deepcopy(authorization),
+        target_inventory_loader=lambda *_args: list(targets),
+        expected_target_set_sha256=target_sha256,
+        classification_as_of=FROZEN,
+        captured_at=FROZEN,
+    )
+
+    release_dir = Path(result.release_dir)
+    validation = json.loads((release_dir / "validation.json").read_text())
+    assert validation["ok"] is True
+    assert validation["violations"] == []
+    assert validation["opportunity_card_contract"] == {
+        "schema_version": "lila-opportunity-card.v1",
+        "expected_cards": 1,
+        "rendered_cards": 1,
+        "agency_seal_policy": "required_exactly_one",
+        "priority_links": 1,
+        "owned_opportunities": 1,
+        "review_opportunities": 0,
+        "rendered_agency_seals": 1,
+        "cards_without_agency_seal": 0,
+        "rendered_official_source_actions": 2,
+    }
+
+    client = Path(result.html_path).read_text()
+    opportunity_html = client.split(
+        '<section class="plain-section product-slot" '
+        'id="federal-opportunities" data-slot-id="federal-opportunities"',
+        1,
+    )[1].split(
+        '<section class="plain-section product-slot" '
+        'id="teaming-opportunities" data-slot-id="teaming-opportunities"',
+        1,
+    )[0]
+    teaming_html = client.split(
+        '<section class="plain-section product-slot" '
+        'id="teaming-opportunities" data-slot-id="teaming-opportunities"',
+        1,
+    )[1].split(
+        '<section class="plain-section product-slot" '
+        'id="future-forecasts" data-slot-id="future-forecasts"',
+        1,
+    )[0]
+    assert client.count('data-opportunity-card-contract=') == 1
+    assert opportunity_html.count('data-opportunity-card-contract=') == 1
+    assert 'data-opportunity-card-contract=' not in teaming_html
+    assert 'data-record-key="teaming-route:' in teaming_html
+
+    replay_snapshot = ReleaseSnapshot.from_dict(json.loads(
+        (release_dir / "captured_inputs.json").read_text()))
+    replay = compile_release_snapshot(replay_snapshot)
+    assert all((release_dir / name).read_bytes() == payload
+               for name, payload in replay.payloads.items())
+    assert Path(result.manifest_path).read_bytes() == replay.manifest_bytes
+    assert Path(result.bundle_path).read_bytes() == replay.zip_bytes
+
+
 def test_snapshot_binds_ratified_contract_without_amendment_gate(tmp_path):
     snapshot = _snapshot(tmp_path)
     assert snapshot.schema_version == RELEASE_SNAPSHOT_VERSION

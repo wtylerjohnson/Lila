@@ -16,6 +16,8 @@ from agents.golden_press.external_product_projection import (
     record_ownership_key,
 )
 from agents.golden_press.external_product_render import (
+    OPPORTUNITY_CARD_FIELD_ORDER,
+    OPPORTUNITY_CARD_REGION_ORDER,
     OPPORTUNITY_CARD_VERSION,
     capture_external_product_identity_assets,
     render_external_product,
@@ -729,10 +731,24 @@ def test_opportunity_cards_share_one_locked_structure_and_reject_tampering(
         "schema_version": OPPORTUNITY_CARD_VERSION,
         "expected_cards": expected,
         "rendered_cards": expected,
+        "agency_seal_policy": "required_exactly_one",
+        "rendered_agency_seals": expected,
+        "cards_without_agency_seal": 0,
+        "rendered_official_source_actions": expected * 2,
         "priority_links": len(document.slots[0].records),
         "owned_opportunities": len(opportunity_slot.records),
         "review_opportunities": len(opportunity_slot.review_records),
     }
+    assert OPPORTUNITY_CARD_REGION_ORDER == (
+        "status-rail", "identity", "headline", "decision", "acquisition",
+        "decision-state", "intelligence", "targets", "actions", "evidence",
+    )
+    assert OPPORTUNITY_CARD_FIELD_ORDER == (
+        "posture", "response-due", "rail-notice-type", "fit", "access",
+        "status", "notice-type", "set-aside", "naics", "psc",
+        "solicitation-number", "published-value",
+        "evidence-read", "route-basis", "next-action",
+    )
     assert client.count(
         f'data-opportunity-card-contract="{OPPORTUNITY_CARD_VERSION}"') \
         == expected
@@ -748,6 +764,32 @@ def test_opportunity_cards_share_one_locked_structure_and_reject_tampering(
     assert 'data-card-context="priority-reference"' not in client
     assert "Solicitation number not published ↗" in client
     assert client.count('data-card-field="published-value"') == expected
+    assert ('data-card-field="solicitation-number"><b>Solicitation number</b>'
+            'Not published</div>') in client
+    assert ('data-card-field="published-value"><b>Published value</b>'
+            'Not published</div>') in client
+
+    removed_source_action = client.replace(
+        ' data-card-action="official-source"', '', 1)
+    broken = validate_external_product_html(removed_source_action, document)
+    assert "opportunity_card_source_action_count" in {
+        row["rule"] for row in broken["violations"]}
+
+    first_card = (
+        f'data-opportunity-card-contract="{OPPORTUNITY_CARD_VERSION}"')
+    before_card, card_and_after = client.split(first_card, 1)
+    removed_seal = before_card + first_card + card_and_after.replace(
+        ' data-agency-seal="true"', '', 1)
+    broken = validate_external_product_html(removed_seal, document)
+    assert "opportunity_card_agency_seal_count" in {
+        row["rule"] for row in broken["violations"]}
+    historical = validate_external_product_html(
+        removed_seal, document, require_opportunity_agency_seal=False)
+    assert historical["ok"], historical["violations"]
+    assert historical["opportunity_card_contract"]["agency_seal_policy"] == (
+        "recorded_only")
+    assert historical["opportunity_card_contract"][
+        "cards_without_agency_seal"] == 1
 
     tampered = client.replace(
         'data-card-field="psc"', 'data-card-field="psc-removed"', 1)

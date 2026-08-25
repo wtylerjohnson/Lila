@@ -18,7 +18,7 @@ from agents.golden_press.external_product_projection import (
 from agents.golden_press.release_snapshot import canonical_slot_sha256
 
 
-EXTERNAL_PRODUCT_RENDER_VERSION = "lila-eight-slot-render.v11.2026-08-25"
+EXTERNAL_PRODUCT_RENDER_VERSION = "lila-eight-slot-render.v12.2026-08-25"
 OPPORTUNITY_CARD_VERSION = "lila-opportunity-card.v1"
 OPPORTUNITY_CARD_REGION_ORDER = (
     "status-rail", "identity", "headline", "decision", "acquisition",
@@ -289,6 +289,7 @@ class _OpportunityCardParser(HTMLParser):
                     "title": [],
                     "text": [],
                     "identity_surfaces": 0,
+                    "agency_seals": 0,
                     "official_source_actions": 0,
                     "source_hrefs": [],
                 }
@@ -305,10 +306,13 @@ class _OpportunityCardParser(HTMLParser):
         classes = set(values.get("class", "").split())
         if "product-identity-mark" in classes:
             self._current["identity_surfaces"] += 1
-        if values.get("data-card-action") == "official-source":
+        if ("product-identity-mark" in classes
+                and values.get("data-agency-seal") == "true"):
+            self._current["agency_seals"] += 1
+        if (tag == "a"
+                and values.get("data-card-action") == "official-source"):
             self._current["official_source_actions"] += 1
-            if tag == "a":
-                self._current["source_hrefs"].append(values.get("href", ""))
+            self._current["source_hrefs"].append(values.get("href", ""))
         if tag not in self._VOID:
             self._depth += 1
             if field:
@@ -2054,7 +2058,8 @@ def _validate_identity_contract(
 
 
 def _validate_opportunity_card_contract(
-    client_html: str, doc: ExternalProductDocument,
+    client_html: str, doc: ExternalProductDocument, *,
+    require_agency_seal: bool = True,
 ) -> tuple[list[dict], dict[str, Any]]:
     violations: list[dict] = []
     cards = _opportunity_cards(client_html)
@@ -2218,10 +2223,19 @@ def _validate_opportunity_card_contract(
                 "detail": (f"{key!r} renders {card.get('identity_surfaces')} "
                            "identity surfaces; expected exactly one"),
             })
-        if int(card.get("official_source_actions") or 0) < 1:
+        agency_seals = int(card.get("agency_seals") or 0)
+        if require_agency_seal and agency_seals != 1:
             violations.append({
-                "rule": "opportunity_card_source",
-                "detail": f"{key!r} has no official source action",
+                "rule": "opportunity_card_agency_seal_count",
+                "detail": (f"{key!r} renders {agency_seals} actual agency "
+                           "seals; expected exactly one"),
+            })
+        if card.get("official_source_actions") != 2:
+            violations.append({
+                "rule": "opportunity_card_source_action_count",
+                "detail": (f"{key!r} renders "
+                           f"{card.get('official_source_actions')} official "
+                           "source actions; expected exactly two"),
             })
         expected_record = expected.get(key)
         if expected_record is None:
@@ -2303,6 +2317,14 @@ def _validate_opportunity_card_contract(
         "schema_version": OPPORTUNITY_CARD_VERSION,
         "expected_cards": len(expected),
         "rendered_cards": len(cards),
+        "agency_seal_policy": (
+            "required_exactly_one" if require_agency_seal else "recorded_only"),
+        "rendered_agency_seals": sum(
+            int(card.get("agency_seals") or 0) for card in cards),
+        "cards_without_agency_seal": sum(
+            int(card.get("agency_seals") or 0) == 0 for card in cards),
+        "rendered_official_source_actions": sum(
+            int(card.get("official_source_actions") or 0) for card in cards),
         "priority_links": len(expected_priority_links),
         "owned_opportunities": sum(
             1 for context, _token in expected if context == "owned"),
@@ -2314,6 +2336,7 @@ def _validate_opportunity_card_contract(
 def validate_external_product_html(
     client_html: str, doc: ExternalProductDocument, *,
     contract_slots: Any = None, render_assets: Any = None,
+    require_opportunity_agency_seal: bool = True,
 ) -> dict:
     from agents.golden_press.client_visual_contract import validate_client_visual_contract
     from agents.golden_press.style_contract import unstyled_in_context
@@ -2346,7 +2369,9 @@ def validate_external_product_html(
         client_html, doc, render_assets=render_assets)
     violations.extend(identity_violations)
     card_violations, opportunity_card_contract = (
-        _validate_opportunity_card_contract(client_html, doc))
+        _validate_opportunity_card_contract(
+            client_html, doc,
+            require_agency_seal=require_opportunity_agency_seal))
     violations.extend(card_violations)
     return {
         "schema_version": EXTERNAL_PRODUCT_RENDER_VERSION,
