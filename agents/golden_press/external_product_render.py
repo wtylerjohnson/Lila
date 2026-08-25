@@ -18,7 +18,18 @@ from agents.golden_press.external_product_projection import (
 from agents.golden_press.release_snapshot import canonical_slot_sha256
 
 
-EXTERNAL_PRODUCT_RENDER_VERSION = "lila-eight-slot-render.v10.2026-08-25"
+EXTERNAL_PRODUCT_RENDER_VERSION = "lila-eight-slot-render.v11.2026-08-25"
+OPPORTUNITY_CARD_VERSION = "lila-opportunity-card.v1"
+OPPORTUNITY_CARD_REGION_ORDER = (
+    "status-rail", "identity", "headline", "decision", "acquisition",
+    "decision-state", "intelligence", "targets", "actions", "evidence",
+)
+OPPORTUNITY_CARD_FIELD_ORDER = (
+    "posture", "response-due", "rail-notice-type", "fit", "access",
+    "status", "notice-type", "set-aside", "naics", "psc",
+    "solicitation-number", "published-value",
+    "evidence-read", "route-basis", "next-action",
+)
 
 _LOCAL_PATH = re.compile(
     r"(?:file://|(?:^|[\"'\s(=:])/(?:users|home)/)", re.I | re.M)
@@ -240,8 +251,190 @@ def _identity_surfaces(client_html: str) -> list[dict[str, Any]]:
     return parser.surfaces
 
 
+class _OpportunityCardParser(HTMLParser):
+    """Collect the fixed regions and fields of every canonical card."""
+
+    _VOID = frozenset({
+        "area", "base", "br", "col", "embed", "hr", "img", "input",
+        "link", "meta", "param", "source", "track", "wbr",
+    })
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.cards: list[dict[str, Any]] = []
+        self._current: dict[str, Any] | None = None
+        self._depth = 0
+        self._field_stack: list[tuple[str, int]] = []
+        self._title_depth: int | None = None
+        self._section_stack: list[str] = []
+
+    def handle_starttag(
+        self, tag: str, attrs: list[tuple[str, str | None]],
+    ) -> None:
+        values = {str(key).casefold(): "" if value is None else str(value)
+                  for key, value in attrs}
+        tag = tag.casefold()
+        if tag == "section":
+            self._section_stack.append(values.get("data-slot-id", ""))
+        if self._current is None:
+            if (tag == "article" and values.get(
+                    "data-opportunity-card-contract")):
+                self._current = {
+                    "attrs": values,
+                    "slot_id": (
+                        self._section_stack[-1] if self._section_stack else ""),
+                    "regions": [],
+                    "fields": [],
+                    "field_text": {},
+                    "title": [],
+                    "text": [],
+                    "identity_surfaces": 0,
+                    "official_source_actions": 0,
+                    "source_hrefs": [],
+                }
+                self._depth = 1
+                self._field_stack = []
+                self._title_depth = None
+            return
+        region = values.get("data-card-region")
+        if region:
+            self._current["regions"].append(region)
+        field = values.get("data-card-field")
+        if field:
+            self._current["fields"].append(field)
+        classes = set(values.get("class", "").split())
+        if "product-identity-mark" in classes:
+            self._current["identity_surfaces"] += 1
+        if values.get("data-card-action") == "official-source":
+            self._current["official_source_actions"] += 1
+            if tag == "a":
+                self._current["source_hrefs"].append(values.get("href", ""))
+        if tag not in self._VOID:
+            self._depth += 1
+            if field:
+                self._current["field_text"].setdefault(field, [])
+                self._field_stack.append((field, self._depth))
+            if tag == "h3":
+                self._title_depth = self._depth
+
+    def handle_startendtag(
+        self, tag: str, attrs: list[tuple[str, str | None]],
+    ) -> None:
+        self.handle_starttag(tag, attrs)
+        if tag.casefold() not in self._VOID:
+            self.handle_endtag(tag)
+
+    def handle_endtag(self, tag: str) -> None:
+        tag = tag.casefold()
+        if tag in self._VOID:
+            return
+        if self._current is not None:
+            if tag == "h3" and self._title_depth == self._depth:
+                self._title_depth = None
+            while (self._field_stack and
+                   self._field_stack[-1][1] == self._depth):
+                self._field_stack.pop()
+            self._depth -= 1
+            if self._depth == 0:
+                self.cards.append(self._current)
+                self._current = None
+                self._field_stack = []
+                self._title_depth = None
+        if tag == "section" and self._section_stack:
+            self._section_stack.pop()
+
+    def handle_data(self, data: str) -> None:
+        if self._current is None:
+            return
+        self._current["text"].append(data)
+        for field, _depth in self._field_stack:
+            self._current["field_text"][field].append(data)
+        if self._title_depth is not None:
+            self._current["title"].append(data)
+
+
+def _opportunity_cards(client_html: str) -> list[dict[str, Any]]:
+    parser = _OpportunityCardParser()
+    try:
+        parser.feed(client_html)
+        parser.close()
+    except (AssertionError, ValueError):
+        return []
+    return parser.cards
+
+
+class _PriorityLinkParser(HTMLParser):
+    """Collect Slot 1 promotion links to canonical owning records."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.links: list[dict[str, str]] = []
+        self._section_stack: list[str] = []
+
+    def handle_starttag(
+        self, tag: str, attrs: list[tuple[str, str | None]],
+    ) -> None:
+        if tag.casefold() != "a":
+            if tag.casefold() == "section":
+                values = {
+                    str(key).casefold(): "" if value is None else str(value)
+                    for key, value in attrs
+                }
+                self._section_stack.append(values.get("data-slot-id", ""))
+            return
+        values = {str(key).casefold(): "" if value is None else str(value)
+                  for key, value in attrs}
+        if "product-priority-link" not in set(
+                values.get("class", "").split()):
+            return
+        values["_slot_id"] = (
+            self._section_stack[-1] if self._section_stack else "")
+        self.links.append(values)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag.casefold() == "section" and self._section_stack:
+            self._section_stack.pop()
+
+
+def _priority_links(client_html: str) -> list[dict[str, str]]:
+    parser = _PriorityLinkParser()
+    try:
+        parser.feed(client_html)
+        parser.close()
+    except (AssertionError, ValueError):
+        return []
+    return parser.links
+
+
+class _HtmlIdParser(HTMLParser):
+    """Collect rendered IDs so internal card links can prove a destination."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.ids: list[str] = []
+
+    def handle_starttag(
+        self, _tag: str, attrs: list[tuple[str, str | None]],
+    ) -> None:
+        values = {str(key).casefold(): "" if value is None else str(value)
+                  for key, value in attrs}
+        if values.get("id"):
+            self.ids.append(values["id"])
+
+
+def _html_ids(client_html: str) -> list[str]:
+    parser = _HtmlIdParser()
+    try:
+        parser.feed(client_html)
+        parser.close()
+    except (AssertionError, ValueError):
+        return []
+    return parser.ids
+
+
 _PRODUCT_CSS = r"""
 .product-css-sentinel{display:contents}
+.memo{--accent:var(--coral);--line:var(--rule);--line-strong:var(--rule-dark);--link:var(--purple);--mono:ui-monospace,SFMono-Regular,Menlo,monospace;--paper-deep:#f7f7f5}
 .product-slot{scroll-margin-top:32px}
 .product-slot-intro{min-width:0}
 .product-slot-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:0 0 22px}
@@ -290,6 +483,62 @@ _PRODUCT_CSS = r"""
 .product-source{display:inline-block;margin-top:12px;color:var(--link);font-family:var(--mono);font-size:11px;overflow-wrap:anywhere}
 .product-priority{display:grid;grid-template-columns:42px minmax(0,1fr);gap:13px}
 .product-action-order{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border:1px solid var(--accent);color:var(--accent);font-family:var(--mono);font-weight:700}
+.product-opportunity-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;align-items:stretch;border-top:1px solid var(--rule);border-left:1px solid var(--rule)}
+.product-opportunity-card{min-width:0;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);background:var(--paper);break-inside:avoid;page-break-inside:avoid}
+.product-opportunity-review{background:#fcfcfb}
+.product-opportunity-card[data-card-context="review"]{background:#fcfcfb}
+.product-opportunity-rail{display:grid;grid-template-columns:1fr 1.15fr 1fr;border-bottom:3px solid var(--coral);background:#ededed}
+.product-opportunity-rail>span{display:flex;min-height:76px;padding:12px;flex-direction:column;align-items:center;justify-content:center;border-right:1px solid var(--rule);font-size:12px;font-weight:800;line-height:1.3;text-align:center;overflow-wrap:anywhere}
+.product-opportunity-rail>span:first-child{color:#fff;background:var(--ink)}
+.product-opportunity-rail>span:last-child{border-right:0}
+.product-opportunity-rail b{display:block;margin-bottom:3px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;opacity:.72}
+.product-opportunity-rail time{display:block;font-style:normal}
+.product-opportunity-rail small{display:block;margin-top:3px;color:inherit;font-size:9px;font-weight:700}
+.product-opportunity-body{padding:22px}
+.product-opportunity-kicker{display:flex;gap:13px;align-items:center;margin-bottom:13px}
+.product-opportunity-kicker .product-identity-mark{display:grid;min-width:0;grid-template-columns:58px minmax(0,1fr);gap:12px;align-items:center;flex:1;margin:0;padding:0;border:0}
+.product-opportunity-kicker .product-identity-mark .product-agency-seal.logo-slot{width:58px;height:58px;min-width:58px}
+.product-opportunity-type{max-width:190px;padding:6px 8px;color:var(--purple);background:var(--purple-soft);font-size:10px;font-weight:900;line-height:1.25;text-align:center;text-transform:uppercase;overflow-wrap:anywhere}
+.product-opportunity-headline{min-width:0}
+.product-opportunity-link{display:inline-block;color:var(--purple);font-family:var(--mono);font-size:11px;font-weight:850;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.product-opportunity-headline h3{margin:9px 0 3px;font-size:25px;line-height:1.08;overflow-wrap:anywhere}
+.product-opportunity-buyer{margin:5px 0 0;color:var(--ink-soft);font-size:12px;line-height:1.45}
+.product-opportunity-decision{display:grid;grid-template-columns:1fr 1fr;margin:19px -22px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.product-opportunity-decision>div{min-height:76px;padding:14px 22px;border-right:1px solid var(--rule);font-size:12px;font-weight:700;line-height:1.4;overflow-wrap:anywhere}
+.product-opportunity-decision>div:last-child{border-right:0}
+.product-opportunity-decision b,.product-opportunity-acquisition b,.product-opportunity-intel-row b{display:block;margin-bottom:4px;color:var(--muted);font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+.product-opportunity-acquisition{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));margin:0 -22px;border-bottom:1px solid var(--rule)}
+.product-opportunity-acquisition>div{min-height:72px;padding:12px 14px;border-right:1px solid var(--rule);font-size:12px;font-weight:700;line-height:1.35;overflow-wrap:anywhere}
+.product-opportunity-acquisition>div:nth-child(5),.product-opportunity-acquisition>div:last-child{border-right:0}
+.product-opportunity-acquisition>div:nth-child(n+6){border-top:1px solid var(--rule)}
+.product-opportunity-wide-field{grid-column:span 3}
+.product-opportunity-value-field{grid-column:span 2}
+.product-opportunity-decision-band{margin:16px 0 0;padding:11px 13px;border-left:3px solid var(--green);background:#f2f8f1;font-size:11px;line-height:1.5}
+.product-opportunity-card[data-card-context="review"] .product-opportunity-decision-band{border-color:var(--coral);background:var(--coral-soft)}
+.product-opportunity-decision-band strong{display:block;margin-bottom:3px;font-size:9px;letter-spacing:.09em;text-transform:uppercase}
+.product-opportunity-intelligence{margin:16px 0 0;border-top:1px solid var(--rule)}
+.product-opportunity-intel-row{display:grid;grid-template-columns:112px minmax(0,1fr);gap:14px;padding:12px 0;border-bottom:1px solid var(--rule);font-size:12px;line-height:1.5}
+.product-opportunity-intel-row b{margin:0}
+.product-opportunity-targets{margin-top:16px;padding-top:14px;border-top:1px solid var(--rule)}
+.product-opportunity-targets .product-targets{margin-top:0;padding-top:0;border-top:0}
+.product-opportunity-actions{display:flex;gap:15px;flex-wrap:wrap;align-items:center;margin-top:18px}
+.product-opportunity-source{color:var(--purple);font-size:12px;font-weight:800;text-decoration:underline;text-underline-offset:4px;overflow-wrap:anywhere}
+.product-opportunity-source:focus-visible,.product-opportunity-link:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.product-opportunity-detail{margin-top:16px;padding-top:12px;border-top:1px solid var(--rule)}
+.product-opportunity-detail>summary{cursor:pointer;color:var(--purple);font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.product-priority-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;border-top:1px solid var(--rule);border-left:1px solid var(--rule)}
+.product-priority-link{display:grid;grid-template-columns:46px 64px minmax(0,1fr);gap:12px;align-items:center;min-height:128px;padding:14px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);color:var(--ink);background:var(--paper);text-decoration:none}
+.product-priority-link:hover,.product-priority-link:focus-visible{position:relative;z-index:1;outline:3px solid var(--coral);outline-offset:-3px}
+.product-priority-order{display:grid;width:40px;height:40px;place-items:center;border:1px solid var(--coral);color:var(--coral);font-family:var(--mono);font-size:11px;font-weight:850;text-transform:uppercase}
+.product-priority-identity{min-width:0}
+.product-priority-identity .product-identity-mark{display:block;margin:0;padding:0;border:0}
+.product-priority-identity .product-identity-copy{display:none}
+.product-priority-identity .product-agency-seal.logo-slot{width:54px;height:54px;min-width:54px}
+.product-priority-copy{display:grid;gap:5px;min-width:0}
+.product-priority-kind{color:var(--coral);font-size:9px;font-weight:850;letter-spacing:.09em;text-transform:uppercase}
+.product-priority-copy>strong{font-size:15px;line-height:1.3;overflow-wrap:anywhere}
+.product-priority-meta{color:var(--ink-soft);font-size:10px;font-weight:750;line-height:1.4}
+.product-priority-next{color:var(--muted);font-size:10px;line-height:1.4}
 .product-targets{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
 .product-targets h4{margin:0 0 9px;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
 .product-target{border-left:2px solid var(--accent);padding:7px 9px;margin:7px 0;background:var(--paper-deep);font-size:11px;line-height:1.45}
@@ -318,8 +567,9 @@ _PRODUCT_CSS = r"""
 .vector-map{min-height:180px}
 .product-reference{color:var(--muted);font-size:11px;font-family:var(--mono);margin-top:10px}
 .product-status{white-space:nowrap}
+@media(max-width:1050px){.product-opportunity-grid,.product-priority-links{grid-template-columns:1fr}}
 @media(max-width:980px){.product-slot[data-slot-id="research-mesh"] .product-records,.product-slot[data-slot-id="industry-days-events"] .product-records{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:720px){.product-records,.product-review-records,.product-slot[data-slot-id="research-mesh"] .product-records,.product-slot[data-slot-id="industry-days-events"] .product-records,.product-visuals{grid-template-columns:1fr}.product-slot-metrics{grid-template-columns:1fr 1fr}.product-fields{grid-template-columns:1fr}.product-fields dd{margin-bottom:5px}}
+@media(max-width:720px){.product-records,.product-review-records,.product-slot[data-slot-id="research-mesh"] .product-records,.product-slot[data-slot-id="industry-days-events"] .product-records,.product-visuals{grid-template-columns:1fr}.product-slot-metrics{grid-template-columns:1fr 1fr}.product-fields{grid-template-columns:1fr}.product-fields dd{margin-bottom:5px}.product-opportunity-acquisition{grid-template-columns:1fr 1fr}.product-opportunity-acquisition>div:nth-child(5){border-right:1px solid var(--rule)}.product-opportunity-acquisition>div:nth-child(2n){border-right:0}.product-opportunity-wide-field{grid-column:auto}.product-opportunity-value-field{grid-column:1/3}.product-opportunity-intel-row{grid-template-columns:1fr;gap:5px}}
 @page{size:letter;margin:.42in}
 @media print{
 html,body,.memo{background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -337,6 +587,20 @@ html,body,.memo{background:#fff!important;-webkit-print-color-adjust:exact;print
 .product-slot[data-slot-id="research-mesh"] .product-records,.product-slot[data-slot-id="industry-days-events"] .product-records{grid-template-columns:repeat(2,minmax(0,1fr))}
 .product-slot[data-slot-id="priority-pursuits"] .product-records,.product-slot[data-slot-id="federal-opportunities"] .product-records{grid-template-columns:1fr}
 .product-slot[data-slot-id="federal-opportunities"] .product-review-records{grid-template-columns:1fr}
+.product-opportunity-grid{display:grid;grid-template-columns:1fr;border-top:1px solid var(--rule);border-left:1px solid var(--rule)}
+.product-priority-links{display:grid;grid-template-columns:1fr;border-top:1px solid var(--rule);border-left:1px solid var(--rule)}
+.product-priority-link{min-height:0;padding:10px;break-inside:avoid;page-break-inside:avoid}
+.product-opportunity-card{break-inside:avoid;page-break-inside:avoid}
+.product-opportunity-rail>span{min-height:62px;padding:9px}
+.product-opportunity-body{padding:15px}
+.product-opportunity-kicker .product-identity-mark{grid-template-columns:44px minmax(0,1fr)}
+.product-opportunity-kicker .product-identity-mark .product-agency-seal.logo-slot{width:44px;height:44px;min-width:44px}
+.product-opportunity-headline h3{font-size:20px}
+.product-opportunity-decision,.product-opportunity-acquisition{margin-left:-15px;margin-right:-15px}
+.product-opportunity-decision>div{min-height:0;padding:10px 15px}
+.product-opportunity-acquisition>div{min-height:0;padding:9px 10px}
+.product-opportunity-intel-row{padding:9px 0}
+.product-opportunity-detail{display:none!important}
 .product-record{margin:0;break-inside:avoid;page-break-inside:avoid;padding:13px;overflow:hidden}
 .product-identity-mark{grid-template-columns:36px minmax(0,1fr);gap:8px;margin-bottom:9px;padding-bottom:8px}
 .product-identity-mark .product-agency-seal.logo-slot{width:34px;height:34px;min-width:34px}
@@ -670,60 +934,340 @@ def _identity_mark(
         '</div></div>')
 
 
-def _priority(
-    record: dict, *, client_name: str = "",
+def _opportunity_card_token(value: Any) -> str:
+    return hashlib.sha256(
+        str(value or "anonymous-opportunity").encode("utf-8")
+    ).hexdigest()[:16]
+
+
+def _opportunity_date(value: Any, *, empty: str = "Not published") -> str:
+    text = " ".join(str(value or "").split())
+    match = re.match(r"^(\d{4})-(\d{2})-(\d{2})", text)
+    if not match:
+        return text or empty
+    year, month, day = (int(part) for part in match.groups())
+    names = (
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    )
+    if not 1 <= month <= 12:
+        return text
+    return f"{names[month - 1]} {day}, {year}"
+
+
+def _opportunity_value(value: Any, *, empty: str = "Not published") -> str:
+    if value in (None, "", [], {}):
+        return empty
+    return _display_value(value)
+
+
+def _opportunity_notice_type(record: Mapping[str, Any]) -> str:
+    return _opportunity_value(
+        record.get("instrument") or record.get("notice_type")
+        or record.get("kind"),
+    )
+
+
+def _opportunity_posture(
+    record: Mapping[str, Any], *, context: str,
+    reference: Mapping[str, Any],
+) -> str:
+    if context == "review":
+        return "Fit review"
+    route = str(record.get("route_action") or
+                reference.get("route_action") or "verify").casefold()
+    label = {
+        "prime": "Prime path",
+        "team": "Teaming required",
+        "verify": "Verify access",
+    }.get(route, _opportunity_value(route, empty="Verify route").title())
+    if context != "priority-reference":
+        return label
+    kind = reference.get("reference_kind")
+    if kind == "decision_required":
+        return "Decision required"
+    if kind == "forecast_action":
+        return "Forecast action"
+    order = int(reference.get("action_order") or 0)
+    return f"{order:02d} · {label}" if order else label
+
+
+def _opportunity_source_link(
+    record: Mapping[str, Any], *, compact: bool = False,
+) -> str:
+    url = _http(record.get("source_url"))
+    if not url:
+        return (
+            '<span class="product-opportunity-source">'
+            'Official source not published</span>')
+    if compact:
+        visible = (record.get("solicitation_number")
+                   or ("Forecast source record"
+                       if str(record.get("kind") or "").casefold() == "forecast"
+                       else "Solicitation number not published"))
+    else:
+        visible = "Official source record"
+    css_class = ("product-opportunity-link" if compact
+                 else "product-opportunity-source")
+    return (
+        f'<a class="{css_class}" data-card-action="official-source" '
+        f'href="{esc(url)}" target="_blank" '
+        f'rel="noopener noreferrer">{esc(visible)} ↗</a>')
+
+
+def _opportunity_decision_copy(
+    record: Mapping[str, Any], *, context: str,
+) -> tuple[str, str]:
+    """Return route-aware, evidence-bounded decision copy for a card."""
+    if str(record.get("kind") or "").casefold() == "forecast":
+        return (
+            "Forecast action",
+            "Forward demand signal; confirm the acquisition path before pursuit.",
+        )
+    if context == "review":
+        detail = (
+            "; ".join(str(reason) for reason in record.get("reasons") or ())
+            or _opportunity_value(
+                record.get("decision_action"),
+                empty="Resolve the stated fit blocker"))
+        return "Decision required", detail
+    route_action = str(record.get("route_action") or "verify").casefold()
+    if route_action == "prime":
+        return (
+            "Prime-ready pursuit",
+            "Service fit and the direct route passed the governed qualification boundary.",
+        )
+    if route_action == "team":
+        return (
+            "Teaming-path pursuit",
+            "Service fit passed; pursue through an eligible prime or named partner before committing to a bid.",
+        )
+    return (
+        "Route verification required",
+        "Service fit passed; confirm eligibility and acquisition access before committing to a bid.",
+    )
+
+
+def _opportunity_card(
+    record: Mapping[str, Any], *, context: str,
+    client_name: str = "",
     agency_marks: Mapping[str, str] | None = None,
     organization_marks: Mapping[str, str] | None = None,
     surface_key: str = "",
 ) -> str:
-    fields = []
-    for label, key in (("Route", "route"),
-                       ("Pursuit path", "route_action"),
-                       ("Timing", "timing"),
-                       ("Next action", "next_action"),
-                       ("Targets", "target_count")):
-        value = record.get(key)
-        if value not in (None, ""):
-            fields.append(f"<dt>{esc(label)}</dt><dd>{esc(_display_value(value))}</dd>")
-    kind = record.get("reference_kind")
-    label = {
-        "decision_required": "Decision required",
-        "forecast_action": "Forecast action",
-        "qualified_action": "Actionable pursuit",
-    }.get(kind, "Deadline-ordered action")
-    decision_required = kind == "decision_required"
-    badge = ("Review" if decision_required else
-             f"{int(record.get('action_order') or 0):02d}")
-    classes = ("product-record product-priority product-priority-decision"
-               if decision_required else "product-record product-priority")
-    owner_label = {
-        "federal-opportunities": "Federal Opportunities Identified",
-        "future-forecasts": "Future Forecasts",
-    }.get(record.get("reference_slot_id"), "its evidence slot")
+    """Render the one fixed visual for an owning opportunity record."""
+    owner_key = (record_ownership_key(dict(record))
+                 or record.get("record_key"))
+    token = _opportunity_card_token(owner_key)
+    review = context == "review"
+    forecast = str(record.get("kind") or "").casefold() == "forecast"
+    card_id = f"opportunity-{token}"
+    decision_state = str(
+        record.get("decision_state")
+        or ("needs_review" if review else "qualified"))
+    notice_type = _opportunity_notice_type(record)
+    response = (
+        record.get("response_date") or record.get("anticipated_solicitation")
+        or record.get("window_state"))
+    published = record.get("posted_date")
+    timing_label = ("Anticipated solicitation" if forecast
+                    else "Response due")
+    published_label = (
+        f"Published {_opportunity_date(published)}" if published
+        else "Published date not available")
+    fit = _opportunity_value(
+        record.get("service_fit") or record.get("fit_basis"),
+        empty="Fit not resolved",
+    ).replace("_", " ").title()
+    set_aside = _opportunity_value(record.get("set_aside"))
+    access = ("No set-aside published" if set_aside == "Not published"
+              else set_aside)
+    solicitation_number = _opportunity_value(
+        record.get("solicitation_number"))
+    published_value_source = record.get("value")
+    if published_value_source in (None, "", [], {}):
+        published_value_source = (
+            record.get("published_value") or record.get("estimated_value_range"))
+    published_value = _opportunity_value(
+        published_value_source, empty="Not published")
+    status = _opportunity_value(
+        record.get("window_state") or record.get("status")
+        or decision_state,
+    ).replace("_", " ").title()
+    evidence_read = _opportunity_value(
+        record.get("fit_basis") or record.get("priority_basis")
+        or record.get("service_fit"),
+        empty="Fit basis not published",
+    )
+    route_basis = _opportunity_value(
+        record.get("route_basis")
+        or record.get("commercial_route"),
+        empty="Route basis not published",
+    )
+    if review:
+        next_action_value = record.get("decision_action")
+    else:
+        next_action_value = record.get("next_action")
+    next_action = _opportunity_value(
+        next_action_value, empty="Next action not yet assigned")
+    buyer_parts = []
+    for value in (record.get("agency"), record.get("sub_agency")):
+        clean = " ".join(str(value or "").split())
+        if clean and clean not in buyer_parts:
+            buyer_parts.append(clean)
+    buyer = " / ".join(buyer_parts)
+    office = " ".join(str(record.get("office") or "").split())
+    if office:
+        buyer = f"{buyer} · {office}" if buyer else office
+    buyer = buyer or "Buying office not published"
+    posture = _opportunity_posture(
+        record, context=context, reference={})
+    disposition_label, decision_detail = _opportunity_decision_copy(
+        record, context=context)
+    targets = (
+        '<div class="product-opportunity-targets" '
+        'data-card-region="targets">' + _targets(dict(record)) + '</div>')
+    evidence = (
+        '<details class="product-opportunity-detail" '
+        'data-card-region="evidence">'
+        '<summary>Full evidence record</summary>'
+        + _fields(dict(record))
+        + _receipt_links(dict(record))
+        + _detail_sections(dict(record))
+        + '</details>')
+    classes = ["product-opportunity-card"]
+    if review:
+        classes.append("product-opportunity-review")
     return (
-        f'<article class="{classes}">'
-        f'<div class="product-action-order{" product-decision-badge" if decision_required else ""}">{esc(badge)}</div>'
-        '<div>'
+        f'<article class="{" ".join(classes)}" id="{esc(card_id)}" '
+        f'data-opportunity-card-contract="{OPPORTUNITY_CARD_VERSION}" '
+        f'data-card-context="{esc(context)}" '
+        f'data-card-owner-token="{esc(token)}" '
+        f'data-decision-state="{esc(decision_state)}">'
+        '<div class="product-opportunity-rail" data-card-region="status-rail">'
+        f'<span data-card-field="posture"><b>Posture</b>{esc(posture)}</span>'
+        f'<span data-card-field="response-due"><b>{esc(timing_label)}</b>'
+        f'<time>{esc(_opportunity_date(response))}</time>'
+        f'<small>{esc(published_label)}</small></span>'
+        f'<span data-card-field="rail-notice-type"><b>Notice type</b>'
+        f'{esc(notice_type)}</span></div>'
+        '<div class="product-opportunity-body">'
+        '<div class="product-opportunity-kicker" data-card-region="identity">'
         + _identity_mark(
             record, client_name=client_name,
             agency_marks=agency_marks or {},
             organization_marks=organization_marks or {},
             surface_key=surface_key,
         )
-        + f'<span class="product-record-kind">{esc(label)}</span>'
-        f'<h3>{esc(record.get("title"))}</h3>'
-        f'<p>{esc(record.get("why"))}</p>'
-        + ('<dl class="product-fields">' + "".join(fields) + "</dl>" if fields else "")
-        + f'<div class="product-reference">Full evidence appears in {esc(owner_label)}.</div>'
-        + "</div></article>")
+        + f'<span class="product-opportunity-type">{esc(notice_type)}</span>'
+        '</div>'
+        '<div class="product-opportunity-headline" data-card-region="headline">'
+        + _opportunity_source_link(record, compact=True)
+        + f'<h3>{esc(record.get("title"))}</h3>'
+        f'<p class="product-opportunity-buyer">{esc(buyer)}</p></div>'
+        '<div class="product-opportunity-decision" data-card-region="decision">'
+        f'<div data-card-field="fit"><b>Fit</b>{esc(fit)}</div>'
+        f'<div data-card-field="access"><b>Access</b>{esc(access)}</div></div>'
+        '<div class="product-opportunity-acquisition" '
+        'data-card-region="acquisition">'
+        f'<div data-card-field="status"><b>Status</b>{esc(status)}</div>'
+        f'<div data-card-field="notice-type"><b>Notice type</b>{esc(notice_type)}</div>'
+        f'<div data-card-field="set-aside"><b>Set-aside</b>{esc(set_aside)}</div>'
+        f'<div data-card-field="naics"><b>NAICS</b>{esc(_opportunity_value(record.get("naics")))}</div>'
+        f'<div data-card-field="psc"><b>PSC</b>{esc(_opportunity_value(record.get("psc")))}</div>'
+        '<div class="product-opportunity-wide-field" '
+        f'data-card-field="solicitation-number"><b>Solicitation number</b>'
+        f'{esc(solicitation_number)}</div>'
+        '<div class="product-opportunity-value-field" '
+        f'data-card-field="published-value"><b>Published value</b>'
+        f'{esc(published_value)}</div>'
+        '</div>'
+        '<div class="product-opportunity-decision-band" '
+        'data-card-region="decision-state">'
+        f'<strong>{esc(disposition_label)}</strong>{esc(decision_detail)}</div>'
+        '<div class="product-opportunity-intelligence" '
+        'data-card-region="intelligence">'
+        '<div class="product-opportunity-intel-row" '
+        'data-card-field="evidence-read"><b>Evidence read</b>'
+        f'<span>{esc(evidence_read)}</span></div>'
+        '<div class="product-opportunity-intel-row" '
+        'data-card-field="route-basis"><b>Route basis</b>'
+        f'<span>{esc(route_basis)}</span></div>'
+        '<div class="product-opportunity-intel-row" '
+        'data-card-field="next-action"><b>Next action</b>'
+        f'<span>{esc(next_action)}</span></div></div>'
+        + targets
+        + '<div class="product-opportunity-actions" data-card-region="actions">'
+        + _opportunity_source_link(record) + '</div>'
+        + evidence + '</div></article>')
+
+
+def _priority(
+    record: dict, *, client_name: str = "",
+    agency_marks: Mapping[str, str] | None = None,
+    organization_marks: Mapping[str, str] | None = None,
+    surface_key: str = "",
+    owner_record: Mapping[str, Any] | None = None,
+    owner_slot_id: str = "federal-opportunities",
+) -> str:
+    owner = owner_record or record
+    owner_key = record.get("reference_key") or record_ownership_key(dict(owner))
+    token = _opportunity_card_token(owner_key)
+    href = (f"#opportunity-{token}"
+            if owner_slot_id == "federal-opportunities"
+            else f"#record-{token}")
+    kind = record.get("reference_kind")
+    decision_required = kind == "decision_required"
+    label = {
+        "decision_required": "Decision required",
+        "forecast_action": "Forecast action",
+        "qualified_action": "Actionable pursuit",
+    }.get(kind, "Action reference")
+    action_order = int(record.get("action_order") or 0)
+    badge = ("Review" if decision_required else
+             "F" if kind == "forecast_action" else
+             f"{action_order:02d}" if action_order else "Go")
+    posture = _opportunity_posture(owner, context="owned", reference={})
+    timing = _opportunity_date(
+        owner.get("response_date") or owner.get("anticipated_solicitation")
+        or record.get("timing"))
+    target_count = int(record.get("target_count") or
+                       len(owner.get("targets") or ()))
+    next_action = _opportunity_value(
+        record.get("next_action"), empty="Open the owning record")
+    return (
+        f'<a class="product-priority-link" href="{esc(href)}" '
+        f'data-priority-owner-token="{esc(token)}" '
+        f'data-reference-kind="{esc(kind)}">'
+        f'<span class="product-priority-order">{esc(badge)}</span>'
+        '<div class="product-priority-identity">'
+        + _identity_mark(
+            owner, client_name=client_name,
+            agency_marks=agency_marks or {},
+            organization_marks=organization_marks or {},
+            surface_key=surface_key,
+        )
+        + '</div><div class="product-priority-copy">'
+        f'<span class="product-priority-kind">{esc(label)}</span>'
+        f'<strong>{esc(owner.get("title") or record.get("title"))}</strong>'
+        f'<span class="product-priority-meta">{esc(posture)} · '
+        f'{esc(timing)} · {target_count} target(s)</span>'
+        f'<span class="product-priority-next">{esc(next_action)}</span>'
+        '</div></a>')
 
 
 def _record(
     record: dict, *, include_targets: bool = False, review: bool = False,
     client_name: str = "", agency_marks: Mapping[str, str] | None = None,
     organization_marks: Mapping[str, str] | None = None,
-    surface_key: str = "",
+    surface_key: str = "", opportunity: bool = False,
 ) -> str:
+    if opportunity:
+        return _opportunity_card(
+            record, context="review" if review else "owned",
+            client_name=client_name, agency_marks=agency_marks,
+            organization_marks=organization_marks, surface_key=surface_key,
+        )
     if "reference_key" in record:
         return _priority(
             record, client_name=client_name, agency_marks=agency_marks,
@@ -755,8 +1299,11 @@ def _record(
         if review else (
             _fields(record) + _receipt_links(record) + _detail_sections(record))
     )
+    ownership_key = record_ownership_key(record)
+    record_id = (f' id="record-{_opportunity_card_token(ownership_key)}"'
+                 if ownership_key else "")
     return (
-        f'<article class="{classes}" '
+        f'<article class="{classes}"{record_id} '
         f'data-record-key="{esc(record.get("record_key"))}" '
         f'data-decision-state="{esc(decision_state if review else "")}">'
         + decision
@@ -795,6 +1342,7 @@ def _review_queue(
     records = "".join(
         _record(
             row, review=True, include_targets=opportunity,
+            opportunity=opportunity,
             client_name=client_name, agency_marks=agency_marks,
             organization_marks=organization_marks,
             surface_key=_identity_surface_key(
@@ -814,12 +1362,14 @@ def _review_queue(
         if opportunity else
         f"{review_count} review; {context_count} context"
     )
+    record_class = ("product-opportunity-grid" if opportunity
+                    else "product-review-records")
     return (
         f'<details class="product-ledger product-review-queue"{open_attribute}>'
         f'<summary>{esc(heading)} <span>· {esc(count_label)}</span></summary>'
         '<div class="product-ledger-body">'
         f'<p class="product-ledger-note">{esc(note)}</p>'
-        f'<div class="product-review-records">{records}</div></div></details>'
+        f'<div class="{record_class}">{records}</div></div></details>'
     )
 
 
@@ -827,6 +1377,7 @@ def _priority_groups(
     records: Any, *, slot_id: str, client_name: str,
     agency_marks: Mapping[str, str],
     organization_marks: Mapping[str, str],
+    owner_records: Mapping[str, tuple[str, Mapping[str, Any]]],
 ) -> str:
     indexed = list(enumerate(records))
     qualified = [(index, row) for index, row in indexed
@@ -834,26 +1385,35 @@ def _priority_groups(
     decisions = [(index, row) for index, row in indexed
                  if row.get("reference_kind") == "decision_required"]
     sections = []
+
+    def render_reference(index: int, row: dict) -> str:
+        reference_key = str(row.get("reference_key") or "")
+        owner_slot_id, owner_record = owner_records.get(
+            reference_key,
+            (str(row.get("reference_slot_id") or "federal-opportunities"),
+             row),
+        )
+        return _priority(
+            row, client_name=client_name, agency_marks=agency_marks,
+            organization_marks=organization_marks,
+            surface_key=_identity_surface_key(slot_id, row, index),
+            owner_record=owner_record, owner_slot_id=owner_slot_id,
+        )
+
     if qualified:
         sections.append(
             '<div class="product-priority-group">'
             '<h3>Qualified actions</h3>'
-            '<div class="product-records">'
-            + "".join(_priority(
-                row, client_name=client_name, agency_marks=agency_marks,
-                organization_marks=organization_marks,
-                surface_key=_identity_surface_key(slot_id, row, index))
+            '<div class="product-priority-links">'
+            + "".join(render_reference(index, row)
                       for index, row in qualified)
             + '</div></div>')
     if decisions:
         sections.append(
             '<details class="product-ledger product-priority-decisions" open>'
             f'<summary>Decisions to resolve <span>· {len(decisions)} record(s)</span></summary>'
-            '<div class="product-ledger-body product-records">'
-            + "".join(_priority(
-                row, client_name=client_name, agency_marks=agency_marks,
-                organization_marks=organization_marks,
-                surface_key=_identity_surface_key(slot_id, row, index))
+            '<div class="product-ledger-body product-priority-links">'
+            + "".join(render_reference(index, row)
                       for index, row in decisions)
             + '</div></details>')
     return "".join(sections)
@@ -863,14 +1423,16 @@ def _record_ledger(
     slot: Any, records: str, *, client_name: str,
     agency_marks: Mapping[str, str],
     organization_marks: Mapping[str, str],
+    owner_records: Mapping[str, tuple[str, Mapping[str, Any]]],
 ) -> str:
-    if not records:
+    if not records and slot.slot_id != "priority-pursuits":
         return ""
     if slot.slot_id == "priority-pursuits":
         return _priority_groups(
             slot.records, slot_id=slot.slot_id, client_name=client_name,
             agency_marks=agency_marks,
-            organization_marks=organization_marks)
+            organization_marks=organization_marks,
+            owner_records=owner_records)
     if slot.slot_id == "research-mesh":
         query_count = sum(
             row.get("kind") == "research_query" for row in slot.records)
@@ -882,6 +1444,8 @@ def _record_ledger(
             '<div class="product-ledger-body">'
             '<p class="product-ledger-note">Every query body, execution time, method, result count, and retained count remains inspectable here.</p>'
             f'<div class="product-records">{records}</div></div></details>')
+    if slot.slot_id == "federal-opportunities":
+        return '<div class="product-opportunity-grid">' + records + "</div>"
     return '<div class="product-records">' + records + "</div>"
 
 
@@ -977,20 +1541,24 @@ def render_slot(
     slot: Any, *, client_name: str = "",
     agency_marks: Mapping[str, str] | None = None,
     organization_marks: Mapping[str, str] | None = None,
+    owner_records: Mapping[
+        str, tuple[str, Mapping[str, Any]]
+    ] | None = None,
 ) -> str:
     agency_marks = agency_marks or {}
     organization_marks = organization_marks or {}
+    owner_records = owner_records or {}
     include_targets = slot.slot_id in {
         "federal-opportunities", "teaming-opportunities"}
-    records = "".join(
+    records = "" if slot.slot_id == "priority-pursuits" else "".join(
         _record(
             row, include_targets=include_targets,
+            opportunity=slot.slot_id == "federal-opportunities",
             client_name=client_name, agency_marks=agency_marks,
             organization_marks=organization_marks,
             surface_key=_identity_surface_key(slot.slot_id, row, index),
         )
-        for index, row in enumerate(slot.records)
-    )
+        for index, row in enumerate(slot.records))
     gaps = "".join(f'<div class="product-gap">{esc(gap)}</div>'
                    for gap in slot.gaps)
     status_class = " product-slot-gap" if slot.status == "gap" else ""
@@ -1007,7 +1575,8 @@ def render_slot(
         + _record_ledger(
             slot, records, client_name=client_name,
             agency_marks=agency_marks,
-            organization_marks=organization_marks)
+            organization_marks=organization_marks,
+            owner_records=owner_records)
         + _review_queue(
             slot, client_name=client_name, agency_marks=agency_marks,
             organization_marks=organization_marks)
@@ -1153,9 +1722,16 @@ def render_external_product(
         organization_marks = identity_assets["organization_marks"]
     else:
         agency_marks, organization_marks = _frozen_identity_maps(render_assets)
+    owner_records: dict[str, tuple[str, Mapping[str, Any]]] = {}
+    for slot in doc.slots:
+        for record in tuple(slot.records) + tuple(slot.review_records):
+            owner_key = record_ownership_key(record)
+            if owner_key:
+                owner_records.setdefault(owner_key, (slot.slot_id, record))
     content = "".join(render_slot(
         slot, client_name=doc.client_name, agency_marks=agency_marks,
-        organization_marks=organization_marks) for slot in doc.slots)
+        organization_marks=organization_marks,
+        owner_records=owner_records) for slot in doc.slots)
     details = _work_details(doc)
     classification_as_of = (
         doc.source_receipt.get("classification_as_of") or doc.as_of)
@@ -1477,6 +2053,264 @@ def _validate_identity_contract(
     }
 
 
+def _validate_opportunity_card_contract(
+    client_html: str, doc: ExternalProductDocument,
+) -> tuple[list[dict], dict[str, Any]]:
+    violations: list[dict] = []
+    cards = _opportunity_cards(client_html)
+    expected: dict[tuple[str, str], Mapping[str, Any]] = {}
+    owner_records: dict[str, tuple[str, Mapping[str, Any]]] = {}
+    for slot in doc.slots:
+        for record in tuple(slot.records) + tuple(slot.review_records):
+            owner_key = record_ownership_key(record)
+            if owner_key:
+                owner_records[str(owner_key)] = (slot.slot_id, record)
+
+    opportunity_slot = next(
+        (slot for slot in doc.slots
+         if slot.slot_id == "federal-opportunities"), None)
+    if opportunity_slot is not None:
+        for context, rows in (
+                ("owned", opportunity_slot.records),
+                ("review", opportunity_slot.review_records)):
+            for record in rows:
+                key = (
+                    context,
+                    _opportunity_card_token(record_ownership_key(record)),
+                )
+                expected[key] = record
+
+    expected_priority_links: list[tuple[str, str]] = []
+    priority_slot = next(
+        (slot for slot in doc.slots if slot.slot_id == "priority-pursuits"),
+        None,
+    )
+    if priority_slot is not None:
+        for reference in priority_slot.records:
+            reference_key = str(reference.get("reference_key") or "")
+            token = _opportunity_card_token(reference_key)
+            owner_slot_id, _owner = owner_records.get(
+                reference_key,
+                (str(reference.get("reference_slot_id") or
+                     "federal-opportunities"), reference),
+            )
+            href = (f"#opportunity-{token}"
+                    if owner_slot_id == "federal-opportunities"
+                    else f"#record-{token}")
+            expected_priority_links.append((token, href))
+
+    def normalized(value: Any) -> str:
+        if isinstance(value, (list, tuple)):
+            value = " ".join(str(part) for part in value)
+        return " ".join(html.unescape(str(value or "")).split())
+
+    def expected_semantics(
+        record: Mapping[str, Any], context: str,
+    ) -> tuple[str, str, dict[str, str], str]:
+        notice_type = _opportunity_notice_type(record)
+        forecast = str(record.get("kind") or "").casefold() == "forecast"
+        timing_label = ("Anticipated solicitation" if forecast
+                        else "Response due")
+        response = (
+            record.get("response_date")
+            or record.get("anticipated_solicitation")
+            or record.get("window_state"))
+        published = record.get("posted_date")
+        published_label = (
+            f"Published {_opportunity_date(published)}" if published
+            else "Published date not available")
+        set_aside = _opportunity_value(record.get("set_aside"))
+        published_value_source = record.get("value")
+        if published_value_source in (None, "", [], {}):
+            published_value_source = (
+                record.get("published_value")
+                or record.get("estimated_value_range"))
+        fit = _opportunity_value(
+            record.get("service_fit") or record.get("fit_basis"),
+            empty="Fit not resolved",
+        ).replace("_", " ").title()
+        status = _opportunity_value(
+            record.get("window_state") or record.get("status")
+            or ("needs_review" if context == "review" else "qualified"),
+        ).replace("_", " ").title()
+        evidence_read = _opportunity_value(
+            record.get("fit_basis") or record.get("priority_basis")
+            or record.get("service_fit"),
+            empty="Fit basis not published",
+        )
+        route_basis = _opportunity_value(
+            record.get("route_basis") or record.get("commercial_route"),
+            empty="Route basis not published",
+        )
+        next_action_value = (
+            record.get("decision_action") if context == "review"
+            else record.get("next_action"))
+        next_action = _opportunity_value(
+            next_action_value, empty="Next action not yet assigned")
+        values = {
+            "posture": (
+                f"Posture {_opportunity_posture(record, context=context, reference={})}"),
+            "response-due": (
+                f"{timing_label} {_opportunity_date(response)} {published_label}"),
+            "rail-notice-type": f"Notice type {notice_type}",
+            "fit": f"Fit {fit}",
+            "access": (
+                "Access No set-aside published" if set_aside == "Not published"
+                else f"Access {set_aside}"),
+            "status": f"Status {status}",
+            "notice-type": f"Notice type {notice_type}",
+            "set-aside": f"Set-aside {set_aside}",
+            "naics": (
+                f"NAICS {_opportunity_value(record.get('naics'))}"),
+            "psc": f"PSC {_opportunity_value(record.get('psc'))}",
+            "solicitation-number": (
+                "Solicitation number "
+                f"{_opportunity_value(record.get('solicitation_number'))}"),
+            "published-value": (
+                "Published value "
+                f"{_opportunity_value(published_value_source, empty='Not published')}"),
+            "evidence-read": f"Evidence read {evidence_read}",
+            "route-basis": f"Route basis {route_basis}",
+            "next-action": f"Next action {next_action}",
+        }
+        return (
+            normalized(record.get("title")),
+            _http(record.get("source_url")),
+            {key: normalized(value) for key, value in values.items()},
+            normalized(" ".join(
+                _opportunity_decision_copy(record, context=context))),
+        )
+
+    actual: dict[tuple[str, str], int] = {}
+    for card in cards:
+        attrs = card.get("attrs") or {}
+        context = str(attrs.get("data-card-context") or "")
+        token = str(attrs.get("data-card-owner-token") or "")
+        key = (context, token)
+        actual[key] = actual.get(key, 0) + 1
+        if card.get("slot_id") != "federal-opportunities":
+            violations.append({
+                "rule": "opportunity_card_slot",
+                "detail": (f"{key!r} renders in {card.get('slot_id')!r}; "
+                           "canonical opportunity cards belong in Slot 5"),
+            })
+        if (attrs.get("data-opportunity-card-contract") !=
+                OPPORTUNITY_CARD_VERSION):
+            violations.append({
+                "rule": "opportunity_card_version",
+                "detail": f"{key!r} does not use {OPPORTUNITY_CARD_VERSION}",
+            })
+        if tuple(card.get("regions") or ()) != OPPORTUNITY_CARD_REGION_ORDER:
+            violations.append({
+                "rule": "opportunity_card_regions",
+                "detail": (f"{key!r} regions {card.get('regions')!r} do not "
+                           "match the locked card order"),
+            })
+        if tuple(card.get("fields") or ()) != OPPORTUNITY_CARD_FIELD_ORDER:
+            violations.append({
+                "rule": "opportunity_card_fields",
+                "detail": (f"{key!r} fields {card.get('fields')!r} do not "
+                           "match the locked card order"),
+            })
+        if card.get("identity_surfaces") != 1:
+            violations.append({
+                "rule": "opportunity_card_identity",
+                "detail": (f"{key!r} renders {card.get('identity_surfaces')} "
+                           "identity surfaces; expected exactly one"),
+            })
+        if int(card.get("official_source_actions") or 0) < 1:
+            violations.append({
+                "rule": "opportunity_card_source",
+                "detail": f"{key!r} has no official source action",
+            })
+        expected_record = expected.get(key)
+        if expected_record is None:
+            continue
+        title, source_url, field_text, decision_copy = expected_semantics(
+            expected_record, context)
+        if normalized(card.get("title")) != title:
+            violations.append({
+                "rule": "opportunity_card_title",
+                "detail": (f"{key!r} title {normalized(card.get('title'))!r} "
+                           f"does not match its owner title {title!r}"),
+            })
+        actual_hrefs = [normalized(value)
+                        for value in card.get("source_hrefs") or ()]
+        if (not source_url or not actual_hrefs
+                or any(value != source_url for value in actual_hrefs)):
+            violations.append({
+                "rule": "opportunity_card_source_binding",
+                "detail": (f"{key!r} source actions {actual_hrefs!r} do not "
+                           f"match the owner source {source_url!r}"),
+            })
+        actual_field_text = card.get("field_text") or {}
+        for field, expected_text in field_text.items():
+            rendered_text = normalized(actual_field_text.get(field))
+            if rendered_text != expected_text:
+                violations.append({
+                    "rule": "opportunity_card_content",
+                    "detail": (f"{key!r} field {field!r} renders "
+                               f"{rendered_text!r}; expected {expected_text!r}"),
+                })
+        if decision_copy not in normalized(card.get("text")):
+            violations.append({
+                "rule": "opportunity_card_decision_copy",
+                "detail": (f"{key!r} does not render its route-aware "
+                           f"decision copy {decision_copy!r}"),
+            })
+    expected_counts = {key: 1 for key in expected}
+    if actual != expected_counts:
+        violations.append({
+            "rule": "opportunity_card_population",
+            "detail": (f"rendered card identities {actual!r} do not match "
+                       f"expected identities {expected_counts!r}"),
+        })
+    priority_links = _priority_links(client_html)
+    actual_priority_links = sorted((
+        str(row.get("data-priority-owner-token") or ""),
+        str(row.get("href") or ""),
+    ) for row in priority_links)
+    for row in priority_links:
+        if row.get("_slot_id") != "priority-pursuits":
+            violations.append({
+                "rule": "priority_link_slot",
+                "detail": ("a priority owner link renders in "
+                           f"{row.get('_slot_id')!r}; expected Slot 1"),
+            })
+    if actual_priority_links != sorted(expected_priority_links):
+        violations.append({
+            "rule": "priority_owner_link",
+            "detail": (f"Slot 1 owner links {actual_priority_links!r} do not "
+                       f"match {sorted(expected_priority_links)!r}"),
+        })
+    rendered_ids = _html_ids(client_html)
+    for _token, href in expected_priority_links:
+        destination = href[1:] if href.startswith("#") else ""
+        count = rendered_ids.count(destination)
+        if not destination or count != 1:
+            violations.append({
+                "rule": "priority_owner_destination",
+                "detail": (f"Slot 1 destination {href!r} renders {count} "
+                           "times; expected exactly once"),
+            })
+    if re.search(
+            r'<article[^>]*class="[^"]*\bproduct-priority\b', client_html):
+        violations.append({
+            "rule": "legacy_opportunity_renderer",
+            "detail": "the client artifact still renders a legacy priority card",
+        })
+    return violations, {
+        "schema_version": OPPORTUNITY_CARD_VERSION,
+        "expected_cards": len(expected),
+        "rendered_cards": len(cards),
+        "priority_links": len(expected_priority_links),
+        "owned_opportunities": sum(
+            1 for context, _token in expected if context == "owned"),
+        "review_opportunities": sum(
+            1 for context, _token in expected if context == "review"),
+    }
+
+
 def validate_external_product_html(
     client_html: str, doc: ExternalProductDocument, *,
     contract_slots: Any = None, render_assets: Any = None,
@@ -1511,6 +2345,9 @@ def validate_external_product_html(
     identity_violations, identity_contract = _validate_identity_contract(
         client_html, doc, render_assets=render_assets)
     violations.extend(identity_violations)
+    card_violations, opportunity_card_contract = (
+        _validate_opportunity_card_contract(client_html, doc))
+    violations.extend(card_violations)
     return {
         "schema_version": EXTERNAL_PRODUCT_RENDER_VERSION,
         "ok": not violations,
@@ -1518,11 +2355,13 @@ def validate_external_product_html(
         "slot_order": order,
         "client_visual_contract": visual,
         "identity_contract": identity_contract,
+        "opportunity_card_contract": opportunity_card_contract,
     }
 
 
 __all__ = (
     "EXTERNAL_PRODUCT_RENDER_VERSION",
+    "OPPORTUNITY_CARD_VERSION",
     "capture_external_product_identity_assets",
     "render_external_product",
     "render_slot",

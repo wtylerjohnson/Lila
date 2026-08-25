@@ -302,6 +302,7 @@ def test_real_jtg_captured_inputs_pass_normal_graph_projection_and_gold(
         build_external_product_document,
     )
     from agents.golden_press.external_product_render import (
+        OPPORTUNITY_CARD_VERSION,
         render_external_product,
         validate_external_product_document,
         validate_external_product_html,
@@ -383,6 +384,40 @@ def test_real_jtg_captured_inputs_pass_normal_graph_projection_and_gold(
     assert product.graph_receipt["pursuit_membership_conserved"] is True
     html_receipt = validate_external_product_html(client_html, product)
     assert html_receipt["ok"] is True, html_receipt["violations"]
+    assert html_receipt["opportunity_card_contract"] == {
+        "schema_version": OPPORTUNITY_CARD_VERSION,
+        "expected_cards": 50,
+        "rendered_cards": 50,
+        "priority_links": 14,
+        "owned_opportunities": 8,
+        "review_opportunities": 42,
+    }
+    assert client_html.count(
+        f'data-opportunity-card-contract="{OPPORTUNITY_CARD_VERSION}"') == 50
+    assert client_html.count('class="product-priority-link"') == 14
+    assert 'data-card-context="priority-reference"' not in client_html
+    assert '<article class="product-record product-priority' not in client_html
+    opportunity_html = client_html.split(
+        '<section class="plain-section product-slot" '
+        'id="federal-opportunities" data-slot-id="federal-opportunities"',
+        1,
+    )[1].split(
+        '<section class="plain-section product-slot" '
+        'id="teaming-opportunities" data-slot-id="teaming-opportunities"',
+        1,
+    )[0]
+    assert '<article class="product-record' not in opportunity_html
+    teaming_html = client_html.split(
+        '<section class="plain-section product-slot" '
+        'id="teaming-opportunities" data-slot-id="teaming-opportunities"',
+        1,
+    )[1].split(
+        '<section class="plain-section product-slot" '
+        'id="future-forecasts" data-slot-id="future-forecasts"',
+        1,
+    )[0]
+    assert 'data-opportunity-card-contract=' not in teaming_html
+    assert 'data-record-key="teaming-route:' in teaming_html
     assert html_receipt["identity_contract"] == {
         "expected_placements": 176,
         "priority_reference_placements": 14,

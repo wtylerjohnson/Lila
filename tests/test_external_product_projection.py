@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import copy
+import re
 from dataclasses import replace
 from types import SimpleNamespace
 
@@ -15,6 +16,7 @@ from agents.golden_press.external_product_projection import (
     record_ownership_key,
 )
 from agents.golden_press.external_product_render import (
+    OPPORTUNITY_CARD_VERSION,
     capture_external_product_identity_assets,
     render_external_product,
     render_slot,
@@ -554,6 +556,34 @@ def test_forecasts_and_live_opportunities_are_separate_and_targets_stay_bound():
         "Full published scope", "Acquisition", "Forecast timing"}
 
 
+def test_forecast_priority_link_targets_its_exact_owner_record(monkeypatch):
+    from agents.reports import report_assets
+    monkeypatch.setattr(report_assets, "client_logo", lambda _name: _mark())
+    monkeypatch.setattr(report_assets, "gtm_logo", _mark)
+    graph = _graph()
+    graph["qualified_opportunity_records"] = []
+    graph["records"][0]["evidence_class"] = "excluded"
+    graph["records"][0]["service_fit"] = "unrelated"
+    document = build_external_product_document(
+        market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
+        profile={}, client_name="Acme", slug="acme", as_of="2026-08-23")
+
+    _studio, client = render_external_product(document)
+    match = re.search(
+        r'class="product-priority-link" href="(#[^"]+)"', client)
+
+    assert match is not None
+    owner_href = match.group(1)
+    assert owner_href.startswith("#record-")
+    assert f'id="{owner_href[1:]}"' in client
+    assert validate_external_product_html(client, document)["ok"] is True
+
+    wrong = client.replace(owner_href, "#future-forecasts", 1)
+    broken = validate_external_product_html(wrong, document)
+    assert "priority_owner_link" in {
+        row["rule"] for row in broken["violations"]}
+
+
 def test_current_opportunity_holds_are_lossless_owned_and_decision_typed():
     graph = _graph()
     _add_review_notices(graph)
@@ -655,20 +685,127 @@ def test_renderer_separates_review_queue_and_renders_decision_targets(monkeypatc
 
     assert "Needs review before pursuit" in client
     assert "These current notices remain visible" in client
-    assert client.count('class="product-record product-review-record"') == 2
+    assert client.count(
+        'class="product-opportunity-card product-opportunity-review"') == 2
     assert "Decision required" in client
     assert "They are not pursuit recommendations" in client
     assert '<details class="product-ledger product-review-queue" open>' in client
-    assert client.count("Full evidence record") == 2
-    assert "Full evidence appears in Federal Opportunities Identified." in client
+    assert client.count("Full evidence record") >= 2
+    assert 'class="product-priority-link"' in client
+    assert 'href="#opportunity-' in client
     assert "graph-record:" not in client
     assert "Pursuit actions" in client
     assert "Fit decisions required" in client
     pursuit_html = client.split(
-        'data-slot-id="federal-opportunities"', 1)[1].split(
-        "Needs review before pursuit", 1)[0]
+        '<section class="plain-section product-slot" '
+        'id="federal-opportunities" data-slot-id="federal-opportunities"',
+        1,
+    )[1].split("Needs review before pursuit", 1)[0]
     assert "Targets specific to this opportunity" in pursuit_html
     assert "Route Buyer" in pursuit_html
+
+
+def test_opportunity_cards_share_one_locked_structure_and_reject_tampering(
+        monkeypatch):
+    from agents.reports import report_assets
+    monkeypatch.setattr(report_assets, "client_logo", lambda _name: _mark())
+    monkeypatch.setattr(report_assets, "gtm_logo", _mark)
+    graph = _graph()
+    _add_review_notices(graph)
+    document = build_external_product_document(
+        market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
+        profile={}, client_name="Acme", slug="acme", as_of="2026-08-23")
+
+    _studio, client = render_external_product(document)
+    verdict = validate_external_product_html(client, document)
+    opportunity_slot = next(
+        slot for slot in document.slots
+        if slot.slot_id == "federal-opportunities")
+    expected = (
+        len(opportunity_slot.records) + len(opportunity_slot.review_records))
+
+    assert verdict["ok"], verdict["violations"]
+    assert verdict["opportunity_card_contract"] == {
+        "schema_version": OPPORTUNITY_CARD_VERSION,
+        "expected_cards": expected,
+        "rendered_cards": expected,
+        "priority_links": len(document.slots[0].records),
+        "owned_opportunities": len(opportunity_slot.records),
+        "review_opportunities": len(opportunity_slot.review_records),
+    }
+    assert client.count(
+        f'data-opportunity-card-contract="{OPPORTUNITY_CARD_VERSION}"') \
+        == expected
+    for field in (
+            "posture", "response-due", "rail-notice-type", "fit", "access",
+            "status", "notice-type", "set-aside", "naics", "psc",
+            "solicitation-number", "published-value",
+            "evidence-read", "route-basis", "next-action"):
+        assert client.count(f'data-card-field="{field}"') == expected
+    assert '<article class="product-record product-priority' not in client
+    assert client.count('class="product-priority-link"') == len(
+        document.slots[0].records)
+    assert 'data-card-context="priority-reference"' not in client
+    assert "Solicitation number not published ↗" in client
+    assert client.count('data-card-field="published-value"') == expected
+
+    tampered = client.replace(
+        'data-card-field="psc"', 'data-card-field="psc-removed"', 1)
+    broken = validate_external_product_html(tampered, document)
+    assert "opportunity_card_fields" in {
+        row["rule"] for row in broken["violations"]}
+
+    owner_title = str(opportunity_slot.records[0]["title"])
+    wrong_title = client.replace(
+        f"<h3>{owner_title}</h3>", "<h3>Wrong opportunity title</h3>", 1)
+    broken = validate_external_product_html(wrong_title, document)
+    assert "opportunity_card_title" in {
+        row["rule"] for row in broken["violations"]}
+
+    source_url = str(opportunity_slot.records[0]["source_url"])
+    wrong_source = client.replace(
+        f'href="{source_url}"', 'href="https://sam.gov/opp/wrong/view"', 1)
+    broken = validate_external_product_html(wrong_source, document)
+    assert "opportunity_card_source_binding" in {
+        row["rule"] for row in broken["violations"]}
+
+    naics = str(opportunity_slot.records[0]["naics"])
+    wrong_naics = client.replace(
+        f'<div data-card-field="naics"><b>NAICS</b>{naics}</div>',
+        '<div data-card-field="naics"><b>NAICS</b>999999</div>',
+        1,
+    )
+    broken = validate_external_product_html(wrong_naics, document)
+    assert "opportunity_card_content" in {
+        row["rule"] for row in broken["violations"]}
+
+    owner_link = re.search(
+        r'class="product-priority-link" href="(#[^"]+)"', client)
+    assert owner_link is not None
+    destination = owner_link.group(1)[1:]
+    missing_destination = client.replace(
+        f'id="{destination}"', f'data-removed-id="{destination}"', 1)
+    broken = validate_external_product_html(missing_destination, document)
+    assert "priority_owner_destination" in {
+        row["rule"] for row in broken["violations"]}
+
+    wrong_card_slot = client.replace(
+        'id="federal-opportunities" data-slot-id="federal-opportunities"',
+        'id="federal-opportunities" data-slot-id="teaming-opportunities"',
+        1,
+    )
+    broken = validate_external_product_html(wrong_card_slot, document)
+    assert "opportunity_card_slot" in {
+        row["rule"] for row in broken["violations"]}
+
+    wrong_link_slot = client.replace(
+        'id="priority-pursuits" data-slot-id="priority-pursuits"',
+        'id="priority-pursuits" data-slot-id="agency-spending"',
+        1,
+    )
+    broken = validate_external_product_html(wrong_link_slot, document)
+    assert "priority_link_slot" in {
+        row["rule"] for row in broken["violations"]}
 
 
 def test_renderer_exposes_prime_team_and_verify_pursuit_paths(monkeypatch):
@@ -706,9 +843,15 @@ def test_renderer_exposes_prime_team_and_verify_pursuit_paths(monkeypatch):
     _studio, client = render_external_product(document)
 
     assert validate_external_product_document(document) == []
-    assert client.count("<dt>Pursuit path</dt><dd>prime</dd>") >= 1
-    assert client.count("<dt>Pursuit path</dt><dd>team</dd>") >= 1
-    assert client.count("<dt>Pursuit path</dt><dd>verify</dd>") >= 1
+    assert client.count("Prime path") >= 2
+    assert client.count("Teaming required") >= 2
+    assert client.count("Verify access") >= 2
+    assert "Prime-ready pursuit" in client
+    assert "Teaming-path pursuit" in client
+    assert "Route verification required" in client
+    assert "pursue through an eligible prime or named partner" in client
+    assert "confirm eligibility and acquisition access" in client
+    assert "Service fit and route passed" not in client
     assert "1 prime; 1 team; 1 verify route" in client
     assert validate_external_product_html(client, document)["ok"] is True
 

@@ -68,3 +68,42 @@ No actionable P0, P1, or P2 findings remain. The live Apex edition label differs
 None required for promotion. Future visual changes should continue to use the accepted Lovable-derived screenshots as the champion baseline.
 
 final result: passed
+
+---
+
+# LILA opportunity-card v1 design QA (2026-08-25)
+
+## Comparison target
+
+- Structural source: `/Users/wtjohnson/Desktop/Arista Networks/Arista_Networks_Federal_Market_Map_DEMO_DILIGENCE_READY_TARGETS_REBOUND_CLIENT_DELIVERABLE_2026-08-21.html`, opportunity section beginning with `opportunity-card`.
+- Reuse proof: `/Users/wtjohnson/Desktop/JTG, inc./JTG, inc. · Federal Opportunity Pre-Assessment · 2026-08-20 · Federal Market Map · EVIDENCE PACK V2 · BEST DRAFT REVIEW.html`, which already reuses one opportunity-card vocabulary across priority and opportunity sections.
+- Before capture: `/Users/wtjohnson/Desktop/JTG, inc./LILA seal audit 2026-08-25/05-jtg-opportunities-with-seals.png`.
+- Implementation: `/Users/wtjohnson/Desktop/JTG, inc./JTG, inc. · LILA Golden Product · DRAFT · generated 2026-08-25 0948 MDT · evidence 2026-08-20 · CLIENT.html`.
+- Implementation capture: blocked. The in-app browser's security policy rejected local-file navigation before the document loaded. No alternate browser or indirect browser command was used.
+- Combined comparison: not produced because an implementation screenshot was unavailable.
+
+## Viewport and dimensions
+
+- Intended comparison: source and implementation at the same in-app browser viewport and the same Slot 5 scroll state.
+- Actual viewport: unavailable because navigation was rejected before page evaluation.
+- Responsive contract established in code: two-column shared-border ledger above 1050px, one column at or below 1050px, compact acquisition grid below 720px, and one-column non-splitting cards for print.
+
+## Five fidelity surfaces
+
+- Composition: source structure was ported as a three-cell status rail, authority identity row, headline and buyer, two decision cells, five acquisition cells, LILA decision intelligence, targets, source actions, and evidence drawer. Source inspection passed; rendered visual comparison is blocked.
+- Typography: source sizes and hierarchy were carried into the component, including a 25px title, 9px uppercase labels, and compact procurement facts. Rendered visual comparison is blocked.
+- Color and borders: the implementation uses the existing LILA Market Map tokens, flat square ledger geometry, shared 1px rules, dark posture cell, and 3px coral rail rule. Rendered visual comparison is blocked.
+- Spacing and responsive behavior: the implementation uses 22px card-body padding, a 58px seal, fixed field order, and print `break-inside: avoid`. Browser measurement is blocked.
+- Identity and evidence: the real JTG draft validates 50 canonical Slot 5 cards, all 50 with the same 10 regions and 15 fixed fields, exactly one official frozen agency seal, and two official-source actions. It also validates 14 compact Slot 1 owner links, 8 qualified notices, and 42 review notices. The semantic validator binds every card's title, deadline, status, fit, access, notice type, NAICS, PSC, solicitation number, published value, evidence read, route basis, next action, and official-source URL to its owning record. Pixel-level seal sizing and crop remain visually unverified.
+
+## Iteration history
+
+1. Replaced the generic Slot 5 opportunity panel with one `lila-opportunity-card.v1` renderer.
+2. Kept Slot 1 as a compact non-owning promotion link to the canonical Slot 5 card, consistent with the locked one-owner rule. Slot 6 remains a non-owning teaming-route reference and does not render a second opportunity card.
+3. Added explicit empty states so optional fields do not disappear or reorder the card.
+4. Added structural and semantic HTML validation that fails on missing or reordered regions and fields, lost identity, wrong title or field content, source-to-owner mismatch, population mismatch, broken Slot 1 owner links, or a legacy priority-card renderer.
+5. Pressed the frozen real-JTG product into the Desktop JTG folder and verified 50 owning cards plus 14 priority links without duplicating evidence ownership.
+6. Re-pressed the same frozen product twice: CLIENT, STUDIO, and product JSON were byte-identical. CLIENT SHA-256 is `7df4ca8281bca1b8feaaf7ac77bd78852a74c9b73b5645be0d88f038b8a0a2ea`.
+7. Browser security blocked the required implementation capture and combined visual comparison. The visual gate remains open until the generated client file is opened by the user in the in-app browser and captured at the reference viewport.
+
+final result: blocked
