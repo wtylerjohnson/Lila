@@ -28,7 +28,6 @@ import hashlib
 import json
 import os
 import re
-import shutil
 import sys
 import tempfile
 from datetime import date, datetime, timezone
@@ -593,14 +592,6 @@ def _press(args) -> int:
               f"DO-NOT-SEND and never reaches the Desktop", file=sys.stderr)
         return 2
 
-    if not args.replay:
-        folder = os.path.expanduser(f"~/Desktop/{args.client}")
-        os.makedirs(folder, exist_ok=True)
-        pretty = os.path.join(
-            folder, f"{args.client} · Federal Opportunity Pre-Assessment · "
-                    f"{render_date.isoformat()}.html")
-        shutil.copyfile(out, pretty)
-        print(f"[deliver] {pretty}", file=sys.stderr)
     return 0
 
 

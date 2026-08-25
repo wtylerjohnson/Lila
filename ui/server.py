@@ -1454,13 +1454,13 @@ def build_steps(slug: str, *, packet: Optional[dict] = None,
     tr_ok = os.path.join(REPORT_DIR, f"{slug}.target_report.html")
     tr_bad = os.path.join(REPORT_DIR, f"{slug}.target_report.DO-NOT-SEND.html")
     tr_path = tr_ok if os.path.exists(tr_ok) else (tr_bad if os.path.exists(tr_bad) else None)
-    tr_arts = [{"name": "Target report (client HTML)", "path": _rel(tr_path), "fmt": "html"}] if tr_path else []
+    tr_arts = [{"name": "Target report (internal view)", "path": _rel(tr_path), "fmt": "html"}] if tr_path else []
     steps.append(_step(
         "target_report", "Target report",
         ("done" if tr_path else "ready") if done_c else "waiting",
-        ("QA passed — Desktop copy in the client folder." if os.path.exists(tr_ok)
+        ("Internal target view passed its QA checks." if os.path.exists(tr_ok)
          else "FAILED QA — stamped DO-NOT-SEND; open it to see why." if tr_path
-         else "Renders the contact plan into the client-facing HTML deliverable."
+         else "Renders the contact plan as an internal compatibility view."
          if done_c else "Needs the contact plan first."),
         action={"kind": "run", "step": "target_report",
                 "label": "Build target report" if not tr_path else "Rebuild target report"}
@@ -1656,11 +1656,9 @@ def _step_cmd(step: str, client: str, args: dict) -> list[str]:
     elif step == "report":
         kind = args.get("kind", "teaser")
         if kind == "capture_brief":
-            # the Command Center press IS operator intent: PDF always, and
-            # the release switch on — RELEASE only happens when zero flags
-            # and consensus hold; anything else ships as watermarked DRAFT
-            cmd = [py, "run_capture_brief.py", "--client", client,
-                   "--pdf", "--release"]
+            # Capture Brief is retained as an internal compatibility view.
+            # It never receives an external-release switch from the UI.
+            cmd = [py, "run_capture_brief.py", "--client", client]
             if args.get("compose_split"):
                 cmd.append("--compose-split")
         else:
@@ -2942,8 +2940,8 @@ def _download_signal_board(slug: str, *, rs: Optional[dict] = None):
 
 @app.get("/client/<slug>/download/signal-board.html")
 def download_signal_board(slug):
-    """The canonical, hash-certified Signal Board HTML."""
-    return _download_signal_board(slug)
+    """Compatibility URL for the canonical LILA client HTML."""
+    return _download_lila_product(slug, bundle=False)
 
 
 def _download_lila_product(slug: str, *, bundle: bool):
@@ -2983,29 +2981,8 @@ def download_lila_bundle(slug):
 
 @app.get("/client/<slug>/download/foa.html")
 def download_foa(slug):
-    """Compatibility URL for the current gates-passed deliverable."""
-    if "/" in slug or ".." in slug:
-        return "not found", 404
-    rs = release_state(slug, report_dir=REPORT_DIR, review_dir=REVIEW_DIR)
-    if rs.get("family") in {"signal_board", "signal_board_bad"}:
-        return _download_signal_board(slug, rs=rs)
-    if rs["preview_path"] is None:
-        return jsonify({"error": "no assessment built yet — produce it first"}), 404
-    if not rs["releasable"]:
-        return _dns(rs["reason"])
-    targeting_block = _targeting_download_gate(slug)
-    if targeting_block is not None:
-        return targeting_block
-    clean = rs["path"]
-    with open(clean, encoding="utf-8") as f:
-        html = f.read()
-    html, link_failures = _gate_client_download_links(
-        html, sidecar_stem=f"{slug}.download.foa")
-    if link_failures:
-        return _dns("client link gate failed: "
-                    + _client_link_failure(link_failures))
-    from datetime import date as _d
-    return _attachment(html, f"{slug}{('_' + _gate_designator(slug).replace('agency_', '').upper()) if _gate_designator(slug) else ''}_Federal_Opportunity_Assessment_{_d.today().isoformat()}.html")
+    """Compatibility URL for the canonical LILA client HTML."""
+    return _download_lila_product(slug, bundle=False)
 
 
 @app.get("/client/<slug>/download/teaser.html")
@@ -5224,10 +5201,10 @@ def api_run():
             "error": ("native workstation downstream approvals are not yet "
                       "partitioned; only the exact search may run"),
         }), 409
-    release_capable_assess = (
-        (step == "report" and args.get("kind", "teaser") == "capture_brief")
-        or step in ("views", "agency_report", "lila_release")
-    )
+    # Only the canonical LILA release transaction is externally releasable.
+    # Legacy report/view runners remain available as internal compatibility
+    # surfaces and must not inherit release-only approval semantics.
+    release_capable_assess = step == "lila_release"
     if release_capable_assess:
         _, approval_status, approval_problems = _assess_release_gate(client)
         if approval_status != "approved":
@@ -5237,10 +5214,7 @@ def api_run():
                 "approval_status": approval_status,
                 "problems": approval_problems,
             }), 409
-    release_capable_targeting = release_capable_assess or (
-        step in ("candidate_review", "views", "agency_report", "target_report",
-                 "lila_release")
-    )
+    release_capable_targeting = step == "lila_release"
     if release_capable_targeting:
         target_payload, target_status = _client_targets_payload(_slugify(client))
         readiness = ((target_payload or {}).get("targeting_readiness") or {})

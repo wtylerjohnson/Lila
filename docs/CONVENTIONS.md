@@ -31,8 +31,11 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   and capability profile. Failed prose is never promoted into the cache.
 - `clients/<slug>/profile.json` · REQUIRED capability profile (no profile,
   no sweep). Scaffold: `python3 -m tools.capability scaffold --client "Name"`.
-- Delivery: gate-clean artifacts copy to `~/Desktop/<Client>/` with pretty
-  names (`<Client>_<Agency>_Focus_<date>.html`).
+- Delivery: only the canonical `lila_release` transaction may copy external
+  client HTML or its manifest-bound bundle to `~/Desktop/<Client>/`. Capture
+  Brief, three-view, agency, golden-press, Target Report, Signal Board, and
+  legacy Market Map artifacts remain internal compatibility views even when
+  their own QA checks pass.
 
 ## Search-plan derivation (keyword doctrine, 2026-07-12)
 

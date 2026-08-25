@@ -6,7 +6,9 @@
 Reads data/review/<slug>.contacts.json (from run_target.py). Deterministic —
 no LLM at render time. Output:
     data/reports/<slug>.target_report.html
-    ~/Desktop/<Client>/<Client>_Target_Report_<date>.html   (QA-clean only)
+
+The target report is an internal view. The canonical LILA release projects
+approved opportunity targets into the external eight-slot product.
 """
 
 from __future__ import annotations
@@ -14,9 +16,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import shutil
 import sys
-from datetime import date
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -102,15 +102,6 @@ def main() -> int:
     except OSError as exc:
         print(f"[links] INTERNAL sidecar unavailable ({exc})", file=sys.stderr)
 
-    if not problems:
-        folder = os.path.expanduser(f"~/Desktop/{args.client}")
-        os.makedirs(folder, exist_ok=True)
-        pretty = os.path.join(
-            folder, f"{args.client.replace(' ', '_')}_Target_Report_{date.today().isoformat()}.html"
-        )
-        shutil.copy(out, pretty)
-        print(f"[out] {pretty}", file=sys.stderr)
-        print(f"Target report built and QA-clean -> Desktop/{args.client}/", file=sys.stderr)
     return 0 if not problems else 2
 
 

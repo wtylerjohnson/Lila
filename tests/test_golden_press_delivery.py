@@ -1,16 +1,7 @@
-"""Desktop delivery of the golden press, and its gate.
-
-The golden press became the one deliverable but never delivered: the newest
-file in the operator's client folder was a 2026-07-21 legacy Signal Board
-press, so every golden press after that landed only under data/state and the
-operator never saw it. Delivery mirrors run_signal_board.py's convention, and
-CONTRACT_SURFACES requires the gate: an uncertified artifact never reaches the
-client folder.
-"""
+"""The legacy golden press never crosses the external-delivery boundary."""
 
 from __future__ import annotations
 
-from datetime import date
 from pathlib import Path
 
 from agents.golden_press.press import _deliver_to_desktop
@@ -22,17 +13,12 @@ def _report(tmp_path: Path) -> Path:
     return html
 
 
-def test_certified_press_lands_in_the_client_folder(tmp_path, monkeypatch):
+def test_certified_legacy_press_stays_internal(tmp_path, monkeypatch):
     desktop = tmp_path / "Desktop"
     monkeypatch.setenv("LILA_DESKTOP_ROOT", str(desktop))
     out = _deliver_to_desktop(_report(tmp_path), client="Riverbed", certified=True)
-    assert out is not None
-    delivered = Path(out)
-    assert delivered.is_file()
-    assert delivered.parent == desktop / "Riverbed"
-    assert delivered.name == (
-        f"Riverbed · Federal Opportunity Pre-Assessment · {date.today().isoformat()}.html")
-    assert delivered.read_text(encoding="utf-8") == "<html><body>report</body></html>"
+    assert out is None
+    assert not desktop.exists()
 
 
 def test_delivery_failure_never_costs_the_caller_the_report(tmp_path, monkeypatch):
@@ -45,7 +31,7 @@ def test_delivery_failure_never_costs_the_caller_the_report(tmp_path, monkeypatc
                                certified=True) is None
 
 
-def test_repeat_press_on_the_same_day_overwrites_rather_than_duplicates(
+def test_repeat_legacy_press_still_creates_no_external_artifact(
         tmp_path, monkeypatch):
     desktop = tmp_path / "Desktop"
     monkeypatch.setenv("LILA_DESKTOP_ROOT", str(desktop))
@@ -53,15 +39,12 @@ def test_repeat_press_on_the_same_day_overwrites_rather_than_duplicates(
     first = _deliver_to_desktop(html, client="Riverbed", certified=True)
     html.write_text("<html><body>second press</body></html>", encoding="utf-8")
     second = _deliver_to_desktop(html, client="Riverbed", certified=True)
-    assert first == second
-    assert len(list((desktop / "Riverbed").glob("*.html"))) == 1
-    assert Path(second).read_text(encoding="utf-8") == "<html><body>second press</body></html>"
+    assert first is None and second is None
+    assert not desktop.exists()
 
 
 def test_uncertified_press_never_reaches_the_desktop(tmp_path, monkeypatch):
-    """FAIL-CLOSED PROMOTION (2026-08-03, supersedes the 2026-07-30
-    draft-parking ruling): an uncertified press stays in data/state; the
-    Desktop only ever receives a fully gated, certified artifact."""
+    """Uncertified compatibility output also stays internal."""
     from agents.golden_press.press import _deliver_to_desktop
     monkeypatch.setenv("LILA_DESKTOP_ROOT", str(tmp_path))
     monkeypatch.delenv("LILA_PRESS_HOLD_DELIVERY", raising=False)

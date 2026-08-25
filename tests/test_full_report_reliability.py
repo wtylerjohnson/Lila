@@ -200,7 +200,7 @@ def test_review_and_arbiter_outages_still_write_normal_draft(
     assert "panel errored" in err
 
 
-def test_direct_release_without_current_assess_approval_is_draft_only(
+def test_legacy_release_flag_is_ignored_and_never_delivers(
         tmp_path, monkeypatch):
     import agents.assess.approval as approval
     import agents.decisions.assessment_arbiters as arbiters
@@ -227,8 +227,8 @@ def test_direct_release_without_current_assess_approval_is_draft_only(
     qa = json.loads((reports / "testco.federal_opportunity_assessment.qa.json")
                     .read_text(encoding="utf-8"))
     assert qa["state"] == "draft"
-    assert any(a["rule"] == "ASSESS_APPROVAL" and a["action"] == "flag"
-               for a in qa["actions"])
+    assert not any(a["rule"] == "ASSESS_APPROVAL"
+                   for a in qa["actions"])
     assert not list(reports.glob("*.pdf"))
     assert not (tmp_path / "Desktop" / "Testco").exists()
 
@@ -372,11 +372,10 @@ def test_offline_link_warnings_are_nonblocking_and_reach_internal_sidecar(
     assert "F9: value $20B" in internal
 
 
-def test_command_center_report_command_is_unchanged():
-    """2026-07-10: reliability does not fork the operator's Assess command."""
+def test_command_center_capture_brief_command_is_internal_only():
+    """Only the canonical LILA transaction receives release authority."""
     pytest.importorskip("flask")
     import ui.server as server
 
     cmd = server._step_cmd("report", "Testco", {"kind": "capture_brief"})
-    assert cmd[1:] == ["run_capture_brief.py", "--client", "Testco",
-                       "--pdf", "--release"]
+    assert cmd[1:] == ["run_capture_brief.py", "--client", "Testco"]

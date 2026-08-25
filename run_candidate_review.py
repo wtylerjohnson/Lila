@@ -489,7 +489,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                         help="EXPERIMENTAL: opt in to the Max-plan seed-author lane")
     parser.add_argument("--offline", action="store_true",
                         help="explicit alias of the default zero-LLM path")
-    parser.add_argument("--release", action="store_true")
+    parser.add_argument(
+        "--release", action="store_true",
+        help="deprecated compatibility flag; Candidate Review is internal")
     parser.add_argument("--strict", action="store_true")
     parser.add_argument("--with-watch", action="store_true",
                         help="refresh the watch generation first, one process")
@@ -538,9 +540,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 0
 
     try:
+        if args.release:
+            sys.stderr.write(
+                "[release] ignored: Candidate Review is internal; use "
+                "lila_release for the sole external product\n")
         qa_path = run_candidate_review(
             args.client, state_root=args.state_root, adapter=adapter,
-            released=bool(args.release), strict=bool(args.strict),
+            released=False, strict=bool(args.strict),
             with_watch=bool(args.with_watch), live=bool(args.live))
     except Exception as exc:  # noqa: BLE001 - one sanitized failure object
         sys.stderr.write(_failure(args.client, f"{type(exc).__name__}: {str(exc)[:400]}") + "\n")

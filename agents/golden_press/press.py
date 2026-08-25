@@ -23,7 +23,6 @@ import hashlib
 import json
 import os
 import re
-import shutil
 import sys
 import urllib.parse
 from datetime import date
@@ -451,71 +450,16 @@ def _deliver_to_desktop(
     label: Optional[str] = None,
     log: Callable[[str], None] = _log,
 ) -> Optional[str]:
-    """Copy a CERTIFIED press into the operator's client folder.
+    """Retain the legacy call seam while refusing external promotion.
 
-    The golden press became the one deliverable but never delivered: the last
-    file in ~/Desktop/Riverbed was a 2026-07-21 legacy Signal Board press, so
-    every golden press since then landed only under data/state and the operator
-    never saw it.
-
-    Naming follows run_signal_board.py. A CERTIFIED press takes the plain
-    dated name and replaces its own earlier copy. An uncertified press is also
-    parked in the folder (operator ruling 2026-07-30, superseding the
-    certified-only gate) under the same name plus an incrementing DRAFT number,
-    so a draft is unmistakably a draft sitting next to the clean file. A
-    delivery failure is logged and never costs the caller the report.
+    Golden press and its legacy Market Map remain internal compatibility
+    views. Only the canonical ``lila_release`` transaction may copy client
+    artifacts to the Desktop.
     """
-
-    # FAIL-CLOSED LAW (repress tasking, 2026-08-03): promotion is atomic
-    # and happens ONLY after every gate passes (structural validation,
-    # vocabulary, suite, zero-SAM instrumentation, browser render, visual
-    # parity). The press itself therefore never promotes when held, and an
-    # UNCERTIFIED press never reaches the Desktop at all; drafts stay in
-    # data/state. This supersedes the 2026-07-30 draft-parking ruling for
-    # the client folder.
-    if os.environ.get("LILA_PRESS_HOLD_DELIVERY", "").strip() == "1":
-        log("delivery HELD (LILA_PRESS_HOLD_DELIVERY): promotion runs "
-            "after the browser-render and parity gates, never inside the "
-            "press")
-        return None
-    if not certified:
-        log("uncertified press: NOT delivered; the draft stays in "
-            "data/state (fail-closed promotion law, 2026-08-03)")
-        return None
-    try:
-        root = Path(os.environ.get("LILA_DESKTOP_ROOT",
-                                   os.path.expanduser("~/Desktop")))
-        folder = root / str(client)
-        folder.mkdir(parents=True, exist_ok=True)
-        stamp = date.today().isoformat()
-        base = f"{client} · Federal Opportunity Pre-Assessment · {stamp}"
-        # A run at a scope the engagement did not set gets its own name. The
-        # certified path OVERWRITES its dated file, so without this a wider
-        # run would silently replace the engagement's own deliverable with a
-        # report covering agencies the operator excluded.
-        if label:
-            base = f"{base} · {label}"
-        if certified:
-            # The certified press owns the plain name and overwrites its own
-            # earlier copy: one clean file per day, never a pile of near-twins.
-            pretty = folder / f"{base}.html"
-        else:
-            # OPERATOR RULING 2026-07-30: park every draft in the client folder
-            # too. Drafts keep the same name plus an incrementing draft number,
-            # so an uncertified press is visibly a draft sitting beside the
-            # clean file and can never be mistaken for it.
-            number = 1
-            while (folder / f"{base} · DRAFT {number}.html").exists():
-                number += 1
-            pretty = folder / f"{base} · DRAFT {number}.html"
-        shutil.copyfile(html_path, pretty)
-        log(f"delivered: {pretty}")
-        print(f"[deliver] {pretty}", flush=True)
-        return str(pretty)
-    except OSError as exc:
-        log(f"client-folder delivery failed ({type(exc).__name__}: {exc}); "
-            f"the certified report is still at {html_path}")
-        return None
+    _ = (html_path, certified, label)
+    log(f"internal compatibility view for {client}: Desktop delivery disabled; "
+        "use lila_release for the external product")
+    return None
 
 
 def golden_press(

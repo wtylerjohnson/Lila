@@ -102,11 +102,11 @@ def test_run_endpoint_refuses_unapproved(monkeypatch, tmp_path):
     ("views", {}),
     ("agency_report", {"agency": "DoD"}),
 ])
-def test_run_endpoint_refuses_release_capable_assess_without_current_approval(
+def test_internal_compatibility_steps_do_not_inherit_release_gate(
         monkeypatch, step, args):
     _bind_run_workstation(monkeypatch)
-    # External-slot law: the capture-brief press is flag-gated off by
-    # default; this test's subject is the release gate, so raise the flag
+    # Capture Brief remains flag-gated, but enabling the internal adapter must
+    # not give it canonical LILA release authority.
     monkeypatch.setattr(srv, "CAPTURE_BRIEF_ENABLED", True)
     monkeypatch.setattr(
         srv, "load_packet",
@@ -122,9 +122,30 @@ def test_run_endpoint_refuses_release_capable_assess_without_current_approval(
 
     r = srv.app.test_client().post("/api/run", json={
         "client_name": "Testco", "step": step, "args": args})
-    assert r.status_code == 409
+    assert r.status_code == 200
+    assert launched
+
+
+def test_lila_release_refuses_without_current_assess_approval(monkeypatch):
+    _bind_run_workstation(monkeypatch)
+    monkeypatch.setattr(
+        srv, "load_packet",
+        lambda _client, **_kwargs: SimpleNamespace(
+            status=srv.ReviewStatus.APPROVED, search_scope=None))
+    monkeypatch.setattr(
+        srv, "_assess_release_gate",
+        lambda _client: (None, "invalid", ["Assess sweep evidence changed"]))
+    launched = []
+    monkeypatch.setattr(
+        srv, "start_job",
+        lambda *_args, **_kwargs: launched.append(1) or "should-not-start")
+
+    response = srv.app.test_client().post("/api/run", json={
+        "client_name": "Testco", "step": "lila_release", "args": {}})
+
+    assert response.status_code == 409
     assert not launched
-    assert r.get_json()["problems"] == ["Assess sweep evidence changed"]
+    assert response.get_json()["problems"] == ["Assess sweep evidence changed"]
 
 
 def test_capture_brief_press_is_retired_by_default():
@@ -194,7 +215,7 @@ def test_command_center_roundtrips_and_previews_presentation_name(monkeypatch):
     assert "esc(d.display_name || d.client_name)" in html
 
 
-def test_run_endpoint_allows_current_approval_and_leaves_teaser_unchanged(
+def test_run_endpoint_leaves_internal_report_steps_outside_release_gates(
         monkeypatch):
     _bind_run_workstation(monkeypatch)
     monkeypatch.setattr(
@@ -215,17 +236,9 @@ def test_run_endpoint_allows_current_approval_and_leaves_teaser_unchanged(
         "client_name": "Testco", "step": "report",
         "args": {"kind": "teaser"}})
     assert teaser.status_code == 200
-    status[0] = "approved"
-    blocked = client.post("/api/run", json={
+    internal = client.post("/api/run", json={
         "client_name": "Testco", "step": "views", "args": {}})
-    assert blocked.status_code == 409
-    assert "complete Targeting Review" in blocked.get_json()["error"]
-    monkeypatch.setattr(
-        srv, "_client_targets_payload",
-        lambda _slug: ({"targeting_readiness": {"ready": True, "problems": []}}, 200))
-    release = client.post("/api/run", json={
-        "client_name": "Testco", "step": "views", "args": {}})
-    assert release.status_code == 200
+    assert internal.status_code == 200
     assert calls == [
         ("report", {"kind": "teaser", "workstation_id": "all"}),
         ("views", {"workstation_id": "all"}),
@@ -1029,19 +1042,19 @@ def test_stable_foa_sidecar_fails_closed_until_fresh_release(
     shelf = next(d for d in srv.client_documents("acme")
                  if d["label"] == "Opportunity Assessment")
     assert shelf["qa_pass"] is True
-    # Assessment release alone is no longer sufficient: the separate,
-    # current Targeting Review receipt also protects the attachment boundary.
+    # A legacy Assessment sidecar never authorizes the public compatibility
+    # URL; that URL now resolves only through canonical LILA release state.
     download = client.get("/client/acme/download/foa.html")
     assert download.status_code == 409
-    assert b"complete Targeting Review" in download.data
+    assert b"complete LILA bundle" in download.data
     monkeypatch.setattr(
         srv, "_client_targets_payload",
         lambda _slug: ({"targeting_readiness": {"ready": True,
                                                  "problems": []}}, 200),
     )
     download = client.get("/client/acme/download/foa.html")
-    assert download.status_code == 200
-    assert b"DRAFT PREVIEW" in download.data
+    assert download.status_code == 409
+    assert b"DRAFT PREVIEW" not in download.data
 
 
 def test_attention_label_uses_client_facing_names(tmp_path, monkeypatch):

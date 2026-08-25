@@ -7,7 +7,6 @@ Client-facing name: Federal Opportunity Assessment.
 Chain: FactPack -> compose (Max-plan Claude, strict schema) -> deterministic QA
 gates -> deterministic render. Output:
     data/reports/<slug>.federal_opportunity_assessment.html
-    ~/Desktop/GTM - Recorded Future/<Client>_Federal_Opportunity_Assessment_<date>.html
 (Loaders also accept legacy <slug>.capture_brief*.html artifacts.)
 
 The pipeline ALWAYS renders a report (graceful QA, 2026-07-09): rule
@@ -23,7 +22,6 @@ import argparse
 import html
 import json
 import os
-import shutil
 import sys
 from datetime import date, datetime, timezone
 from typing import Optional
@@ -55,11 +53,6 @@ def _is_link_integrity_rule(rule: str) -> bool:
     """Link release gates are source truth, never operator-adjudicatable."""
     return (rule == "sam_workspace_link"
             or rule.startswith(("federal_link_", "external_link_")))
-
-
-def client_folder(client: str) -> str:
-    """Each client gets their own Desktop folder; created on first report."""
-    return os.path.expanduser(f"~/Desktop/{client}")
 
 
 from tools.atomic_io import atomic_write_text as _atomic_write_text  # noqa: E402
@@ -284,15 +277,17 @@ def main() -> int:
                          "full review + compose (default resumes: a failed "
                          "run's draft is patched, never re-bought)")
     ap.add_argument("--release", action="store_true",
-                    help="the operator's release switch: with zero open QA "
-                         "flags and arbiter consensus, render the clean "
-                         "RELEASE (no watermark, no appendix). Without it, "
-                         "or with any flag open, the build is a DRAFT — "
-                         "which always renders.")
+                    help="deprecated compatibility flag; this internal view "
+                         "never authorizes external release")
     ap.add_argument("--offline", action="store_true",
                     help="skip external HTTP checks; list those links for "
                          "manual review in the INTERNAL sidecar")
     args = ap.parse_args()
+    if args.release:
+        print("[release] ignored: Capture Brief is an internal compatibility "
+              "view; use the lila_release Command Center step for the sole "
+              "external product", file=sys.stderr)
+        args.release = False
 
     # Resolve the gate-designated artifact family before any optional analysis
     # runs. Scope failures remain loud; once the correct evidence universe is
@@ -1301,33 +1296,12 @@ def main() -> int:
     except Exception as e:  # noqa: BLE001 — the internal file never blocks
         print(f"[internal] write failed non-fatally ({e})", file=sys.stderr)
 
-    if state == "release":
-        try:  # the folder copy is delivery, not existence: never a crash
-            folder = client_folder(args.client)
-            os.makedirs(folder, exist_ok=True)
-            pretty = os.path.join(
-                folder,
-                f"{args.client.replace(' ', '_')}_Federal_Opportunity_Assessment"
-                f"{scope_tag}_{date.today().isoformat()}.html",
-            )
-            shutil.copy(out, pretty)
-            print(f"[out] {pretty}", file=sys.stderr)
-            if pdf:
-                shutil.copy(pdf, os.path.splitext(pretty)[0] + ".pdf")
-                print(f"[pdf] {os.path.splitext(pretty)[0] + '.pdf'}", file=sys.stderr)
-            print(f"RELEASE: assessment is client-clean -> Desktop/{args.client}/",
-                  file=sys.stderr)
-        except Exception as e:  # noqa: BLE001
-            print(f"[out] Desktop copy failed non-fatally ({e}) — the RELEASE "
-                  f"artifact stands at {out}", file=sys.stderr)
-    else:
-        print("DRAFT rendered end-to-end (a report ALWAYS ships). Resolve the "
-              "flags in the QA appendix by fixing source data/copy, then press "
-              "with --release.", file=sys.stderr)
-        if not consensus:
-            print("The draft is SAVED: pressing again resumes at the patch loop "
-                  "(review + compose are not re-bought). --fresh discards it.",
-                  file=sys.stderr)
+    print("INTERNAL compatibility view rendered end-to-end. External delivery "
+          "is available only through lila_release.", file=sys.stderr)
+    if not consensus:
+        print("The draft is SAVED: pressing again resumes at the patch loop "
+              "(review + compose are not re-bought). --fresh discards it.",
+              file=sys.stderr)
     return 2 if hard_link_issues else 0
 
 

@@ -1,9 +1,8 @@
-"""WS3 (review findings 3, 4, 5, 9): ONE truth for releasable.
+"""Legacy family-state compatibility never confers external release.
 
-agents/reports/release.py is the single derivation point. The matrix here is
-the review's acceptance bar: for every combination of sidecar state, approval
-state, newer-blocked-view, and legacy artifacts, the badge (_final_brief),
-the shelf, and the download boundary give the SAME answer.
+agents/reports/release.py still derives the internal status of older report
+families. Public client HTML routes, however, resolve only the canonical LILA
+release transaction and therefore remain closed throughout this legacy matrix.
 """
 
 from __future__ import annotations
@@ -111,26 +110,27 @@ def _seed(tmp_path, monkeypatch):
 
 
 def _verdicts(client):
-    """(badge, download_ok) — the two surfaces that must always agree."""
+    """(legacy internal QA badge, canonical public-download status)."""
     fb = srv._final_brief(SLUG)
     r = client.get(f"/client/{SLUG}/download/foa.html")
     return (None if fb is None else fb["qa_pass"]), r.status_code == 200
 
 
-def test_badge_and_download_agree_across_the_matrix(tmp_path, monkeypatch):
+def test_legacy_badge_matrix_never_authorizes_canonical_download(
+        tmp_path, monkeypatch):
     report_dir = _seed(tmp_path, monkeypatch)
     client = srv.app.test_client()
 
     # nothing on file
     assert _verdicts(client) == (None, False)
 
-    # clean release + approval -> both yes
+    # A clean legacy sidecar may pass its internal QA badge, but cannot release.
     _approve(monkeypatch)
     _write_stable(report_dir, when=time.time() - 60)
     srv._HTML_SHA_MEMO.clear()
-    assert _verdicts(client) == (True, True)
+    assert _verdicts(client) == (True, False)
 
-    # approval lapses -> BOTH refuse (the review's headline disagreement)
+    # Approval lapse still invalidates the legacy internal QA badge.
     _approve(monkeypatch, "invalid", ["Assess sweep evidence changed"])
     badge, dl = _verdicts(client)
     assert (badge, dl) == (False, False)
@@ -149,13 +149,13 @@ def test_badge_and_download_agree_across_the_matrix(tmp_path, monkeypatch):
     rs = release_state(SLUG, report_dir=report_dir, review_dir=srv.REVIEW_DIR)
     assert rs["family"] == "view_bad"
 
-    # the blocked view is cleared and a fresh clean view lands -> both yes
+    # A fresh clean legacy view still cannot authorize public delivery.
     os.remove(blocked)
     view = os.path.join(report_dir, f"{SLUG}.assessment.client.html")
     with open(view, "w") as f:
         f.write("<html>clean client view</html>")
     os.utime(view, (now + 5, now + 5))
-    assert _verdicts(client) == (True, True)
+    assert _verdicts(client) == (True, False)
 
 
 def test_new_presentation_mark_blocks_old_certificate_until_repress(
@@ -192,7 +192,7 @@ def test_new_presentation_mark_blocks_old_certificate_until_repress(
     assert still_dirty["qa_pass"] is False
     assert still_dirty["presentation_current"] is False
 
-def test_real_multiword_approval_releases_through_slug_route_unstubbed(
+def test_real_multiword_approval_resolves_legacy_state_but_not_public_route(
         tmp_path, monkeypatch):
     """A URL slug must resolve to the exact packet identity before approval.
 
@@ -245,7 +245,7 @@ def test_real_multiword_approval_releases_through_slug_route_unstubbed(
     assert state and state["qa_pass"] is True
     response = client.get(
         f"/client/{SLUG}/download/foa.html")
-    assert response.status_code == 200
+    assert response.status_code == 409
     resolved = release_state(
         SLUG, report_dir=report_dir, review_dir=srv.REVIEW_DIR)
     assert resolved["approval_status"] == "approved"
@@ -328,7 +328,7 @@ def test_report_preview_banner_stamps_unreleasable_deliverables(tmp_path, monkey
     assert "NOT RELEASABLE" not in page
 
 
-def test_fresh_certified_signal_board_supersedes_legacy_and_downloads(
+def test_fresh_certified_signal_board_stays_internal(
         tmp_path, monkeypatch):
     report_dir = _seed(tmp_path, monkeypatch)
     _approve(monkeypatch)
@@ -344,9 +344,8 @@ def test_fresh_certified_signal_board_supersedes_legacy_and_downloads(
     monkeypatch.setattr(srv, "CLIENT_LINK_CHECKS_ENABLED", False)
     response = srv.app.test_client().get(
         f"/client/{SLUG}/download/signal-board.html")
-    assert response.status_code == 200
-    assert "Federal_Opportunity_Pre-Assessment" in response.headers[
-        "Content-Disposition"]
+    assert response.status_code == 409
+    assert response.get_json()["do_not_send"] is True
 
 
 @pytest.mark.parametrize("overrides,reason", [
@@ -486,7 +485,7 @@ def test_newer_do_not_send_signal_board_supersedes_clean_certificate(
     assert rs["releasable"] is False
 
 
-def test_signal_board_family_remains_canonical_when_retired_report_is_newer(
+def test_signal_board_family_remains_legacy_owner_when_retired_report_is_newer(
         tmp_path, monkeypatch):
     report_dir = _seed(tmp_path, monkeypatch)
     _approve(monkeypatch)
@@ -502,9 +501,8 @@ def test_signal_board_family_remains_canonical_when_retired_report_is_newer(
     assert rs["releasable"] is True
     response = srv.app.test_client().get(
         f"/client/{SLUG}/download/foa.html")
-    assert response.status_code == 200
-    assert "Federal_Opportunity_Pre-Assessment" in response.headers[
-        "Content-Disposition"]
+    assert response.status_code == 409
+    assert response.get_json()["do_not_send"] is True
 
 
 def test_current_presentation_drift_blocks_old_certificate(
@@ -645,7 +643,8 @@ def test_download_does_not_trust_rendered_federal_attributes_without_manifest(
         "family": "signal_board", "releasable": True,
         "path": html_path, "preview_path": html_path, "reason": "release",
     })
-    response = srv.app.test_client().get(
-        f"/client/{SLUG}/download/signal-board.html")
+    with srv.app.test_request_context(
+            f"/client/{SLUG}/download/signal-board.html"):
+        response = srv.app.make_response(srv._download_signal_board(SLUG))
     assert response.status_code == 409
     assert "does not match rendered occurrences" in response.get_json()["error"]

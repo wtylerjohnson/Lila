@@ -18,9 +18,7 @@ from __future__ import annotations
 
 import argparse
 import os
-import shutil
 import sys
-from datetime import date
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -245,18 +243,6 @@ def main() -> int:
                 print(f"[pdf:{view}] REFUSED — {refused[0].rule}: gates must "
                       "pass before any PDF exists", file=sys.stderr)
 
-        if view == "client" and not violations and not args.no_compose:
-            folder = os.path.expanduser(f"~/Desktop/{args.client}")
-            os.makedirs(folder, exist_ok=True)
-            pretty = os.path.join(
-                folder,
-                f"{args.client.replace(' ', '_')}_Federal_Opportunity_Assessment_{date.today().isoformat()}.html")
-            shutil.copy(out, pretty)
-            print(f"[out:{view}] {pretty}", file=sys.stderr)
-            if pdf:
-                shutil.copy(pdf, os.path.splitext(pretty)[0] + ".pdf")
-                print(f"[pdf:{view}] {os.path.splitext(pretty)[0] + '.pdf'}",
-                      file=sys.stderr)
         if violations:
             exit_code = 2
     return exit_code

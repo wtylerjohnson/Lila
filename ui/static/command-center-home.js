@@ -165,7 +165,7 @@
     var targetingReceipt = (state.targetData && state.targetData.targeting_readiness) || { ready: false, problems: [] };
     var targeting = Boolean(targetingReceipt.ready);
     var assets = Boolean((detail.documents || row.documents || []).length);
-    var output = Boolean((detail.signal_board && detail.signal_board.qa_pass) || (detail.final_brief && detail.final_brief.qa_pass));
+    var output = Boolean(detail.final_product && detail.final_product.qa_pass);
     var canPress = assessment && evidence && targeting && assets;
     var components = [
       { key: "assessment", label: "Assessment readiness", ok: assessment, state: assessment ? "ready" : "blocked", note: assessment ? "Current assessment approval is bound" : "Current assessment approval required" },
@@ -218,7 +218,7 @@
     var edition = selectedEditionDoc(selectedRow());
     if (edition && edition.path && /\.(html|pdf)$/i.test(edition.path)) return edition.path;
     var detail = state.detail || {};
-    var report = detail.signal_board || detail.final_brief || null;
+    var report = detail.final_product || null;
     return report && report.path;
   }
 
@@ -510,7 +510,9 @@
     } else if (name === "Report Library" || name === "Templates & Assets") {
       var docs = (state.detail && state.detail.documents) || row.documents || [];
       body = '<div class="cc2-document-list">' + docs.map(function (doc) {
-        return '<article><span>' + icon(doc.fmt === "pdf" ? "picture_as_pdf" : "article") + '</span><span><strong>' + escapeHtml(doc.label || doc.path || "Report") + '</strong><small>' + escapeHtml(doc.fmt || "artifact") + ' · ' + (doc.qa_pass ? "QA passed" : "Release state must be checked") + '</small></span><em class="' + (doc.qa_pass ? "ready" : "review") + '">' + (doc.qa_pass ? "QA passed" : "Review") + '</em><button type="button" data-report="' + escapeHtml(doc.path || "") + '">Open ' + icon("open_in_new") + '</button></article>';
+        var externalReady = Boolean(doc.external_product && doc.qa_pass);
+        var status = doc.external_product ? (externalReady ? "Release ready" : "Release state must be checked") : "Internal view";
+        return '<article><span>' + icon(doc.fmt === "pdf" ? "picture_as_pdf" : "article") + '</span><span><strong>' + escapeHtml(doc.label || doc.path || "Report") + '</strong><small>' + escapeHtml(doc.fmt || "artifact") + ' · ' + status + '</small></span><em class="' + (externalReady ? "ready" : "review") + '">' + (externalReady ? "Release ready" : (doc.external_product ? "Review" : "Internal")) + '</em><button type="button" data-report="' + escapeHtml(doc.path || "") + '">Open ' + icon("open_in_new") + '</button></article>';
       }).join("") + '</div>';
     } else if (name === "Research Packs") {
       var globalTarget = state.targets.find(function (item) { return item.client_id === row.slug; }) || { candidates: [], target_agencies: [] };

@@ -278,10 +278,9 @@ def _self_contained(html: str) -> bool:
     return True
 
 
-def test_foa_download_serves_the_gates_passed_deliverable(tmp_path, monkeypatch):
-    """RECONCILIATION: the internal dashboard exports the full-detail,
-    gates-passed deliverable (client view), never the DO-NOT-SEND-stamped
-    internal working document."""
+def test_legacy_client_view_stays_internal_even_when_gate_clean(
+        tmp_path, monkeypatch):
+    """The compatibility view cannot bypass canonical LILA release state."""
     from agents.reports.document import build_document
     from agents.reports.views import render_assessment
 
@@ -295,9 +294,9 @@ def test_foa_download_serves_the_gates_passed_deliverable(tmp_path, monkeypatch)
             render_assessment(doc, "client")))
 
     r = client.get(f"/client/{SLUG}/download/foa.html")
-    assert r.status_code == 200
-    assert "attachment" in r.headers["Content-Disposition"]
-    html = r.data.decode()
+    assert r.status_code == 409
+    assert r.get_json()["do_not_send"] is True
+    html = Path(art).read_text(encoding="utf-8")
     assert html.startswith("<!DOCTYPE html>") and _self_contained(html)
     assert "AVI-SPL" in html                       # full detail: client view
     assert "INTERNAL REVIEW" not in html           # never the working document

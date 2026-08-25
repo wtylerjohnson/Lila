@@ -13,8 +13,9 @@ agency-scoped USAspending market slice per NAICS lane, and builds the
 assessment from that scoped artifact through the full gate stack. A
 department pass (DHS) captures its components (CBP, TSA, ...).
 
-Output: data/reports/<slug>.agency_<abbr>.assessment.client[.DO-NOT-SEND].html
-plus the Desktop client folder when gate-clean.
+Output: data/reports/<slug>.agency_<abbr>.assessment.client[.DO-NOT-SEND].html.
+This is an internal compatibility view and never reaches the Desktop client
+folder.
 """
 
 from __future__ import annotations
@@ -631,18 +632,6 @@ def main() -> int:
     except OSError as exc:
         print(f"[links] INTERNAL sidecar unavailable ({exc})", file=sys.stderr)
 
-    if not violations:
-        try:
-            folder = os.path.expanduser(f"~/Desktop/{args.client}")
-            pretty = os.path.join(
-                folder,
-                f"{args.client.replace(' ', '_')}_{agency['abbr']}_Focus_"
-                f"{date.today().isoformat()}.html")
-            _atomic_write_text(pretty, html)
-            print(f"[out] {pretty}", file=sys.stderr)
-        except Exception as e:  # noqa: BLE001 - repo artifact already stands
-            print(f"[out] Desktop delivery FAILED non-fatally ({e}); report "
-                  f"remains available at {out}", file=sys.stderr)
     return 0 if not violations else 2
 
 

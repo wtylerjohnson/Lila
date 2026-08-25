@@ -121,8 +121,7 @@ def test_legacy_assessment_still_builds_without_assess_ledgers(
     # The Command Center contract still invokes this entry point, and the
     # dashboard can discover the artifact even though no ledger was present.
     cmd = server._step_cmd("report", client, {"kind": "capture_brief"})
-    assert cmd[1:] == ["run_capture_brief.py", "--client", client,
-                       "--pdf", "--release"]
+    assert cmd[1:] == ["run_capture_brief.py", "--client", client]
     monkeypatch.setattr(server, "ROOT", str(root))
     monkeypatch.setattr(server, "REPORT_DIR", str(reports))
     monkeypatch.setattr(server, "REVIEW_DIR", str(review_dir))
