@@ -75,11 +75,16 @@ The slot payloads are:
    exact award records and arithmetic behind them.
 4. `competitors` fills with identified competitors, their relevant awards,
    spending evidence, incumbent positions, and competitive landscape.
-5. `federal-opportunities` fills with qualified federal opportunities and a
-   target set specific to each opportunity. Published notice contacts render
-   first; governed search and approved enrichment complement the missing roles.
+5. `federal-opportunities` owns every current federal opportunity. Qualified
+   records render as pursuits; unresolved fit or access records render in a
+   visibly separate decision queue with their exact blockers and next research
+   action. Each record retains a target set specific to that opportunity.
+   Published notice contacts render first; governed search and approved
+   enrichment complement the missing roles.
 6. `teaming-opportunities` fills with evidence-backed teaming routes and the
-   partner targets required to act on each route.
+   partner targets required to act on each route. When a Slot 5 notice requires
+   a partner route, Slot 6 carries a non-owning reference back to that notice;
+   it never renders the notice as a second opportunity.
 7. `future-forecasts` fills with agency forecasts, budget direction, and
    relevant federal or market news, plus evidence-bound directional graphs and
    vector maps where the underlying data supports them.
@@ -91,6 +96,12 @@ Each canonical award, notice, forecast, contact, route, or event renders once
 in the slot that owns it. Executive promotions elsewhere are internal links to
 that canonical record, never duplicated cards or rows.
 
+Technical fit, timing, and commercial route are independent decisions. A
+credible current fit with unstated access remains a visible decision to verify
+the route. A credible fit with a restricted direct route remains visible with
+its teaming action. Neither condition is permission to discard the underlying
+opportunity.
+
 ### Complete-bundle release law
 
 `agents/golden_press/product_bundle.py` is the only external product press.
@@ -100,7 +111,10 @@ JSON, certified Federal Pursuit Graph, pressed evidence pack, captured replay
 inputs, validation receipt, SHA-256 manifest, and deterministic ZIP. Promotion
 is atomic and fail-closed: missing operator approval, a graph violation, a
 render violation, or any changed file hash makes the current product
-non-releasable. Older output families remain readable only under the roles in
+non-releasable. Every captured research input must carry an aware receipt at or
+before the release's `classification_as_of`; snapshot assembly cannot backdate
+later evidence into an earlier market view. Older output families remain
+readable only under the roles in
 `agents/reports/product_families.py` and cannot substitute for this bundle.
 
 The seven-section Riverbed Federal Market Map below documents the internal

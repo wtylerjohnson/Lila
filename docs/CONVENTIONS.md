@@ -1359,6 +1359,26 @@ field and accepts only absolute HTTP(S) links; the bundle transaction emits
 portable sidecars and refuses any outgoing member that still exposes a
 host-local path.
 
+Slot 5 is the sole owner of a federal notice. Slot 6 may carry a
+`teaming_route_reference` only when it names the Slot 5 ownership key, copies
+the same notice identity and route decision, and declares itself non-owning.
+Fit, window, and route are classified independently: unknown access produces a
+route-verification decision, while an evidenced restricted route produces a
+teaming decision. Neither changes a credible fit into an exclusion. Notice
+families join only through a structured solicitation identity or explicit
+successor evidence within the same normalized agency and issuing office.
+Successor chains resolve transitively; conflicting successor claims and
+missing buyer namespaces fail open. The newest active notice owns the external
+identity while field-level receipts may carry richer scope and omitted
+operational facts from its inactive base notice.
+
+Classification is an as-of reconstruction, never a relabelled wall clock.
+The pressed evidence pack, governed research mesh, and any deep sweep must each
+carry an aware capture receipt at or before `classification_as_of`; a missing
+or later receipt fails before classification and again at release. A later
+`captured_at` may describe snapshot assembly, but it cannot authorize evidence
+that did not exist at the classification cutoff.
+
 ## Operator frame tiers and the full-store re-screen (2026-08-17)
 
 - `clients/<slug>/frame_tiers.json` is the single record of an
