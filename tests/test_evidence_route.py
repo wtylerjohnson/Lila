@@ -41,6 +41,7 @@ PROFILE = {
                  "interpretation and translation",
                  "translation and interpreting",
                  "language training", "Military Language Instructor",
+                 "language instructor services",
                  "linguist support", "localization"],
         "adjacent": ["language proficiency testing"], "excluded": []}}
 
@@ -138,6 +139,22 @@ def test_closed_notice_is_never_a_live_pursuit(ctx):
     undated = dict(closed, response_deadline="")
     assert er.classify_evidence(undated, ctx)["evidence_class"] == \
         "ambiguous"
+
+
+def test_source_cancelled_notice_is_never_current_even_with_future_deadline(ctx):
+    row = er.classify_record({
+        "lane": "L1_notice",
+        "title": "Translation and Interpretation Services",
+        "description": "translation and interpretation support",
+        "response_deadline": "2026-09-30T17:00:00-04:00",
+        "source_status": False,
+        "notice_type": "Cancellation",
+        "set_aside": "Unrestricted",
+    }, ctx)
+
+    assert row["window_state"] == "stated_past"
+    assert row["evidence_class"] == "excluded"
+    assert "inactive or cancelled" in row["window_basis"]
 
 
 def test_same_day_notice_uses_timezone_aware_deadline_instant(ctx):
@@ -362,6 +379,21 @@ def test_access_restricted_stays_partner_route_never_direct(ctx):
     assert sba["route_relationship"] == "direct"
 
 
+def test_incumbent_placeholders_do_not_invent_a_teaming_route(ctx):
+    for description in (
+            "The incumbent is unknown.",
+            "The incumbent is To Be Determined.",
+            "The incumbent is not identified."):
+        route = er.classify_route({
+            "lane": "L1_notice",
+            "title": "Translation services",
+            "description": description,
+            "set_aside": "",
+        }, ctx)
+        assert route["route_relationship"] == "unknown"
+        assert "incumbent" not in route["route_basis"].casefold()
+
+
 def test_canonical_requirement_survives_once(ctx):
     from agents.golden_press.evidence_pack_v2 import dedupe_requirements
     rows = [
@@ -381,9 +413,9 @@ def test_canonical_requirement_survives_once(ctx):
              "current_opportunity"},
     ]
     kept = dedupe_requirements(rows)
-    assert len(kept) == 2
+    assert len(kept) == 3
     families = {r["requirement_family"] for r in kept}
-    assert len(families) == 2
+    assert len(families) == 3
 
 
 def test_targets_stay_attached_to_their_requirement_family(ctx):
@@ -422,3 +454,131 @@ def test_legacy_event_lane_keeps_event_evidence(ctx):
         "title": "Federal Language Industry Day",
     }, ctx)
     assert row["evidence_class"] == "event"
+
+
+def test_jtg_curriculum_frame_preserves_real_fit_without_training_broadening():
+    profile = {
+        "capability_summary": "Language services, e-learning, and curriculum development.",
+        "capability_terms": {
+            "core": [
+                "translation and interpretation",
+                "e-learning and curriculum development",
+                "curriculum development services",
+                "instructional course design",
+                "distance education",
+            ],
+            "adjacent": ["instructional design", "distance learning"],
+            "excluded": ["pain neuroscience education", "speech pathology"],
+            "excluded_codes": ["621340", "Q518"],
+        },
+    }
+    pack = {
+        "client_entity_aliases": ["JTG, INC."],
+        "records": [{
+            "lane": "L2_entity_award",
+            "record_id": "W9124N12C0086",
+            "recipient": "JTG, INC.",
+            "title": "CURRICULUM DEVELOPMENT SERVICES SUPPORT",
+            "description": "Curriculum development services support",
+            "url": "https://www.usaspending.gov/award/W9124N12C0086",
+        }],
+    }
+    governed = er.build_context(
+        "JTG, inc.", "jtg_inc", pack=pack,
+        packet={"status": "approved", "strategy": {"keywords": []}},
+        profile=profile,
+        route_facts={"certifications": [], "named_partners": [],
+                     "validated_competitors": []},
+        as_of="2026-08-19T16:00:00Z",
+    )
+    assert governed["capability_term_modes"][
+        "instructional course design"] == "exact_phrase"
+    assert ("course", "design") not in governed["core_signal_pairs"]
+    taep = er.classify_record({
+        "lane": "L1_notice",
+        "title": "Training Analysis Evaluation Product RFP",
+        "description": (
+            "Services shall assist in analyzing, designing, developing, "
+            "implementing, and evaluating training and education concepts."),
+        "response_deadline": "2026-09-14T10:00:00-04:00",
+        "set_aside": "8(a) Set-Aside (FAR 19.8)",
+    }, governed)
+    cdet = er.classify_record({
+        "lane": "L1_notice",
+        "title": "Marine Corps Center for Distance Education",
+        "description": "Curriculum development services and instructional support.",
+        "response_deadline": "2026-09-14T10:00:00-04:00",
+        "set_aside": (
+            "Service-Disabled Veteran-Owned Small Business (SDVOSB) "
+            "Set-Aside (FAR 19.14)"),
+    }, governed)
+    army_aviation = er.classify_record({
+        "lane": "L1_notice",
+        "title": "U.S. Army Aviation Training",
+        "description": "Rapidly train aviators across aircraft platforms.",
+        "response_deadline": "2026-09-14T10:00:00-04:00",
+        "set_aside": "Unrestricted",
+    }, governed)
+    medical = er.classify_record({
+        "lane": "L1_notice",
+        "title": "Pain neuroscience education",
+        "description": "Provider education services for clinicians.",
+        "response_deadline": "2026-09-14T10:00:00-04:00",
+        "set_aside": "Unrestricted",
+        "naics": "621340",
+    }, governed)
+    generic_development = er.classify_record({
+        "lane": "L1_notice",
+        "title": "Enterprise software development services",
+        "description": (
+            "Agile application development services, systems integration, "
+            "and cloud platform operations."),
+        "response_deadline": "2026-09-14T10:00:00-04:00",
+        "set_aside": "Unrestricted",
+    }, governed)
+    leadership_training = er.classify_record({
+        "lane": "L1_notice",
+        "title": "Leadership training team support",
+        "description": "Executive coaching and leadership seminar support.",
+        "response_deadline": "2026-09-14T10:00:00-04:00",
+        "set_aside": "Unrestricted",
+    }, governed)
+    machine_learning = er.classify_record({
+        "lane": "L1_notice",
+        "title": "Machine learning platform development",
+        "description": (
+            "Design, develop, implement, and evaluate a machine learning "
+            "system for predictive maintenance."),
+        "response_deadline": "2026-09-14T10:00:00-04:00",
+        "set_aside": "Unrestricted",
+    }, governed)
+    email_development = er.classify_record({
+        "lane": "L1_notice",
+        "title": "E-mail software development",
+        "description": "Design and develop an e-mail notification system.",
+        "response_deadline": "2026-09-14T10:00:00-04:00",
+        "set_aside": "Unrestricted",
+    }, governed)
+
+    assert taep["service_fit"] == "direct"
+    assert taep["commercial_route"] == "possible_subcontracting"
+    assert any(row.get("source_id") == "W9124N12C0086"
+               for row in taep["fit_evidence"])
+    assert cdet["service_fit"] == "direct"
+    assert cdet["commercial_route"] == "possible_subcontracting"
+    assert army_aviation["service_fit"] != "direct"
+    assert generic_development["service_fit"] != "direct"
+    assert leadership_training["service_fit"] != "direct"
+    assert machine_learning["service_fit"] != "direct"
+    assert email_development["service_fit"] != "direct"
+    assert medical["service_fit"] == "unrelated"
+    assert medical["evidence_class"] == "excluded"
+
+
+def test_canonical_profile_loader_preserves_jtg_excluded_codes():
+    from tools.capability import load_profile
+
+    profile = load_profile("JTG, inc.")
+
+    assert profile is not None
+    assert profile.capability_terms.excluded_codes == ["621340", "Q518"]

@@ -100,6 +100,13 @@ def _graph(
         "counts": {"input_records_raw": 0, "canonical_records": 0},
         "record_identity_receipt": {
             "input_records_raw": 0, "canonical_records": 0},
+        "research_mesh_receipt": {
+            "artifact_name": "searches_acme.json",
+            "sha256": "0" * 64,
+            "generated_at": classification_as_of,
+            "sam_notice_rows_imported": 0,
+            "forecast_rows_imported": 0,
+        },
         "incremental_cache_receipt": {
             "schema_version": "incremental-cache-semantic-receipt-v1",
             "adapter": "existing-systems-graph-adapter-v2",
@@ -126,7 +133,7 @@ def _snapshot(
     evidence = {
         "schema_version": 1,
         "client_name": "Acme",
-        "generated_at": captured_at,
+        "generated_at": classification_as_of,
         "lanes": [],
         "queries": [],
         "records": [],
@@ -939,6 +946,91 @@ def test_fresh_capture_cannot_hide_a_stale_evidence_pack(tmp_path):
         bundle._check_snapshot_freshness(snapshot, now=FROZEN)
 
 
+def test_evidence_pack_cannot_postdate_classification_cutoff(tmp_path):
+    snapshot = _snapshot(
+        tmp_path,
+        classification_as_of="2026-08-24T11:00:00Z",
+        captured_at=FROZEN,
+        evidence_extra={"generated_at": "2026-08-24T11:30:00Z"},
+    )
+
+    with pytest.raises(
+            bundle.ProductReleaseBlocked,
+            match="evidence pack is later than classification_as_of"):
+        bundle._check_snapshot_freshness(snapshot, now=FROZEN)
+
+
+def test_deep_sweep_cannot_postdate_classification_cutoff(tmp_path):
+    snapshot = _snapshot(
+        tmp_path,
+        classification_as_of="2026-08-24T11:00:00Z",
+        captured_at=FROZEN,
+        evidence_extra={"generated_at": "2026-08-24T11:00:00Z"},
+    )
+    graph = copy.deepcopy(snapshot.graph)
+    graph["deep_sweep_receipt"] = {"at": "2026-08-24T11:30:00Z"}
+    inputs = copy.deepcopy(snapshot.market_map_inputs)
+    inputs["evidence_pack_v2"] = graph
+    snapshot = replace(
+        snapshot, graph=graph, market_map_inputs=inputs)
+
+    with pytest.raises(
+            bundle.ProductReleaseBlocked,
+            match="deep sweep is later than classification_as_of"):
+        bundle._check_snapshot_freshness(snapshot, now=FROZEN)
+
+
+def test_fresh_graph_capture_cannot_hide_a_stale_research_mesh(tmp_path):
+    snapshot = _snapshot(tmp_path)
+    stale_graph = copy.deepcopy(snapshot.graph)
+    stale_graph["research_mesh_receipt"]["generated_at"] = (
+        "2026-07-01T12:00:00+00:00")
+    stale_inputs = copy.deepcopy(snapshot.market_map_inputs)
+    stale_inputs["evidence_pack_v2"] = stale_graph
+    snapshot = replace(
+        snapshot, graph=stale_graph, market_map_inputs=stale_inputs)
+
+    with pytest.raises(
+            bundle.ProductReleaseBlocked,
+            match="governed research mesh is older"):
+        bundle._check_snapshot_freshness(snapshot, now=FROZEN)
+
+
+def test_release_fails_closed_without_research_mesh_freshness_receipt(tmp_path):
+    snapshot = _snapshot(tmp_path)
+    graph = copy.deepcopy(snapshot.graph)
+    graph.pop("research_mesh_receipt")
+    inputs = copy.deepcopy(snapshot.market_map_inputs)
+    inputs["evidence_pack_v2"] = graph
+    snapshot = replace(
+        snapshot, graph=graph, market_map_inputs=inputs)
+
+    with pytest.raises(
+            bundle.ProductReleaseBlocked,
+            match="governed research mesh generated_at is not an ISO instant"):
+        bundle._check_snapshot_freshness(snapshot, now=FROZEN)
+
+
+def test_research_mesh_cannot_postdate_classification_cutoff(tmp_path):
+    snapshot = _snapshot(
+        tmp_path,
+        classification_as_of="2026-08-24T11:00:00Z",
+        captured_at=FROZEN,
+    )
+    graph = copy.deepcopy(snapshot.graph)
+    graph["research_mesh_receipt"]["generated_at"] = (
+        "2026-08-24T11:30:00Z")
+    inputs = copy.deepcopy(snapshot.market_map_inputs)
+    inputs["evidence_pack_v2"] = graph
+    snapshot = replace(
+        snapshot, graph=graph, market_map_inputs=inputs)
+
+    with pytest.raises(
+            bundle.ProductReleaseBlocked,
+            match="research mesh is later than classification_as_of"):
+        bundle._check_snapshot_freshness(snapshot, now=FROZEN)
+
+
 def test_classification_freshness_allows_fourteen_days_but_not_one_second_more(
         tmp_path):
     boundary = _snapshot(
@@ -989,6 +1081,10 @@ def test_build_graph_passes_both_exact_clocks(tmp_path, monkeypatch):
 
     pressed = tmp_path / "pressed.json"
     pressed.write_text("{}\n")
+    sweep = tmp_path / "data" / "cleaned" / "searches_acme.json"
+    sweep.parent.mkdir(parents=True)
+    sweep.write_text(
+        '{"generated_at":"2026-08-24T17:00:00Z","results":{}}\n')
     expected_graph = tmp_path / "graph.json"
     seen = {}
 
@@ -1015,8 +1111,25 @@ def test_build_graph_passes_both_exact_clocks(tmp_path, monkeypatch):
     assert seen["args"] == ("acme", "Acme")
     assert seen["kwargs"]["classification_as_of"] == FROZEN
     assert seen["kwargs"]["captured_at"] == FROZEN
+    assert seen["kwargs"]["research_sweep_path"] == sweep
     assert seen["kwargs"]["store_conn"] is connection
     assert connection.closed is True
+
+
+def test_build_graph_fails_closed_when_governed_sweep_is_missing(
+        tmp_path, monkeypatch):
+    from tools import notice_store
+
+    pressed = tmp_path / "pressed.json"
+    pressed.write_text("{}\n")
+    monkeypatch.setattr(notice_store, "connect", lambda: None)
+
+    with pytest.raises(
+            bundle.ProductReleaseError,
+            match="governed research sweep is missing"):
+        bundle._build_graph(
+            tmp_path, "acme", "Acme", pressed,
+            classification_as_of=FROZEN, captured_at=FROZEN)
 
 
 def test_compiler_refuses_local_path_in_exact_evidence_bytes(tmp_path):

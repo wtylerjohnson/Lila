@@ -279,6 +279,7 @@ def _build_graph(
     root: Path, slug: str, client_name: str, pressed_pack_path: Path, *,
     classification_as_of: str, captured_at: str,
 ) -> tuple[Path, dict]:
+    from agents import review
     from agents.golden_press.evidence_pack_v2 import build_corrected_pack
 
     connection = None
@@ -288,12 +289,19 @@ def _build_graph(
             connection = connect()
         except Exception:  # noqa: BLE001 - stored pack remains usable
             connection = None
+        research_sweep = Path(review.sweep_artifact_path(
+            client_name, review_dir=str(root / "data" / "review")))
+        if not research_sweep.exists():
+            raise ProductReleaseError(
+                "governed research sweep is missing: "
+                f"{research_sweep.name}")
         return build_corrected_pack(
             slug, client_name, root=root,
             pressed_pack_path=pressed_pack_path,
             deep_sweep_path=(
                 root / "data" / "state" / "retrieval" /
                 f"deep_sweep_{slug}.json"),
+            research_sweep_path=research_sweep,
             classification_as_of=classification_as_of,
             captured_at=captured_at,
             store_conn=connection,
@@ -433,9 +441,47 @@ def _check_snapshot_freshness(snapshot: ReleaseSnapshot, *, now: str) -> None:
     if evidence_generated > current + timedelta(minutes=5):
         raise ProductReleaseBlocked([
             "evidence pack generated_at is in the future"])
+    if evidence_generated > classified:
+        raise ProductReleaseBlocked([
+            "evidence pack is later than classification_as_of"])
     if current - evidence_generated > MAX_CAPTURE_AGE:
         raise ProductReleaseBlocked([
             "evidence pack is older than fourteen days"])
+    deep_sweep_receipt = snapshot.graph.get("deep_sweep_receipt") or {}
+    if deep_sweep_receipt:
+        try:
+            deep_sweep_generated = _parse_aware(
+                str(deep_sweep_receipt.get("at") or ""),
+                label="deep sweep receipt at")
+        except (AttributeError, TypeError) as exc:
+            raise ProductReleaseBlocked([
+                f"deep sweep freshness is unreadable: {exc}"]) from exc
+        if deep_sweep_generated > current + timedelta(minutes=5):
+            raise ProductReleaseBlocked([
+                "deep sweep receipt is in the future"])
+        if deep_sweep_generated > classified:
+            raise ProductReleaseBlocked([
+                "deep sweep is later than classification_as_of"])
+        if current - deep_sweep_generated > MAX_CAPTURE_AGE:
+            raise ProductReleaseBlocked([
+                "deep sweep is older than fourteen days"])
+    research_mesh_receipt = snapshot.graph.get("research_mesh_receipt") or {}
+    try:
+        research_mesh_generated = _parse_aware(
+            str(research_mesh_receipt.get("generated_at") or ""),
+            label="governed research mesh generated_at")
+    except (AttributeError, TypeError) as exc:
+        raise ProductReleaseBlocked([
+            f"governed research mesh freshness is unreadable: {exc}"]) from exc
+    if research_mesh_generated > current + timedelta(minutes=5):
+        raise ProductReleaseBlocked([
+            "governed research mesh generated_at is in the future"])
+    if research_mesh_generated > classified:
+        raise ProductReleaseBlocked([
+            "governed research mesh is later than classification_as_of"])
+    if current - research_mesh_generated > MAX_CAPTURE_AGE:
+        raise ProductReleaseBlocked([
+            "governed research mesh is older than fourteen days"])
 
 
 def _expected_release_names(compiled: CompiledRelease) -> set[str]:

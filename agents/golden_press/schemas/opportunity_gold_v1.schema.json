@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lila.local/schemas/opportunity-gold-v1.schema.json",
+  "title": "LILA Post-Retrieval Opportunity Gold Contract V1",
+  "description": "Human-authorized, post-retrieval-only expectations. Stable identities in this contract are evaluation inputs only and must never influence retrieval.",
+  "type": "object",
+  "required": [
+    "client",
+    "contract_version",
+    "classification_as_of",
+    "boundary_authority",
+    "adjudication_status",
+    "note",
+    "targets",
+    "adjudications",
+    "capability_evidence_anchors",
+    "notice_family_expectations",
+    "forecast_expectations"
+  ],
+  "properties": {
+    "client": {"type": "string", "minLength": 1},
+    "contract_version": {
+      "type": "string",
+      "pattern": "^jtg-opportunity-gold\\.v1\\.[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "classification_as_of": {"type": "string", "format": "date-time"},
+    "boundary_authority": {
+      "type": "string",
+      "pattern": "^operator-approved .+",
+      "description": "The human-approved repair boundary. This does not imply that every proposed adjudication row has been ratified."
+    },
+    "adjudication_status": {
+      "type": "string",
+      "enum": [
+        "proposed_record_matrix_pending_operator_ratification",
+        "ratified_operator_adjudication"
+      ],
+      "description": "Whether the row-level expectations remain a proposed oracle or have been ratified by the operator."
+    },
+    "note": {
+      "type": "string",
+      "allOf": [
+        {"pattern": "Post-retrieval quality benchmark only"},
+        {"pattern": "never enter retrieval queries"}
+      ]
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/target"}
+    },
+    "adjudications": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/adjudication"}
+    },
+    "capability_evidence_anchors": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/capabilityAnchor"}
+    },
+    "notice_family_expectations": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/noticeFamily"}
+    },
+    "forecast_expectations": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/forecast"}
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "stableId": {"type": "string", "minLength": 1},
+    "fit": {"enum": ["direct", "adjacent", "ambiguous", "unrelated"]},
+    "route": {
+      "enum": [
+        "direct",
+        "unknown",
+        "incumbent",
+        "named_partner_teaming",
+        "possible_subcontracting"
+      ]
+    },
+    "outcomeState": {
+      "enum": ["qualified", "decision_required", "research_context", "excluded"]
+    },
+    "target": {
+      "type": "object",
+      "required": ["id", "kind", "must_lead", "title_hint", "why"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "kind": {"enum": ["notice", "solicitation", "forecast", "award"]},
+        "must_lead": {"type": "boolean"},
+        "title_hint": {"type": "string", "minLength": 1},
+        "why": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "adjudication": {
+      "type": "object",
+      "required": ["id", "expected_fit", "expected_state"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "expected_fit": {"$ref": "#/$defs/fit"},
+        "expected_route": {"$ref": "#/$defs/route"},
+        "expected_state": {"$ref": "#/$defs/outcomeState"}
+      },
+      "additionalProperties": false
+    },
+    "capabilityAnchor": {
+      "type": "object",
+      "required": [
+        "id",
+        "expected_class",
+        "supports",
+        "published_obligations",
+        "figure_type"
+      ],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "expected_class": {"enum": ["client_historical", "competitive_historical"]},
+        "supports": {"type": "string", "minLength": 1},
+        "published_obligations": {"type": "number", "minimum": 0},
+        "figure_type": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "noticeFamily": {
+      "type": "object",
+      "required": [
+        "solicitation_number",
+        "expected_canonical_record_id",
+        "expected_member_ids",
+        "expected_member_count",
+        "expected_deadline",
+        "expected_fit",
+        "expected_route",
+        "expected_slot_5_state",
+        "expected_slot_6"
+      ],
+      "properties": {
+        "solicitation_number": {"$ref": "#/$defs/stableId"},
+        "expected_canonical_record_id": {"$ref": "#/$defs/stableId"},
+        "expected_member_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/stableId"}
+        },
+        "expected_member_count": {"type": "integer", "minimum": 1},
+        "expected_deadline": {"type": "string", "format": "date-time"},
+        "expected_fit": {"$ref": "#/$defs/fit"},
+        "expected_route": {"$ref": "#/$defs/route"},
+        "expected_slot_5_state": {
+          "enum": ["qualified", "decision_required", "research_context"]
+        },
+        "expected_slot_6": {
+          "enum": ["non_owning_route_reference", "explicit_research_gap"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "forecast": {
+      "type": "object",
+      "required": [
+        "id",
+        "expected_slot",
+        "predecessor_contract_id",
+        "buyer_component",
+        "buyer_office"
+      ],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "expected_slot": {"const": "future-forecasts"},
+        "predecessor_contract_id": {"$ref": "#/$defs/stableId"},
+        "buyer_component": {"type": "string", "minLength": 1},
+        "buyer_office": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    }
+  }
+}

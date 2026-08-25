@@ -15,7 +15,6 @@ from collections import Counter
 from pathlib import Path
 
 from agents.golden_press import release_compiler
-from agents.golden_press.evidence_route import CLASSIFIER_VERSION
 from agents.golden_press.external_product_contract import (
     CONTRACT_VERSION,
     OPERATOR_LOCKED_SLOT_SHA256,
@@ -40,6 +39,7 @@ _SOURCE_EVIDENCE_SHA256 = (
     "714426566bb115d2cd7f4e4c7a317f315ad45e092c2c85ecbb0dcc4ed5eeab58")
 _CAPTURE_RECEIPT_SHA256 = (
     "c6971d9d2ecded25f1baa3f39503d690981b9fad557807e7270b5e4da16ce4cb")
+_FIXTURE_CLASSIFIER_VERSION = "evidence-route-v7-utc-window-truth"
 
 
 def _write_compilation(root: Path, compiled) -> None:
@@ -138,7 +138,7 @@ def test_real_jtg_snapshot_double_replay_is_byte_identical_and_non_promotable(
         first.studio_html]
     cache_receipt = snapshot.graph["incremental_cache_receipt"]
     assert cache_receipt["semantic_dependencies"]["rule_version"] == (
-        CLASSIFIER_VERSION)
+        _FIXTURE_CLASSIFIER_VERSION)
     assert cache_receipt["semantic_dependencies"]["as_of"] == (
         snapshot.classification_as_of)
     assert cache_receipt["context_hash"] == stable_hash(

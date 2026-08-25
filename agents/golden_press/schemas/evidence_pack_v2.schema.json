@@ -51,7 +51,29 @@
             "items": {"type": "string"}
           },
           "family_member_count": {"type": "integer", "minimum": 1},
-          "family_basis": {"type": ["string", "null"]}
+          "family_basis": {"type": ["string", "null"]},
+          "family_lineage": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "record_id",
+                "solicitation_number",
+                "title",
+                "notice_type",
+                "posted_date",
+                "response_deadline",
+                "set_aside",
+                "source_url",
+                "agency",
+                "office",
+                "identity_basis"
+              ],
+              "additionalProperties": true
+            }
+          },
+          "canonical_scope_record_id": {"type": ["string", "null"]},
+          "family_field_sources": {"type": "object"}
         },
         "additionalProperties": false
       }
@@ -373,6 +395,12 @@
           "enum": ["published_contact", "apollo_enrichment", "enrichment_candidate"]
         },
         "contact_state": {"enum": ["sourced", "enriched", "needs_enrichment"]},
+        "target_purpose": {
+          "enum": ["pursuit_execution", "decision_resolution"]
+        },
+        "target_slot_id": {
+          "enum": ["federal-opportunities", "teaming-opportunities"]
+        },
         "provenance": {"type": "string", "minLength": 1}
       },
       "allOf": [

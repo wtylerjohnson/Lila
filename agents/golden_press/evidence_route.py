@@ -50,13 +50,18 @@ ROUTE_RELATIONSHIPS = (
 WINDOW_STATES = ("live", "fy_only", "unstated", "stated_past")
 SERVICE_FITS = ("direct", "adjacent", "unrelated", "ambiguous")
 PROVENANCE_TYPES = ("measured", "cited", "inferred")
-CLASSIFIER_VERSION = "evidence-route-v7-utc-window-truth"
+CLASSIFIER_VERSION = "evidence-route-v8-governed-capability-frame"
 
 _ROOT = Path(__file__).resolve().parents[2]
 
 _INCUMBENT_RE = re.compile(
     r"\b([A-Z][A-Za-z&.,'\- ]{2,40}?)\s+(?:has|have)\s+(?:provided|"
     r"performed|supported|been providing|been performing)\b")
+_INCUMBENT_IS_RE = re.compile(
+    r"\bincumbent(?:\s+for\s+[^.;]{0,80})?\s+is\s+"
+    r"([A-Z][A-Za-z0-9&.,'\- ]{2,80}?)(?:\s+under\s+contract|[.;])",
+    flags=re.IGNORECASE,
+)
 
 
 def _norm(name: Any) -> str:
@@ -206,6 +211,20 @@ def load_route_facts(slug: str, root: Optional[Path] = None) -> dict:
     return {}
 
 
+def approved_capability_terms(packet: Optional[dict]) -> list[str]:
+    """Capability terms admitted by an approved operator review packet."""
+    if str((packet or {}).get("status") or "").casefold() != "approved":
+        return []
+    out: list[str] = []
+    for row in ((packet or {}).get("strategy") or {}).get("keywords") or []:
+        if str(row.get("category") or "").casefold() != "capability":
+            continue
+        term = str(row.get("term") or "").strip()
+        if term and term.casefold() not in {item.casefold() for item in out}:
+            out.append(term)
+    return out
+
+
 _CORP_TOKENS = ("the ",)
 _CORP_SUFFIXES = (" llc", " inc", " group", " corp", " corporation")
 
@@ -273,7 +292,8 @@ def _scope_stems(scope_terms: list[str]) -> list[str]:
 
 def _scope_match(record: dict, scope_terms: list[str]) -> Optional[str]:
     hay = " ".join(str(record.get(k) or "") for k in
-                   ("title", "description", "relevance_matched")).casefold()
+                   ("title", "description", "requirement",
+                    "additional_info")).casefold()
     for term in scope_terms:
         if term and term.casefold() in hay:
             return term
@@ -284,9 +304,9 @@ def _scope_match(record: dict, scope_terms: list[str]) -> Optional[str]:
 
 
 def _record_text(record: dict) -> str:
+    """Source-bearing requirement text, excluding retrieval query metadata."""
     return " ".join(str(record.get(k) or "") for k in (
-        "title", "description", "relevance_matched", "requirement",
-        "additional_info")).casefold()
+        "title", "description", "requirement", "additional_info")).casefold()
 
 
 def _phrase_match(text: str, terms: list[str]) -> Optional[str]:
@@ -302,6 +322,18 @@ _SIGNAL_STOPWORDS = {
     "the", "to", "with",
 }
 
+# Pair matching exists only to tolerate source-language variations of an
+# approved phrase.  A pair made entirely from generic procurement vocabulary
+# is not a capability signal: "development services", "training team", and
+# "human technology" occur across unrelated markets.  Exact approved phrases
+# still match above; this guard applies only to the looser proximity rule.
+_GENERIC_PAIR_TOKENS = {
+    "analysis", "develop", "design", "education", "evaluate", "human",
+    "implement", "management", "media", "monitoring", "open", "program",
+    "project", "service", "social", "source", "support", "system", "team",
+    "technology", "training", "learning",
+}
+
 
 def _signal_token(value: str) -> str:
     """Normalize procurement wording without inventing client vocabulary."""
@@ -310,6 +342,14 @@ def _signal_token(value: str) -> str:
         return "interpret"
     if token.startswith("translat"):
         return "translate"
+    if token.startswith("design"):
+        return "design"
+    if token.startswith("develop"):
+        return "develop"
+    if token.startswith("evaluat"):
+        return "evaluate"
+    if token.startswith("implement"):
+        return "implement"
     if token.endswith("ies") and len(token) > 5:
         return token[:-3] + "y"
     if token.endswith("s") and len(token) > 4:
@@ -321,7 +361,7 @@ def _signal_tokens(value: Any) -> list[str]:
     return [
         _signal_token(word)
         for word in re.findall(r"[a-z]+", str(value or "").casefold())
-        if word not in _SIGNAL_STOPWORDS
+        if word not in _SIGNAL_STOPWORDS and len(word) > 1
     ]
 
 
@@ -338,7 +378,8 @@ def _derived_signal_pairs(phrases: list[str]) -> list[tuple[str, str]]:
         tokens = list(dict.fromkeys(_signal_tokens(phrase)))
         for left_index, left in enumerate(tokens):
             for right in tokens[left_index + 1:]:
-                if left != right:
+                if (left != right
+                        and ({left, right} - _GENERIC_PAIR_TOKENS)):
                     pairs.add(tuple(sorted((left, right))))
     return sorted(pairs)
 
@@ -358,6 +399,130 @@ def _pair_match(text: str, pairs: list[tuple[str, str]], *,
     return None
 
 
+def _historical_capability_receipts(
+    pack: Optional[dict], aliases: set[str], capability_terms: list[str],
+    term_modes: Optional[dict[str, str]] = None,
+) -> list[dict]:
+    """Verified client awards that corroborate terms in the approved frame."""
+    receipts: list[dict] = []
+    for row in (pack or {}).get("records") or []:
+        if str(row.get("lane") or "") != "L2_entity_award":
+            continue
+        if not _recipient_matches(row.get("recipient"), aliases):
+            continue
+        text = _record_text(row)
+        matched = None
+        for term in capability_terms:
+            mode = (term_modes or {}).get(term.casefold(), "stemmed")
+            if (_phrase_match(text, [term])
+                    or (mode != "exact_phrase" and _pair_match(
+                        text, _derived_signal_pairs([term])))):
+                matched = term
+                break
+        if not matched:
+            continue
+        receipts.append({
+            "source_kind": "client_historical_award",
+            "source_id": str(row.get("record_id") or ""),
+            "source_url": str(row.get("url") or ""),
+            "title": str(row.get("title") or row.get("description") or ""),
+            "matched_capability": matched,
+        })
+    return sorted(receipts, key=lambda row: (
+        row["matched_capability"].casefold(), row["source_id"]))
+
+
+def incumbent_name(record: dict) -> Optional[str]:
+    """Return a source-stated incumbent from supported notice sentence forms."""
+    text = " ".join(str(record.get(key) or "")
+                    for key in ("title", "description"))
+    match = _INCUMBENT_RE.search(text) or _INCUMBENT_IS_RE.search(text)
+    if not match:
+        return None
+    candidate = match.group(1).strip(" ,.;:-")
+    normalized = _norm(candidate)
+    placeholders = (
+        "unknown", "tbd", "to be determined", "not identified",
+        "not available", "none", "undetermined", "will be determined",
+        "the contractor", "current contractor",
+    )
+    if (not candidate or not re.search(r"[A-Z]", candidate)
+            or any(normalized == marker or normalized.startswith(marker + " ")
+                   for marker in placeholders)):
+        return None
+    return candidate
+
+
+def _fit_receipts(ctx: dict, matched: str | tuple[str, str]) -> list[dict]:
+    """Return the governed frame and matching client-history receipts."""
+    tokens = set(_signal_tokens(
+        " ".join(matched) if isinstance(matched, tuple) else matched))
+    sources = ctx.get("capability_term_sources") or {}
+    matching_sources = []
+    for term, source in sources.items():
+        term_tokens = set(_signal_tokens(term))
+        if (tokens and term_tokens
+                and (tokens.issubset(term_tokens)
+                     or (not isinstance(matched, tuple)
+                         and term.casefold() == str(matched).casefold()))):
+            matching_sources.append((term, source))
+    receipts = []
+    if matching_sources:
+        term, source = sorted(
+            matching_sources,
+            key=lambda item: (-len(item[0]), item[0].casefold()),
+        )[0]
+        receipts.append({
+            "source_kind": source.get("source_kind"),
+            "source_id": source.get("source_id"),
+            "title": source.get("label"),
+            "matched_capability": term,
+        })
+    for receipt in ctx.get("historical_capability_evidence") or []:
+        receipt_tokens = set(_signal_tokens(
+            receipt.get("matched_capability") or ""))
+        overlap = tokens.intersection(receipt_tokens)
+        supports = (
+            tokens.issubset(receipt_tokens)
+            if isinstance(matched, tuple)
+            else (len(overlap) >= 2
+                  and bool(overlap - _GENERIC_PAIR_TOKENS))
+        )
+        if tokens and receipt_tokens and supports:
+            receipts.append(dict(receipt))
+    return receipts
+
+
+def _curriculum_workflow_match(text: str, ctx: dict) -> Optional[str]:
+    """Recognize the sourced instructional-development lifecycle.
+
+    This rule only exists when the approved client frame states curriculum,
+    e-learning, or instructional design. It then requires both an education
+    object and multiple design/development/evaluation actions in the notice
+    itself. Generic training or education language is never sufficient.
+    """
+    if not ctx.get("curriculum_workflow_enabled"):
+        return None
+    tokens = set(_signal_tokens(text))
+    distinctive_objects = {"course", "curriculum", "instructional"}
+    workflow = {"author", "design", "develop", "evaluate", "implement"}
+    action_count = len(tokens.intersection(workflow))
+    combined_training_education = bool(re.search(
+        r"\b(?:training\s+and\s+education|education\s+and\s+training)\b",
+        text,
+    ))
+    instructional_learning = bool(re.search(
+        r"\b(?:e[- ]learning|distance\s+learning|online\s+learning)\b",
+        text,
+    ))
+    if (((tokens.intersection(distinctive_objects) or instructional_learning)
+         and action_count >= 2)
+            or (combined_training_education and action_count >= 3)):
+        return str(ctx.get("curriculum_workflow_basis") or
+                   "curriculum and e-learning development")
+    return None
+
+
 def classify_service_fit(record: dict, ctx: dict) -> dict:
     """Classify technical fit before temporal or commercial promotion.
 
@@ -373,7 +538,8 @@ def classify_service_fit(record: dict, ctx: dict) -> dict:
     if excluded or naics in excluded_codes or psc in excluded_codes:
         reason = excluded or naics or psc
         return {"service_fit": "unrelated",
-                "fit_basis": f"negative category signal '{reason}'"}
+                "fit_basis": f"negative category signal '{reason}'",
+                "fit_evidence": []}
 
     # Instructor is a generic occupation, not a category signal.  Require a
     # second domain-bearing token derived from the approved client profile
@@ -384,12 +550,14 @@ def classify_service_fit(record: dict, ctx: dict) -> dict:
         if not text_tokens.intersection(domain_tokens):
             return {"service_fit": "unrelated",
                     "fit_basis":
-                        "instructor scope lacks an approved domain token"}
+                        "instructor scope lacks an approved domain token",
+                    "fit_evidence": []}
 
     core = _phrase_match(text, ctx.get("core_terms") or [])
     if core:
         return {"service_fit": "direct",
-                "fit_basis": f"approved core capability phrase '{core}'"}
+                "fit_basis": f"approved core capability phrase '{core}'",
+                "fit_evidence": _fit_receipts(ctx, core)}
 
     core_pair = _pair_match(
         text, ctx.get("core_signal_pairs") or [])
@@ -397,12 +565,24 @@ def classify_service_fit(record: dict, ctx: dict) -> dict:
         signal = " + ".join(core_pair)
         return {"service_fit": "direct",
                 "fit_basis":
-                    f"approved core capability token pair '{signal}'"}
+                    f"approved core capability token pair '{signal}'",
+                "fit_evidence": _fit_receipts(ctx, core_pair)}
+
+    curriculum = _curriculum_workflow_match(text, ctx)
+    if curriculum:
+        return {
+            "service_fit": "direct",
+            "fit_basis": (
+                "approved curriculum capability matches the published "
+                "education design and development workflow"),
+            "fit_evidence": _fit_receipts(ctx, curriculum),
+        }
 
     adjacent = _phrase_match(text, ctx.get("adjacent_terms") or [])
     if adjacent:
         return {"service_fit": "adjacent",
-                "fit_basis": f"approved adjacent capability phrase '{adjacent}'"}
+                "fit_basis": f"approved adjacent capability phrase '{adjacent}'",
+                "fit_evidence": _fit_receipts(ctx, adjacent)}
 
     adjacent_pair = _pair_match(
         text, ctx.get("adjacent_signal_pairs") or [])
@@ -410,14 +590,26 @@ def classify_service_fit(record: dict, ctx: dict) -> dict:
         signal = " + ".join(adjacent_pair)
         return {"service_fit": "adjacent",
                 "fit_basis":
-                    f"approved adjacent capability token pair '{signal}'"}
+                    f"approved adjacent capability token pair '{signal}'",
+                "fit_evidence": _fit_receipts(ctx, adjacent_pair)}
 
     broad = _scope_match(record, ctx.get("scope_terms") or [])
     if broad:
         return {"service_fit": "ambiguous",
-                "fit_basis": f"broad capability stem '{broad}' requires review"}
+                "fit_basis": f"broad capability stem '{broad}' requires review",
+                "fit_evidence": _fit_receipts(ctx, broad)}
+    broad_review = _phrase_match(text, ctx.get("review_terms") or [])
+    if broad_review:
+        return {
+            "service_fit": "ambiguous",
+            "fit_basis": (
+                f"generic approved-domain term '{broad_review}' requires "
+                "requirement-level review"),
+            "fit_evidence": _fit_receipts(ctx, broad_review),
+        }
     return {"service_fit": "unrelated",
-            "fit_basis": "no approved client capability signal in record scope"}
+            "fit_basis": "no approved client capability signal in record scope",
+            "fit_evidence": []}
 
 
 def _instant(value: Any) -> Optional[datetime]:
@@ -472,6 +664,24 @@ def classify_window(record: dict, ctx: dict) -> dict:
     lane = str(record.get("lane") or "")
     as_of = str(ctx.get("as_of") or "")
     if lane == "L1_notice":
+        source_fields = record.get("source_fields") or {}
+        active_value: Any = ""
+        for candidate in (
+                record.get("source_status"), record.get("active"),
+                source_fields.get("active"), source_fields.get("status")):
+            if candidate is not None and candidate != "":
+                active_value = candidate
+                break
+        active = str(active_value).strip().casefold()
+        notice_type = str(record.get("notice_type") or "").casefold()
+        if (active_value is False
+                or active in {"no", "false", "inactive", "cancelled", "canceled", "archived"}
+                or any(term in notice_type
+                       for term in ("cancel", "inactive", "archive"))):
+            return {
+                "window_state": "stated_past",
+                "window_basis": "source marks the notice inactive or cancelled",
+            }
         published = str(record.get("response_deadline") or "")
         if not published:
             return {"window_state": "unstated",
@@ -644,9 +854,7 @@ def classify_route(record: dict, ctx: dict) -> dict:
                 "no traceable route evidence on this record"}
 
     if lane == "L1_notice":
-        text = " ".join(str(record.get(k) or "")
-                        for k in ("title", "description"))
-        m = _INCUMBENT_RE.search(text)
+        named_incumbent = incumbent_name(record)
         set_aside = str(record.get("set_aside") or "").strip()
         source_fields = record.get("source_fields") or {}
         set_aside_code = str(
@@ -655,14 +863,14 @@ def classify_route(record: dict, ctx: dict) -> dict:
             or source_fields.get("type_set_aside") or "").strip()
         if not set_aside and not set_aside_code:
             return {
-                "route_relationship": "incumbent" if m else "unknown",
-                "commercial_route": "incumbent" if m else "unknown",
+                "route_relationship": "incumbent" if named_incumbent else "unknown",
+                "commercial_route": "incumbent" if named_incumbent else "unknown",
                 "eligible_route": False,
                 "route_basis": (
-                    ("notice names incumbent '" + m.group(1).strip()
+                    ("notice names incumbent '" + named_incumbent
                      + "', but publishes no set-aside status; direct "
                        "eligibility remains unresolved")
-                    if m else
+                    if named_incumbent else
                     "notice publishes no set-aside status; direct eligibility "
                     "remains unresolved"
                 ),
@@ -670,8 +878,8 @@ def classify_route(record: dict, ctx: dict) -> dict:
         combined = " ".join((set_aside, set_aside_code)).casefold()
         if "sole source" in combined or "sole-source" in combined:
             return {
-                "route_relationship": "incumbent" if m else "unknown",
-                "commercial_route": "incumbent" if m else "unknown",
+                "route_relationship": "incumbent" if named_incumbent else "unknown",
+                "commercial_route": "incumbent" if named_incumbent else "unknown",
                 "eligible_route": False,
                 "route_basis": "sole-source notice is intelligence, not a direct opening",
             }
@@ -679,19 +887,19 @@ def classify_route(record: dict, ctx: dict) -> dict:
         if access and not access.get("recognized"):
             access = _route_specific_set_aside(set_aside, set_aside_code)
         if access is None:
-            if m:
+            if named_incumbent:
                 return {"route_relationship": "incumbent",
                         "commercial_route": "incumbent",
                         "eligible_route": True,
                         "route_basis": "notice states unrestricted access and "
-                                       f"names incumbent '{m.group(1).strip()}'"}
+                                       f"names incumbent '{named_incumbent}'"}
             return {"route_relationship": "direct",
                     "commercial_route": "direct", "eligible_route": True,
                     "route_basis": "notice affirmatively states unrestricted access"}
         if not access.get("recognized"):
             return {
-                "route_relationship": "incumbent" if m else "unknown",
-                "commercial_route": "incumbent" if m else "unknown",
+                "route_relationship": "incumbent" if named_incumbent else "unknown",
+                "commercial_route": "incumbent" if named_incumbent else "unknown",
                 "eligible_route": False,
                 "route_basis": f"set-aside '{set_aside or set_aside_code}' is "
                                "not recognized; eligibility requires review",
@@ -703,26 +911,26 @@ def classify_route(record: dict, ctx: dict) -> dict:
         qualifies = bool(certs & required_aliases)
         restricted = set_aside or set_aside_code
         if not qualifies:
-            if m:
+            if named_incumbent:
                 return {"route_relationship": "named_partner_teaming",
                         "commercial_route": "named_partner_teaming",
                         "eligible_route": True,
                         "route_basis":
                             f"access rule '{restricted}' bars direct "
                             f"pursuit; incumbent text names "
-                            f"'{m.group(1).strip()}': partner or "
+                            f"'{named_incumbent}': partner or "
                             "subcontract route"}
             return {"route_relationship": "possible_subcontracting",
                     "commercial_route": "possible_subcontracting",
                     "eligible_route": False,
                     "route_basis": f"access rule '{restricted}' bars "
                                    "direct pursuit for this client"}
-        if m:
+        if named_incumbent:
             return {"route_relationship": "incumbent",
                     "commercial_route": "incumbent",
                     "eligible_route": True,
                     "route_basis": "notice text names the incumbent: "
-                                   f"'{m.group(1).strip()}'"}
+                                   f"'{named_incumbent}'"}
         return {"route_relationship": "direct",
                 "commercial_route": "direct", "eligible_route": True,
                 "route_basis": f"client attests {required}; access rule "
@@ -791,43 +999,104 @@ def build_context(client_name: str, slug: str, *,
         profile = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
     if route_facts is None:
         route_facts = load_route_facts(slug, root=base)
-    if scope_terms is None:
-        terms = (profile.get("capability_terms") or {})
-        scope_terms = list(terms.get("core") or []) + \
-            list(terms.get("adjacent") or [])
+    taxonomy_path = base / "clients" / slug / "capability_taxonomy.json"
+    taxonomy = (
+        json.loads(taxonomy_path.read_text(encoding="utf-8"))
+        if taxonomy_path.exists() else {})
+    term_modes = {
+        str(row.get("term") or "").casefold():
+            str(row.get("mode") or "stemmed")
+        for lane in ("core", "adjacent")
+        for row in taxonomy.get(lane) or []
+        if isinstance(row, dict) and str(row.get("term") or "").strip()
+    }
     terms = (profile.get("capability_terms") or {})
     summary = str(profile.get("capability_summary") or "")
     core_terms = list(terms.get("core") or [])
+    approved_terms = approved_capability_terms(packet)
+    for term in approved_terms:
+        if term.casefold() not in {item.casefold() for item in core_terms}:
+            core_terms.append(term)
     adjacent_terms = list(terms.get("adjacent") or [])
+    if scope_terms is None:
+        scope_terms = core_terms + adjacent_terms
     aliases = (pack or {}).get("client_entity_aliases") or \
         (profile.get("identity") or {}).get("aliases") or []
+    resolved_client_aliases = client_aliases(client_name, aliases, profile)
     entities = canonical_entities(
         client_name, pack_aliases=aliases, packet=packet,
         route_facts=route_facts)
+    generic_instructor_tokens = {
+        "contract", "course", "education", "instructor", "learning",
+        "personnel", "service", "staff", "support", "team", "training",
+    }
     instructor_domain_tokens: set[str] = set()
     for phrase in core_terms:
         phrase_tokens = set(_signal_tokens(phrase))
-        if "instructor" not in phrase_tokens:
-            continue
         instructor_domain_tokens.update(
-            phrase_tokens - {
-                "instructor", "service", "support", "training", "contract",
-                "course", "staff", "personnel",
-            })
+            phrase_tokens - generic_instructor_tokens)
+    token_counts = {}
+    for phrase in core_terms:
+        for token in set(_signal_tokens(phrase)):
+            token_counts[token] = token_counts.get(token, 0) + 1
+    review_terms = sorted(
+        token for token, count in token_counts.items()
+        if count >= 2 and token in {"analysis", "training"})
+    curriculum_terms = [
+        term for term in core_terms + adjacent_terms
+        if any(marker in term.casefold()
+               for marker in ("curriculum", "e-learning", "instructional design"))
+    ]
+    historical_receipts = _historical_capability_receipts(
+        pack, resolved_client_aliases, core_terms, term_modes)
+    approved_keys = {term.casefold() for term in approved_terms}
+    capability_term_sources = {
+        term: {
+            "source_kind": (
+                "operator_approved_keyword"
+                if term.casefold() in approved_keys
+                else "governed_client_profile"),
+            "source_id": (
+                f"capability-frame:{slug}:approved-review"
+                if term.casefold() in approved_keys
+                else f"capability-frame:{slug}:profile-v2"),
+            "label": (
+                "Operator-approved capability frame"
+                if term.casefold() in approved_keys
+                else "Governed client capability profile"),
+            "match_mode": term_modes.get(term.casefold(), "stemmed"),
+        }
+        for term in core_terms + adjacent_terms
+    }
     return {
         "client_name": client_name,
-        "client_aliases": client_aliases(
-            client_name, aliases, profile),
+        "client_aliases": resolved_client_aliases,
         "validated_competitors": validated_competitors(packet, route_facts),
         "named_partners": named_partners(route_facts),
         "scope_terms": scope_terms,
         "capability_summary": summary,
         "core_terms": core_terms,
         "adjacent_terms": adjacent_terms,
+        "capability_term_modes": {
+            term: term_modes.get(term.casefold(), "stemmed")
+            for term in core_terms + adjacent_terms
+        },
         "core_signal_pairs": _derived_signal_pairs(
-            core_terms),
+            [term for term in core_terms
+             if term_modes.get(term.casefold(), "stemmed") !=
+             "exact_phrase"]),
         "instructor_domain_tokens": sorted(instructor_domain_tokens),
-        "adjacent_signal_pairs": _derived_signal_pairs(adjacent_terms),
+        "review_terms": review_terms,
+        "capability_frame_id": f"capability-frame:{slug}:v2",
+        "capability_term_sources": capability_term_sources,
+        "historical_capability_evidence": historical_receipts,
+        "curriculum_workflow_enabled": bool(curriculum_terms),
+        "curriculum_workflow_basis": (
+            curriculum_terms[0] if curriculum_terms else ""),
+        "adjacent_signal_pairs": _derived_signal_pairs(
+            [term for term in adjacent_terms
+             if term_modes.get(term.casefold(), "stemmed") !=
+             "exact_phrase"]),
         "excluded_terms": list(terms.get("excluded") or []),
         "excluded_codes": list(terms.get("excluded_codes") or []),
         "canonical_entities": entities,

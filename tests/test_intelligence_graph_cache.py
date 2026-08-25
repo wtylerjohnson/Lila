@@ -95,6 +95,66 @@ def test_unchanged_press_reuses_and_one_changed_record_invalidates(tmp_path):
     assert changed_result["evidence_class"] == "excluded"
 
 
+@pytest.mark.parametrize(("field", "baseline", "changed", "dimension"), [
+    (
+        "set_aside_code",
+        {**_notice("FIELD", "Translation Services")},
+        {**_notice("FIELD", "Translation Services"),
+         "set_aside_code": "8A"},
+        "commercial_route",
+    ),
+    (
+        "type_set_aside",
+        {**_notice("FIELD", "Translation Services")},
+        {**_notice("FIELD", "Translation Services"),
+         "type_set_aside": "8A"},
+        "commercial_route",
+    ),
+    (
+        "source_fields",
+        {**_notice("FIELD", "Translation Services"), "source_fields": {}},
+        {**_notice("FIELD", "Translation Services"),
+         "source_fields": {"set_aside_code": "8A"}},
+        "commercial_route",
+    ),
+    (
+        "anticipated_solicitation",
+        {"lane": "L4_forecast", "record_id": "FIELD",
+         "title": "Translation and Interpretation Forecast"},
+        {"lane": "L4_forecast", "record_id": "FIELD",
+         "title": "Translation and Interpretation Forecast",
+         "anticipated_solicitation": "2026-09-30"},
+        "window_state",
+    ),
+    (
+        "anticipated_solicitation_close",
+        {"lane": "L4_forecast", "record_id": "FIELD",
+         "title": "Translation and Interpretation Forecast"},
+        {"lane": "L4_forecast", "record_id": "FIELD",
+         "title": "Translation and Interpretation Forecast",
+         "anticipated_solicitation_close": "2026-09-30"},
+        "window_state",
+    ),
+])
+def test_every_classifier_read_field_invalidates_cached_decision(
+        tmp_path, field, baseline, changed, dimension):
+    cold = _adapter(tmp_path)
+    first = cold.classify_record(baseline)
+
+    rebuilt = _adapter(tmp_path)
+    second = rebuilt.classify_record(changed)
+    stats = rebuilt.receipt()["namespaces"]["classification_decisions"]
+
+    assert field in changed
+    assert stats == {
+        "hits": 0,
+        "misses": 1,
+        "reasons": {"input_changed": 1},
+    }
+    assert second == er.classify_record(changed, _context())
+    assert second[dimension] != first[dimension]
+
+
 def test_amount_change_stays_fresh_without_reclassifying_record(tmp_path):
     first = {
         "lane": "L2_entity_award",

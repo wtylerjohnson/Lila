@@ -57,6 +57,9 @@ class CapabilityTerms(BaseModel):
                                 description="buyer-behavioral adjacency terms")
     excluded: list[str] = Field(default_factory=list,
                                 description="terms that false-positive into the lanes")
+    excluded_codes: list[str] = Field(
+        default_factory=list,
+        description="NAICS or PSC codes that identify governed false-positive domains")
 
 
 class ClientProfile(BaseModel):

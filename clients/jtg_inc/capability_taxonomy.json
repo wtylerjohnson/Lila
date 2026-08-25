@@ -1,61 +1,80 @@
 {
   "client_name": "jtg__inc",
-  "version": "1",
-  "updated": "2026-08-19",
-  "generated_from": "approved review packet",
+  "version": 2,
+  "updated": "2026-08-25",
+  "generated_from": "approved review packet plus verified JTG award history",
   "core": [
+    {"term": "translation and interpretation", "mode": "stemmed"},
+    {"term": "interpretation and translation", "mode": "stemmed"},
+    {"term": "translation and interpreting", "mode": "stemmed"},
+    {"term": "language training", "mode": "stemmed"},
+    {"term": "linguist support", "mode": "stemmed"},
+    {"term": "Military Language Instructor", "mode": "exact_phrase"},
+    {"term": "language instructor services", "mode": "exact_phrase"},
+    {"term": "e-learning and curriculum development", "mode": "stemmed"},
     {
-      "term": "language training",
-      "mode": "stemmed"
+      "term": "curriculum development services",
+      "mode": "exact_phrase",
+      "note": "Approved JTG capability corroborated by award W9124N12C0086"
     },
     {
-      "term": "linguist support",
-      "mode": "stemmed"
+      "term": "instructional course design",
+      "mode": "exact_phrase",
+      "note": "Precise buyer-language alias for the approved curriculum capability"
     },
     {
-      "term": "Military Language Instructor",
-      "mode": "exact_phrase"
+      "term": "distance education",
+      "mode": "exact_phrase",
+      "note": "Precise buyer-language alias for the approved e-learning capability"
     },
-    {
-      "term": "localization",
-      "mode": "exact_phrase"
-    },
-    {
-      "term": "language proficiency testing",
-      "mode": "stemmed"
-    },
-    {
-      "term": "foreign media monitoring",
-      "mode": "stemmed"
-    },
-    {
-      "term": "social media analysis",
-      "mode": "stemmed"
-    },
-    {
-      "term": "mobile training teams",
-      "mode": "stemmed"
-    },
-    {
-      "term": "human language technology",
-      "mode": "stemmed"
-    },
-    {
-      "term": "linguistic corpora",
-      "mode": "stemmed"
-    }
+    {"term": "cultural advisor services", "mode": "stemmed"},
+    {"term": "localization", "mode": "exact_phrase"},
+    {"term": "language proficiency testing", "mode": "stemmed"},
+    {"term": "foreign media monitoring", "mode": "stemmed"},
+    {"term": "social media analysis", "mode": "stemmed"},
+    {"term": "mobile training teams", "mode": "stemmed"},
+    {"term": "human language technology", "mode": "stemmed"},
+    {"term": "linguistic corpora", "mode": "stemmed"}
   ],
   "core_pending_mode": [],
-  "adjacent": [],
-  "exclude": [],
+  "adjacent": [
+    {"term": "open source intelligence", "mode": "stemmed"},
+    {"term": "cultural awareness training", "mode": "stemmed"},
+    {"term": "instructional design", "mode": "exact_phrase"},
+    {"term": "distance learning", "mode": "exact_phrase"}
+  ],
+  "exclude": [
+    {
+      "term": "American Sign Language",
+      "scope": "record",
+      "reason": "capability collision outside the approved JTG language-services scope"
+    },
+    {"term": "audiology", "scope": "record", "reason": "medical-domain collision"},
+    {
+      "term": "sign language",
+      "scope": "record",
+      "reason": "capability collision outside the approved JTG language-services scope"
+    },
+    {
+      "term": "speech language pathology",
+      "scope": "record",
+      "reason": "medical-domain collision"
+    },
+    {"term": "speech therapy", "scope": "record", "reason": "medical-domain collision"},
+    {"term": "speech-language", "scope": "record", "reason": "medical-domain collision"},
+    {
+      "term": "pain neuroscience education",
+      "scope": "record",
+      "reason": "medical-education collision"
+    },
+    {
+      "term": "provider education services",
+      "scope": "record",
+      "reason": "medical-provider education collision"
+    }
+  ],
   "code_universe": {
-    "naics": [
-      "541930",
-      "611630",
-      "611430",
-      "611710",
-      "541990"
-    ],
+    "naics": ["541930", "611630", "611430", "611710", "541990"],
     "psc": []
   }
 }

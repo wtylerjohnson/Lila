@@ -9,6 +9,11 @@
       "language training",
       "linguist support",
       "Military Language Instructor",
+      "language instructor services",
+      "e-learning and curriculum development",
+      "curriculum development services",
+      "instructional course design",
+      "distance education",
       "cultural advisor services",
       "localization",
       "language proficiency testing",
@@ -30,7 +35,13 @@
       "sign language",
       "speech language pathology",
       "speech therapy",
-      "speech-language"
+      "speech-language",
+      "pain neuroscience education",
+      "provider education services"
+    ],
+    "excluded_codes": [
+      "621340",
+      "Q518"
     ]
   },
   "named_competitors_and_incumbents": [

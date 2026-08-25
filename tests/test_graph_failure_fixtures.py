@@ -135,7 +135,7 @@ def test_past_forecast_is_not_ranked_current(ctx):
     assert row["evidence_class"] != "current_opportunity"
 
 
-def test_duplicate_notice_family_collapses():
+def test_title_only_lifecycle_similarity_fails_open_without_notice_identity():
     rows = [
         {"record_id": "ss-1", "title": "Sources Sought Language Services",
          "agency": "Department of State", "window_state": "live"},
@@ -144,8 +144,8 @@ def test_duplicate_notice_family_collapses():
          "response_deadline": "2026-09-25"},
     ]
     kept = canonicalize_requirement_families(rows)
-    assert len(kept) == 1
-    assert kept[0]["family_member_ids"] == ["sol-1", "ss-1"]
+    assert len(kept) == 2
+    assert {row["canonical_record_id"] for row in kept} == {"sol-1", "ss-1"}
 
 
 def test_displayed_amount_with_broken_receipt_is_rejected():
@@ -185,6 +185,6 @@ def test_graph_contract_receipt_catches_cross_relationship_violations():
         "G001_CLIENT_CANNOT_BE_COMPETITOR",
         "G003_PAST_WINDOW_CANNOT_BE_CURRENT",
         "G004_DIRECT_ROUTE_REQUIRES_ELIGIBILITY",
-        "G005_TARGETS_REQUIRE_QUALIFIED_OPPORTUNITY",
+        "G005_TARGETS_REQUIRE_CURRENT_OPPORTUNITY",
         "G008_CURRENT_OPPORTUNITY_PARTITION",
     }

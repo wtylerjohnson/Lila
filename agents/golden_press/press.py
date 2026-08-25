@@ -1063,8 +1063,16 @@ def golden_press(
             from agents.golden_press.evidence_pack_v2 import (
                 build_corrected_pack,
             )
+            from agents.review import sweep_artifact_path as _sweep_artifact_path
             from tools.notice_store import connect as _graph_store_connect
 
+            _research_sweep = Path(_sweep_artifact_path(
+                pack.client_name or client,
+                review_dir=str(root / "data" / "review")))
+            if not _research_sweep.exists():
+                raise RuntimeError(
+                    "market map governed research sweep is missing: "
+                    f"{_research_sweep.name}")
             _graph_conn = _graph_store_connect()
             try:
                 graph_path, graph_payload = build_corrected_pack(
@@ -1078,6 +1086,7 @@ def golden_press(
                     deep_sweep_path=(
                         root / "data" / "state" / "retrieval" /
                         f"deep_sweep_{slug}.json"),
+                    research_sweep_path=_research_sweep,
                     store_conn=_graph_conn,
                 )
             finally:

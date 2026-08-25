@@ -11,6 +11,7 @@ import pytest
 from agents.golden_press.external_product_contract import load_external_product_slots
 from agents.golden_press.external_product_projection import (
     build_external_product_document,
+    record_ownership_key,
 )
 from agents.golden_press.external_product_render import (
     render_external_product,
@@ -271,10 +272,15 @@ def test_each_evidence_record_has_one_owning_slot_and_priority_only_references()
 
 def test_graph_identity_cannot_own_both_opportunity_and_teaming_slots():
     graph = _graph()
-    graph["records"].append({
-        **graph["records"][0],
+    graph["records"][0].update({
         "route_relationship": "named_partner_teaming",
         "commercial_route": "named_partner_teaming",
+        "route_basis": "restricted notice names an incumbent teaming route",
+    })
+    graph["qualified_opportunity_records"][0].update({
+        "route_relationship": "named_partner_teaming",
+        "commercial_route": "named_partner_teaming",
+        "route_basis": "restricted notice names an incumbent teaming route",
     })
 
     document = build_external_product_document(
@@ -286,8 +292,64 @@ def test_graph_identity_cannot_own_both_opportunity_and_teaming_slots():
 
     assert [row["source_id"] for row in
             by_id["federal-opportunities"].records] == ["NOTICE-1"]
-    assert "NOTICE-1" not in {
-        row["source_id"] for row in by_id["teaming-opportunities"].records}
+    reference = next(row for row in by_id["teaming-opportunities"].records
+                     if row["source_id"] == "NOTICE-1")
+    assert reference["kind"] == "teaming_route_reference"
+    assert reference["non_owning_reference"] is True
+    assert record_ownership_key(reference) == ""
+    assert reference["notice_reference_key"] == "graph-record:NOTICE-1"
+    assert validate_external_product_document(document) == []
+
+
+def test_multiple_teaming_references_survive_without_second_notice_owners():
+    graph = _graph()
+    first = graph["records"][0]
+    first.update({
+        "commercial_route": "possible_subcontracting",
+        "route_relationship": "possible_subcontracting",
+        "eligible_route": False,
+        "route_basis": "restricted access requires a partner",
+        "projection_decision": {
+            "disposition": "needs_review",
+            "reason_codes": ["DIRECT_ROUTE_INELIGIBLE"],
+            "blocking_dimensions": ["route_eligibility"],
+            "reasons": ["restricted access requires a partner"],
+            "decision_action": "Identify an eligible prime.",
+        },
+    })
+    graph["qualified_opportunity_records"] = []
+    graph["held_opportunities"] = [{
+        "record_id": "NOTICE-1",
+        "requirement_family": "family-1",
+        "qualification_state": "needs_eligible_route",
+        "projection_decision": first["projection_decision"],
+    }]
+    second = {
+        **first,
+        "record_id": "NOTICE-2",
+        "title": "Second restricted language requirement",
+        "requirement_family": "family-2",
+        "url": "https://sam.gov/opp/notice-2/view",
+    }
+    graph["records"].append(second)
+    graph["held_opportunities"].append({
+        "record_id": "NOTICE-2",
+        "requirement_family": "family-2",
+        "qualification_state": "needs_eligible_route",
+        "projection_decision": second["projection_decision"],
+    })
+    graph["target_groups"] = {}
+
+    document = build_external_product_document(
+        market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
+        profile={}, client_name="Acme", slug="acme", as_of="2026-08-23")
+    by_id = {slot.slot_id: slot for slot in document.slots}
+    references = [row for row in by_id["teaming-opportunities"].records
+                  if row.get("non_owning_reference")]
+
+    assert {row["source_id"] for row in references} == {
+        "NOTICE-1", "NOTICE-2"}
+    assert all(record_ownership_key(row) == "" for row in references)
     assert validate_external_product_document(document) == []
 
 
@@ -531,12 +593,23 @@ def test_validation_rejects_a_current_opportunity_removed_from_review_queue():
         row["rule"] for row in validate_external_product_document(broken)}
 
 
-def test_renderer_separates_review_queue_and_never_adds_targets_to_holds(monkeypatch):
+def test_renderer_separates_review_queue_and_renders_decision_targets(monkeypatch):
     from agents.reports import report_assets
     monkeypatch.setattr(report_assets, "client_logo", lambda _name: _mark())
     monkeypatch.setattr(report_assets, "gtm_logo", _mark)
     graph = _graph()
     _add_review_notices(graph)
+    graph["target_groups"]["family-route"] = [{
+        "requirement_family": "family-route",
+        "opportunity_record_id": "NOTICE-ROUTE",
+        "role": "contracting_officer_or_specialist",
+        "name": "Route Buyer",
+        "organization": "Department of the Army",
+        "email": "buyer@example.mil",
+        "source_kind": "published_contact",
+        "target_purpose": "decision_resolution",
+        "target_slot_id": "federal-opportunities",
+    }]
     document = build_external_product_document(
         market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
         profile={}, client_name="Acme", slug="acme", as_of="2026-08-23")
@@ -556,7 +629,8 @@ def test_renderer_separates_review_queue_and_never_adds_targets_to_holds(monkeyp
     assert "Decisions to resolve" in client
     review_html = client.split("Needs review before pursuit", 1)[1].split(
         'data-slot-id="teaming-opportunities"', 1)[0]
-    assert "Targets specific to this opportunity" not in review_html
+    assert "Targets specific to this opportunity" in review_html
+    assert "Route Buyer" in review_html
     assert validate_external_product_html(client, document)["ok"] is True
 
 
@@ -876,11 +950,15 @@ def test_print_media_uses_paginated_layout_and_static_receipts(monkeypatch, tmp_
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
         page.emulate_media(media="print")
         page.goto(artifact.as_uri(), wait_until="load")
-        state = page.evaluate("""() => {
+        state = page.evaluate(r"""() => {
           const style = (selector) => getComputedStyle(document.querySelector(selector));
           return {
             recordDisplay: style('[data-slot-id="research-mesh"] .product-records').display,
-            recordColumns: style('[data-slot-id="research-mesh"] .product-records').gridTemplateColumns.split(' ').length,
+            recordColumns: (() => {
+              const value = style('[data-slot-id="research-mesh"] .product-records').gridTemplateColumns;
+              const repeated = value.match(/^repeat\((\d+),/);
+              return repeated ? Number(repeated[1]) : value.split(' ').length;
+            })(),
             visualBreak: style('.product-visual').breakInside,
             introBreak: style('.product-slot-intro').breakInside,
             duplicateSummaryPresent: Boolean(document.querySelector('.product-slot-summary')),

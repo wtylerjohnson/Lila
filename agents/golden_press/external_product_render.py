@@ -17,7 +17,7 @@ from agents.golden_press.external_product_projection import (
 from agents.golden_press.release_snapshot import canonical_slot_sha256
 
 
-EXTERNAL_PRODUCT_RENDER_VERSION = "lila-eight-slot-render.v7.2026-08-24"
+EXTERNAL_PRODUCT_RENDER_VERSION = "lila-eight-slot-render.v8.2026-08-25"
 
 _LOCAL_PATH = re.compile(
     r"(?:file://|(?:^|[\"'\s(=:])/(?:users|home)/)", re.I | re.M)
@@ -494,7 +494,8 @@ def _review_queue(slot: Any) -> str:
         "These records remain visible for adjudication or context, but their "
         "figures are excluded from qualified totals."
     )
-    records = "".join(_record(row, review=True)
+    records = "".join(_record(
+        row, review=True, include_targets=opportunity)
                       for row in slot.review_records)
     open_attribute = " open" if opportunity else ""
     review_count = sum(
@@ -648,7 +649,8 @@ def _visuals(visuals: Any) -> str:
 
 
 def render_slot(slot: Any) -> str:
-    include_targets = slot.slot_id == "federal-opportunities"
+    include_targets = slot.slot_id in {
+        "federal-opportunities", "teaming-opportunities"}
     records = "".join(_record(row, include_targets=include_targets)
                       for row in slot.records)
     gaps = "".join(f'<div class="product-gap">{esc(gap)}</div>'
@@ -848,6 +850,24 @@ def validate_external_product_document(
                                f"{slot.slot_id} is empty without a named next action"})
         for row in tuple(slot.records) + tuple(slot.review_records):
             key = record_ownership_key(row)
+            url = row.get("source_url")
+            if url and not _http(url):
+                violations.append({"rule": "invalid_source_url", "detail":
+                                   f"{key or row.get('record_key')} has a non-HTTP(S) source URL"})
+            if row.get("non_owning_reference") is True:
+                if (slot.slot_id != "teaming-opportunities"
+                        or row.get("kind") != "teaming_route_reference"
+                        or not row.get("record_key")
+                        or not row.get("source_id")
+                        or not row.get("commercial_route")
+                        or not row.get("notice_reference_key")
+                        or row.get("notice_reference_slot_id") !=
+                        "federal-opportunities"):
+                    violations.append({
+                        "rule": "invalid_non_owning_reference",
+                        "detail": (f"{row.get('record_key')!r} is not a complete "
+                                   "Slot 6 notice reference"),
+                    })
             if not key:
                 continue  # Slot 1 references, it does not own evidence rows.
             if key in owned:
@@ -855,10 +875,6 @@ def validate_external_product_document(
                                    f"{key} appears in {owned[key]} and {slot.slot_id}"})
             owned[key] = slot.slot_id
             owned_rows[key] = row
-            url = row.get("source_url")
-            if url and not _http(url):
-                violations.append({"rule": "invalid_source_url", "detail":
-                                   f"{key} has a non-HTTP(S) source URL"})
         for row in slot.review_records:
             key = record_ownership_key(row)
             if (not str(row.get("decision_state") or "").strip()
@@ -872,12 +888,16 @@ def validate_external_product_document(
                 violations.append({"rule": "review_action", "detail":
                                    f"{key} has no evidence reason or decision action"})
         if slot.slot_id == "federal-opportunities":
-            for row in slot.records:
+            for row in tuple(slot.records) + tuple(slot.review_records):
                 family = row.get("requirement_family")
                 for target in row.get("targets") or []:
                     if target.get("requirement_family") not in {None, "", family}:
                         violations.append({"rule": "target_lineage", "detail":
                                            f"target for {target.get('requirement_family')} is nested under {family}"})
+                    if target.get("target_slot_id") not in {
+                            None, "", "federal-opportunities"}:
+                        violations.append({"rule": "target_slot", "detail":
+                                           f"target for {family} is nested in the wrong slot"})
             visible_current = sorted({
                 str(row.get("source_id") or "")
                 for row in tuple(slot.records) + tuple(slot.review_records)
@@ -891,6 +911,12 @@ def validate_external_product_document(
                     "detail": (f"slot 5 current ids {visible_current!r} do not "
                                f"match graph ids {expected_current!r}"),
                 })
+        if slot.slot_id == "teaming-opportunities":
+            for row in slot.records:
+                for target in row.get("targets") or []:
+                    if target.get("target_slot_id") != "teaming-opportunities":
+                        violations.append({"rule": "target_slot", "detail":
+                                           "teaming target is nested in the wrong slot"})
     for row in doc.slots[0].records:
         reference = row.get("reference_key")
         reference_slot = row.get("reference_slot_id")
@@ -918,6 +944,31 @@ def validate_external_product_document(
                 "decision_required", "qualified_action", "forecast_action"}:
             violations.append({"rule": "decision_reference_state", "detail":
                                f"{reference!r} has unsupported reference kind {reference_kind!r}"})
+    teaming_slot = next(
+        (slot for slot in doc.slots
+         if slot.slot_id == "teaming-opportunities"), None)
+    for row in tuple(teaming_slot.records if teaming_slot else ()):
+        reference = row.get("notice_reference_key")
+        if not reference:
+            if row.get("non_owning_reference") is True:
+                violations.append({"rule": "teaming_reference", "detail":
+                                   "non-owning teaming reference has no notice reference"})
+            continue
+        if row.get("non_owning_reference") is not True:
+            violations.append({"rule": "teaming_reference", "detail":
+                               "a notice-linked teaming route claims a second owner"})
+        reference_slot = row.get("notice_reference_slot_id")
+        if reference not in owned or owned.get(reference) != reference_slot:
+            violations.append({"rule": "teaming_reference", "detail":
+                               f"{reference!r} does not resolve to {reference_slot!r}"})
+            continue
+        notice = owned_rows[reference]
+        if row.get("source_id") != notice.get("source_id"):
+            violations.append({"rule": "teaming_reference", "detail":
+                               "teaming route references a different notice identity"})
+        if row.get("commercial_route") != notice.get("commercial_route"):
+            violations.append({"rule": "teaming_reference", "detail":
+                               "teaming route differs from the notice route decision"})
     if not doc.graph_receipt.get("current_opportunity_conserved", False):
         violations.append({"rule": "current_opportunity_conservation", "detail":
                            "the projection receipt reports a lost current opportunity"})

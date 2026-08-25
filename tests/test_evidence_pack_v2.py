@@ -37,15 +37,443 @@ def _opportunity(record_id: str, family: str, title: str, agency: str,
 def test_requirement_family_collapses_lifecycle_postings():
     rows = [
         {"record_id": "ss-1", "title": "Sources Sought Language Services",
-         "agency": "Department of State", "window_state": "live"},
+         "solicitation_number": "19AQMM26R1000",
+         "agency": "Department of State", "office": "Acquisitions",
+         "window_state": "live"},
         {"record_id": "sol-1", "title": "Solicitation Language Services",
-         "agency": "Department of State", "window_state": "live",
+         "solicitation_number": "19AQMM26R1000",
+         "agency": "Department of State", "office": "Acquisitions",
+         "window_state": "live",
          "response_deadline": "2026-09-25", "contact_email": "co@state.gov"},
     ]
     kept = canonicalize_requirement_families(rows)
     assert len(kept) == 1
     assert kept[0]["canonical_record_id"] == "sol-1"
     assert kept[0]["family_member_ids"] == ["sol-1", "ss-1"]
+
+
+def test_solicitation_family_requires_buyer_namespace_and_preserves_lineage():
+    predecessor = {
+        "record_id": "pre-1",
+        "title": "Training Analysis Evaluation Product Presolicitation",
+        "description": "The Marine Corps intends to issue solicitation M6785426R8017.",
+        "agency": "Department of Defense",
+        "office": "Commander",
+        "notice_type": "Presolicitation",
+        "posted_date": "2026-07-01",
+        "window_state": "stated_past",
+        "url": "https://sam.gov/opp/pre-1/view",
+    }
+    active = {
+        "record_id": "rfp-1",
+        "title": "Training Analysis Evaluation Product Request for Proposal",
+        "solicitation_number": "M6785426R8017",
+        "agency": "Department of Defense",
+        "office": "Commander",
+        "notice_type": "Solicitation",
+        "posted_date": "2026-08-17",
+        "response_deadline": "2026-09-14T10:00:00-04:00",
+        "window_state": "live",
+        "url": "https://sam.gov/opp/rfp-1/view",
+    }
+    reused_number = {
+        **active,
+        "record_id": "other-office",
+        "office": "Another Office",
+        "url": "https://sam.gov/opp/other-office/view",
+    }
+
+    kept = canonicalize_requirement_families(
+        [predecessor, active, reused_number])
+
+    assert len(kept) == 2
+    taep = next(row for row in kept
+                if row["canonical_record_id"] == "rfp-1")
+    assert taep["family_member_ids"] == ["pre-1", "rfp-1"]
+    assert [row["record_id"] for row in taep["family_lineage"]] == [
+        "pre-1", "rfp-1"]
+    assert taep["family_lineage"][1]["solicitation_number"] == \
+        "m6785426r8017"
+    assert "department of defense|commander" in taep["family_basis"]
+
+
+def test_unanchored_solicitation_mention_does_not_merge_unrelated_notice():
+    rows = [{
+        "record_id": "one",
+        "title": "Language services market research",
+        "description": "This differs from solicitation M6785426R8017.",
+        "agency": "Department of Defense",
+        "office": "Commander",
+        "window_state": "live",
+    }, {
+        "record_id": "two",
+        "title": "Training Analysis Evaluation Product",
+        "solicitation_number": "M6785426R8017",
+        "agency": "Department of Defense",
+        "office": "Commander",
+        "window_state": "live",
+    }]
+    assert len(canonicalize_requirement_families(rows)) == 2
+
+
+def test_explicit_successor_solicitation_links_old_and_new_notice_identity():
+    predecessor = {
+        "record_id": "old-notice",
+        "title": "Language support presolicitation",
+        "description": (
+            "The follow-on solicitation NEW26R0002 will replace this notice."),
+        "solicitation_number": "OLD26R0001",
+        "agency": "Department of State",
+        "office": "Acquisitions",
+        "posted_date": "2026-07-01",
+        "source_status": False,
+    }
+    successor = {
+        "record_id": "new-notice",
+        "title": "Language support solicitation",
+        "solicitation_number": "NEW26R0002",
+        "agency": "Department of State",
+        "office": "Acquisitions",
+        "posted_date": "2026-08-20",
+        "source_status": True,
+    }
+
+    kept = canonicalize_requirement_families([predecessor, successor])
+
+    assert len(kept) == 1
+    assert kept[0]["canonical_record_id"] == "new-notice"
+    assert kept[0]["family_member_ids"] == ["new-notice", "old-notice"]
+    old_lineage = next(row for row in kept[0]["family_lineage"]
+                       if row["record_id"] == "old-notice")
+    assert old_lineage["posted_solicitation_number"] == "old26r0001"
+    assert old_lineage["successor_solicitation_number"] == "new26r0002"
+
+
+def test_successor_solicitation_chain_resolves_transitively_within_buyer():
+    common = {
+        "agency": "Department of State",
+        "office": "Acquisitions",
+    }
+    oldest = {
+        **common,
+        "record_id": "notice-a",
+        "title": "Language support market research",
+        "description": "The follow-on solicitation B26R0002 will replace it.",
+        "solicitation_number": "A26R0001",
+        "posted_date": "2026-06-01",
+        "source_status": False,
+    }
+    middle = {
+        **common,
+        "record_id": "notice-b",
+        "title": "Language support presolicitation",
+        "description": "The successor solicitation C26R0003 will replace it.",
+        "solicitation_number": "B26R0002",
+        "posted_date": "2026-07-01",
+        "source_status": False,
+    }
+    newest = {
+        **common,
+        "record_id": "notice-c",
+        "title": "Language support solicitation",
+        "solicitation_number": "C26R0003",
+        "posted_date": "2026-08-01",
+        "source_status": True,
+    }
+
+    kept = canonicalize_requirement_families([oldest, middle, newest])
+
+    assert len(kept) == 1
+    assert kept[0]["canonical_record_id"] == "notice-c"
+    assert kept[0]["family_member_ids"] == [
+        "notice-a", "notice-b", "notice-c"]
+
+
+def test_negated_successor_text_does_not_join_notice_families():
+    common = {
+        "agency": "Department of State",
+        "office": "Acquisitions",
+    }
+    unrelated = {
+        **common,
+        "record_id": "unrelated",
+        "title": "Unrelated language market research",
+        "description": (
+            "This is not a follow-on solicitation NEW26R0002 and must not "
+            "be treated as its predecessor."),
+        "solicitation_number": "OTHER26R0001",
+    }
+    current = {
+        **common,
+        "record_id": "current",
+        "title": "Language support solicitation",
+        "solicitation_number": "NEW26R0002",
+    }
+
+    kept = canonicalize_requirement_families([unrelated, current])
+
+    assert len(kept) == 2
+
+
+@pytest.mark.parametrize("negated", [
+    "This does not constitute a successor solicitation NEW26R0002.",
+    "This does not plan a follow-on solicitation NEW26R0002.",
+    "This is not considered a replacement solicitation NEW26R0002.",
+    "This proceeds without issuing a follow-on solicitation NEW26R0002.",
+    "Neither a successor solicitation NEW26R0002 nor a replacement is planned.",
+])
+def test_successor_negation_variants_fail_open(negated):
+    common = {
+        "agency": "Department of State",
+        "office": "Acquisitions",
+    }
+    rows = [{
+        **common,
+        "record_id": "old",
+        "title": "Market research",
+        "description": negated,
+        "solicitation_number": "OLD26R0001",
+    }, {
+        **common,
+        "record_id": "new",
+        "title": "Language support",
+        "solicitation_number": "NEW26R0002",
+    }]
+
+    assert len(canonicalize_requirement_families(rows)) == 2
+
+
+def test_later_positive_successor_mention_survives_earlier_negation():
+    common = {
+        "agency": "Department of State",
+        "office": "Acquisitions",
+    }
+    rows = [{
+        **common,
+        "record_id": "old",
+        "title": "Market research",
+        "description": (
+            "This is not a follow-on solicitation WRONG26R0001. "
+            "The successor solicitation NEW26R0002 replaces this notice."),
+        "solicitation_number": "OLD26R0001",
+    }, {
+        **common,
+        "record_id": "new",
+        "title": "Language support",
+        "solicitation_number": "NEW26R0002",
+    }]
+
+    kept = canonicalize_requirement_families(rows)
+
+    assert len(kept) == 1
+    assert kept[0]["family_member_ids"] == ["new", "old"]
+
+
+def test_conflicting_successor_claims_do_not_overmerge_families():
+    common = {
+        "agency": "Department of State",
+        "office": "Acquisitions",
+        "solicitation_number": "OLD26R0001",
+    }
+    rows = [{
+        **common,
+        "record_id": "old-claims-b",
+        "successor_solicitation_number": "NEW26R0002",
+    }, {
+        **common,
+        "record_id": "old-claims-c",
+        "successor_solicitation_number": "OTHER26R0003",
+    }, {
+        "record_id": "new-b",
+        "agency": common["agency"],
+        "office": common["office"],
+        "solicitation_number": "NEW26R0002",
+    }, {
+        "record_id": "new-c",
+        "agency": common["agency"],
+        "office": common["office"],
+        "solicitation_number": "OTHER26R0003",
+    }]
+
+    kept = canonicalize_requirement_families(rows)
+
+    assert len(kept) == 3
+    old_family = next(row for row in kept
+                      if "old-claims-b" in row["family_member_ids"])
+    assert old_family["family_member_ids"] == [
+        "old-claims-b", "old-claims-c"]
+
+
+def test_successor_link_requires_same_complete_buyer_namespace():
+    base = {
+        "record_id": "old",
+        "title": "Market research",
+        "solicitation_number": "OLD26R0001",
+        "successor_solicitation_number": "NEW26R0002",
+        "agency": "Department of State",
+    }
+    missing_office = [base, {
+        "record_id": "new",
+        "solicitation_number": "NEW26R0002",
+        "agency": "Department of State",
+    }]
+    other_office = [{**base, "office": "Office A"}, {
+        "record_id": "new",
+        "solicitation_number": "NEW26R0002",
+        "agency": "Department of State",
+        "office": "Office B",
+    }]
+
+    assert len(canonicalize_requirement_families(missing_office)) == 2
+    assert len(canonicalize_requirement_families(other_office)) == 2
+
+
+def test_structured_successor_field_links_and_chain_is_order_independent():
+    common = {
+        "agency": "Department of State",
+        "office": "Acquisitions",
+    }
+    rows = [{
+        **common,
+        "record_id": "old",
+        "solicitation_number": "OLD26R0001",
+        "successor_solicitation_number": "MID26R0002",
+        "source_status": False,
+    }, {
+        **common,
+        "record_id": "middle",
+        "solicitation_number": "MID26R0002",
+        "successor_solicitation_number": "NEW26R0003",
+        "source_status": False,
+    }, {
+        **common,
+        "record_id": "new",
+        "solicitation_number": "NEW26R0003",
+        "source_status": True,
+    }]
+
+    forward = canonicalize_requirement_families(rows)
+    reverse = canonicalize_requirement_families(list(reversed(rows)))
+
+    assert forward == reverse
+    assert len(forward) == 1
+    assert forward[0]["canonical_record_id"] == "new"
+
+
+def test_structured_solicitation_sentinel_does_not_merge_unrelated_notices():
+    rows = [{
+        "record_id": "one",
+        "title": "Language services market research",
+        "solicitation_number": "PENDING",
+        "agency": "Department of Defense",
+        "office": "Commander",
+        "window_state": "live",
+    }, {
+        "record_id": "two",
+        "title": "Training range support",
+        "solicitation_number": "UNKNOWN",
+        "agency": "Department of Defense",
+        "office": "Commander",
+        "window_state": "live",
+    }]
+    assert len(canonicalize_requirement_families(rows)) == 2
+
+
+def test_same_title_without_solicitation_fails_open_to_notice_identity():
+    rows = [{
+        "record_id": "office-one",
+        "title": "Translation Services",
+        "agency": "Department of State",
+        "office": "Embassy One",
+        "window_state": "live",
+    }, {
+        "record_id": "office-two",
+        "title": "Translation Services",
+        "agency": "Department of State",
+        "office": "Embassy Two",
+        "window_state": "live",
+    }]
+    assert len(canonicalize_requirement_families(rows)) == 2
+
+
+def test_active_notice_beats_newer_cancelled_family_member():
+    base = {
+        "title": "Language Support Solicitation",
+        "solicitation_number": "19AQMM26R0001",
+        "agency": "Department of State",
+        "office": "Acquisitions",
+        "notice_type": "Solicitation",
+        "response_deadline": "2026-09-30T17:00:00-04:00",
+        "window_state": "live",
+    }
+    active = {
+        **base,
+        "record_id": "active",
+        "posted_date": "2026-08-17",
+        "source_status": True,
+    }
+    cancelled = {
+        **base,
+        "record_id": "cancelled",
+        "posted_date": "2026-08-18",
+        "notice_type": "Cancellation",
+        "source_status": False,
+    }
+
+    kept = canonicalize_requirement_families([active, cancelled])
+
+    assert len(kept) == 1
+    assert kept[0]["canonical_record_id"] == "active"
+    assert kept[0]["family_member_ids"] == ["active", "cancelled"]
+
+
+def test_newest_active_notice_keeps_identity_and_carries_rich_base_scope():
+    base = {
+        "record_id": "base-rfp",
+        "title": "Language Curriculum Support Solicitation",
+        "description": (
+            "Design, develop, implement, and evaluate language curricula "
+            "and instructional courseware for military learners."),
+        "solicitation_number": "N0018926R1000",
+        "agency": "DEPT OF DEFENSE",
+        "office": "NAVSUP FLT LOG CTR NORFOLK",
+        "notice_type": "Solicitation",
+        "posted_date": "2026-08-10",
+        "response_deadline": "2026-09-10T17:00:00-04:00",
+        "set_aside": "No Set aside used",
+        "contact_email": "base@example.mil",
+        "source_status": False,
+        "url": "https://sam.gov/opp/base-rfp/view",
+    }
+    amendment = {
+        "record_id": "amendment-1",
+        "title": "Amendment 1",
+        "description": "See amendment attachment.",
+        "solicitation_number": "N0018926R1000",
+        "agency": "DEPT OF DEFENSE",
+        "office": "NAVSUP FLT LOG CTR NORFOLK",
+        "notice_type": "Presolicitation",
+        "posted_date": "2026-08-20",
+        "response_deadline": "2026-09-14T17:00:00-04:00",
+        "source_status": True,
+        "url": "https://sam.gov/opp/amendment-1/view",
+    }
+
+    kept = canonicalize_requirement_families([base, amendment])
+
+    assert len(kept) == 1
+    row = kept[0]
+    assert row["canonical_record_id"] == "amendment-1"
+    assert row["url"].endswith("/amendment-1/view")
+    assert row["response_deadline"] == "2026-09-14T17:00:00-04:00"
+    assert row["description"] == base["description"]
+    assert row["set_aside"] == "No Set aside used"
+    assert row["contact_email"] == "base@example.mil"
+    assert row["canonical_scope_record_id"] == "base-rfp"
+    assert row["family_field_sources"]["description"]["record_id"] == \
+        "base-rfp"
+    assert row["family_field_sources"]["response_deadline"]["record_id"] == \
+        "amendment-1"
 
 
 def test_record_identity_collapses_duplicate_award_and_receipts_conflict():
@@ -69,6 +497,50 @@ def test_record_identity_collapses_duplicate_award_and_receipts_conflict():
     assert receipt["record_duplicates_collapsed"] == 1
     assert receipt["duplicate_record_ids"][0]["conflicts"][
         "obligated_dollars"] == [2_896_292.43, 4_213_817.34]
+
+
+def test_duplicate_notice_reconciles_fresh_acquisition_fields_by_source():
+    stale = {
+        "lane": "L1_notice",
+        "record_id": "same-notice",
+        "title": "Training Analysis Evaluation Product",
+        "description": "Long attachment-derived scope " * 20,
+        "agency": "DEPT OF DEFENSE",
+        "office": "COMMANDER",
+        "response_deadline": "2026-07-31",
+        "set_aside": "",
+        "contact_email": "",
+        "active": "No",
+    }
+    fresh = {
+        "lane": "L1_notice",
+        "record_id": "same-notice",
+        "title": "Training Analysis Evaluation Product RFP",
+        "description": "Training and education design and development.",
+        "agency": "DEPT OF DEFENSE",
+        "office": "COMMANDER",
+        "response_deadline": "2026-09-14T10:00:00-04:00",
+        "solicitation_number": "M6785426R8017",
+        "set_aside": "8(a) Set-Aside (FAR 19.8)",
+        "set_aside_code": "8A",
+        "contact_email": "anitra@example.mil",
+        "source_status": "Yes",
+        "retrieved_at": "2026-08-19T16:48:51Z",
+        "source_fields": {"active": "Yes"},
+        "source_sweep": "research_mesh",
+    }
+
+    rows, receipt = canonicalize_record_ids([stale, fresh])
+
+    assert receipt["record_duplicates_collapsed"] == 1
+    assert rows[0]["response_deadline"] == "2026-09-14T10:00:00-04:00"
+    assert rows[0]["solicitation_number"] == "M6785426R8017"
+    assert rows[0]["set_aside_code"] == "8A"
+    assert rows[0]["contact_email"] == "anitra@example.mil"
+    assert rows[0]["source_status"] == "Yes"
+    assert rows[0]["description"] == fresh["description"]
+    assert rows[0]["record_field_sources"]["response_deadline"][
+        "source_sweep"] == "research_mesh"
 
 
 def test_vertical_target_path_keeps_sources_distinct_and_removal_cascades():
@@ -235,6 +707,9 @@ def test_opportunity_decision_records_every_blocking_dimension(monkeypatch):
         "record_id": "notice-dual-hold",
         "requirement_family": "family-dual-hold",
         "evidence_class": "current_opportunity",
+        "commercial_route": "possible_subcontracting",
+        "eligible_route": False,
+        "route_basis": "restricted set-aside bars direct pursuit",
     }
     monkeypatch.setattr(
         evidence_pack_v2, "_technical_fit",
@@ -249,14 +724,6 @@ def test_opportunity_decision_records_every_blocking_dimension(monkeypatch):
             "eligible_route": False,
             "basis": "restricted set-aside bars direct pursuit",
         })
-    monkeypatch.setattr(
-        evidence_pack_v2.er, "classify_route",
-        lambda *_args: {
-            "commercial_route": "possible_subcontracting",
-            "eligible_route": False,
-            "route_basis": "restricted set-aside bars direct pursuit",
-        })
-
     qualified, _incumbents, held = qualify_opportunities([row], {})
 
     assert qualified == []
@@ -272,6 +739,40 @@ def test_opportunity_decision_records_every_blocking_dimension(monkeypatch):
         "restricted set-aside bars direct pursuit",
     ]
     assert row["qualification_state"] == "held_for_fit_review"
+
+
+def test_qualification_consumes_stamped_dimensions_once(monkeypatch):
+    row = {
+        "record_id": "notice-stamped",
+        "requirement_family": "family-stamped",
+        "title": "JTS Curriculum Development and Support",
+        "evidence_class": "current_opportunity",
+        "service_fit": "direct",
+        "fit_basis": "approved core capability phrase",
+        "fit_evidence": [{"source_id": "W9124N12C0086"}],
+        "window_state": "live",
+        "window_basis": "published response deadline is live",
+        "commercial_route": "direct",
+        "route_relationship": "direct",
+        "eligible_route": True,
+        "route_basis": "unrestricted notice",
+    }
+    monkeypatch.setattr(
+        evidence_pack_v2.er, "classify_service_fit",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            AssertionError("qualification reclassified service fit")))
+    monkeypatch.setattr(
+        evidence_pack_v2.er, "classify_route",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            AssertionError("qualification reclassified route")))
+
+    qualified, _incumbents, held = qualify_opportunities([row], {})
+
+    assert held == []
+    assert qualified[0]["qualified"]["fit_evidence"] == [
+        {"source_id": "W9124N12C0086"}]
+    assert qualified[0]["qualified"]["route_basis"] == \
+        "unrestricted notice"
 
 
 def test_graph_contract_requires_exhaustive_disjoint_opportunity_partition():
@@ -340,6 +841,18 @@ def test_schema_pins_the_graph_contract():
     assert "namespaces" not in cache["properties"]
 
 
+def test_v2_schema_accepts_the_pre_lineage_frozen_snapshot():
+    jsonschema = pytest.importorskip("jsonschema")
+    schema = json.loads(open(
+        "agents/golden_press/schemas/evidence_pack_v2.schema.json",
+        encoding="utf-8").read())
+    snapshot = json.loads(open(
+        "tests/fixtures/release_snapshot/jtg_reproducibility_snapshot.json",
+        encoding="utf-8").read())
+
+    jsonschema.Draft202012Validator(schema).validate(snapshot["graph"])
+
+
 def test_corrected_pack_requires_explicit_aware_clocks(tmp_path):
     with pytest.raises(TypeError, match="classification_as_of"):
         evidence_pack_v2.build_corrected_pack(
@@ -359,6 +872,85 @@ def test_corrected_pack_requires_explicit_aware_clocks(tmp_path):
             classification_as_of="2026-08-24T18:00:00Z",
             captured_at="2026-08-24T18:00:00",
             root=tmp_path,
+        )
+
+
+def test_corrected_pack_rejects_pressed_pack_after_classification(tmp_path):
+    pack_dir = tmp_path / "pack"
+    pack_dir.mkdir()
+    pressed = pack_dir / "client.golden_report.evidence_pack.json"
+    pressed.write_text(json.dumps({
+        "generated_at": "2026-08-24T17:01:00Z",
+        "client_entity_aliases": [],
+        "records": [],
+    }), encoding="utf-8")
+
+    with pytest.raises(
+            ValueError,
+            match="pressed evidence pack generated_at is later"):
+        evidence_pack_v2.build_corrected_pack(
+            "client", "Client",
+            classification_as_of="2026-08-24T17:00:00Z",
+            captured_at="2026-08-24T17:05:00Z",
+            root=tmp_path,
+            pack_dir=pack_dir,
+            pressed_pack_path=pressed,
+        )
+
+
+def test_corrected_pack_rejects_deep_sweep_after_classification(tmp_path):
+    pack_dir = tmp_path / "pack"
+    pack_dir.mkdir()
+    pressed = pack_dir / "client.golden_report.evidence_pack.json"
+    pressed.write_text(json.dumps({
+        "generated_at": "2026-08-24T17:00:00Z",
+        "client_entity_aliases": [],
+        "records": [],
+    }), encoding="utf-8")
+    deep = tmp_path / "deep.json"
+    deep.write_text(json.dumps({
+        "records": [],
+        "receipt": {"at": "2026-08-24T17:01:00Z"},
+    }), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="deep sweep receipt at is later"):
+        evidence_pack_v2.build_corrected_pack(
+            "client", "Client",
+            classification_as_of="2026-08-24T17:00:00Z",
+            captured_at="2026-08-24T17:05:00Z",
+            root=tmp_path,
+            pack_dir=pack_dir,
+            pressed_pack_path=pressed,
+            deep_sweep_path=deep,
+        )
+
+
+def test_corrected_pack_rejects_research_mesh_after_classification(tmp_path):
+    pack_dir = tmp_path / "pack"
+    pack_dir.mkdir()
+    pressed = pack_dir / "client.golden_report.evidence_pack.json"
+    pressed.write_text(json.dumps({
+        "generated_at": "2026-08-24T17:00:00Z",
+        "client_entity_aliases": [],
+        "records": [],
+    }), encoding="utf-8")
+    research = tmp_path / "searches_client.json"
+    research.write_text(json.dumps({
+        "generated_at": "2026-08-24T17:01:00Z",
+        "results": {},
+    }), encoding="utf-8")
+
+    with pytest.raises(
+            ValueError,
+            match="governed research mesh generated_at is later"):
+        evidence_pack_v2.build_corrected_pack(
+            "client", "Client",
+            classification_as_of="2026-08-24T17:00:00Z",
+            captured_at="2026-08-24T17:05:00Z",
+            root=tmp_path,
+            pack_dir=pack_dir,
+            pressed_pack_path=pressed,
+            research_sweep_path=research,
         )
 
 
@@ -391,3 +983,65 @@ def test_corrected_pack_uses_frozen_clocks_and_semantic_receipt(tmp_path):
         "incremental-cache-semantic-receipt-v1"
     assert "cache_root" not in receipt
     assert "actions" not in receipt
+
+
+def test_research_mesh_handoff_preserves_notice_and_forecast_decision_fields(
+        tmp_path):
+    artifact = tmp_path / "searches_jtg_inc.json"
+    artifact.write_text(json.dumps({
+        "generated_at": "2026-08-19T16:48:51Z",
+        "results": {
+            "sam.gov": [{
+                "source_id": "taep-rfp",
+                "title": "Training Analysis Evaluation Product RFP",
+                "set_aside": "8(a) Set-Aside (FAR 19.8)",
+                "contacts": [{
+                    "contact_type": "primary",
+                    "name": "Anitra Kinsey",
+                    "email": "anitra@example.mil",
+                }],
+                "raw_payload": {
+                    "notice_id": "taep-rfp",
+                    "solicitation": "M6785426R8017",
+                    "agency": "DEPT OF DEFENSE",
+                    "subtier": "DEPT OF THE NAVY",
+                    "office": "COMMANDER",
+                    "posted": "2026-08-17",
+                    "deadline": "2026-09-14T10:00:00-04:00",
+                    "type": "Solicitation",
+                    "set_aside_code": "8A",
+                    "naics": "611710",
+                    "psc": "U008",
+                    "description_snippet": "Training and education analysis, design, development, implementation, and evaluation.",
+                },
+            }],
+            "forecast_signals": {"matched": [{
+                "source_id": "W15QKN-26-Q-0007",
+                "source": "army_acquisition_forecast",
+                "agency": "Department of the Army",
+                "component": "USARC",
+                "title": "MIRC Language Training Hours",
+                "description": "Command: USARC; Contracting office: ACC-NJ",
+                "anticipated_solicitation": "2026-07-10",
+                "anticipated_solicitation_close": "2026-08-07",
+                "estimated_value_range": "$25K to $250K",
+                "predecessor_contract_id": "W15QKN25F0407",
+                "url": "https://api.army.mil/forecast.xlsx",
+                "source_fields": {"Contracting Office": "ACC-NJ"},
+            }]},
+        },
+    }), encoding="utf-8")
+
+    rows, receipt = evidence_pack_v2._research_mesh_records(artifact)
+
+    taep = next(row for row in rows if row["record_id"] == "taep-rfp")
+    mirc = next(row for row in rows
+                if row["record_id"] == "W15QKN-26-Q-0007")
+    assert taep["solicitation_number"] == "M6785426R8017"
+    assert taep["response_deadline"] == "2026-09-14T10:00:00-04:00"
+    assert taep["contact_email"] == "anitra@example.mil"
+    assert mirc["sub_agency"] == "USARC"
+    assert mirc["office"] == "ACC-NJ"
+    assert mirc["predecessor_contract_id"] == "W15QKN25F0407"
+    assert receipt["sam_notice_rows_imported"] == 1
+    assert receipt["forecast_rows_imported"] == 1

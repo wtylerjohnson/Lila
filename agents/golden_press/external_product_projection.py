@@ -29,7 +29,7 @@ from agents.golden_press.release_snapshot import (
 )
 
 
-EXTERNAL_PRODUCT_PROJECTION_VERSION = "lila-external-product.v6.2026-08-24"
+EXTERNAL_PRODUCT_PROJECTION_VERSION = "lila-external-product.v7.2026-08-25"
 
 _USASPENDING_NONE_AWARD = re.compile(
     r"^https?://(?:www\.)?usaspending\.gov/award/"
@@ -142,6 +142,12 @@ def record_ownership_key(row: dict) -> str:
     pack-event rows keep their own record keys unless their producer supplies
     an explicit ownership key.
     """
+    if (row.get("non_owning_reference") is True
+            and _text(row.get("kind")) == "teaming_route_reference"
+            and _text(row.get("notice_reference_key"))
+            and _text(row.get("notice_reference_slot_id")) ==
+            "federal-opportunities"):
+        return ""
     explicit = _text(row.get("ownership_key"))
     if explicit:
         return explicit
@@ -189,6 +195,11 @@ _DETAIL_SECTIONS = (
     ("Full published scope", (
         ("description", "Scope"),
     )),
+    ("Published financial evidence", (
+        ("obligated_dollars", "Obligations"),
+        ("ceiling_dollars", "Ceiling"),
+        ("figure_type", "Figure type"),
+    )),
     ("Acquisition", (
         ("sub_agency", "Sub-agency"),
         ("notice_type", "Instrument"),
@@ -223,6 +234,7 @@ _DETAIL_SECTIONS = (
     ("Why LILA kept it", (
         ("evidence_basis", "Evidence class basis"),
         ("fit_basis", "Fit basis"),
+        ("fit_evidence", "Capability evidence"),
         ("route_basis", "Route basis"),
         ("window_basis", "Window basis"),
         ("matched_sentence", "Matched evidence"),
@@ -235,6 +247,10 @@ _DETAIL_SECTIONS = (
         ("canonical_record_id", "Canonical record"),
         ("requirement_family", "Requirement family"),
         ("family_member_ids", "Family members"),
+        ("family_lineage", "Notice lineage"),
+        ("canonical_scope_record_id", "Scope source record"),
+        ("family_field_sources", "Reconciled field sources"),
+        ("predecessor_contract_id", "Predecessor contract"),
         ("retrieved_at", "Retrieved"),
     )),
 )
@@ -321,6 +337,22 @@ def _graph_record(row: dict, *, kind: str, summary: str = "") -> dict:
         agency = _text(row.get("agency"))
         title = " - ".join(part for part in (
             recipient or "Federal award", agency) if part)
+    receipt_rows = list(_record_receipts(row))
+    for receipt in row.get("fit_evidence") or []:
+        receipt_rows.append({
+            "source_id": receipt.get("source_id"),
+            "source_kind": receipt.get("source_kind"),
+            "source_url": receipt.get("source_url"),
+            "label": (receipt.get("title")
+                      or receipt.get("matched_capability")),
+        })
+    for member in row.get("family_lineage") or []:
+        receipt_rows.append({
+            "source_id": member.get("record_id"),
+            "source_kind": "sam_notice_lineage",
+            "source_url": member.get("source_url"),
+            "label": member.get("title") or member.get("record_id"),
+        })
     record = {
         "record_key": _record_key(kind, record_id),
         "ownership_key": _record_key("graph-record", record_id),
@@ -342,6 +374,7 @@ def _graph_record(row: dict, *, kind: str, summary: str = "") -> dict:
             or row.get("anticipated_award")),
         "value": row.get("published_value") or row.get("obligated_dollars")
                  or row.get("ceiling_dollars") or row.get("estimated_value_range"),
+        "figure_type": _text(row.get("figure_type")),
         "naics": _text(row.get("naics") or row.get("naics_code")),
         "psc": _text(row.get("psc") or row.get("psc_code")),
         "instrument": _text(row.get("instrument") or row.get("notice_type")),
@@ -354,6 +387,8 @@ def _graph_record(row: dict, *, kind: str, summary: str = "") -> dict:
         "vehicle": _text(row.get("vehicle")),
         "vehicle_class": _text(row.get("vehicle_class")),
         "parent_award_id": _text(row.get("parent_award_id")),
+        "predecessor_contract_id": _text(
+            row.get("predecessor_contract_id")),
         "incumbent_name": _text(row.get("incumbent_name")),
         "fiscal_year": _text(row.get("fiscal_year")),
         "anticipated_solicitation": _text(row.get("anticipated_solicitation")),
@@ -367,13 +402,27 @@ def _graph_record(row: dict, *, kind: str, summary: str = "") -> dict:
         "contact_secondary_email": _text(row.get("contact_secondary_email")),
         "evidence_class": _text(row.get("evidence_class")),
         "service_fit": _text(row.get("service_fit")),
+        "fit_basis": _text(row.get("fit_basis")),
+        "fit_evidence": _serial(row.get("fit_evidence") or []),
         "window_state": _text(row.get("window_state")),
+        "window_basis": _text(row.get("window_basis")),
         "commercial_route": _text(row.get("commercial_route")),
+        "eligible_route": row.get("eligible_route"),
+        "route_basis": _text(row.get("route_basis")),
+        "requirement_family": _text(row.get("requirement_family")),
+        "canonical_record_id": _text(row.get("canonical_record_id")),
+        "family_member_ids": _serial(row.get("family_member_ids") or []),
+        "family_lineage": _serial(row.get("family_lineage") or []),
+        "canonical_scope_record_id": _text(
+            row.get("canonical_scope_record_id")),
+        "family_field_sources": _serial(
+            row.get("family_field_sources") or {}),
+        "retrieved_at": _text(row.get("retrieved_at")),
         "relationship_provenance": _serial(
             row.get("relationship_provenance") or {}),
         "projection_decision": _serial(row.get("projection_decision") or {}),
         "detail_sections": _detail_sections(row),
-        "evidence_receipts": _record_receipts(row),
+        "evidence_receipts": _evidence_rows(receipt_rows),
     }
     return record
 
@@ -885,9 +934,16 @@ def build_external_product_document(
     footprint = _get(market_map, "category_footprint")
 
     claimed: set[str] = set()
+    claimed_references: set[str] = set()
 
     def claim(row: dict) -> bool:
         key = record_ownership_key(row)
+        if not key:
+            reference_key = _text(row.get("record_key"))
+            if not reference_key or reference_key in claimed_references:
+                return False
+            claimed_references.add(reference_key)
+            return True
         if key in claimed:
             return False
         claimed.add(key)
@@ -907,7 +963,12 @@ def build_external_product_document(
             "reasons": [],
         })
         family = _text(raw.get("requirement_family"))
-        targets = list(raw.get("linked_targets") or target_groups.get(family) or [])
+        targets = [
+            target for target in
+            list(raw.get("linked_targets") or target_groups.get(family) or [])
+            if target.get("target_slot_id") in {
+                None, "", "federal-opportunities"}
+        ]
         row.update({
             "requirement_family": family,
             "targets": _serial(targets),
@@ -934,7 +995,13 @@ def build_external_product_document(
             opportunity=True)
         row.update({
             "requirement_family": _text(raw.get("requirement_family")),
-            "targets": [],
+            "targets": _serial([
+                target for target in list(
+                    raw.get("linked_targets") or
+                    target_groups.get(_text(raw.get("requirement_family"))) or [])
+                if target.get("target_slot_id") in {
+                    None, "", "federal-opportunities"}
+            ]),
             "next_action": row.get("decision_action"),
         })
         if claim(row):
@@ -974,6 +1041,40 @@ def build_external_product_document(
     # Market Map routes are presentation enrichments, not an alternate admission
     # path. Every one must resolve to certified, client-admissible graph evidence.
     teaming_rows: list[dict] = []
+    for raw in graph_rows:
+        if (raw.get("evidence_class") != "current_opportunity"
+                or raw.get("commercial_route") not in
+                _EXTERNAL_TEAMING_RELATIONSHIPS):
+            continue
+        source_id = _text(raw.get("record_id"))
+        family = _text(raw.get("requirement_family"))
+        decision = raw.get("projection_decision") or {}
+        route = _text(raw.get("commercial_route"))
+        row = {
+            "record_key": _record_key(
+                "teaming-route", f"{source_id}:{route}"),
+            "non_owning_reference": True,
+            "kind": "teaming_route_reference",
+            "source_id": source_id,
+            "title": f"Teaming path: {_text(raw.get('title'))}",
+            "summary": _text(raw.get("route_basis")),
+            "source_url": _source_from_graph(raw),
+            "agency": _text(raw.get("agency")),
+            "commercial_route": route,
+            "route_basis": _text(raw.get("route_basis")),
+            "decision_state": _text(decision.get("disposition")) or "needs_review",
+            "decision_action": _text(decision.get("decision_action")),
+            "notice_reference_key": _record_key("graph-record", source_id),
+            "notice_reference_slot_id": "federal-opportunities",
+            "requirement_family": family,
+            "targets": _serial([
+                target for target in list(target_groups.get(family) or [])
+                if target.get("target_slot_id") == "teaming-opportunities"
+            ]),
+            "evidence_receipts": _record_receipts(raw),
+        }
+        if claim(row):
+            teaming_rows.append(row)
     for index, route in enumerate(_get(market_map, "teaming_routes", ()) or (), start=1):
         evidence = _evidence_rows(_get(route, "evidence", ()))
         qualified_evidence = [

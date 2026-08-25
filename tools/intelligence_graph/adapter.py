@@ -19,7 +19,7 @@ from agents.golden_press import evidence_route as er
 from tools.intelligence_graph.cache import CacheResult, PersistentCache, stable_hash
 
 ADAPTER_VERSION = "existing-systems-graph-adapter-v2"
-CLASSIFICATION_CACHE_VERSION = "classification-decision-overlay-v1"
+CLASSIFICATION_CACHE_VERSION = "classification-decision-overlay-v2"
 ENTITY_NORMALIZER_VERSION = "canonical-entity-registry-v1"
 APOLLO_CACHE_VERSION = "apollo-enrichment-cache-v1"
 SOURCE_EXTRACT_VERSION = "source-extract-cache-v1"
@@ -34,11 +34,14 @@ MARK_CACHE_VERSION = "resolved-mark-cache-v1"
 CLASSIFICATION_INPUT_FIELDS = (
     "lane", "title", "description", "relevance_matched", "requirement",
     "additional_info", "naics", "naics_code", "psc", "psc_code",
+    "active", "source_status", "notice_type", "base_notice_type",
     "response_deadline", "release_date", "estimated_release_date",
-    "fiscal_year", "fy", "recipient", "set_aside",
+    "anticipated_solicitation", "anticipated_solicitation_close",
+    "fiscal_year", "fy", "recipient", "set_aside", "set_aside_code",
+    "type_set_aside", "source_fields",
 )
 CLASSIFICATION_DECISION_FIELDS = (
-    "service_fit", "fit_basis", "window_state", "window_basis",
+    "service_fit", "fit_basis", "fit_evidence", "window_state", "window_basis",
     "evidence_class", "evidence_basis", "route_relationship",
     "commercial_route", "eligible_route", "route_basis",
     "canonical_entity_id", "canonical_entity", "relationship_provenance",
