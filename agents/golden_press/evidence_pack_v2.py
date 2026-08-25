@@ -29,6 +29,7 @@ from agents.golden_press import evidence_route as er
 from tools.intelligence_graph.adapter import ExistingSystemsGraphAdapter
 from tools.intelligence_graph.cache import canonicalize as canonicalize_cache_value
 from tools.intelligence_graph.workflow import (
+    PURSUIT_PROMOTION_VERSION,
     build_ambiguity_queue,
     workflow_contract_receipt,
 )
@@ -616,9 +617,14 @@ def build_target_groups(opportunities: list[dict], *,
             "opportunity_record_id": rid,
             "opportunity_title": opp.get("title"),
         }
-        purpose = ("pursuit_execution"
-                   if opp.get("qualification_state") == "qualified"
-                   else "decision_resolution")
+        qualified = opp.get("qualification_state") == "qualified"
+        route_action = str(opp.get("route_action") or "").strip().casefold()
+        purpose = (
+            "pursuit_execution"
+            if qualified and route_action != "verify"
+            else "decision_resolution"
+        )
+        route_target_purpose = purpose
         name = str(opp.get("contact_name") or "").strip()
         email = str(opp.get("contact_email") or "").strip()
         if name or email:
@@ -673,7 +679,7 @@ def build_target_groups(opportunities: list[dict], *,
                 "enrichment_candidate": True,
                 "source_kind": "enrichment_candidate",
                 "contact_state": "needs_enrichment",
-                "target_purpose": "decision_resolution",
+                "target_purpose": route_target_purpose,
                 "target_slot_id": "teaming-opportunities",
                 "name": None, "email": None, "phone": None,
                 "provenance": "identity from notice text; contact data "
@@ -715,7 +721,7 @@ def build_target_groups(opportunities: list[dict], *,
                 "source_kind": "enrichment_candidate",
                 "contact_state": "needs_enrichment",
                 "target_purpose": (
-                    "decision_resolution" if teaming_role else purpose),
+                    route_target_purpose if teaming_role else purpose),
                 "target_slot_id": (
                     "teaming-opportunities" if teaming_role
                     else "federal-opportunities"),
@@ -845,6 +851,47 @@ def validate_graph_contract(payload: dict) -> list[dict]:
             unexpected=sorted((qualified_ids | held_ids) - current_ids),
         )
 
+    expected_qualified_ids = {
+        str(row.get("record_id"))
+        for row in records
+        if row.get("evidence_class") == "current_opportunity"
+        and row.get("service_fit") == "direct"
+        and row.get("window_state") == "live"
+        and row.get("record_id")
+    }
+    expected_held_ids = current_ids - expected_qualified_ids
+    if (qualified_ids != expected_qualified_ids
+            or held_ids != expected_held_ids):
+        add(
+            "G013_ROUTE_INDEPENDENT_PROMOTION",
+            "live direct-fit opportunities must enter the pursuit set; route "
+            "certainty controls their action instead of their admission",
+            expected_qualified_ids=sorted(expected_qualified_ids),
+            actual_qualified_ids=sorted(qualified_ids),
+            expected_held_ids=sorted(expected_held_ids),
+            actual_held_ids=sorted(held_ids),
+        )
+
+    for row in qualified:
+        expected_action = _route_action(row)
+        if (row.get("service_fit") != "direct"
+                or row.get("window_state") != "live"
+                or row.get("route_action") != expected_action
+                or row.get("pursuit_state") != f"pursue_{expected_action}"):
+            add(
+                "G012_PURSUIT_STATE_MISMATCH",
+                "qualified pursuit must preserve direct fit, live timing, and "
+                "the truthful independent route action",
+                record_id=row.get("record_id"),
+                service_fit=row.get("service_fit"),
+                window_state=row.get("window_state"),
+                commercial_route=row.get("commercial_route"),
+                eligible_route=row.get("eligible_route"),
+                route_action=row.get("route_action"),
+                expected_route_action=expected_action,
+                pursuit_state=row.get("pursuit_state"),
+            )
+
     for row in records:
         record_id = row.get("record_id")
         evidence_class = row.get("evidence_class")
@@ -892,8 +939,12 @@ def validate_graph_contract(payload: dict) -> list[dict]:
             target_slot = str(target.get("target_slot_id") or "")
             target_purpose = str(target.get("target_purpose") or "")
             if target_slot == "federal-opportunities":
+                qualified_row = qualified_by_family.get(str(family)) or {}
                 expected_purpose = (
-                    "pursuit_execution" if str(family) in qualified_by_family
+                    "pursuit_execution"
+                    if (qualified_row
+                        and str(qualified_row.get("route_action") or "") !=
+                        "verify")
                     else "decision_resolution")
                 if target_purpose != expected_purpose:
                     add("G009_TARGET_PURPOSE_MISMATCH",
@@ -908,10 +959,17 @@ def validate_graph_contract(payload: dict) -> list[dict]:
                     add("G010_TEAMING_TARGET_REQUIRES_ROUTE",
                         "teaming target has no evidenced teaming route",
                         requirement_family=family, commercial_route=route)
-                if target_purpose != "decision_resolution":
+                expected_purpose = (
+                    "pursuit_execution"
+                    if (str(family) in qualified_by_family
+                        and str(supported.get("route_action") or "") == "team")
+                    else "decision_resolution"
+                )
+                if target_purpose != expected_purpose:
                     add("G009_TARGET_PURPOSE_MISMATCH",
-                        "teaming target must resolve an access decision",
+                        "teaming target purpose disagrees with the pursuit action",
                         requirement_family=family,
+                        expected_purpose=expected_purpose,
                         target_purpose=target_purpose)
             else:
                 add("G011_TARGET_SLOT_REQUIRED",
@@ -965,6 +1023,32 @@ def _technical_fit(record: dict, ctx: dict) -> dict:
             "evidence": list(fit.get("fit_evidence") or [])}
 
 
+def _route_action(route: dict) -> str:
+    """Translate independent route evidence into the next pursuit action."""
+    route_class = str(route.get("commercial_route") or "unknown")
+    if route_class in {"direct", "incumbent"} \
+            and route.get("eligible_route") is True:
+        return "prime"
+    if route_class in {"named_partner_teaming", "possible_subcontracting"}:
+        return "team"
+    return "verify"
+
+
+def _route_action_instruction(action: str, basis: object) -> str:
+    reason = str(basis or "").strip()
+    if action == "prime":
+        return reason or "Work the evidenced direct route before the deadline."
+    if action == "team":
+        return (
+            "Work the teaming route and identify an eligible prime before the "
+            "deadline" + (f": {reason}" if reason else ".")
+        )
+    return (
+        "Verify the direct, vehicle, or teaming access route with the buying "
+        "office before the deadline" + (f": {reason}" if reason else ".")
+    )
+
+
 def _incumbent(record: dict) -> Optional[str]:
     return er.incumbent_name(record)
 
@@ -995,10 +1079,10 @@ def qualify_opportunities(records: list[dict], ctx: dict
                           ) -> tuple[list[dict], dict[str, str], list[dict]]:
     """Apply the promotion boundary after evidence classification.
 
-    A record is a qualified opportunity only when the source window is current,
-    the requirement fits the approved capability frame, and a commercially
-    eligible route exists.  Held records stay in the evidence pack with a
-    machine-readable reason; they are not silently dropped or promoted.
+    A live record enters the pursuit set when the requirement directly fits the
+    approved capability frame. Route certainty controls the action (prime,
+    team, or verify), never whether the opportunity survives. Only unresolved
+    fit remains held, with route evidence retained as an independent dimension.
     """
     qualified_rows: list[dict] = []
     incumbents: dict[str, str] = {}
@@ -1014,6 +1098,10 @@ def qualify_opportunities(records: list[dict], ctx: dict
             "eligible_route": row.get("eligible_route"),
             "route_basis": row.get("route_basis"),
         }
+        route_action = _route_action(route)
+        row["route_action"] = route_action
+        row["pursuit_state"] = (
+            f"pursue_{route_action}" if fit["fit"] else "research_required")
         incumbent = _incumbent(row)
         if incumbent:
             incumbents[row["requirement_family"]] = incumbent
@@ -1034,24 +1122,8 @@ def qualify_opportunities(records: list[dict], ctx: dict
             reasons.append(str(fit.get("basis") or
                                "service fit requires review"))
 
-        if not eligibility["eligible_route"]:
-            route_class = str(route.get("commercial_route") or "unknown")
-            reason_codes.append(
-                "DIRECT_ROUTE_INELIGIBLE"
-                if route_class == "possible_subcontracting"
-                else "ROUTE_ELIGIBILITY_UNRESOLVED")
-            blocking_dimensions.append("route_eligibility")
-            reasons.append(str(eligibility.get("basis") or
-                               "eligible commercial route is unresolved"))
-
         if blocking_dimensions:
-            decision_action = (
-                "Resolve service fit and a commercially eligible route before pursuit."
-                if set(blocking_dimensions) == {"service_fit", "route_eligibility"}
-                else "Confirm the matched requirement scope before pursuit."
-                if blocking_dimensions == ["service_fit"]
-                else "Confirm the direct or teaming access route before pursuit."
-            )
+            decision_action = "Confirm the matched requirement scope before pursuit."
             row["projection_decision"] = {
                 "disposition": "needs_review",
                 "reason_codes": list(dict.fromkeys(reason_codes)),
@@ -1059,25 +1131,23 @@ def qualify_opportunities(records: list[dict], ctx: dict
                 "reasons": list(dict.fromkeys(reasons)),
                 "decision_action": decision_action,
             }
-            row["qualification_state"] = (
-                "held_for_fit_review"
-                if "service_fit" in blocking_dimensions
-                else "needs_eligible_route")
+            row["qualification_state"] = "held_for_fit_review"
             row["qualification_reason"] = "; ".join(
                 row["projection_decision"]["reasons"])
             held_rows.append(row)
             continue
 
         row["qualification_state"] = "qualified"
+        decision_action = _route_action_instruction(
+            route_action, eligibility.get("basis"))
         row["projection_decision"] = {
             "disposition": "qualified",
             "reason_codes": [],
             "blocking_dimensions": [],
             "reasons": [],
-            "decision_action": str(
-                route.get("route_basis") or
-                "Work the evidenced direct route before the published deadline"),
+            "decision_action": decision_action,
         }
+        row["qualification_reason"] = decision_action
         row["qualified"] = {
             "notice_id": row.get("record_id"),
             "record_id": row.get("record_id"),
@@ -1146,6 +1216,8 @@ def qualify_opportunities(records: list[dict], ctx: dict
             "window_state": row.get("window_state"),
             "commercial_route": route.get("commercial_route"),
             "eligible_route": route.get("eligible_route"),
+            "route_action": route_action,
+            "pursuit_state": row["pursuit_state"],
             "eligibility": eligibility,
             "technical_fit": fit,
             "relationship_provenance": row.get(
@@ -1486,9 +1558,18 @@ def build_corrected_pack(slug: str, client_name: str, *,
         "needs_eligible_route": sum(
             1 for r in held_opportunities
             if r.get("qualification_state") == "needs_eligible_route"),
+        "needs_eligible_route_legacy_compatibility": sum(
+            1 for r in held_opportunities
+            if r.get("qualification_state") == "needs_eligible_route"),
         "held_for_fit_review": sum(
             1 for r in held_opportunities
             if r.get("qualification_state") == "held_for_fit_review"),
+        "pursue_prime": sum(
+            1 for r in opportunities if r.get("route_action") == "prime"),
+        "pursue_team": sum(
+            1 for r in opportunities if r.get("route_action") == "team"),
+        "pursue_verify": sum(
+            1 for r in opportunities if r.get("route_action") == "verify"),
         "ambiguous_research_queue": len(research_queue),
         "requirement_duplicates_collapsed": dropped_dupes,
         "input_records_raw": record_identity_receipt["input_records_raw"],
@@ -1555,6 +1636,7 @@ def build_corrected_pack(slug: str, client_name: str, *,
         "research_mesh_receipt": research_mesh_meta,
         "research_gaps": list(research_gaps or []),
         "workflow_contract": workflow_contract_receipt(),
+        "pursuit_promotion_version": PURSUIT_PROMOTION_VERSION,
         "research_queue": research_queue,
         "incremental_cache_receipt": adapter.semantic_receipt(),
     }

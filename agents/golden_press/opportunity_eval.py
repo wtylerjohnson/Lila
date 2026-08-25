@@ -21,6 +21,7 @@ _ROUTES = frozenset({
     "direct", "unknown", "incumbent", "named_partner_teaming",
     "possible_subcontracting",
 })
+_ROUTE_ACTIONS = frozenset({"prime", "team", "verify"})
 _STATES = frozenset({
     "qualified", "decision_required", "research_context", "excluded",
 })
@@ -179,6 +180,9 @@ def validate_gold_contract(contract: Mapping[str, Any]) -> list[str]:
             errors.append(f"{prefix}.expected_state is unsupported")
         if "expected_route" in row and row.get("expected_route") not in _ROUTES:
             errors.append(f"{prefix}.expected_route is unsupported")
+        if ("expected_route_action" in row
+                and row.get("expected_route_action") not in _ROUTE_ACTIONS):
+            errors.append(f"{prefix}.expected_route_action is unsupported")
 
     for index, row in enumerate(anchors):
         prefix = f"capability_evidence_anchors[{index}]"
@@ -221,6 +225,8 @@ def validate_gold_contract(contract: Mapping[str, Any]) -> list[str]:
             errors.append(f"{prefix}.expected_fit is unsupported")
         if row.get("expected_route") not in _ROUTES:
             errors.append(f"{prefix}.expected_route is unsupported")
+        if row.get("expected_route_action") not in _ROUTE_ACTIONS:
+            errors.append(f"{prefix}.expected_route_action is unsupported")
         if row.get("expected_slot_5_state") not in _SLOT_5_STATES:
             errors.append(f"{prefix}.expected_slot_5_state is unsupported")
         if row.get("expected_slot_6") not in _SLOT_6_STATES:
@@ -521,6 +527,10 @@ def evaluate_opportunity_gold(
         if "expected_route" in expected:
             check("adjudication", identity, "commercial_route",
                   expected.get("expected_route"), record.get("commercial_route"))
+        if "expected_route_action" in expected:
+            check("adjudication", identity, "route_action",
+                  expected.get("expected_route_action"),
+                  record.get("route_action"))
         state = _outcome_state(
             identity, record, qualified_ids, held_ids, slots)
         check("adjudication", identity, "outcome_state",
@@ -589,6 +599,9 @@ def evaluate_opportunity_gold(
               expected.get("expected_fit"), canonical.get("service_fit"))
         check("notice_family", solicitation, "commercial_route",
               expected.get("expected_route"), canonical.get("commercial_route"))
+        check("notice_family", solicitation, "route_action",
+              expected.get("expected_route_action"),
+              canonical.get("route_action"))
         check("notice_family", solicitation, "slot_5_state",
               expected.get("expected_slot_5_state"),
               _slot_5_family_state(slots, solicitation, member_ids))

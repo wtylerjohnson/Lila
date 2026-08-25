@@ -166,10 +166,9 @@ def test_real_jtg_snapshot_double_replay_is_byte_identical_and_non_promotable(
     current_count = sum(
         row.get("evidence_class") == "current_opportunity"
         for row in snapshot.graph.get("records") or [])
-    qualified_count = len(
+    pursuit_count = len(
         snapshot.graph.get("qualified_opportunity_records") or [])
-    decision_required_count = len(
-        snapshot.graph.get("held_opportunities") or [])
+    fit_review_count = len(snapshot.graph.get("held_opportunities") or [])
     product = json.loads(first.payloads["product.json"])
     slot_five = next(
         row for row in product["slots"]
@@ -177,8 +176,8 @@ def test_real_jtg_snapshot_double_replay_is_byte_identical_and_non_promotable(
     assert product["source_receipt"]["graph_final_records"] == graph_count
     assert len(product["graph_receipt"]["current_opportunity_ids"]) == (
         current_count)
-    assert len(slot_five["records"]) == qualified_count
-    assert len(slot_five["review_records"]) == decision_required_count
+    assert len(slot_five["records"]) == pursuit_count
+    assert len(slot_five["review_records"]) == fit_review_count
 
     validation = json.loads(first.payloads["validation.json"])
     assert validation["ok"] is True

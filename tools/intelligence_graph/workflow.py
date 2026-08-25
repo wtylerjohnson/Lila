@@ -13,7 +13,8 @@ import json
 from typing import Any, Iterable
 
 
-WORKFLOW_CONTRACT_VERSION = "intelligence-graph-workflow-v1"
+WORKFLOW_CONTRACT_VERSION = "intelligence-graph-workflow-v2"
+PURSUIT_PROMOTION_VERSION = "direct-fit-route-independent-v1.2026-08-25"
 
 ROLE_CONTRACT: dict[str, dict[str, Any]] = {
     "builder": {
@@ -98,6 +99,12 @@ def workflow_contract_receipt() -> dict:
     violations = validate_role_contract()
     return {
         "schema_version": WORKFLOW_CONTRACT_VERSION,
+        "pursuit_promotion_version": PURSUIT_PROMOTION_VERSION,
+        "pursuit_promotion_law": (
+            "live current records with direct service fit enter the pursuit "
+            "set; route controls prime, team, or verify action and never "
+            "blocks admission"
+        ),
         "roles": ROLE_CONTRACT,
         "exclusive_write_domains": EXCLUSIVE_WRITE_DOMAINS,
         "certified": not bool(violations),
@@ -118,8 +125,8 @@ def build_ambiguity_queue(records: list[dict]) -> list[dict]:
 
     Excluded noise, unrelated scope, and stated-past records are terminal
     classifier outcomes.  They do not create open-ended human research work.
-    Route eligibility is queued only when the classifier has explicitly held a
-    current opportunity for an eligible access path.
+    Route verification remains queued even when direct fit promotes the record
+    into the pursuit set. Route uncertainty is an action, not a fit blocker.
     """
     queued: list[dict] = []
     for row in records:
@@ -139,7 +146,8 @@ def build_ambiguity_queue(records: list[dict]) -> list[dict]:
                                row.get("service_fit_basis") or
                                "service fit requires review"))
         decision = row.get("projection_decision") or {}
-        if (row.get("qualification_state") == "needs_eligible_route" or
+        if (row.get("route_action") == "verify" or
+                row.get("qualification_state") == "needs_eligible_route" or
                 "route_eligibility" in
                 (decision.get("blocking_dimensions") or [])):
             dimensions.append("route_eligibility")
@@ -148,7 +156,7 @@ def build_ambiguity_queue(records: list[dict]) -> list[dict]:
                 if reason and reason not in reasons
             ]
             reasons.extend(route_reasons or [str(
-                row.get("qualification_reason") or
+                row.get("route_basis") or row.get("qualification_reason") or
                 "eligible commercial route is unresolved")])
         if not dimensions:
             continue
@@ -164,6 +172,7 @@ def build_ambiguity_queue(records: list[dict]) -> list[dict]:
             "evidence_class": row.get("evidence_class"),
             "service_fit": row.get("service_fit"),
             "commercial_route": row.get("commercial_route"),
+            "route_action": row.get("route_action"),
             "window_state": row.get("window_state"),
             "relationship_provenance": row.get(
                 "relationship_provenance") or {},

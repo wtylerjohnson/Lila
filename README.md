@@ -29,7 +29,7 @@ LILA is built to assemble those signals. Its governed source catalog currently d
 
 The source count is not the product. The intelligence created between the sources is.
 
-LILA resolves identities across records, reconstructs requirement families, distinguishes a live solicitation from a forecast or market signal, traces spending to buyers and incumbents, tests the client’s acquisition route, connects qualified opportunities to the right organizations and people, and preserves the evidence behind every conclusion. Conflicting records remain visible. Missing or blocked sources are named. Every sweep records what it attempted, what it found, and where its coverage ends.
+LILA resolves identities across records, reconstructs requirement families, distinguishes a live solicitation from a forecast or market signal, traces spending to buyers and incumbents, assigns each direct-fit pursuit a prime, team, or verify-route action, connects it to the right organizations and people, and preserves the evidence behind every conclusion. Conflicting records remain visible. Missing or blocked sources are named. Every sweep records what it attempted, what it found, and where its coverage ends.
 
 The result is more than search. It is an evidence-backed operating picture of where demand is forming, how the client can reach it, what deserves attention now, and what must happen next. Each reviewed decision improves the vocabulary, relationships, exclusions, and ranking evidence available to the next pursuit.
 
@@ -55,8 +55,8 @@ The system also re-screens the full accumulated notice store and stored forecast
 |---|---|---|
 | **Surface** | Searches live notices, historical awards, forecasts, program signals, official publications, and bounded market sources | Client vocabulary, source coverage, retrieval features, and exclusion rules |
 | **Understand** | Resolves identities, requirement families, evidence class, market role, access route, timing, and provenance | The system stops reconstructing the same relationships report by report |
-| **Prioritize** | Separates live pursuits from forecasts and history, tests route eligibility, deduplicates solicitation families, and ranks evidence-backed actions | Operator decisions become structured posture, route, and relevance knowledge |
-| **Act** | Produces opportunity boards, market maps, target groups, source receipts, and release-gated client artifacts | Each qualified opportunity carries the people, organizations, and next motion needed to work it |
+| **Prioritize** | Separates live pursuits from forecasts and history, assigns a prime, team, or verify-route action, deduplicates solicitation families, and ranks evidence-backed actions | Operator decisions become structured posture, route, and relevance knowledge |
+| **Act** | Produces opportunity boards, market maps, target groups, source receipts, and release-gated client artifacts | Each direct-fit pursuit carries the people, organizations, and next motion needed to work it |
 
 The goal is not to make a model sound certain. The goal is to make the market more legible with every reviewed record.
 
@@ -72,14 +72,14 @@ Every relevant record is classified along independent dimensions:
 - **Service fit:** direct, adjacent, unrelated, or ambiguous.
 - **Provenance:** measured, cited, or inferred, with inferred decisions capped below high confidence.
 
-Those distinctions prevent common and expensive errors. A partner holding contract paper does not automatically become a competitor. A past forecast does not become a current opportunity. A restricted set-aside does not rank as a direct pursuit without an eligible route. A client alias cannot survive as a rival. A target cannot survive after the opportunity that justified it is removed.
+Those distinctions prevent common and expensive errors. A partner holding contract paper does not automatically become a competitor. A past forecast does not become a current opportunity. A restricted set-aside preserves a strong service fit but changes the action from prime to team. Unknown access becomes a verify-route action, not a reason to discard the opportunity. A client alias cannot survive as a rival. A target cannot survive after the opportunity that justified it is removed.
 
 Prioritization then combines the record’s retrieval evidence with its requirement family, buyer, response window, incumbent context, demonstrated prime posture, vehicle path, and operator disposition. Current rules remain deterministic and auditable. Feature rows are preserved so learned ranking can be promoted only after it beats the standing system on real client data.
 
 This produces a decision hierarchy, not a generic list:
 
-- **Pursue:** live, supported, accessible work that deserves action now.
-- **Qualify:** promising evidence that still needs a named uncertainty resolved.
+- **Pursue:** live, supported, direct-fit work with an explicit prime, team, or verify-route action.
+- **Qualify:** promising evidence whose service fit still needs a named uncertainty resolved.
 - **Shape or watch:** forecast, recompete, policy, budget, or program movement that can create a future opening but does not establish a live solicitation.
 - **Pass:** out-of-scope, inaccessible, stale, duplicative, or weakly supported records retained in the audit trail rather than padded into the client view.
 
@@ -110,7 +110,7 @@ flowchart LR
     O --> B
 ```
 
-The graph is not a decorative visualization. It is an integrity boundary. Before a client-facing view is assembled, deterministic certification checks for broken relationships such as self-competition, partner and competitor conflation, past windows promoted as current, direct routes without eligibility, duplicate requirement families, and targets orphaned from qualified opportunities.
+The graph is not a decorative visualization. It is an integrity boundary. Before a client-facing view is assembled, deterministic certification checks for broken relationships such as self-competition, partner and competitor conflation, past windows promoted as current, route evidence mislabeled as direct access, duplicate requirement families, and targets orphaned from their pursuits.
 
 The implementation deliberately preserves the systems that already own their truth. The notice store remains the notice store. Assess ledgers remain the release-grade source for live solicitation decisions. The contact graph remains an append-only record of official observations. Approved target enrichments remain separate from published contacts. The graph adapter makes those systems reusable across reports while keeping their provenance and operator gates intact.
 

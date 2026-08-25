@@ -75,10 +75,11 @@ The slot payloads are:
    exact award records and arithmetic behind them.
 4. `competitors` fills with identified competitors, their relevant awards,
    spending evidence, incumbent positions, and competitive landscape.
-5. `federal-opportunities` owns every current federal opportunity. Qualified
-   records render as pursuits; unresolved fit or access records render in a
-   visibly separate decision queue with their exact blockers and next research
-   action. Each record retains a target set specific to that opportunity.
+5. `federal-opportunities` owns every current federal opportunity. Live records
+   with direct service fit render as pursuits, with a separate `prime`, `team`,
+   or `verify` route action. Only unresolved service fit enters the visibly
+   separate decision queue with its exact blockers and next research action.
+   Each record retains a target set specific to that opportunity.
    Published notice contacts render first; governed search and approved
    enrichment complement the missing roles.
 6. `teaming-opportunities` fills with evidence-backed teaming routes and the
@@ -97,9 +98,9 @@ in the slot that owns it. Executive promotions elsewhere are internal links to
 that canonical record, never duplicated cards or rows.
 
 Technical fit, timing, and commercial route are independent decisions. A
-credible current fit with unstated access remains a visible decision to verify
-the route. A credible fit with a restricted direct route remains visible with
-its teaming action. Neither condition is permission to discard the underlying
+credible current fit with unstated access remains a visible `verify` pursuit.
+A credible fit with a restricted direct route remains a visible `team`
+pursuit. Neither condition is permission to discard or hold the underlying
 opportunity.
 
 ### Complete-bundle release law

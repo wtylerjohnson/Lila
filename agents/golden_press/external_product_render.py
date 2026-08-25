@@ -17,7 +17,7 @@ from agents.golden_press.external_product_projection import (
 from agents.golden_press.release_snapshot import canonical_slot_sha256
 
 
-EXTERNAL_PRODUCT_RENDER_VERSION = "lila-eight-slot-render.v8.2026-08-25"
+EXTERNAL_PRODUCT_RENDER_VERSION = "lila-eight-slot-render.v9.2026-08-25"
 
 _LOCAL_PATH = re.compile(
     r"(?:file://|(?:^|[\"'\s(=:])/(?:users|home)/)", re.I | re.M)
@@ -323,6 +323,7 @@ def _fields(record: dict) -> str:
         ("office", "Office"),
         ("recipient", "Recipient"), ("response_date", "Timing"),
         ("value", "Published value"), ("commercial_route", "Route"),
+        ("route_action", "Pursuit path"),
         ("window_state", "Window"), ("service_fit", "Fit"),
         ("naics", "NAICS"), ("psc", "PSC"),
         ("instrument", "Instrument"), ("set_aside", "Set-aside"),
@@ -403,7 +404,9 @@ def _targets(record: dict) -> str:
 
 def _priority(record: dict) -> str:
     fields = []
-    for label, key in (("Route", "route"), ("Timing", "timing"),
+    for label, key in (("Route", "route"),
+                       ("Pursuit path", "route_action"),
+                       ("Timing", "timing"),
                        ("Next action", "next_action"),
                        ("Targets", "target_count")):
         value = record.get(key)
@@ -413,7 +416,7 @@ def _priority(record: dict) -> str:
     label = {
         "decision_required": "Decision required",
         "forecast_action": "Forecast action",
-        "qualified_action": "Qualified opportunity",
+        "qualified_action": "Actionable pursuit",
     }.get(kind, "Deadline-ordered action")
     decision_required = kind == "decision_required"
     badge = ("Review" if decision_required else
@@ -757,17 +760,24 @@ def _coverage(doc: ExternalProductDocument) -> list[dict]:
     by_id = {slot.slot_id: slot for slot in doc.slots}
     opportunities = by_id["federal-opportunities"]
     targets = sum(len(row.get("targets") or []) for row in opportunities.records)
-    qualified_actions = sum(
+    pursuit_actions = sum(
         row.get("reference_kind") != "decision_required"
         for row in by_id["priority-pursuits"].records)
+    prime = sum(row.get("route_action") == "prime"
+                for row in opportunities.records)
+    team = sum(row.get("route_action") == "team"
+               for row in opportunities.records)
+    verify = sum(row.get("route_action") == "verify"
+                 for row in opportunities.records)
     return [
         {"label": "Product slots", "value": "8 / 8",
          "note": "Operator-locked order", "work": "slot-1"},
         {"label": "Deadline-ordered actions",
-         "value": qualified_actions,
-         "note": "Qualified actions; decisions are a separate queue", "work": "slot-1"},
-        {"label": "Qualified opportunities", "value": len(opportunities.records),
-         "note": "Current evidence and eligible route", "work": "slot-5"},
+         "value": pursuit_actions,
+         "note": "Pursuit actions; fit decisions are a separate queue", "work": "slot-1"},
+        {"label": "Direct-fit pursuits", "value": len(opportunities.records),
+         "note": f"{prime} prime; {team} team; {verify} verify route",
+         "work": "slot-5"},
         {"label": "Opportunities needing review",
          "value": len(opportunities.review_records),
          "note": "Visible with exact blockers", "work": "slot-5"},
@@ -972,6 +982,9 @@ def validate_external_product_document(
     if not doc.graph_receipt.get("current_opportunity_conserved", False):
         violations.append({"rule": "current_opportunity_conservation", "detail":
                            "the projection receipt reports a lost current opportunity"})
+    if not doc.graph_receipt.get("pursuit_membership_conserved", False):
+        violations.append({"rule": "pursuit_membership_conservation", "detail":
+                           "the product pursuit set differs from the shipped graph qualification set"})
     if doc.graph_receipt.get("orphan_held_opportunity_ids"):
         violations.append({"rule": "orphan_held_opportunity", "detail":
                            "held opportunity ids do not resolve to graph records"})

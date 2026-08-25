@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import copy
 from dataclasses import replace
 from types import SimpleNamespace
 
@@ -73,6 +74,7 @@ def _graph():
         "response_deadline": "2026-09-30", "evidence_class": "current_opportunity",
         "service_fit": "direct", "window_state": "live",
         "commercial_route": "direct", "eligible_route": True,
+        "route_action": "prime", "pursuit_state": "pursue_prime",
         "url": "https://sam.gov/opp/notice-1/view",
         "requirement_family": "family-1",
     }
@@ -201,6 +203,15 @@ def _add_review_notices(graph: dict) -> None:
         "window_state": "live", "commercial_route": "unknown",
         "eligible_route": False,
         "route_basis": "notice publishes no set-aside status; direct eligibility remains unresolved",
+        "route_action": "verify", "pursuit_state": "pursue_verify",
+        "qualification_state": "qualified",
+        "projection_decision": {
+            "disposition": "qualified",
+            "reason_codes": [],
+            "blocking_dimensions": [],
+            "reasons": [],
+            "decision_action": "Verify direct, vehicle, or teaming access with the buying office.",
+        },
         "url": "https://sam.gov/opp/notice-route/view",
         "requirement_family": "family-route", "contact_email": "buyer@example.mil",
     }
@@ -218,31 +229,25 @@ def _add_review_notices(graph: dict) -> None:
         "requirement_family": "family-both",
         "projection_decision": {
             "disposition": "needs_review",
-            "reason_codes": ["FIT_AMBIGUOUS", "DIRECT_ROUTE_INELIGIBLE"],
-            "blocking_dimensions": ["service_fit", "route_eligibility"],
-            "reasons": [
-                "broad capability stem requires review",
-                "access rule requires SDVOSB and bars direct pursuit",
-            ],
-            "decision_action": (
-                "Resolve service fit and a commercially eligible route before pursuit."),
+            "reason_codes": ["FIT_AMBIGUOUS"],
+            "blocking_dimensions": ["service_fit"],
+            "reasons": ["broad capability stem requires review"],
+            "decision_action": "Resolve capability fit before pursuit.",
         },
     }
     graph["records"].extend((fit_hold, route_hold, both_hold))
+    graph["qualified_opportunity_records"].append({
+        **route_hold,
+        "response_due": route_hold["response_deadline"],
+        "source_url": route_hold["url"],
+        "linked_targets": [],
+        "technical_fit": {"basis": route_hold["fit_basis"]},
+        "next_route": {"route_basis": route_hold["route_basis"]},
+    })
     graph["held_opportunities"].extend((
         {"record_id": "NOTICE-FIT", "requirement_family": "family-fit",
          "qualification_state": "held_for_fit_review",
          "qualification_reason": "approved adjacent capability"},
-        {"record_id": "NOTICE-ROUTE", "requirement_family": "family-route",
-         "qualification_state": "needs_eligible_route",
-         "qualification_reason": "direct eligibility remains unresolved",
-         "projection_decision": {
-             "disposition": "needs_review",
-             "reason_codes": ["ROUTE_ELIGIBILITY_UNRESOLVED"],
-             "blocking_dimensions": ["route_eligibility"],
-             "reasons": ["direct eligibility remains unresolved"],
-             "decision_action": "Confirm the direct or teaming access route before pursuit.",
-         }},
         {"record_id": "NOTICE-BOTH", "requirement_family": "family-both",
          "qualification_state": "held_for_fit_review",
          "qualification_reason": "broad capability stem requires review"},
@@ -308,22 +313,18 @@ def test_multiple_teaming_references_survive_without_second_notice_owners():
         "commercial_route": "possible_subcontracting",
         "route_relationship": "possible_subcontracting",
         "eligible_route": False,
+        "route_action": "team",
+        "pursuit_state": "pursue_team",
+        "qualification_state": "qualified",
         "route_basis": "restricted access requires a partner",
         "projection_decision": {
-            "disposition": "needs_review",
-            "reason_codes": ["DIRECT_ROUTE_INELIGIBLE"],
-            "blocking_dimensions": ["route_eligibility"],
-            "reasons": ["restricted access requires a partner"],
+            "disposition": "qualified",
+            "reason_codes": [],
+            "blocking_dimensions": [],
+            "reasons": [],
             "decision_action": "Identify an eligible prime.",
         },
     })
-    graph["qualified_opportunity_records"] = []
-    graph["held_opportunities"] = [{
-        "record_id": "NOTICE-1",
-        "requirement_family": "family-1",
-        "qualification_state": "needs_eligible_route",
-        "projection_decision": first["projection_decision"],
-    }]
     second = {
         **first,
         "record_id": "NOTICE-2",
@@ -332,12 +333,8 @@ def test_multiple_teaming_references_survive_without_second_notice_owners():
         "url": "https://sam.gov/opp/notice-2/view",
     }
     graph["records"].append(second)
-    graph["held_opportunities"].append({
-        "record_id": "NOTICE-2",
-        "requirement_family": "family-2",
-        "qualification_state": "needs_eligible_route",
-        "projection_decision": second["projection_decision"],
-    })
+    graph["qualified_opportunity_records"] = [first, second]
+    graph["held_opportunities"] = []
     graph["target_groups"] = {}
 
     document = build_external_product_document(
@@ -350,6 +347,44 @@ def test_multiple_teaming_references_survive_without_second_notice_owners():
     assert {row["source_id"] for row in references} == {
         "NOTICE-1", "NOTICE-2"}
     assert all(record_ownership_key(row) == "" for row in references)
+    assert validate_external_product_document(document) == []
+
+
+def test_legacy_route_hold_is_not_silently_reclassified_by_projection():
+    graph = _graph()
+    row = graph["records"][0]
+    row.update({
+        "commercial_route": "unknown",
+        "eligible_route": False,
+        "route_action": "verify",
+        "pursuit_state": "research_required",
+        "projection_decision": {
+            "disposition": "needs_review",
+            "reason_codes": ["ROUTE_ELIGIBILITY_UNRESOLVED"],
+            "blocking_dimensions": ["route_eligibility"],
+            "reasons": ["legacy graph held route uncertainty"],
+            "decision_action": "Rebuild under the current promotion law.",
+        },
+    })
+    graph["qualified_opportunity_records"] = []
+    graph["held_opportunities"] = [{
+        "record_id": "NOTICE-1",
+        "requirement_family": "family-1",
+        "qualification_state": "needs_eligible_route",
+        "projection_decision": row["projection_decision"],
+    }]
+
+    document = build_external_product_document(
+        market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
+        profile={}, client_name="Acme", slug="acme", as_of="2026-08-23")
+    opportunities = next(
+        slot for slot in document.slots
+        if slot.slot_id == "federal-opportunities")
+
+    assert opportunities.records == ()
+    assert [item["source_id"] for item in opportunities.review_records] == [
+        "NOTICE-1"]
+    assert document.graph_receipt["pursuit_membership_conserved"] is True
     assert validate_external_product_document(document) == []
 
 
@@ -528,9 +563,17 @@ def test_current_opportunity_holds_are_lossless_owned_and_decision_typed():
     by_id = {slot.slot_id: slot for slot in document.slots}
     opportunities = by_id["federal-opportunities"]
 
-    assert [row["source_id"] for row in opportunities.records] == ["NOTICE-1"]
+    assert [row["source_id"] for row in opportunities.records] == [
+        "NOTICE-ROUTE", "NOTICE-1"]
+    route_pursuit = next(
+        row for row in opportunities.records
+        if row["source_id"] == "NOTICE-ROUTE")
+    assert route_pursuit["route_action"] == "verify"
+    assert route_pursuit["pursuit_state"] == "pursue_verify"
+    assert "Verify direct" in route_pursuit["next_action"]
+    assert route_pursuit["contact_email"] == "buyer@example.mil"
     assert [row["source_id"] for row in opportunities.review_records] == [
-        "NOTICE-BOTH", "NOTICE-ROUTE", "NOTICE-FIT"]
+        "NOTICE-BOTH", "NOTICE-FIT"]
     reviews = {row["source_id"]: row for row in opportunities.review_records}
     assert reviews["NOTICE-FIT"]["summary"] == \
         "Published instructional design requirement body."
@@ -540,17 +583,10 @@ def test_current_opportunity_holds_are_lossless_owned_and_decision_typed():
     assert reviews["NOTICE-FIT"]["reason_codes"] == ["FIT_ADJACENT_REVIEW"]
     assert reviews["NOTICE-FIT"]["projection_decision"] == \
         graph["records"][-3]["projection_decision"]
-    assert reviews["NOTICE-ROUTE"]["reason_codes"] == [
-        "ROUTE_ELIGIBILITY_UNRESOLVED"]
-    assert reviews["NOTICE-ROUTE"]["projection_decision"] == \
-        graph["held_opportunities"][-2]["projection_decision"]
-    assert reviews["NOTICE-ROUTE"]["contact_email"] == "buyer@example.mil"
-    assert reviews["NOTICE-BOTH"]["reason_codes"] == [
-        "FIT_AMBIGUOUS", "DIRECT_ROUTE_INELIGIBLE"]
+    assert reviews["NOTICE-BOTH"]["reason_codes"] == ["FIT_AMBIGUOUS"]
     assert reviews["NOTICE-BOTH"]["projection_decision"] == \
         graph["records"][-1]["projection_decision"]
-    assert reviews["NOTICE-BOTH"]["blocking_dimensions"] == [
-        "service_fit", "route_eligibility"]
+    assert reviews["NOTICE-BOTH"]["blocking_dimensions"] == ["service_fit"]
     assert all(row["decision_state"] == "needs_review"
                and row["reasons"] and row["decision_action"]
                for row in opportunities.review_records)
@@ -561,13 +597,13 @@ def test_current_opportunity_holds_are_lossless_owned_and_decision_typed():
 
     actions = by_id["priority-pursuits"].records
     assert [row["title"] for row in actions] == [
-        "Language Support Services", "Ambiguous restricted training",
-        "Unresolved-access language work", "Near-term adjacent requirement"]
+        "Unresolved-access language work", "Language Support Services",
+        "Ambiguous restricted training", "Near-term adjacent requirement"]
     assert [row["reference_kind"] for row in actions] == [
-        "qualified_action", "decision_required", "decision_required",
+        "qualified_action", "qualified_action", "decision_required",
         "decision_required"]
-    assert [row["action_order"] for row in actions] == [1, None, None, None]
-    assert [row["decision_order"] for row in actions] == [None, 1, 2, 3]
+    assert [row["action_order"] for row in actions] == [1, 2, None, None]
+    assert [row["decision_order"] for row in actions] == [None, None, 1, 2]
     decision_required_text = repr([
         row for row in actions
         if row["reference_kind"] == "decision_required"
@@ -618,19 +654,61 @@ def test_renderer_separates_review_queue_and_renders_decision_targets(monkeypatc
 
     assert "Needs review before pursuit" in client
     assert "These current notices remain visible" in client
-    assert client.count('class="product-record product-review-record"') == 3
+    assert client.count('class="product-record product-review-record"') == 2
     assert "Decision required" in client
     assert "They are not pursuit recommendations" in client
     assert '<details class="product-ledger product-review-queue" open>' in client
-    assert client.count("Full evidence record") == 3
+    assert client.count("Full evidence record") == 2
     assert "Full evidence appears in Federal Opportunities Identified." in client
     assert "graph-record:" not in client
-    assert "Qualified actions" in client
-    assert "Decisions to resolve" in client
-    review_html = client.split("Needs review before pursuit", 1)[1].split(
-        'data-slot-id="teaming-opportunities"', 1)[0]
-    assert "Targets specific to this opportunity" in review_html
-    assert "Route Buyer" in review_html
+    assert "Pursuit actions" in client
+    assert "Fit decisions required" in client
+    pursuit_html = client.split(
+        'data-slot-id="federal-opportunities"', 1)[1].split(
+        "Needs review before pursuit", 1)[0]
+    assert "Targets specific to this opportunity" in pursuit_html
+    assert "Route Buyer" in pursuit_html
+
+
+def test_renderer_exposes_prime_team_and_verify_pursuit_paths(monkeypatch):
+    from agents.reports import report_assets
+    monkeypatch.setattr(report_assets, "client_logo", lambda _name: _mark())
+    monkeypatch.setattr(report_assets, "gtm_logo", _mark)
+    graph = _graph()
+    base = copy.deepcopy(graph["records"][0])
+    for action, route, eligible in (
+            ("team", "possible_subcontracting", False),
+            ("verify", "unknown", False)):
+        row = {
+            **copy.deepcopy(base),
+            "record_id": f"NOTICE-{action.upper()}",
+            "title": f"{action.title()} language requirement",
+            "requirement_family": f"family-{action}",
+            "url": f"https://sam.gov/opp/notice-{action}/view",
+            "commercial_route": route,
+            "eligible_route": eligible,
+            "route_action": action,
+            "pursuit_state": f"pursue_{action}",
+        }
+        graph["records"].append(row)
+        graph["qualified_opportunity_records"].append({
+            **row,
+            "source_url": row["url"],
+            "response_due": row["response_deadline"],
+            "technical_fit": {"basis": row["fit_basis"]},
+            "linked_targets": [],
+        })
+
+    document = build_external_product_document(
+        market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
+        profile={}, client_name="Acme", slug="acme", as_of="2026-08-23")
+    _studio, client = render_external_product(document)
+
+    assert validate_external_product_document(document) == []
+    assert client.count("<dt>Pursuit path</dt><dd>prime</dd>") >= 1
+    assert client.count("<dt>Pursuit path</dt><dd>team</dd>") >= 1
+    assert client.count("<dt>Pursuit path</dt><dd>verify</dd>") >= 1
+    assert "1 prime; 1 team; 1 verify route" in client
     assert validate_external_product_html(client, document)["ok"] is True
 
 
@@ -808,7 +886,7 @@ def test_scriptless_renderer_carries_all_slots_marks_sources_and_visuals(monkeyp
     assert "Cleared interpretation and translation support." in client
     assert "19AQMM26R0001" in client
     assert "approved core capability evidence" in client
-    assert "Qualified opportunity" in client
+    assert "Actionable pursuit" in client
     assert "Ranked pursuit" not in client
     assert "Qualified category obligations: $1,200,000.00 = $1,200,000.00" in client
     assert "@page{size:letter;margin:.42in}" in client

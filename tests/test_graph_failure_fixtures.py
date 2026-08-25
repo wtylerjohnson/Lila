@@ -187,4 +187,5 @@ def test_graph_contract_receipt_catches_cross_relationship_violations():
         "G004_DIRECT_ROUTE_REQUIRES_ELIGIBILITY",
         "G005_TARGETS_REQUIRE_CURRENT_OPPORTUNITY",
         "G008_CURRENT_OPPORTUNITY_PARTITION",
+        "G013_ROUTE_INDEPENDENT_PROMOTION",
     }

@@ -5,6 +5,7 @@ import json
 import pytest
 
 from tools.intelligence_graph.workflow import (
+    PURSUIT_PROMOTION_VERSION,
     ROLE_CONTRACT,
     build_ambiguity_queue,
     validate_role_contract,
@@ -27,6 +28,9 @@ def test_complementary_roles_have_one_production_writer():
         "data_layer_passed"
     assert receipt["roles"]["research_agent"]["reads"] == \
         ["research_queue"]
+    assert receipt["pursuit_promotion_version"] == PURSUIT_PROMOTION_VERSION
+    assert "route controls prime, team, or verify" in \
+        receipt["pursuit_promotion_law"]
 
 
 def test_second_schema_writer_is_rejected():
@@ -53,7 +57,8 @@ def test_research_queue_contains_only_classifier_ambiguity():
          "fit_basis": "adjacent capability evidence needs a decision"},
         {"record_id": "route", "evidence_class": "current_opportunity",
          "service_fit": "direct", "window_state": "live",
-         "qualification_state": "needs_eligible_route"},
+         "qualification_state": "qualified", "route_action": "verify",
+         "route_basis": "published access is unstated"},
         {"record_id": "excluded", "evidence_class": "excluded",
          "service_fit": "ambiguous", "window_state": "live"},
         {"record_id": "unrelated", "evidence_class": "current_opportunity",
@@ -71,6 +76,8 @@ def test_research_queue_contains_only_classifier_ambiguity():
     assert queued[0]["reasons"] == [
         "adjacent capability evidence needs a decision"]
     assert queued[3]["ambiguous_dimensions"] == ["route_eligibility"]
+    assert queued[3]["route_action"] == "verify"
+    assert queued[3]["reasons"] == ["published access is unstated"]
 
 
 def test_test_plan_runs_full_suite_only_at_milestone():

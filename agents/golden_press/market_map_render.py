@@ -43,7 +43,7 @@ from typing import Any
 from agents.golden_press.market_map_projection import FederalMarketMapDocument
 from agents.golden_press.market_map_skeleton import EditIds, esc, logo_slot
 
-MARKET_MAP_RENDER_VERSION = "market_map_render.v2.2026-08-07"
+MARKET_MAP_RENDER_VERSION = "market_map_render.v3.2026-08-25"
 
 SECTIONS = (
     ("company", "Company"), ("market", "Market"), ("competition", "Competition"),
@@ -633,7 +633,7 @@ def _contacts(doc: FederalMarketMapDocument, ids: EditIds) -> str:
                         ids, state="Research next", needs=True)
                 + _order("Contact research next",
                          "Published points of contact arrive with the "
-                         "qualified records; named commercial contacts follow "
+                         "direct-fit pursuits; named commercial contacts follow "
                          "in the enrichment pass.", ids) + "</section>")
 
     ready = sum(1 for p in doc.contact_actions if _t(p.email))
@@ -742,7 +742,7 @@ def _coverage_texts(doc: FederalMarketMapDocument) -> dict:
         f"Coverage: {len(getattr(p, 'competitors', ()) or ())} rivals from "
         f"the named market source are screened against federal award history.")
     cov["opportunities"] = (
-        f"Coverage: {len(opps)} records qualified into this set; "
+        f"Coverage: {len(opps)} direct-fit pursuits in this set; "
         f"{with_contact} carry a published government contact and the rest "
         f"carry a contact research order.")
     cov["teaming"] = (
@@ -765,10 +765,10 @@ def _coverage_texts(doc: FederalMarketMapDocument) -> dict:
         "Coverage: reconciliation, source roles, freshness and replay are "
         "stated here from the press receipts themselves.")
     cov["pursuit-thesis"] = (
-        f"Coverage: {len(doc.qualified_opportunities)} retained records are "
+        f"Coverage: {len(doc.qualified_opportunities)} retained pursuits are "
         "screened; the board below ranks all of them.")
     cov["pursuit-board"] = (
-        f"Coverage: all {len(doc.qualified_opportunities)} qualified records "
+        f"Coverage: all {len(doc.qualified_opportunities)} direct-fit pursuits "
         f"are ranked; {len(buckets['future'])} future-dated lead the tape.")
     cov["research-gates"] = (
         "Coverage: the five gates below are the promotion law for every "
@@ -850,11 +850,11 @@ def work_details(doc: FederalMarketMapDocument) -> dict:
     details["report"] = {
         "title": "Federal Market Map · evidence inventory",
         "summary": ("The report separates the company profile, category "
-                    "spend, competition, qualified opportunities, teaming "
+                    "spend, competition, direct-fit pursuits, teaming "
                     "routes, contacts and events. A source record can support "
                     "more than one conclusion, but each opportunity is "
                     "displayed once."),
-        "formula": (f"{len(opps)} qualified opportunities · "
+        "formula": (f"{len(opps)} direct-fit pursuits · "
                     f"{sum(1 for o in opps if o.contacts)} with a published "
                     f"contact · {len(doc.teaming_routes)} teaming routes · "
                     f"{len(doc.contact_actions)} named contacts · "
@@ -889,7 +889,7 @@ def work_details(doc: FederalMarketMapDocument) -> dict:
                 f"{name} holds {count} cited award records in this category.")
 
     details["qualified-opportunities"] = {
-        "title": f"{len(opps)} qualified opportunities",
+        "title": f"{len(opps)} direct-fit pursuits",
         "summary": ("Each record clears the capability frame, carries a "
                     "published identifier, and appears once."),
         "formula": ("Title-qualified match, then the positive context gate, "
@@ -1089,7 +1089,7 @@ def _treatment(opp: Any, buckets: dict) -> str:
 
 
 def _pursuit_board(doc: FederalMarketMapDocument, ids: EditIds) -> str:
-    """The ranked pursuit tape: every qualified record, one decision each."""
+    """The pursuit tape: every direct-fit record, one route action each."""
     buckets = _bucket_dates(doc)
     lead = (
         '<div class="market-proof pursuit-lead">'
@@ -1098,9 +1098,9 @@ def _pursuit_board(doc: FederalMarketMapDocument, ids: EditIds) -> str:
         f'<h2 data-edit-id="{ids.next()}">'
         f"{len(buckets['future'])} future-dated record(s) deserve immediate "
         "verification. The rest form a research queue.</h2>"
-        f'<p data-edit-id="{ids.next()}">Nothing below becomes a pursuit '
-        "until the source confirms status and an eligible route is "
-        "confirmed. The five gates are stated beneath this board.</p>"
+        f'<p data-edit-id="{ids.next()}">Every direct-fit live record is a '
+        "pursuit. Route evidence determines whether the next action is prime, "
+        "team, or verify. The five gates are stated beneath this board.</p>"
         '<div class="lead-facts">'
         f'<div class="lead-fact"><span>Future-dated</span>'
         f"<strong>{len(buckets['future'])} record(s)</strong></div>"
@@ -1269,9 +1269,9 @@ def _evidence_method(doc: FederalMarketMapDocument, ids: EditIds) -> str:
         "Notice-store freshness rides the press receipts.")
     collapsed = r.get("families_raw", 0) - r.get("families_collapsed", 0)
     cards = (
-        ("Research set", f"{r.get('opportunities', 0)} qualified records",
+        ("Research set", f"{r.get('opportunities', 0)} direct-fit pursuits",
          f"{f.record_count if f else 0} award records, "
-         f"{r.get('opportunities', 0)} qualified opportunity records, "
+         f"{r.get('opportunities', 0)} direct-fit pursuit records, "
          f"{len(doc.teaming_routes)} teaming routes, "
          f"{len(doc.contact_actions)} named people, {len(doc.events)} "
          "events. Every number opens its receipt."),

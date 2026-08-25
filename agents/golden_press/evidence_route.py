@@ -50,7 +50,7 @@ ROUTE_RELATIONSHIPS = (
 WINDOW_STATES = ("live", "fy_only", "unstated", "stated_past")
 SERVICE_FITS = ("direct", "adjacent", "unrelated", "ambiguous")
 PROVENANCE_TYPES = ("measured", "cited", "inferred")
-CLASSIFIER_VERSION = "evidence-route-v8-governed-capability-frame"
+CLASSIFIER_VERSION = "evidence-route-v10-curriculum-deliverable-boundary"
 
 _ROOT = Path(__file__).resolve().parents[2]
 
@@ -334,6 +334,14 @@ _GENERIC_PAIR_TOKENS = {
     "technology", "training", "learning",
 }
 
+# A role-bearing capability phrase cannot shed the role that gives the phrase
+# its meaning. For example, "cultural advisor services" may tolerate reordered
+# source wording, but "cultural services" alone is not evidence of advisory
+# work. This is derived from the approved phrase rather than a record id.
+_ROLE_BEARING_PAIR_TOKENS = {
+    "advisor", "instructor", "interpret", "linguist",
+}
+
 
 def _signal_token(value: str) -> str:
     """Normalize procurement wording without inventing client vocabulary."""
@@ -376,10 +384,13 @@ def _derived_signal_pairs(phrases: list[str]) -> list[tuple[str, str]]:
     pairs: set[tuple[str, str]] = set()
     for phrase in phrases:
         tokens = list(dict.fromkeys(_signal_tokens(phrase)))
+        required_roles = set(tokens).intersection(_ROLE_BEARING_PAIR_TOKENS)
         for left_index, left in enumerate(tokens):
             for right in tokens[left_index + 1:]:
                 if (left != right
-                        and ({left, right} - _GENERIC_PAIR_TOKENS)):
+                        and ({left, right} - _GENERIC_PAIR_TOKENS)
+                        and (not required_roles
+                             or {left, right}.intersection(required_roles))):
                     pairs.add(tuple(sorted((left, right))))
     return sorted(pairs)
 
@@ -523,6 +534,191 @@ def _curriculum_workflow_match(text: str, ctx: dict) -> Optional[str]:
     return None
 
 
+def _facility_name_language_training_collision(text: str) -> bool:
+    """Reject a facility name that happens to contain a capability phrase."""
+    facility_name = re.search(
+        r"\blanguage\s+training\s+"
+        r"(?:cent(?:er|re)|school|academy|institute|facility)\b",
+        text,
+    )
+    building_scope = re.search(
+        r"\b(?:building|facilit(?:y|ies)|grounds?)\s+"
+        r"(?:maintenance|repair|operations?|management|janitorial|custodial)\b"
+        r"|\b(?:maintenance|repair|janitorial|custodial)\s+(?:services?\s+)?"
+        r"(?:for\s+)?(?:a\s+|an\s+|the\s+)?"
+        r"(?:building|facilit(?:y|ies)|grounds?)\b",
+        text,
+    )
+    instructional_scope = re.search(
+        r"\b(?:provide|deliver|conduct|teach|instruct|develop|design|"
+        r"administer)\w*\b[^.;]{0,80}\blanguage\s+training\b",
+        text,
+    )
+    return bool(facility_name and building_scope and not instructional_scope)
+
+
+def _spatial_localization_collision(text: str) -> bool:
+    """Distinguish language/content localization from spatial localization."""
+    if not re.search(r"\blocali[sz]ation\b", text):
+        return False
+    language_context = re.search(
+        r"\b(?:translat\w*|language\s+services?|linguistic|multilingual|"
+        r"internationali[sz]ation|i18n|l10n|localized\s+content|"
+        r"locali[sz]ation\s+of\s+(?:documents?|websites?|web\s+content|"
+        r"software|applications?|user\s+interfaces?|resource\s+strings?|"
+        r"text|media))\b",
+        text,
+    )
+    spatial_context = re.search(
+        r"\b(?:position(?:ing)?|geolocat\w*|navigation|sensors?|radar|sonar|"
+        r"rfid|antennas?|tags?|iris|biometric\w*|images?|cameras?|targets?|"
+        r"tracking|object\s+detection|computer\s+vision|esm)\b",
+        text,
+    )
+    return bool(spatial_context and not language_context)
+
+
+def _cultural_resource_collision(text: str) -> bool:
+    """Require the advisor concept in cultural-resource procurement text."""
+    resource_scope = re.search(r"\bcultural\s+resources?\b", text)
+    advisory_scope = re.search(
+        r"\b(?:cultural\s+(?:advis(?:or|ory)|awareness|training)|"
+        r"advis(?:or|ory)\s+(?:services?|support)|cultural\s+liaison)\b",
+        text,
+    )
+    return bool(resource_scope and not advisory_scope)
+
+
+def _software_subscription_without_instructional_deliverable(text: str) -> bool:
+    """Reject education-workflow software bought without content services."""
+    software_product = re.search(
+        r"\b(?:software|saas|platform)\b[^.;]{0,100}"
+        r"\b(?:subscriptions?|licen[cs](?:e|es|ing)|renewals?)\b"
+        r"|\b(?:subscriptions?|licen[cs](?:e|es|ing)|renewals?)\b"
+        r"[^.;]{0,100}\b(?:software|saas|platform)\b",
+        text,
+    )
+    instructional_deliverable = re.search(
+        r"\b(?:develop|design|author|create|revise|deliver|teach|conduct|"
+        r"sustain)\w*\b[^.;]{0,100}\b(?:curricul(?:um|a)|courseware|"
+        r"courses?|instructional\s+(?:content|materials?|programs?)|"
+        r"training\s+(?:content|curricul(?:um|a)|materials?|programs?|"
+        r"courses?))\b"
+        r"|\b(?:curricul(?:um|a)|courseware|instructional\s+"
+        r"(?:content|materials?|programs?)|training\s+"
+        r"(?:content|curricul(?:um|a)|materials?|programs?|courses?))\b"
+        r"[^.;]{0,100}\b(?:develop|design|author|create|revise|deliver|"
+        r"teach|conduct|sustain)\w*\b"
+        r"|\b(?:curriculum|course|courseware|instructional\s+design|"
+        r"training\s+delivery)\s+(?:development\s+)?services?\b",
+        text,
+    )
+    supplier_instruction = re.search(
+        r"\b(?:contractor|vendor|offeror)\s+(?:shall|will|must)\s+"
+        r"(?:provide|implement)\w*\b[^.;]{0,100}\b(?:curricul(?:um|a)|"
+        r"courseware|instructional\s+(?:content|materials?|programs?)|"
+        r"training\s+(?:content|curricul(?:um|a)|materials?|programs?|"
+        r"courses?))\b",
+        text,
+    )
+    return bool(
+        software_product
+        and not instructional_deliverable
+        and not supplier_instruction
+    )
+
+
+def _curriculum_delivery_boundary(
+    text: str, ctx: dict,
+) -> Optional[tuple[str, str]]:
+    """Hold program-domain or inherited-IP matches without creation scope.
+
+    Curriculum words can describe a PSC label, a named supplier's existing
+    program, or licensed content. None proves that the procurement asks this
+    client to design, author, revise, or maintain instructional material.
+    Keep those records available for review, but do not treat a vocabulary
+    collision as direct fit.
+    """
+    if not ctx.get("curriculum_workflow_enabled"):
+        return None
+
+    creation_deliverable = re.search(
+        r"\b(?:contractor|vendor|offeror|awardee)\s+"
+        r"(?:shall|will|must|is\s+required\s+to)\b[^.;]{0,140}"
+        r"\b(?:develop|design|author|create|revise|maintain|evaluate)\w*\b"
+        r"[^.;]{0,140}\b(?:curricul(?:um|a)|courseware|courses?|"
+        r"instructional\s+(?:content|materials?|programs?))\b"
+        r"|\b(?:curricul(?:um|a)|courseware|instructional\s+design)\b"
+        r"[^.;]{0,80}\b(?:development|design|authoring|revision|"
+        r"maintenance)\s+services?\b",
+        text,
+    )
+    if creation_deliverable:
+        return None
+
+    administrative_label = re.search(
+        r"\b(?:product\s+service\s+code|psc)\b[^.;\n]{0,140}"
+        r"\btraining\s*/\s*curriculum\s+development\b",
+        text,
+    )
+    curriculum_scope_text = (
+        text[:administrative_label.start()] + text[administrative_label.end():]
+        if administrative_label else text
+    )
+    substantive_curriculum = re.search(
+        r"\b(?:develop|design|author|create|revise|maintain|evaluate)\w*\b"
+        r"[^.;]{0,100}\b(?:curricul(?:um|a)|courseware|instructional\s+"
+        r"(?:content|materials?))\b"
+        r"|\b(?:curricul(?:um|a)|courseware|instructional\s+"
+        r"(?:content|materials?))\b[^.;]{0,100}"
+        r"\b(?:develop|design|author|create|revise|maintain|evaluate)\w*\b",
+        curriculum_scope_text,
+    )
+    open_category_vehicle = re.search(
+        r"\b(?:establish(?:ing)?\s+(?:a\s+|an\s+)?"
+        r"(?:blanket\s+purchase\s+agreement|bpa|idiq)|"
+        r"companies\s+that\s+provide\b[^.;]{0,120}\bservices\b|"
+        r"offerors?\s+will\s+compete\s+at\s+the\s+call\s+level)\b",
+        text,
+    )
+    if (administrative_label and not substantive_curriculum
+            and not open_category_vehicle):
+        return ("ambiguous",
+            "curriculum wording appears only in an administrative PSC label; "
+            "the published work does not require curriculum creation"
+        )
+
+    sole_source = re.search(
+        r"\b(?:sole\s+source|only\s+one\s+responsible\s+source|"
+        r"only\s+source)\b",
+        text,
+    )
+    no_competitive_solicitation = re.search(
+        r"\b(?:not\s+a\s+request\s+for\s+competitive|"
+        r"no\s+solicitation\s+(?:document\s+)?(?:exists|will\s+be\s+posted)|"
+        r"solicitation\s+will\s+not\s+be\s+posted)\b",
+        text,
+    )
+    inherited_program = re.search(
+        r"\b(?:uniquely\s+developed|proprietary|curriculum\s+licen[cs]ing|"
+        r"existing\s+curriculum|pre[- ]existing\s+curriculum)\b",
+        text,
+    )
+    normalized_text = _norm(text)
+    client_is_named_source = any(
+        len(alias) >= 3 and re.search(
+            r"\b" + re.escape(alias) + r"\b", normalized_text)
+        for alias in (ctx.get("client_aliases") or [])
+    )
+    if (sole_source and no_competitive_solicitation and inherited_program
+            and not client_is_named_source):
+        return ("unrelated",
+            "notice seeks a named source's existing or licensed program and "
+            "does not publish a curriculum-creation deliverable"
+        )
+    return None
+
+
 def classify_service_fit(record: dict, ctx: dict) -> dict:
     """Classify technical fit before temporal or commercial promotion.
 
@@ -552,6 +748,51 @@ def classify_service_fit(record: dict, ctx: dict) -> dict:
                     "fit_basis":
                         "instructor scope lacks an approved domain token",
                     "fit_evidence": []}
+
+    if _facility_name_language_training_collision(text):
+        return {
+            "service_fit": "unrelated",
+            "fit_basis": (
+                "language-training wording names a facility; the requested "
+                "scope is building maintenance"),
+            "fit_evidence": [],
+        }
+
+    if _spatial_localization_collision(text):
+        return {
+            "service_fit": "unrelated",
+            "fit_basis": (
+                "localization is spatial or sensor-related and lacks "
+                "language/content-localization evidence"),
+            "fit_evidence": [],
+        }
+
+    if _cultural_resource_collision(text):
+        return {
+            "service_fit": "unrelated",
+            "fit_basis": (
+                "cultural-resource scope lacks the approved advisor or "
+                "cultural-training concept"),
+            "fit_evidence": [],
+        }
+
+    if _software_subscription_without_instructional_deliverable(text):
+        return {
+            "service_fit": "unrelated",
+            "fit_basis": (
+                "software subscription or licensing scope has no "
+                "instructional-content deliverable"),
+            "fit_evidence": [],
+        }
+
+    curriculum_boundary = _curriculum_delivery_boundary(text, ctx)
+    if curriculum_boundary:
+        fit, basis = curriculum_boundary
+        return {
+            "service_fit": fit,
+            "fit_basis": basis,
+            "fit_evidence": [],
+        }
 
     core = _phrase_match(text, ctx.get("core_terms") or [])
     if core:

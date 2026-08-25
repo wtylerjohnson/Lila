@@ -47,6 +47,8 @@ def _by_kind(blockers, kind):
 def test_parse_set_aside_recognition_table():
     assert parse_set_aside(None, None) is None
     assert parse_set_aside("No Set aside used", "") is None
+    assert parse_set_aside("No Set aside used", "NONE") is None
+    assert parse_set_aside("", "NONE") is None
     total = parse_set_aside("Total Small Business Set-Aside (FAR 19.5)", "")
     assert total == {"requires_small": True, "required_cert": None, "recognized": True}
     sam_variant = parse_set_aside("Small Business Set Aside - Total", "")
@@ -59,6 +61,10 @@ def test_parse_set_aside_recognition_table():
     assert parse_set_aside("Women-Owned Small Business", "")["required_cert"] == "WOSB"
     # code-only recognition (label missing)
     assert parse_set_aside("", "SDVOSBC")["required_cert"] == "SDVOSB"
+    # An inconsistent NONE code cannot erase an affirmative restricted label.
+    assert parse_set_aside(
+        "Total Small Business Set-Aside (FAR 19.5)", "NONE"
+    )["recognized"] is True
     # a set-aside we do not recognize is surfaced, never guessed
     isbee = parse_set_aside("Indian Small Business Economic Enterprise (ISBEE) "
                             "Set-Aside", "")

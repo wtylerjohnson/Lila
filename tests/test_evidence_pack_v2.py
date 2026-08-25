@@ -15,7 +15,11 @@ from agents.golden_press.evidence_pack_v2 import (
     validate_graph_contract,
 )
 from agents.golden_press.market_map_projection import (
+    PRIME,
+    STATUS_CHECK,
+    TEAM,
     Opportunity,
+    _v2_opportunity,
     attach_v2_targets,
     opportunity_key,
 )
@@ -619,6 +623,36 @@ def test_vertical_target_path_keeps_sources_distinct_and_removal_cascades():
                 "jtg-1", "jtg-3"}
 
 
+@pytest.mark.parametrize(("route_action", "role", "expected_purpose"), (
+    ("prime", "program_or_mission_owner", "pursuit_execution"),
+    ("team", "partner_capture_or_bd_lead", "pursuit_execution"),
+    ("verify", "partner_capture_or_bd_lead", "decision_resolution"),
+))
+def test_target_purpose_follows_pursuit_route_action(
+        route_action, role, expected_purpose):
+    opportunity = _opportunity(
+        f"opp-{route_action}", f"family-{route_action}",
+        "Language and curriculum requirement", "Department of State")
+    opportunity.update({
+        "qualification_state": "qualified",
+        "route_action": route_action,
+        "commercial_route": (
+            "direct" if route_action == "prime"
+            else "possible_subcontracting"),
+    })
+    groups = build_target_groups(
+        [opportunity],
+        target_roles={f"family-{route_action}": [{
+            "role": role,
+            "organization": "Department of State",
+            "role_needed": "named route owner",
+        }]},
+    )
+
+    assert {row["target_purpose"] for row in
+            groups[f"family-{route_action}"]} == {expected_purpose}
+
+
 def test_v2_population_is_authoritative_and_constructs_missing_rows():
     qualified = [{
         "record_id": "qualified-1",
@@ -685,6 +719,42 @@ def test_v2_population_is_authoritative_and_constructs_missing_rows():
     assert [row["name"] for row in attached[0].contacts] == ["Pat Published"]
 
 
+@pytest.mark.parametrize((
+        "route_action", "commercial_route", "eligible_route",
+        "expected_motion", "expected_access"), (
+    ("prime", "direct", True, PRIME, "Bid directly."),
+    ("team", "possible_subcontracting", False, TEAM,
+     "Engage an eligible prime for the teaming path."),
+    ("verify", "direct", False, STATUS_CHECK,
+     "Verify a direct, vehicle, or teaming path."),
+    ("verify", "incumbent", False, STATUS_CHECK,
+     "Verify a direct, vehicle, or teaming path."),
+))
+def test_v2_market_map_projection_consumes_route_action(
+        route_action, commercial_route, eligible_route,
+        expected_motion, expected_access):
+    row = {
+        "record_id": f"route-{route_action}",
+        "title": "Current language requirement",
+        "agency": "Department of State",
+        "evidence_class": "current_opportunity",
+        "instrument": "Solicitation",
+        "response_due": "2026-09-30",
+        "source_url": f"https://sam.gov/opp/route-{route_action}/view",
+        "commercial_route": commercial_route,
+        "eligible_route": eligible_route,
+        "route_action": route_action,
+        "technical_fit": {"basis": "published language-services scope"},
+    }
+
+    projected = _v2_opportunity(row, ())
+
+    assert projected.motion == expected_motion
+    assert projected.access_route == expected_access
+    if route_action == "verify":
+        assert projected.action.startswith("Verify the response path")
+
+
 def test_moved_record_receipt_has_before_after_counts():
     records = [{
         "lane": "L2_entity_award",
@@ -702,7 +772,7 @@ def test_moved_record_receipt_has_before_after_counts():
     assert totals["client_historical"] == {"before": 0, "after": 1}
 
 
-def test_opportunity_decision_records_every_blocking_dimension(monkeypatch):
+def test_fit_review_retains_route_as_an_independent_action(monkeypatch):
     row = {
         "record_id": "notice-dual-hold",
         "requirement_family": "family-dual-hold",
@@ -730,15 +800,55 @@ def test_opportunity_decision_records_every_blocking_dimension(monkeypatch):
     assert held == [row]
     decision = row["projection_decision"]
     assert decision["disposition"] == "needs_review"
-    assert decision["reason_codes"] == [
-        "FIT_AMBIGUOUS", "DIRECT_ROUTE_INELIGIBLE"]
-    assert decision["blocking_dimensions"] == [
-        "service_fit", "route_eligibility"]
-    assert decision["reasons"] == [
-        "broad capability stem requires review",
-        "restricted set-aside bars direct pursuit",
-    ]
+    assert decision["reason_codes"] == ["FIT_AMBIGUOUS"]
+    assert decision["blocking_dimensions"] == ["service_fit"]
+    assert decision["reasons"] == ["broad capability stem requires review"]
     assert row["qualification_state"] == "held_for_fit_review"
+    assert row["pursuit_state"] == "research_required"
+    assert row["route_action"] == "team"
+
+
+@pytest.mark.parametrize(("route", "eligible", "expected_action"), (
+    ("unknown", False, "verify"),
+    ("possible_subcontracting", False, "team"),
+    ("named_partner_teaming", True, "team"),
+    ("direct", True, "prime"),
+    ("incumbent", True, "prime"),
+))
+def test_direct_fit_promotes_with_independent_route_action(
+        monkeypatch, route, eligible, expected_action):
+    row = {
+        "record_id": f"notice-{route}",
+        "requirement_family": f"family-{route}",
+        "title": "Language services",
+        "evidence_class": "current_opportunity",
+        "service_fit": "direct",
+        "fit_basis": "approved language-services phrase",
+        "fit_evidence": [{"source_id": "capability-frame"}],
+        "window_state": "live",
+        "commercial_route": route,
+        "route_relationship": route,
+        "eligible_route": eligible,
+        "route_basis": "published route evidence",
+    }
+    monkeypatch.setattr(
+        evidence_pack_v2, "_technical_fit",
+        lambda *_args: {
+            "fit": True,
+            "fit_class": "direct",
+            "basis": "approved language-services phrase",
+            "evidence": [{"source_id": "capability-frame"}],
+        })
+
+    qualified, _incumbents, held = qualify_opportunities([row], {})
+
+    assert held == []
+    assert qualified == [row]
+    assert row["qualification_state"] == "qualified"
+    assert row["route_action"] == expected_action
+    assert row["pursuit_state"] == f"pursue_{expected_action}"
+    assert row["qualified"]["eligible_route"] is eligible
+    assert row["qualified"]["route_action"] == expected_action
 
 
 def test_qualification_consumes_stamped_dimensions_once(monkeypatch):
@@ -809,6 +919,37 @@ def test_graph_contract_requires_exhaustive_disjoint_opportunity_partition():
     assert violation["evidence"]["missing"] == ["notice-held"]
 
 
+def test_graph_contract_rejects_route_only_hold_of_direct_fit():
+    current = {
+        "record_id": "notice-fit",
+        "requirement_family": "family-fit",
+        "evidence_class": "current_opportunity",
+        "service_fit": "direct",
+        "commercial_route": "unknown",
+        "eligible_route": False,
+        "window_state": "live",
+    }
+    payload = {
+        "records": [current],
+        "classification_context": {
+            "client_aliases": [], "named_partners": []},
+        "canonical_requirement_families": [{
+            "requirement_family": "family-fit"}],
+        "qualified_opportunity_records": [],
+        "held_opportunities": [{
+            "record_id": "notice-fit",
+            "requirement_family": "family-fit",
+            "qualification_state": "needs_eligible_route",
+        }],
+        "target_groups": {},
+    }
+
+    violation = next(
+        row for row in validate_graph_contract(payload)
+        if row["rule_id"] == "G013_ROUTE_INDEPENDENT_PROMOTION")
+    assert violation["evidence"]["expected_qualified_ids"] == ["notice-fit"]
+
+
 def test_schema_pins_the_graph_contract():
     path = ("agents/golden_press/schemas/evidence_pack_v2.schema.json")
     schema = json.loads(open(path, encoding="utf-8").read())
@@ -825,7 +966,8 @@ def test_schema_pins_the_graph_contract():
     assert "graph_contract_violations" in schema["required"]
     record = schema["$defs"]["classifiedRecord"]["properties"]
     for key in ("canonical_entity", "requirement_family", "evidence_class",
-                "commercial_route", "window_state",
+                "commercial_route", "route_action", "pursuit_state",
+                "window_state",
                 "relationship_provenance", "projection_decision"):
         assert key in record
     decision = schema["$defs"]["projectionDecision"]

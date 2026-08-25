@@ -12,22 +12,33 @@
     {"id": "2ecd443e3f934a0b99e3d166a72658a5", "kind": "notice", "must_lead": false, "title_hint": "Instructional Course Design", "why": "credible curriculum fit"},
     {"id": "5898d8467b0d4e178de8eb026d7a7e7c", "kind": "notice", "must_lead": false, "title_hint": "Educational Support Services", "why": "credible curriculum and training fit"},
     {"id": "3f62dcc485d14b37bcecc24c7b160f61", "kind": "notice", "must_lead": false, "title_hint": "MCU CDET", "why": "credible curriculum fit requiring an eligible route"},
+    {"id": "befd1096ef02480fb5d1bcb1afabc648", "kind": "notice", "must_lead": false, "title_hint": "162 AFREP Training Program", "why": "published curriculum development and delivery scope with a teaming route"},
     {"id": "da1a687aa1c34921ab5f4a84f3fe0adb", "kind": "notice", "must_lead": false, "title_hint": "TECOM RTAM", "why": "adjacent workshare requiring research and route resolution"},
     {"id": "0994c5a8f33449768a41e2a96144778b", "kind": "notice", "must_lead": false, "title_hint": "Army Aviation Training", "why": "research-required adjacent lead"}
   ],
   "adjudications": [
-    {"id": "5c7f54f562d34cde905c634de9bc5a49", "expected_fit": "direct", "expected_route": "direct", "expected_state": "qualified"},
-    {"id": "89d85c63e4a847f896abb567bb24ca37", "expected_fit": "direct", "expected_route": "unknown", "expected_state": "decision_required"},
-    {"id": "40ced1e559da4fffbe02bcafd3c2e7e3", "expected_fit": "direct", "expected_route": "unknown", "expected_state": "decision_required"},
-    {"id": "2ecd443e3f934a0b99e3d166a72658a5", "expected_fit": "direct", "expected_route": "possible_subcontracting", "expected_state": "decision_required"},
-    {"id": "5898d8467b0d4e178de8eb026d7a7e7c", "expected_fit": "direct", "expected_route": "possible_subcontracting", "expected_state": "decision_required"},
-    {"id": "3f62dcc485d14b37bcecc24c7b160f61", "expected_fit": "direct", "expected_route": "possible_subcontracting", "expected_state": "decision_required"},
+    {"id": "5c7f54f562d34cde905c634de9bc5a49", "expected_fit": "direct", "expected_route": "direct", "expected_route_action": "prime", "expected_state": "qualified"},
+    {"id": "89d85c63e4a847f896abb567bb24ca37", "expected_fit": "direct", "expected_route": "unknown", "expected_route_action": "verify", "expected_state": "qualified"},
+    {"id": "40ced1e559da4fffbe02bcafd3c2e7e3", "expected_fit": "direct", "expected_route": "unknown", "expected_route_action": "verify", "expected_state": "qualified"},
+    {"id": "2ecd443e3f934a0b99e3d166a72658a5", "expected_fit": "direct", "expected_route": "possible_subcontracting", "expected_route_action": "team", "expected_state": "qualified"},
+    {"id": "5898d8467b0d4e178de8eb026d7a7e7c", "expected_fit": "direct", "expected_route": "possible_subcontracting", "expected_route_action": "team", "expected_state": "qualified"},
+    {"id": "3f62dcc485d14b37bcecc24c7b160f61", "expected_fit": "direct", "expected_route": "possible_subcontracting", "expected_route_action": "team", "expected_state": "qualified"},
+    {"id": "befd1096ef02480fb5d1bcb1afabc648", "expected_fit": "direct", "expected_route": "possible_subcontracting", "expected_route_action": "team", "expected_state": "qualified"},
+    {"id": "803342b1455d4f6aa95964326f5357cd", "expected_fit": "ambiguous", "expected_route": "possible_subcontracting", "expected_route_action": "team", "expected_state": "decision_required"},
+    {"id": "8a7f35cc9b904554a33b4643f2fbc2a9", "expected_fit": "unrelated", "expected_route": "direct", "expected_state": "excluded"},
+    {"id": "fbfb73742dcc4661a9ea6fb025257770", "expected_fit": "unrelated", "expected_route": "unknown", "expected_state": "excluded"},
     {"id": "da1a687aa1c34921ab5f4a84f3fe0adb", "expected_fit": "ambiguous", "expected_route": "possible_subcontracting", "expected_state": "decision_required"},
     {"id": "0994c5a8f33449768a41e2a96144778b", "expected_fit": "ambiguous", "expected_route": "direct", "expected_state": "decision_required"},
     {"id": "4026a7becbb54534bf6005db035ba7f1", "expected_fit": "unrelated", "expected_state": "excluded"},
     {"id": "ef0298d1b4884ea292de2e86ac5eaa31", "expected_fit": "unrelated", "expected_state": "excluded"},
     {"id": "89a2d44dedc443b0a5f116785985c782", "expected_fit": "unrelated", "expected_state": "excluded"},
-    {"id": "e81cf71ac03040fca6fb5a21f22433e2", "expected_fit": "unrelated", "expected_state": "excluded"}
+    {"id": "e81cf71ac03040fca6fb5a21f22433e2", "expected_fit": "unrelated", "expected_state": "excluded"},
+    {"id": "74bfe11aafc6402383c4bcb089b02151", "expected_fit": "unrelated", "expected_state": "excluded"},
+    {"id": "b7b0fcb86c6944a494bf05c36a7130e0", "expected_fit": "unrelated", "expected_state": "excluded"},
+    {"id": "a6a96393fa784eedb03ef7dfee0dda38", "expected_fit": "unrelated", "expected_state": "excluded"},
+    {"id": "bbd0df00fe574bbca07e3c1eede6f69e", "expected_fit": "unrelated", "expected_state": "excluded"},
+    {"id": "e2c5b6dee31f4d468b3ebe11638f3fdf", "expected_fit": "unrelated", "expected_state": "excluded"},
+    {"id": "184e75f58f0e4563a25e1b93672239c7", "expected_fit": "unrelated", "expected_state": "excluded"}
   ],
   "capability_evidence_anchors": [
     {"id": "W9124N12C0086", "expected_class": "client_historical", "supports": "curriculum development services", "published_obligations": 7224378.51, "figure_type": "published obligations"}
@@ -56,6 +67,7 @@
       "expected_deadline": "2026-09-14T10:00:00-04:00",
       "expected_fit": "direct",
       "expected_route": "named_partner_teaming",
+      "expected_route_action": "team",
       "expected_slot_5_state": "qualified",
       "expected_slot_6": "non_owning_route_reference"
     }

@@ -88,6 +88,7 @@
         "possible_subcontracting"
       ]
     },
+    "routeAction": {"enum": ["prime", "team", "verify"]},
     "outcomeState": {
       "enum": ["qualified", "decision_required", "research_context", "excluded"]
     },
@@ -110,6 +111,7 @@
         "id": {"$ref": "#/$defs/stableId"},
         "expected_fit": {"$ref": "#/$defs/fit"},
         "expected_route": {"$ref": "#/$defs/route"},
+        "expected_route_action": {"$ref": "#/$defs/routeAction"},
         "expected_state": {"$ref": "#/$defs/outcomeState"}
       },
       "additionalProperties": false
@@ -142,6 +144,7 @@
         "expected_deadline",
         "expected_fit",
         "expected_route",
+        "expected_route_action",
         "expected_slot_5_state",
         "expected_slot_6"
       ],
@@ -158,6 +161,7 @@
         "expected_deadline": {"type": "string", "format": "date-time"},
         "expected_fit": {"$ref": "#/$defs/fit"},
         "expected_route": {"$ref": "#/$defs/route"},
+        "expected_route_action": {"$ref": "#/$defs/routeAction"},
         "expected_slot_5_state": {
           "enum": ["qualified", "decision_required", "research_context"]
         },

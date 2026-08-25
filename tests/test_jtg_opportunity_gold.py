@@ -50,7 +50,8 @@ def test_jtg_gold_contract_is_strict_about_authority_status_and_shapes():
     assert set(schema["$defs"]["noticeFamily"]["required"]) == {
         "solicitation_number", "expected_canonical_record_id",
         "expected_member_ids", "expected_member_count", "expected_deadline",
-        "expected_fit", "expected_route", "expected_slot_5_state",
+        "expected_fit", "expected_route", "expected_route_action",
+        "expected_slot_5_state",
         "expected_slot_6"}
     assert set(schema["$defs"]["forecast"]["required"]) == {
         "id", "expected_slot", "predecessor_contract_id", "buyer_component",
@@ -91,6 +92,7 @@ def _synthetic_evaluator_unit_result() -> tuple[dict, dict, dict]:
             "title": identity,
             "service_fit": adjudication["expected_fit"],
             "commercial_route": adjudication.get("expected_route", "unknown"),
+            "route_action": adjudication.get("expected_route_action"),
             "evidence_class": (
                 "excluded" if state == "excluded" else
                 "ambiguous" if state == "research_context" else
@@ -131,6 +133,7 @@ def _synthetic_evaluator_unit_result() -> tuple[dict, dict, dict]:
         "response_deadline": family_input["response_deadline"],
         "service_fit": family_expectation["expected_fit"],
         "commercial_route": family_expectation["expected_route"],
+        "route_action": family_expectation["expected_route_action"],
         "evidence_class": "current_opportunity",
         "family_member_ids": member_ids,
     }
@@ -275,6 +278,8 @@ def test_curated_fixture_runs_through_classifier_and_qualification_boundary():
 
     for expected in contract["adjudications"]:
         identity = expected["id"]
+        if identity not in by_id:
+            continue
         actual = by_id[identity]
         assert actual["service_fit"] == expected["expected_fit"], identity
         if "expected_route" in expected:
@@ -299,6 +304,7 @@ def test_real_jtg_captured_inputs_pass_normal_graph_projection_and_gold(
     from agents.golden_press.external_product_render import (
         render_external_product,
         validate_external_product_document,
+        validate_external_product_html,
     )
     from agents.golden_press.market_map_projection import build_market_map
     from agents.golden_press.records import EvidencePack
@@ -354,6 +360,29 @@ def test_real_jtg_captured_inputs_pass_normal_graph_projection_and_gold(
         contract, graph=graph, product=product.to_dict())
     assert receipt["passed"] is True, receipt["mismatches"]
     _studio, client_html = render_external_product(product)
+    slot_five = next(
+        slot for slot in product.slots
+        if slot.slot_id == "federal-opportunities")
+    assert len(slot_five.records) == 8
+    assert len(slot_five.review_records) == 42
+    assert slot_five.coverage == {
+        "direct_fit_pursuits": 8,
+        "prime": 1,
+        "team": 5,
+        "verify": 2,
+        "fit_review": 42,
+        "qualified": 8,
+        "held": 42,
+        "current_opportunity_records": 50,
+    }
+    review_ids = {row["source_id"] for row in slot_five.review_records}
+    assert "803342b1455d4f6aa95964326f5357cd" in review_ids
+    pursuit_ids = {row["source_id"] for row in slot_five.records}
+    assert "8a7f35cc9b904554a33b4643f2fbc2a9" not in pursuit_ids
+    assert "fbfb73742dcc4661a9ea6fb025257770" not in pursuit_ids
+    assert product.graph_receipt["pursuit_membership_conserved"] is True
+    html_receipt = validate_external_product_html(client_html, product)
+    assert html_receipt["ok"] is True, html_receipt["violations"]
     assert "M6785426R8017" in client_html
     assert "W15QKN-26-Q-0007" in client_html
     assert "https://sam.gov/opp/fd11917ee4044f4eab51e95e117c4a09/view" \

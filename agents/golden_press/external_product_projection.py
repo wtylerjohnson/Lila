@@ -29,7 +29,7 @@ from agents.golden_press.release_snapshot import (
 )
 
 
-EXTERNAL_PRODUCT_PROJECTION_VERSION = "lila-external-product.v7.2026-08-25"
+EXTERNAL_PRODUCT_PROJECTION_VERSION = "lila-external-product.v8.2026-08-25"
 
 _USASPENDING_NONE_AWARD = re.compile(
     r"^https?://(?:www\.)?usaspending\.gov/award/"
@@ -408,6 +408,8 @@ def _graph_record(row: dict, *, kind: str, summary: str = "") -> dict:
         "window_basis": _text(row.get("window_basis")),
         "commercial_route": _text(row.get("commercial_route")),
         "eligible_route": row.get("eligible_route"),
+        "route_action": _text(row.get("route_action")),
+        "pursuit_state": _text(row.get("pursuit_state")),
         "route_basis": _text(row.get("route_basis")),
         "requirement_family": _text(row.get("requirement_family")),
         "canonical_record_id": _text(row.get("canonical_record_id")),
@@ -436,11 +438,36 @@ def _fit_review_code(value: Any) -> str:
     }.get(fit, "FIT_REVIEW_REQUIRED")
 
 
-def _route_review_code(value: Any) -> str:
+def _pursuit_route_action(row: dict) -> str:
+    """Read the upstream route action, with a legacy-pack compatibility map."""
+    stated = _text(row.get("route_action")).casefold()
+    if stated in {"prime", "team", "verify"}:
+        return stated
+    route = _text(row.get("commercial_route")).casefold()
+    if route in {"direct", "incumbent"} \
+            and row.get("eligible_route") is True:
+        return "prime"
+    if route in {"named_partner_teaming", "possible_subcontracting"}:
+        return "team"
+    return "verify"
+
+
+def _pursuit_action_text(row: dict, action: str) -> str:
+    upstream = row.get("projection_decision") or {}
+    stated = _text(upstream.get("decision_action"))
+    if stated and upstream.get("disposition") == "qualified":
+        return stated
+    basis = _text(row.get("route_basis"))
+    if action == "prime":
+        return basis or "Work the evidenced direct route before the deadline."
+    if action == "team":
+        return (
+            "Identify and engage an eligible prime for this teaming pursuit"
+            + (f": {basis}" if basis else ".")
+        )
     return (
-        "DIRECT_ROUTE_INELIGIBLE"
-        if _text(value).casefold() == "possible_subcontracting"
-        else "ROUTE_ELIGIBILITY_UNRESOLVED"
+        "Verify direct, vehicle, or teaming access with the buying office"
+        + (f": {basis}" if basis else ".")
     )
 
 
@@ -516,15 +543,6 @@ def _review_record(
                     or f"service fit is {fit or 'unresolved'}"),
         )
 
-    if opportunity and row.get("eligible_route") is not True:
-        _append_review_reason(
-            reason_codes, blocking_dimensions, reasons,
-            code=_route_review_code(row.get("commercial_route")),
-            dimension="route_eligibility",
-            reason=(row.get("route_basis") or hold.get("qualification_reason")
-                    or "eligible commercial route is unresolved"),
-        )
-
     qualification_reason = hold.get("qualification_reason")
     if qualification_reason and _text(qualification_reason) not in reasons:
         reasons.append(_text(qualification_reason))
@@ -541,16 +559,6 @@ def _review_record(
         decision_action = (
             "Retain as market context; do not include it in qualified category "
             "totals or pursuit recommendations."
-        )
-    elif set(blocking_dimensions) == {"service_fit", "route_eligibility"}:
-        decision_action = (
-            "Resolve capability fit and the eligible commercial route before "
-            "any pursuit recommendation."
-        )
-    elif "route_eligibility" in blocking_dimensions:
-        decision_action = (
-            "Resolve the published access rule or an evidenced partner route "
-            "before any pursuit recommendation."
         )
     else:
         decision_action = (
@@ -819,7 +827,7 @@ def _priority_records(
             "action_order": action_order,
             "decision_order": decision_order,
             "ordering_basis": (
-                "qualified actions first; earliest published timing within "
+                "direct-fit pursuits first; earliest published timing within "
                 "each action or decision group"
             ),
             "title": row.get("title"),
@@ -828,6 +836,7 @@ def _priority_records(
                 else row.get("priority_basis") or row.get("service_fit")
                 or row.get("summary")),
             "route": _text(row.get("commercial_route")),
+            "route_action": _text(row.get("route_action")),
             "timing": _text(row.get("response_date") or row.get("window_state")),
             "next_action": _text(
                 row.get("decision_action") if decision_required
@@ -949,15 +958,21 @@ def build_external_product_document(
         claimed.add(key)
         return True
 
-    # Slot 5: qualified current opportunities and their exact target groups.
+    # Slot 5: direct-fit current pursuits and their exact target groups.
     opportunity_rows: list[dict] = []
     opportunity_review_rows: list[dict] = []
     target_groups = graph_payload.get("target_groups") or {}
     qualified_opportunity_ids: set[str] = set()
-    for raw in graph_payload.get("qualified_opportunity_records") or []:
+
+    def pursuit_record(raw: dict) -> dict:
         row = _graph_record(raw, kind="notice")
+        route_action = _pursuit_route_action(raw)
+        decision_action = _pursuit_action_text(raw, route_action)
         row.update({
             "decision_state": "qualified",
+            "route_action": route_action,
+            "pursuit_state": f"pursue_{route_action}",
+            "decision_action": decision_action,
             "reason_codes": [],
             "blocking_dimensions": [],
             "reasons": [],
@@ -972,10 +987,15 @@ def build_external_product_document(
         row.update({
             "requirement_family": family,
             "targets": _serial(targets),
-            "next_action": _text((raw.get("next_route") or {}).get("route_basis")
-                                 or raw.get("qualification_reason")),
-            "priority_basis": _text((raw.get("technical_fit") or {}).get("basis")),
+            "next_action": decision_action,
+            "priority_basis": _text(
+                (raw.get("technical_fit") or {}).get("basis")
+                or raw.get("fit_basis")),
         })
+        return row
+
+    for raw in graph_payload.get("qualified_opportunity_records") or []:
+        row = pursuit_record(raw)
         if claim(row):
             opportunity_rows.append(row)
             qualified_opportunity_ids.add(_text(row.get("source_id")))
@@ -1206,14 +1226,20 @@ def build_external_product_document(
     priorities = _priority_records(
         opportunity_rows, opportunity_review_rows, forecast_rows)
     target_counts = _target_counts(opportunity_rows)
-    qualified_priority_count = sum(
+    pursuit_priority_count = sum(
         row.get("reference_kind") in {"qualified_action", "forecast_action"}
         for row in priorities)
+    prime_pursuits = sum(
+        row.get("route_action") == "prime" for row in opportunity_rows)
+    teaming_pursuits = sum(
+        row.get("route_action") == "team" for row in opportunity_rows)
+    verify_pursuits = sum(
+        row.get("route_action") == "verify" for row in opportunity_rows)
     priority_metrics = [
-        _metric("Qualified actions", qualified_priority_count,
+        _metric("Pursuit actions", pursuit_priority_count,
                 "Pursuit or forecast actions ordered before adjudication work."),
-        _metric("Decisions required", len(opportunity_review_rows),
-                "Current opportunities retained below with explicit blockers."),
+        _metric("Fit decisions required", len(opportunity_review_rows),
+                "Current leads retained below with unresolved service fit."),
         _metric("Target records", target_counts["records"],
                 (f"{target_counts['named_people']} named people; "
                  f"{target_counts['sourced_channels']} sourced contact channels; "
@@ -1224,16 +1250,16 @@ def build_external_product_document(
         "priority-pursuits": ProductSlot(
             1, "priority-pursuits", contract_slots[0].heading,
             _slot_status(priorities, priority_metrics),
-            "The qualified opportunities and evidence decisions that deserve the next unit of seller attention.",
+            "The direct, teaming, and route-verification pursuits that deserve the next unit of seller attention.",
             tuple(priority_metrics), tuple(priorities), (),
             (() if priorities else (
-                "No pursuit cleared the current qualification boundary; resolve "
-                "the displayed graph and coverage holds before promotion.",)),
+                "No direct-fit pursuit is current; resolve the displayed fit "
+                "and coverage gaps before promotion.",)),
             {"ordered_from": (
-                 "qualified opportunities (or forecast fallback), then a "
-                 "separate decision queue"),
+                 "direct-fit pursuits (or forecast fallback), then a separate "
+                 "fit-decision queue"),
              "ordering_basis": (
-                 "qualified actions first; earliest published timing within "
+                 "direct-fit pursuits first; earliest published timing within "
                  "each action or decision group")}),
         "research-mesh": ProductSlot(
             2, "research-mesh", contract_slots[1].heading,
@@ -1284,16 +1310,27 @@ def build_external_product_document(
         "federal-opportunities": ProductSlot(
             5, "federal-opportunities", contract_slots[4].heading,
             _slot_status(opportunity_rows + opportunity_review_rows, ()),
-            "Qualified current federal opportunities with published contacts first and governed enrichment beneath each record.",
+            "Direct-fit current pursuits with prime, teaming, or route-verification actions and opportunity-specific targets.",
             (
-                _metric("Qualified opportunities", len(opportunity_rows),
-                        "Cleared evidence, fit, window, and route."),
-                _metric("Held for review", len(opportunity_review_rows),
-                        "Preserved as decision-required records, not promoted as pursuits."),
+                _metric("Direct-fit pursuits", len(opportunity_rows),
+                        "Cleared evidence, fit, and live timing; route remains an independent action."),
+                _metric("Prime path", prime_pursuits,
+                        "A direct or incumbent-displacement response path is evidenced."),
+                _metric("Teaming path", teaming_pursuits,
+                        "The fit survives with an eligible-prime action."),
+                _metric("Verify route", verify_pursuits,
+                        "The fit survives while the buying office or vehicle path is verified."),
+                _metric("Fit review", len(opportunity_review_rows),
+                        "Preserved as research-required leads, outside pursuit totals."),
             ), tuple(opportunity_rows), (),
             (() if opportunity_rows else (
-                "No current opportunity cleared evidence, fit, window, and route eligibility together; held records remain in the graph receipt.",)),
-            {"qualified": len(opportunity_rows),
+                "No current opportunity cleared evidence, direct fit, and live timing; research-required records remain visible below.",)),
+            {"direct_fit_pursuits": len(opportunity_rows),
+             "prime": prime_pursuits,
+             "team": teaming_pursuits,
+             "verify": verify_pursuits,
+             "fit_review": len(opportunity_review_rows),
+             "qualified": len(opportunity_rows),
              "held": len(opportunity_review_rows),
              "current_opportunity_records": (
                  len(opportunity_rows) + len(opportunity_review_rows))},
@@ -1336,6 +1373,15 @@ def build_external_product_document(
         if _text(row.get("source_id"))
     })
     orphan_held_ids = sorted(set(held_by_id) - set(current_opportunity_ids))
+    graph_qualified_ids = sorted({
+        _text(row.get("record_id"))
+        for row in (graph_payload.get("qualified_opportunity_records") or [])
+        if _text(row.get("record_id"))
+    })
+    projected_pursuit_ids = sorted({
+        _text(row.get("source_id")) for row in opportunity_rows
+        if _text(row.get("source_id"))
+    })
     graph_receipt = {
         "schema_version": graph_payload.get("schema_version"),
         "certified": bool(graph_payload.get("graph_contract_certified")),
@@ -1348,6 +1394,10 @@ def build_external_product_document(
         "projected_current_opportunity_ids": projected_current_opportunity_ids,
         "current_opportunity_conserved": (
             current_opportunity_ids == projected_current_opportunity_ids),
+        "graph_qualified_opportunity_ids": graph_qualified_ids,
+        "projected_pursuit_ids": projected_pursuit_ids,
+        "pursuit_membership_conserved": (
+            graph_qualified_ids == projected_pursuit_ids),
         "orphan_held_opportunity_ids": orphan_held_ids,
     }
     identity_receipt = graph_payload.get("record_identity_receipt") or {}

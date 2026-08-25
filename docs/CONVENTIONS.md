@@ -1345,13 +1345,15 @@ pointer and downloads revalidate the manifest, ZIP, and every member hash.
 Older families are classified by `agents/reports/product_families.py`; their
 continued readability is compatibility, not release eligibility.
 
-A projection failure is a typed decision, not deletion. Every current
-opportunity partitions exactly into either `qualified_opportunity_records` or
-`held_opportunities`; the external product preserves every held record in Slot
-5 `review_records` with the upstream `projection_decision`, full record body,
-reason codes, blocking dimensions, and next decision. Slot 1 may reference
-those rows only as `decision_required`, never as ranked or recommended
-pursuits. Non-direct client and competitor awards remain visible in their
+A projection failure is a typed decision, not deletion. Every live current
+opportunity with direct service fit belongs in `qualified_opportunity_records`;
+route uncertainty changes its action to `prime`, `team`, or `verify` and never
+holds it. Records with unresolved service fit belong in `held_opportunities`;
+the external product preserves each one in Slot 5 `review_records` with the
+upstream `projection_decision`, full record body, reason codes, blocking
+dimensions, and next decision. Slot 1 may reference held rows only as
+`decision_required`, never as ranked or recommended pursuits. Non-direct
+client and competitor awards remain visible in their
 owning-slot review ledgers while staying outside qualified dollar totals. The
 release-state reader rechecks current Assess and Target authorization rather
 than trusting the stored manifest alone. External receipt HTML escapes every
@@ -1363,8 +1365,8 @@ Slot 5 is the sole owner of a federal notice. Slot 6 may carry a
 `teaming_route_reference` only when it names the Slot 5 ownership key, copies
 the same notice identity and route decision, and declares itself non-owning.
 Fit, window, and route are classified independently: unknown access produces a
-route-verification decision, while an evidenced restricted route produces a
-teaming decision. Neither changes a credible fit into an exclusion. Notice
+`verify` pursuit, while an evidenced restricted route produces a `team`
+pursuit. Neither changes a credible fit into a hold or exclusion. Notice
 families join only through a structured solicitation identity or explicit
 successor evidence within the same normalized agency and issuing office.
 Successor chains resolve transitively; conflicting successor claims and

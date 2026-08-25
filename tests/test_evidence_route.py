@@ -276,6 +276,216 @@ def test_pack_derived_semantic_pairs_preserve_real_jtg_wording(ctx):
     assert row["evidence_class"] == "excluded"
 
 
+def test_facility_name_does_not_turn_building_maintenance_into_training(ctx):
+    maintenance = er.classify_record({
+        "lane": "L1_notice",
+        "title": (
+            "Building Maintenance Services for the Japanese Language "
+            "Training Center"),
+        "description": (
+            "Request for quotations for building maintenance services and "
+            "facility repairs at the center."),
+        "response_deadline": "2026-09-30",
+        "set_aside": "No Set aside used",
+        "set_aside_code": "NONE",
+    }, ctx)
+    actual_training = er.classify_record({
+        "lane": "L1_notice",
+        "title": "Foreign Language Training Center Instructional Support",
+        "description": (
+            "The contractor shall deliver foreign language training and "
+            "provide qualified instructors to enrolled students."),
+        "response_deadline": "2026-09-30",
+        "set_aside": "No Set aside used",
+        "set_aside_code": "NONE",
+    }, ctx)
+
+    assert maintenance["service_fit"] == "unrelated"
+    assert maintenance["evidence_class"] == "excluded"
+    assert "names a facility" in maintenance["fit_basis"]
+    assert actual_training["service_fit"] == "direct"
+    assert actual_training["evidence_class"] == "current_opportunity"
+
+
+@pytest.mark.parametrize("title, description", (
+    (
+        "Contactless Iris Collection Collaboration Event",
+        "Study mobile-device cameras for iris localization, biometric "
+        "matching, and image distortion analysis.",
+    ),
+    (
+        "P-8A Poseidon Modification Kit Installation",
+        "ESM search and localization with ISR sensor capability enhancements.",
+    ),
+    (
+        "Agile RFID Antenna System",
+        "RFID tag localization using reader antennas for inventory tracking.",
+    ),
+))
+def test_spatial_and_sensor_localization_is_not_language_localization(
+        ctx, title, description):
+    row = er.classify_record({
+        "lane": "L1_notice",
+        "title": title,
+        "description": description,
+        "response_deadline": "2026-09-30",
+        "set_aside": "No Set aside used",
+        "set_aside_code": "NONE",
+    }, ctx)
+
+    assert row["service_fit"] == "unrelated"
+    assert row["evidence_class"] == "excluded"
+    assert "spatial or sensor-related" in row["fit_basis"]
+
+
+def test_language_and_content_localization_remains_direct(ctx):
+    row = er.classify_record({
+        "lane": "L1_notice",
+        "title": "Document, Website, and Software Localization Services",
+        "description": (
+            "Translate documents and provide multilingual localization of "
+            "websites, software user interfaces, and resource strings."),
+        "response_deadline": "2026-09-30",
+        "set_aside": "No Set aside used",
+        "set_aside_code": "NONE",
+    }, ctx)
+
+    assert row["service_fit"] == "direct"
+    assert row["evidence_class"] == "current_opportunity"
+
+
+@pytest.fixture()
+def curriculum_ctx():
+    profile = {
+        "capability_summary": "Curriculum and e-learning development.",
+        "capability_terms": {
+            "core": ["e-learning and curriculum development"],
+            "adjacent": [], "excluded": [],
+        },
+    }
+    packet = {"status": "approved", "strategy": {"keywords": [{
+        "category": "capability",
+        "term": "e-learning and curriculum development",
+    }]}}
+    return er.build_context(
+        "JTG, inc.", "jtg_inc",
+        pack={"generated_at": "2026-08-20"}, packet=packet,
+        profile=profile,
+        route_facts={"certifications": [], "named_partners": [],
+                     "validated_competitors": []},
+    )
+
+
+@pytest.mark.parametrize(
+    "description, expected_fit, expected_class, expected_fragment", (
+    (
+        "This is a sole source notice and not a request for competitive "
+        "proposals. No solicitation document exists. The named source "
+        "uniquely developed the UAS curriculum and will deliver its program.",
+        "unrelated", "excluded",
+        "named source's existing or licensed program",
+    ),
+    (
+        "A solicitation will not be posted. The Government intends a sole "
+        "source award for a proprietary physical-education curriculum. The "
+        "requirement includes curriculum licensing and implementation.",
+        "unrelated", "excluded",
+        "named source's existing or licensed program",
+    ),
+    (
+        "Product Service Code (PSC): U008 Education/Training: Training/"
+        "Curriculum Development. The contractor shall implement a junior "
+        "leadership development training program.",
+        "ambiguous", "current_opportunity",
+        "administrative PSC label",
+    ),
+))
+def test_curriculum_vocabulary_without_creation_scope_is_not_direct(
+        curriculum_ctx, description, expected_fit, expected_class,
+        expected_fragment):
+    row = er.classify_record({
+        "lane": "L1_notice",
+        "title": "Training program support",
+        "description": description,
+        "response_deadline": "2026-09-30",
+        "set_aside": "No Set aside used",
+        "set_aside_code": "NONE",
+    }, curriculum_ctx)
+
+    assert row["service_fit"] == expected_fit
+    assert row["evidence_class"] == expected_class
+    assert expected_fragment in row["fit_basis"]
+
+
+def test_published_curriculum_creation_deliverable_remains_direct(
+        curriculum_ctx):
+    row = er.classify_record({
+        "lane": "L1_notice",
+        "title": "Instructional course design and maintenance",
+        "description": (
+            "The contractor shall design, develop, revise, and maintain "
+            "curriculum and instructional materials for government courses."),
+        "response_deadline": "2026-09-30",
+        "set_aside": "No Set aside used",
+        "set_aside_code": "NONE",
+    }, curriculum_ctx)
+
+    assert row["service_fit"] == "direct"
+    assert row["evidence_class"] == "current_opportunity"
+
+
+def test_open_bpa_category_can_use_published_curriculum_code(
+        curriculum_ctx):
+    row = er.classify_record({
+        "lane": "L1_notice",
+        "title": "BPA for Educational Support Services",
+        "description": (
+            "The agency is establishing Blanket Purchase Agreements with "
+            "companies that provide commercial services under PSC U008 "
+            "Training/Curriculum Development. Offerors will compete at the "
+            "call level."),
+        "response_deadline": "2026-09-30",
+        "set_aside": "No Set aside used",
+        "set_aside_code": "NONE",
+    }, curriculum_ctx)
+
+    assert row["service_fit"] == "direct"
+    assert row["evidence_class"] == "current_opportunity"
+
+
+def test_role_bearing_cultural_capability_cannot_drop_advisor_concept():
+    profile = {
+        "capability_summary": (
+            "Cultural advisor services and foreign media monitoring."),
+        "capability_terms": {
+            "core": ["cultural advisor services", "foreign media monitoring"],
+            "adjacent": [], "excluded": [],
+        },
+    }
+    governed = er.build_context(
+        "JTG, inc.", "jtg_inc", pack={"generated_at": "2026-08-20"},
+        packet={"status": "approved", "strategy": {"keywords": []}},
+        profile=profile,
+        route_facts={"certifications": [], "named_partners": [],
+                     "validated_competitors": []},
+    )
+    cultural_resource = er.classify_service_fit({
+        "title": (
+            "Cultural Resource Identification Services for a Snowpack and "
+            "Soil Moisture Monitoring Network"),
+        "description": "Archaeological survey and resource identification.",
+    }, governed)
+    cultural_advisor = er.classify_service_fit({
+        "title": "Cultural Advisor Services",
+        "description": "Advisory support for mission personnel.",
+    }, governed)
+
+    assert ("cultural", "service") not in governed["core_signal_pairs"]
+    assert cultural_resource["service_fit"] == "unrelated"
+    assert "lacks the approved advisor" in cultural_resource["fit_basis"]
+    assert cultural_advisor["service_fit"] == "direct"
+
+
 def test_stated_past_forecast_never_becomes_current_opportunity(ctx):
     record = {"lane": "L4_forecast",
               "title": "Translation and Interpretation Support",
@@ -341,6 +551,12 @@ def test_long_set_aside_labels_and_blank_access_fail_closed(ctx):
         {**base, "set_aside": "No Set aside used"}, ctx)
     assert unrestricted["commercial_route"] == "direct"
     assert unrestricted["eligible_route"] is True
+
+    unrestricted_with_code = er.classify_route(
+        {**base, "set_aside": "No Set aside used",
+         "set_aside_code": "NONE"}, ctx)
+    assert unrestricted_with_code["commercial_route"] == "direct"
+    assert unrestricted_with_code["eligible_route"] is True
 
 
 def test_relationship_provenance_is_structured(ctx):
@@ -559,6 +775,39 @@ def test_jtg_curriculum_frame_preserves_real_fit_without_training_broadening():
         "response_deadline": "2026-09-14T10:00:00-04:00",
         "set_aside": "Unrestricted",
     }, governed)
+    software_subscription = er.classify_record({
+        "lane": "L1_notice",
+        "title": (
+            "Accreditation Planning, Self-study, Course Evaluations and "
+            "Surveys Software"),
+        "description": (
+            "Software platform implementation and licensing for "
+            "accreditation planning, course evaluations, surveys, and "
+            "software subscriptions."),
+        "response_deadline": "2026-09-14T10:00:00-04:00",
+        "set_aside": "No Set aside used",
+        "set_aside_code": "NONE",
+    }, governed)
+    afrep = er.classify_record({
+        "lane": "L1_notice",
+        "title": "AFREP Training Program",
+        "description": (
+            "Development, delivery, and sustainment of a standardized "
+            "AFREP training curriculum for maintenance personnel."),
+        "response_deadline": "2026-09-14T10:00:00-04:00",
+        "set_aside": "Small Business Set Aside - Total",
+        "set_aside_code": "SBA",
+    }, governed)
+    inarng = er.classify_record({
+        "lane": "L1_notice",
+        "title": "INARNG Leadership Development Support Service",
+        "description": (
+            "PSC U008 Training/Curriculum Development. The contractor shall "
+            "implement a Junior Leadership Development Training Program."),
+        "response_deadline": "2026-09-14T10:00:00-04:00",
+        "set_aside": "Small Business Set Aside - Total",
+        "set_aside_code": "SBA",
+    }, governed)
 
     assert taep["service_fit"] == "direct"
     assert taep["commercial_route"] == "possible_subcontracting"
@@ -571,6 +820,12 @@ def test_jtg_curriculum_frame_preserves_real_fit_without_training_broadening():
     assert leadership_training["service_fit"] != "direct"
     assert machine_learning["service_fit"] != "direct"
     assert email_development["service_fit"] != "direct"
+    assert software_subscription["service_fit"] == "unrelated"
+    assert "no instructional-content deliverable" in \
+        software_subscription["fit_basis"]
+    assert afrep["service_fit"] == "direct"
+    assert inarng["service_fit"] == "ambiguous"
+    assert "administrative PSC label" in inarng["fit_basis"]
     assert medical["service_fit"] == "unrelated"
     assert medical["evidence_class"] == "excluded"
 

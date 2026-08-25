@@ -51,7 +51,7 @@ from agents.golden_press.evidence_objects import (
     CLAIM_RECIPIENT, CLAIM_SPEND, EVENT, FORECAST, NOTICE, CoverageState,
     EvidenceReference, ExactMoney, complete, partial, research_next)
 
-MARKET_MAP_PROJECTION_VERSION = "market_map_projection.v2.2026-08-24"
+MARKET_MAP_PROJECTION_VERSION = "market_map_projection.v3.2026-08-25"
 
 _HEX = re.compile(r"^[0-9a-f]{32}$", re.I)
 
@@ -1363,6 +1363,16 @@ def _v2_opportunity(row: dict, targets: tuple) -> Opportunity:
     instrument = _clean(row.get("instrument"))
     instrument_norm = instrument.casefold()
     commercial_route = _clean(row.get("commercial_route"))
+    route_action = _clean(row.get("route_action")).casefold()
+    if route_action not in {"prime", "team", "verify"}:
+        if (commercial_route in {"direct", "incumbent"}
+                and row.get("eligible_route") is True):
+            route_action = "prime"
+        elif commercial_route in {
+                "named_partner_teaming", "possible_subcontracting"}:
+            route_action = "team"
+        else:
+            route_action = "verify"
     if source_kind == FORECAST:
         motion = SHAPE
         action = "Shape the requirement before it becomes a solicitation."
@@ -1370,16 +1380,35 @@ def _v2_opportunity(row: dict, targets: tuple) -> Opportunity:
         motion = SHAPE
         action = "Respond while the requirement is still being shaped."
     elif any(term in instrument_norm for term in _ACTIVE_TYPES):
-        motion = PRIME if commercial_route == "direct" else TEAM
-        action = "A response is required by the published date."
+        motion = {
+            "prime": PRIME,
+            "team": TEAM,
+            "verify": STATUS_CHECK,
+        }[route_action]
+        action = {
+            "prime": "Prepare the direct response by the published date.",
+            "team": "Engage an eligible prime and prepare the response by the published date.",
+            "verify": "Verify the response path with the buying office before the published date.",
+        }[route_action]
     else:
         motion = STATUS_CHECK
         action = "Confirm the current procurement status in the source record."
-    access_route = {
-        "direct": "Bid directly.",
-        "named_partner_teaming": "Use the named eligible teaming route.",
-        "restricted_route_needed": "Confirm an eligible route before pursuit.",
-    }.get(commercial_route, _clean(row.get("access_rule")))
+    # The pursuit action owns client-facing route copy.  ``commercial_route``
+    # may refine an already-compatible action, but it cannot override a
+    # verify decision with stale direct/incumbent language.
+    if route_action == "prime":
+        access_route = {
+            "direct": "Bid directly.",
+            "incumbent": "Use the evidenced incumbent route.",
+        }.get(commercial_route, "Use the verified direct response route.")
+    elif route_action == "team":
+        access_route = {
+            "named_partner_teaming": "Use the named eligible teaming route.",
+            "possible_subcontracting": (
+                "Engage an eligible prime for the teaming path."),
+        }.get(commercial_route, "Engage an eligible prime for the teaming path.")
+    else:
+        access_route = "Verify a direct, vehicle, or teaming path."
     contacts = tuple({
         "name": _clean(target.get("name")),
         "email": _clean(target.get("email")),

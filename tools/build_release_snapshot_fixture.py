@@ -53,6 +53,7 @@ from agents.golden_press.release_snapshot import (
 from agents.reports.report_assets import client_logo, gtm_logo
 from tools.atomic_io import atomic_write_text
 from tools.intelligence_graph.cache import stable_hash
+from tools.intelligence_graph.workflow import PURSUIT_PROMOTION_VERSION
 
 
 _FIXTURE_REPLACEMENTS = (
@@ -199,6 +200,7 @@ def build_fixture(
             "market_map_projection": MARKET_MAP_PROJECTION_VERSION,
             "market_map_skeleton": MARKET_MAP_SKELETON_VERSION,
             "release_compiler": RELEASE_COMPILER_VERSION,
+            "pursuit_promotion": PURSUIT_PROMOTION_VERSION,
             "fixture_source": "real-jtg-non-champion.v1",
             "fixture_classification_source": "evidence_pack.generated_at",
             "fixture_classifier": CLASSIFIER_VERSION,

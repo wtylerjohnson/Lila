@@ -346,6 +346,7 @@ def capture_release_snapshot(
     from agents.golden_press.market_map_skeleton import (
         MARKET_MAP_SKELETON_VERSION,
     )
+    from tools.intelligence_graph.workflow import PURSUIT_PROMOTION_VERSION
 
     root = Path(root).resolve()
     pressed_pack_path, pack = _load_pack(root, slug)
@@ -375,6 +376,7 @@ def capture_release_snapshot(
         "market_map_projection": MARKET_MAP_PROJECTION_VERSION,
         "market_map_skeleton": MARKET_MAP_SKELETON_VERSION,
         "release_compiler": RELEASE_COMPILER_VERSION,
+        "pursuit_promotion": PURSUIT_PROMOTION_VERSION,
     }
     try:
         evidence_bytes = pressed_pack_path.read_bytes()
