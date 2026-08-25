@@ -188,6 +188,7 @@ _AGENCY_ALIASES = {
 
 def _normalize_agency(label: str) -> str:
     value = re.sub(r"[.,()]+", " ", str(label or "").casefold())
+    value = re.sub(r"\bu\s+s\b", "us", value)
     value = re.sub(r"\bu\.?s\.?\b", "us", value)
     words = [w for w in value.split() if w not in ("the",)]
     return " ".join(words)

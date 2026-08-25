@@ -15,6 +15,7 @@ from agents.golden_press.external_product_projection import (
     record_ownership_key,
 )
 from agents.golden_press.external_product_render import (
+    capture_external_product_identity_assets,
     render_external_product,
     render_slot,
     validate_external_product_document,
@@ -895,6 +896,62 @@ def test_scriptless_renderer_carries_all_slots_marks_sources_and_visuals(monkeyp
     assert 'class="product-ledger product-research-ledger"' in client
     assert "Replayable query receipt" in client
     assert ".product-detail, .product-review-evidence {display:none!important}" in client
+
+
+def test_renderer_freezes_and_enforces_typed_agency_identity(monkeypatch):
+    from agents.reports import report_assets
+
+    monkeypatch.setattr(report_assets, "client_logo", lambda _name: _mark())
+    monkeypatch.setattr(report_assets, "gtm_logo", _mark)
+    monkeypatch.setattr(
+        report_assets, "agency_seal",
+        lambda _label, _client=None: _mark())
+    document = _document()
+    identity_assets = capture_external_product_identity_assets(document)
+
+    assert identity_assets["agency_marks"]["agency:dos"] == _mark()
+    assert identity_assets["organization_marks"] == {}
+    _studio, client = render_external_product(document)
+    verdict = validate_external_product_html(client, document)
+    assert verdict["ok"], verdict["violations"]
+    assert 'data-brand-kind="agency" data-brand-key="agency:dos"' in client
+    assert 'data-identity-mark="seal" data-agency-seal="true"' in client
+
+    tampered = client.replace(
+        'data-brand-kind="agency"', 'data-brand-kind="company"', 1)
+    broken = validate_external_product_html(tampered, document)
+    assert "record_identity_kind" in {
+        row["rule"] for row in broken["violations"]}
+
+
+def test_event_organizer_never_inherits_a_federal_seal(monkeypatch):
+    from agents.reports import report_assets
+
+    monkeypatch.setattr(report_assets, "client_logo", lambda _name: _mark())
+    monkeypatch.setattr(report_assets, "gtm_logo", _mark)
+    document = _document()
+    event_slot = next(slot for slot in document.slots
+                      if slot.slot_id == "industry-days-events")
+    event = {
+        **event_slot.records[0],
+        "agency": "Navy League",
+        "sub_agency": "",
+        "title": "Navy League event",
+    }
+    event_slot = replace(event_slot, records=(event,))
+    document = replace(document, slots=tuple(
+        event_slot if slot.slot_id == event_slot.slot_id else slot
+        for slot in document.slots))
+
+    _studio, client = render_external_product(document)
+    verdict = validate_external_product_html(client, document)
+
+    assert verdict["ok"], verdict["violations"]
+    assert ('data-brand-kind="company" '
+            'data-brand-key="company:navy_league"') in client
+    assert 'data-brand-key="agency:navy"' not in client
+    assert 'data-brand-label="Navy League" data-identity-mark="fallback"' \
+        in client
 
 
 @pytest.mark.parametrize(("injection", "expected_rule"), (

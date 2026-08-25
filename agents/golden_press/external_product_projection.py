@@ -29,7 +29,7 @@ from agents.golden_press.release_snapshot import (
 )
 
 
-EXTERNAL_PRODUCT_PROJECTION_VERSION = "lila-external-product.v8.2026-08-25"
+EXTERNAL_PRODUCT_PROJECTION_VERSION = "lila-external-product.v9.2026-08-25"
 
 _USASPENDING_NONE_AWARD = re.compile(
     r"^https?://(?:www\.)?usaspending\.gov/award/"
@@ -831,6 +831,8 @@ def _priority_records(
                 "each action or decision group"
             ),
             "title": row.get("title"),
+            "agency": _text(row.get("agency")),
+            "sub_agency": _text(row.get("sub_agency")),
             "why": _text(
                 "; ".join(row.get("reasons") or []) if decision_required
                 else row.get("priority_basis") or row.get("service_fit")

@@ -17,6 +17,8 @@ from tools import brand_marks as _bm
 _MEDIA = {".png": "image/png", ".svg": "image/svg+xml", ".webp": "image/webp",
           ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}
 _INDEPENDENT_SEAL_KEYS = {
+    "equal employment opportunity commission": "eeoc",
+    "eeoc": "eeoc",
     "export-import bank of the us": "exim",
     "export-import bank of the united states": "exim",
     "exim": "exim",
@@ -29,8 +31,32 @@ _INDEPENDENT_SEAL_KEYS = {
     "u.s. senate": "senate",
     "national transportation safety board": "ntsb",
     "ntsb": "ntsb",
+    "national science foundation": "nsf",
+    "nsf": "nsf",
+    "u.s. agency for global media": "usagm",
+    "us agency for global media": "usagm",
+    "united states agency for global media": "usagm",
+    "usagm": "usagm",
 }
 _COMPONENT_SEAL_KEYS = {
+    "department of the army": "army",
+    "department of army": "army",
+    "dept of the army": "army",
+    "dept of army": "army",
+    "u.s. army": "army",
+    "us army": "army",
+    "department of the navy": "navy",
+    "department of navy": "navy",
+    "dept of the navy": "navy",
+    "dept of navy": "navy",
+    "u.s. navy": "navy",
+    "us navy": "navy",
+    "department of the air force": "usaf",
+    "department of air force": "usaf",
+    "dept of the air force": "usaf",
+    "dept of air force": "usaf",
+    "u.s. air force": "usaf",
+    "us air force": "usaf",
     "bureau of land management": "doi",
     "blm": "doi",
     "federal highway administration": "dot",
@@ -119,7 +145,10 @@ def agency_seal_path(agency: Optional[str]) -> Optional[Path]:
     if not agency:
         return None
     key = _seal_key(str(agency)) or str(agency)
-    return _bm.find_mark(_bm.seals_dir(), key)
+    found = _bm.find_mark(_bm.seals_dir(), key)
+    if not found and key in {"army", "navy", "usaf"}:
+        found = _bm.find_mark(_bm.seals_dir(), "dod")
+    return found
 
 
 def client_assets_dir(client_name: str) -> Path:

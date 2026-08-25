@@ -311,7 +311,10 @@ def _build_graph(
             connection.close()
 
 
-def _capture_render_assets(client_name: str) -> dict:
+def _capture_render_assets(client_name: str, product: Any) -> dict:
+    from agents.golden_press.external_product_render import (
+        capture_external_product_identity_assets,
+    )
     from agents.golden_press.market_map_skeleton import load_css, load_runtime
     from agents.reports.report_assets import client_logo, gtm_logo
 
@@ -320,6 +323,7 @@ def _capture_render_assets(client_name: str) -> dict:
         "runtime": load_runtime(),
         "client_mark": client_logo(client_name),
         "gtm_mark": gtm_logo(),
+        **capture_external_product_identity_assets(product),
     }
 
 
@@ -335,12 +339,14 @@ def capture_release_snapshot(
     )
     from agents.golden_press.external_product_projection import (
         EXTERNAL_PRODUCT_PROJECTION_VERSION,
+        build_external_product_document,
     )
     from agents.golden_press.external_product_render import (
         EXTERNAL_PRODUCT_RENDER_VERSION,
     )
     from agents.golden_press.market_map_projection import (
         MARKET_MAP_PROJECTION_VERSION,
+        build_market_map,
         capture_inputs,
     )
     from agents.golden_press.market_map_skeleton import (
@@ -378,6 +384,21 @@ def capture_release_snapshot(
         "release_compiler": RELEASE_COMPILER_VERSION,
         "pursuit_promotion": PURSUIT_PROMOTION_VERSION,
     }
+    preview_market_map = build_market_map(
+        pack, profile=profile, slug=slug, as_of=business_as_of,
+        inputs=market_map_inputs)
+    preview_product = build_external_product_document(
+        market_map=preview_market_map,
+        graph_payload=graph,
+        evidence_pack=pack,
+        profile=profile,
+        client_name=client_name,
+        slug=slug,
+        as_of=business_as_of,
+        contract_slots=slots,
+        contract_version=CONTRACT_VERSION,
+        contract_sha256=OPERATOR_LOCKED_SLOT_SHA256,
+    )
     try:
         evidence_bytes = pressed_pack_path.read_bytes()
     except OSError as exc:
@@ -396,7 +417,7 @@ def capture_release_snapshot(
         profile=profile,
         graph=graph,
         market_map_inputs=market_map_inputs,
-        render_assets=_capture_render_assets(client_name),
+        render_assets=_capture_render_assets(client_name, preview_product),
         root=root,
         evidence_pack_bytes=evidence_bytes,
     )

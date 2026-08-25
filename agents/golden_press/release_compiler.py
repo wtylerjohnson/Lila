@@ -197,7 +197,8 @@ def compile_release_snapshot(snapshot: ReleaseSnapshot) -> CompiledRelease:
         client_html = client_html.replace(
             "<body>", "<body>" + _FIXTURE_BANNER, 1)
     validation = validate_external_product_html(
-        client_html, product, contract_slots=snapshot.contract_slots)
+        client_html, product, contract_slots=snapshot.contract_slots,
+        render_assets=snapshot.render_assets)
     if not validation.get("ok"):
         details = [
             f"{row.get('rule')}: {row.get('detail')}"

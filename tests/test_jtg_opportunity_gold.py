@@ -383,6 +383,17 @@ def test_real_jtg_captured_inputs_pass_normal_graph_projection_and_gold(
     assert product.graph_receipt["pursuit_membership_conserved"] is True
     html_receipt = validate_external_product_html(client_html, product)
     assert html_receipt["ok"] is True, html_receipt["violations"]
+    assert html_receipt["identity_contract"] == {
+        "expected_placements": 176,
+        "priority_reference_placements": 14,
+        "owned_or_review_placements": 162,
+        "embedded_official_marks": 171,
+        "visible_fallbacks": 5,
+    }
+    assert client_html.count('data-brand-key="agency:navy"') >= 5
+    assert client_html.count('data-brand-key="agency:army"') >= 2
+    assert ('data-brand-kind="company" '
+            'data-brand-key="company:navy_league"') in client_html
     assert "M6785426R8017" in client_html
     assert "W15QKN-26-Q-0007" in client_html
     assert "https://sam.gov/opp/fd11917ee4044f4eab51e95e117c4a09/view" \

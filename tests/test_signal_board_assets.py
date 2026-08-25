@@ -67,6 +67,26 @@ def test_unlisted_components_share_their_department_seal_and_drop_key():
     assert ra._seal_key("IRS · OCC") == "treas"
 
 
+def test_military_departments_keep_their_branch_specific_seal_identity():
+    assert ra._seal_key("DEPT OF THE NAVY") == "navy"
+    assert ra._seal_key("DEPT OF THE ARMY") == "army"
+    assert ra._seal_key("DEPT OF THE AIR FORCE") == "usaf"
+
+
+def test_military_branch_falls_back_to_dod_when_specific_asset_is_absent(
+        tmp_path, monkeypatch):
+    _seals(tmp_path, monkeypatch, names=("dod",))
+    assert ra.agency_seal("DEPT OF THE NAVY").startswith(
+        "data:image/png;base64,")
+
+
+def test_packaged_catalog_normalizes_usagm_punctuation():
+    from agents.golden_press.report_templates import find_mark
+
+    mark = find_mark("U.S. Agency for Global Media", kind="agency")
+    assert mark and str(mark.get("src") or "").startswith("data:image/")
+
+
 def test_missing_seal_is_empty_never_broken(tmp_path, monkeypatch):
     _seals(tmp_path, monkeypatch, names=())
     assert ra.agency_seal("USPTO") == ""

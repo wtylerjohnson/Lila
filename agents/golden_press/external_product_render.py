@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import hashlib
 import html
 import json
 import re
 from html.parser import HTMLParser
-from typing import Any
+from typing import Any, Mapping
 from urllib.parse import urlsplit
 
 from agents.golden_press.external_product_contract import load_external_product_slots
@@ -17,7 +18,7 @@ from agents.golden_press.external_product_projection import (
 from agents.golden_press.release_snapshot import canonical_slot_sha256
 
 
-EXTERNAL_PRODUCT_RENDER_VERSION = "lila-eight-slot-render.v9.2026-08-25"
+EXTERNAL_PRODUCT_RENDER_VERSION = "lila-eight-slot-render.v10.2026-08-25"
 
 _LOCAL_PATH = re.compile(
     r"(?:file://|(?:^|[\"'\s(=:])/(?:users|home)/)", re.I | re.M)
@@ -171,6 +172,74 @@ def _external_html_safety_violations(client_html: str) -> list[dict]:
     return parser.violations
 
 
+class _IdentitySurfaceParser(HTMLParser):
+    """Collect typed record identity surfaces from the rendered client HTML."""
+
+    _VOID = frozenset({
+        "area", "base", "br", "col", "embed", "hr", "img", "input",
+        "link", "meta", "param", "source", "track", "wbr",
+    })
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.surfaces: list[dict[str, Any]] = []
+        self._current: dict[str, Any] | None = None
+        self._depth = 0
+        self._fallback_depth: int | None = None
+
+    def handle_starttag(
+        self, tag: str, attrs: list[tuple[str, str | None]],
+    ) -> None:
+        values = {str(key).casefold(): "" if value is None else str(value)
+                  for key, value in attrs}
+        classes = set(values.get("class", "").split())
+        tag = tag.casefold()
+        if self._current is None:
+            if tag == "div" and "product-identity-mark" in classes:
+                self._current = {
+                    "attrs": values, "images": [], "fallback": [],
+                }
+                self._depth = 1
+            return
+        if tag == "img":
+            self._current["images"].append(values)
+        if tag not in self._VOID:
+            self._depth += 1
+            if tag == "span" and "logo-fallback" in classes:
+                self._fallback_depth = self._depth
+
+    def handle_startendtag(
+        self, tag: str, attrs: list[tuple[str, str | None]],
+    ) -> None:
+        self.handle_starttag(tag, attrs)
+        if self._current is not None and tag.casefold() not in self._VOID:
+            self.handle_endtag(tag)
+
+    def handle_endtag(self, tag: str) -> None:
+        if self._current is None or tag.casefold() in self._VOID:
+            return
+        if self._fallback_depth == self._depth:
+            self._fallback_depth = None
+        self._depth -= 1
+        if self._depth == 0:
+            self.surfaces.append(self._current)
+            self._current = None
+
+    def handle_data(self, data: str) -> None:
+        if self._current is not None and self._fallback_depth is not None:
+            self._current["fallback"].append(data)
+
+
+def _identity_surfaces(client_html: str) -> list[dict[str, Any]]:
+    parser = _IdentitySurfaceParser()
+    try:
+        parser.feed(client_html)
+        parser.close()
+    except (AssertionError, ValueError):
+        return []
+    return parser.surfaces
+
+
 _PRODUCT_CSS = r"""
 .product-css-sentinel{display:contents}
 .product-slot{scroll-margin-top:32px}
@@ -204,6 +273,14 @@ _PRODUCT_CSS = r"""
 .product-action-order.product-decision-badge{width:62px;font-size:9px;text-transform:uppercase}
 .product-slot[data-slot-id="research-mesh"] .product-records,.product-slot[data-slot-id="industry-days-events"] .product-records{grid-template-columns:repeat(3,minmax(0,1fr))}
 .product-record{border:1px solid var(--line);background:var(--paper);padding:17px;min-width:0;break-inside:avoid}
+.product-identity-mark{display:grid;grid-template-columns:44px minmax(0,1fr);gap:10px;align-items:center;margin:0 0 12px;padding:0 0 11px;border-bottom:1px solid var(--line)}
+.product-identity-mark .product-agency-seal.logo-slot{width:42px;height:42px;min-width:42px;border:0;border-radius:50%;background:transparent;padding:0;overflow:hidden}
+.product-identity-mark .product-agency-seal.logo-slot img{width:100%;height:100%;object-fit:contain;display:block}
+.product-identity-mark .product-agency-seal.logo-slot .logo-fallback{display:flex;width:100%;height:100%;align-items:center;justify-content:center;border:1px solid var(--line-strong);border-radius:50%;background:var(--paper-deep);color:var(--ink);font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.04em}
+.product-identity-mark .product-agency-seal.logo-slot.has-image .logo-fallback{display:none}
+.product-identity-copy{min-width:0}
+.product-identity-copy span{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.09em}
+.product-identity-copy strong{display:block;margin-top:3px;font-size:11px;line-height:1.3;overflow-wrap:anywhere}
 .product-record-kind{display:block;color:var(--accent);font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px}
 .product-record h3{font-size:17px;line-height:1.3;margin:0 0 8px;overflow-wrap:anywhere}
 .product-record p{color:var(--muted);font-size:13px;line-height:1.55;margin:7px 0}
@@ -261,6 +338,8 @@ html,body,.memo{background:#fff!important;-webkit-print-color-adjust:exact;print
 .product-slot[data-slot-id="priority-pursuits"] .product-records,.product-slot[data-slot-id="federal-opportunities"] .product-records{grid-template-columns:1fr}
 .product-slot[data-slot-id="federal-opportunities"] .product-review-records{grid-template-columns:1fr}
 .product-record{margin:0;break-inside:avoid;page-break-inside:avoid;padding:13px;overflow:hidden}
+.product-identity-mark{grid-template-columns:36px minmax(0,1fr);gap:8px;margin-bottom:9px;padding-bottom:8px}
+.product-identity-mark .product-agency-seal.logo-slot{width:34px;height:34px;min-width:34px}
 .product-detail,.product-review-evidence{display:none!important}
 .product-research-ledger>.product-ledger-body,.product-review-queue:not([open])>.product-ledger-body{display:none!important}
 .product-ledger>summary{padding:10px 12px;break-inside:avoid;page-break-inside:avoid}
@@ -402,7 +481,201 @@ def _targets(record: dict) -> str:
             + "".join(rows) + "</div>")
 
 
-def _priority(record: dict) -> str:
+def _identity_labels(record: Mapping[str, Any]) -> tuple[str, ...]:
+    labels: list[str] = []
+    for key in ("sub_agency", "agency"):
+        label = " ".join(str(record.get(key) or "").split())
+        if label and label not in labels:
+            labels.append(label)
+    return tuple(labels)
+
+
+def _brand_key(client_name: str, kind: str, label: str) -> str:
+    from agents.reports.signal_board_presentation import logo_identity
+
+    return logo_identity(client_name, kind, label)
+
+
+def _freeze_identity_mark(target: dict[str, str], key: str, src: str) -> None:
+    if src and not str(src).startswith("data:image/"):
+        raise ValueError(f"external product identity mark {key!r} is not portable")
+    previous = target.get(key) if key in target else None
+    if previous is not None and previous != src:
+        raise ValueError(f"external product identity mark {key!r} is ambiguous")
+    target[key] = src
+
+
+def capture_external_product_identity_assets(
+    doc: ExternalProductDocument,
+) -> dict[str, dict[str, str]]:
+    """Resolve every visible record identity before the pure release compile.
+
+    Federal records use the curated agency resolver and then the committed
+    packaged seal catalog. Event organizers are treated as organizations unless
+    the strict federal resolver recognizes them; this prevents names such as
+    ``Navy League`` from inheriting a military seal by word association.
+    """
+    from agents.golden_press.report_templates import find_mark
+    from agents.reports import report_assets
+
+    agency_marks: dict[str, str] = {}
+    organization_marks: dict[str, str] = {}
+
+    def catalog_src(label: str, *, kind: str) -> str:
+        entry = find_mark(label, kind=kind)
+        return str((entry or {}).get("src") or "")
+
+    for slot in doc.slots:
+        for record in tuple(slot.records) + tuple(slot.review_records):
+            labels = _identity_labels(record)
+            if not labels:
+                continue
+            is_event = str(record.get("kind") or "").casefold() == "event"
+            if is_event:
+                federal = any(report_assets._seal_key(label) for label in labels)
+                if federal:
+                    for label in labels:
+                        strict_key = report_assets._seal_key(label)
+                        if not strict_key:
+                            continue
+                        src = (report_assets.agency_seal(label, doc.client_name)
+                               or catalog_src(label, kind="agency"))
+                        _freeze_identity_mark(
+                            agency_marks,
+                            _brand_key(doc.client_name, "agency", label),
+                            src,
+                        )
+                    continue
+                for label in labels:
+                    src = (report_assets.company_logo(label, doc.client_name)
+                           or catalog_src(label, kind="org"))
+                    _freeze_identity_mark(
+                        organization_marks,
+                        _brand_key(doc.client_name, "company", label),
+                        src,
+                    )
+                continue
+            for label in labels:
+                src = (report_assets.agency_seal(label, doc.client_name)
+                       or catalog_src(label, kind="agency"))
+                _freeze_identity_mark(
+                    agency_marks,
+                    _brand_key(doc.client_name, "agency", label),
+                    src,
+                )
+    return {
+        "agency_marks": dict(sorted(agency_marks.items())),
+        "organization_marks": dict(sorted(organization_marks.items())),
+    }
+
+
+def _frozen_identity_maps(
+    render_assets: Any,
+) -> tuple[dict[str, str], dict[str, str]]:
+    if not isinstance(render_assets, Mapping):
+        return {}, {}
+    agency = render_assets.get("agency_marks") or {}
+    organizations = render_assets.get("organization_marks") or {}
+    return (
+        {str(key): str(value) for key, value in agency.items()}
+        if isinstance(agency, Mapping) else {},
+        {str(key): str(value) for key, value in organizations.items()}
+        if isinstance(organizations, Mapping) else {},
+    )
+
+
+def _record_identity(
+    record: Mapping[str, Any], *, client_name: str,
+    agency_marks: Mapping[str, str],
+    organization_marks: Mapping[str, str],
+) -> tuple[str, str, str, str] | None:
+    labels = _identity_labels(record)
+    if not labels:
+        return None
+    is_event = str(record.get("kind") or "").casefold() == "event"
+    if is_event:
+        for label in labels:
+            key = _brand_key(client_name, "agency", label)
+            if agency_marks.get(key):
+                return "agency", label, key, str(agency_marks[key])
+        for label in labels:
+            key = _brand_key(client_name, "company", label)
+            if organization_marks.get(key):
+                return "company", label, key, str(organization_marks[key])
+        for label in labels:
+            key = _brand_key(client_name, "agency", label)
+            if key in agency_marks:
+                return "agency", label, key, ""
+        for label in labels:
+            key = _brand_key(client_name, "company", label)
+            if key in organization_marks:
+                return "company", label, key, ""
+        from agents.reports.report_assets import _seal_key
+        for label in labels:
+            if _seal_key(label):
+                return "agency", label, _brand_key(
+                    client_name, "agency", label), ""
+        label = labels[0]
+        return "company", label, _brand_key(client_name, "company", label), ""
+    for label in labels:
+        key = _brand_key(client_name, "agency", label)
+        if agency_marks.get(key):
+            return "agency", label, key, str(agency_marks[key])
+    for label in labels:
+        key = _brand_key(client_name, "agency", label)
+        if key in agency_marks:
+            return "agency", label, key, ""
+    label = labels[0]
+    return "agency", label, _brand_key(client_name, "agency", label), ""
+
+
+def _identity_surface_key(
+    slot_id: str, record: Mapping[str, Any], index: int, *, review: bool = False,
+) -> str:
+    role = "review" if review else "record"
+    reference = record.get("reference_key") or record.get("record_key")
+    digest = hashlib.sha256(
+        str(reference or "anonymous").encode("utf-8")).hexdigest()[:16]
+    return f"{slot_id}:{role}:{index}:{digest}"
+
+
+def _identity_mark(
+    record: Mapping[str, Any], *, client_name: str,
+    agency_marks: Mapping[str, str],
+    organization_marks: Mapping[str, str], surface_key: str,
+) -> str:
+    identity = _record_identity(
+        record, client_name=client_name, agency_marks=agency_marks,
+        organization_marks=organization_marks)
+    if identity is None:
+        return ""
+    kind, label, key, src = identity
+    from agents.golden_press.market_map_skeleton import logo_slot
+
+    slot = logo_slot(
+        f"product-identity-{surface_key}", label,
+        cls="product-agency-seal",
+        required=False, src=src,
+    )
+    label_kind = "Federal authority" if kind == "agency" else "Organization"
+    state = "seal" if src else "fallback"
+    return (
+        f'<div class="product-identity-mark" '
+        f'data-product-identity-key="{esc(surface_key)}" '
+        f'data-brand-kind="{esc(kind)}" data-brand-key="{esc(key)}" '
+        f'data-brand-label="{esc(label)}" data-identity-mark="{state}"'
+        + (' data-agency-seal="true"' if kind == "agency" and src else "")
+        + f'>{slot}<div class="product-identity-copy">'
+        f'<span>{esc(label_kind)}</span><strong>{esc(label)}</strong>'
+        '</div></div>')
+
+
+def _priority(
+    record: dict, *, client_name: str = "",
+    agency_marks: Mapping[str, str] | None = None,
+    organization_marks: Mapping[str, str] | None = None,
+    surface_key: str = "",
+) -> str:
     fields = []
     for label, key in (("Route", "route"),
                        ("Pursuit path", "route_action"),
@@ -430,7 +703,14 @@ def _priority(record: dict) -> str:
     return (
         f'<article class="{classes}">'
         f'<div class="product-action-order{" product-decision-badge" if decision_required else ""}">{esc(badge)}</div>'
-        f'<div><span class="product-record-kind">{esc(label)}</span>'
+        '<div>'
+        + _identity_mark(
+            record, client_name=client_name,
+            agency_marks=agency_marks or {},
+            organization_marks=organization_marks or {},
+            surface_key=surface_key,
+        )
+        + f'<span class="product-record-kind">{esc(label)}</span>'
         f'<h3>{esc(record.get("title"))}</h3>'
         f'<p>{esc(record.get("why"))}</p>'
         + ('<dl class="product-fields">' + "".join(fields) + "</dl>" if fields else "")
@@ -440,9 +720,14 @@ def _priority(record: dict) -> str:
 
 def _record(
     record: dict, *, include_targets: bool = False, review: bool = False,
+    client_name: str = "", agency_marks: Mapping[str, str] | None = None,
+    organization_marks: Mapping[str, str] | None = None,
+    surface_key: str = "",
 ) -> str:
     if "reference_key" in record:
-        return _priority(record)
+        return _priority(
+            record, client_name=client_name, agency_marks=agency_marks,
+            organization_marks=organization_marks, surface_key=surface_key)
     summary = record.get("summary") or record.get("next_action") or ""
     if (" ".join(str(summary).split()).casefold()
             == " ".join(str(record.get("title") or "").split()).casefold()):
@@ -475,6 +760,12 @@ def _record(
         f'data-record-key="{esc(record.get("record_key"))}" '
         f'data-decision-state="{esc(decision_state if review else "")}">'
         + decision
+        + _identity_mark(
+            record, client_name=client_name,
+            agency_marks=agency_marks or {},
+            organization_marks=organization_marks or {},
+            surface_key=surface_key,
+        )
         + f'<span class="product-record-kind">{esc(record.get("kind"))}</span>'
         + f'<h3>{esc(record.get("title"))}</h3>'
         + (f'<p>{esc(summary)}</p>' if summary else "")
@@ -484,7 +775,11 @@ def _record(
         + "</article>")
 
 
-def _review_queue(slot: Any) -> str:
+def _review_queue(
+    slot: Any, *, client_name: str = "",
+    agency_marks: Mapping[str, str] | None = None,
+    organization_marks: Mapping[str, str] | None = None,
+) -> str:
     if not slot.review_records:
         return ""
     opportunity = slot.slot_id == "federal-opportunities"
@@ -497,9 +792,16 @@ def _review_queue(slot: Any) -> str:
         "These records remain visible for adjudication or context, but their "
         "figures are excluded from qualified totals."
     )
-    records = "".join(_record(
-        row, review=True, include_targets=opportunity)
-                      for row in slot.review_records)
+    records = "".join(
+        _record(
+            row, review=True, include_targets=opportunity,
+            client_name=client_name, agency_marks=agency_marks,
+            organization_marks=organization_marks,
+            surface_key=_identity_surface_key(
+                slot.slot_id, row, index, review=True),
+        )
+        for index, row in enumerate(slot.review_records)
+    )
     open_attribute = " open" if opportunity else ""
     review_count = sum(
         row.get("decision_state") == "needs_review"
@@ -521,10 +823,15 @@ def _review_queue(slot: Any) -> str:
     )
 
 
-def _priority_groups(records: Any) -> str:
-    qualified = [row for row in records
+def _priority_groups(
+    records: Any, *, slot_id: str, client_name: str,
+    agency_marks: Mapping[str, str],
+    organization_marks: Mapping[str, str],
+) -> str:
+    indexed = list(enumerate(records))
+    qualified = [(index, row) for index, row in indexed
                  if row.get("reference_kind") != "decision_required"]
-    decisions = [row for row in records
+    decisions = [(index, row) for index, row in indexed
                  if row.get("reference_kind") == "decision_required"]
     sections = []
     if qualified:
@@ -532,23 +839,38 @@ def _priority_groups(records: Any) -> str:
             '<div class="product-priority-group">'
             '<h3>Qualified actions</h3>'
             '<div class="product-records">'
-            + "".join(_priority(row) for row in qualified)
+            + "".join(_priority(
+                row, client_name=client_name, agency_marks=agency_marks,
+                organization_marks=organization_marks,
+                surface_key=_identity_surface_key(slot_id, row, index))
+                      for index, row in qualified)
             + '</div></div>')
     if decisions:
         sections.append(
             '<details class="product-ledger product-priority-decisions" open>'
             f'<summary>Decisions to resolve <span>· {len(decisions)} record(s)</span></summary>'
             '<div class="product-ledger-body product-records">'
-            + "".join(_priority(row) for row in decisions)
+            + "".join(_priority(
+                row, client_name=client_name, agency_marks=agency_marks,
+                organization_marks=organization_marks,
+                surface_key=_identity_surface_key(slot_id, row, index))
+                      for index, row in decisions)
             + '</div></details>')
     return "".join(sections)
 
 
-def _record_ledger(slot: Any, records: str) -> str:
+def _record_ledger(
+    slot: Any, records: str, *, client_name: str,
+    agency_marks: Mapping[str, str],
+    organization_marks: Mapping[str, str],
+) -> str:
     if not records:
         return ""
     if slot.slot_id == "priority-pursuits":
-        return _priority_groups(slot.records)
+        return _priority_groups(
+            slot.records, slot_id=slot.slot_id, client_name=client_name,
+            agency_marks=agency_marks,
+            organization_marks=organization_marks)
     if slot.slot_id == "research-mesh":
         query_count = sum(
             row.get("kind") == "research_query" for row in slot.records)
@@ -651,11 +973,24 @@ def _visuals(visuals: Any) -> str:
             if cards else "")
 
 
-def render_slot(slot: Any) -> str:
+def render_slot(
+    slot: Any, *, client_name: str = "",
+    agency_marks: Mapping[str, str] | None = None,
+    organization_marks: Mapping[str, str] | None = None,
+) -> str:
+    agency_marks = agency_marks or {}
+    organization_marks = organization_marks or {}
     include_targets = slot.slot_id in {
         "federal-opportunities", "teaming-opportunities"}
-    records = "".join(_record(row, include_targets=include_targets)
-                      for row in slot.records)
+    records = "".join(
+        _record(
+            row, include_targets=include_targets,
+            client_name=client_name, agency_marks=agency_marks,
+            organization_marks=organization_marks,
+            surface_key=_identity_surface_key(slot.slot_id, row, index),
+        )
+        for index, row in enumerate(slot.records)
+    )
     gaps = "".join(f'<div class="product-gap">{esc(gap)}</div>'
                    for gap in slot.gaps)
     status_class = " product-slot-gap" if slot.status == "gap" else ""
@@ -669,8 +1004,13 @@ def render_slot(slot: Any) -> str:
         f'<span class="plain-state product-status">{esc(slot.status)}</span></div>'
         + _metrics(slot.metrics)
         + '</div>'
-        + _record_ledger(slot, records)
-        + _review_queue(slot)
+        + _record_ledger(
+            slot, records, client_name=client_name,
+            agency_marks=agency_marks,
+            organization_marks=organization_marks)
+        + _review_queue(
+            slot, client_name=client_name, agency_marks=agency_marks,
+            organization_marks=organization_marks)
         + _visuals(slot.visuals) + gaps + "</section>")
 
 
@@ -807,7 +1147,15 @@ def render_external_product(
 
     sections = [(slot.slot_id, slot.heading) for slot in doc.slots]
     ids = EditIds(prefix="lila")
-    content = "".join(render_slot(slot) for slot in doc.slots)
+    if render_assets is None:
+        identity_assets = capture_external_product_identity_assets(doc)
+        agency_marks = identity_assets["agency_marks"]
+        organization_marks = identity_assets["organization_marks"]
+    else:
+        agency_marks, organization_marks = _frozen_identity_maps(render_assets)
+    content = "".join(render_slot(
+        slot, client_name=doc.client_name, agency_marks=agency_marks,
+        organization_marks=organization_marks) for slot in doc.slots)
     details = _work_details(doc)
     classification_as_of = (
         doc.source_receipt.get("classification_as_of") or doc.as_of)
@@ -1005,9 +1353,133 @@ def validate_external_product_document(
     return violations
 
 
+def _validate_identity_contract(
+    client_html: str, doc: ExternalProductDocument, *, render_assets: Any,
+) -> tuple[list[dict], dict[str, int]]:
+    from agents.reports.report_assets import _seal_key
+
+    violations: list[dict] = []
+    surfaces = _identity_surfaces(client_html)
+    by_key: dict[str, list[dict[str, Any]]] = {}
+    for surface in surfaces:
+        key = str(surface.get("attrs", {}).get(
+            "data-product-identity-key") or "")
+        by_key.setdefault(key, []).append(surface)
+    agency_marks, organization_marks = _frozen_identity_maps(render_assets)
+    expected_keys: set[str] = set()
+    expected = 0
+    priority = 0
+    embedded = 0
+    fallbacks = 0
+
+    for slot in doc.slots:
+        groups = ((slot.records, False), (slot.review_records, True))
+        for records, review in groups:
+            for index, record in enumerate(records):
+                labels = _identity_labels(record)
+                if not labels:
+                    continue
+                expected += 1
+                if slot.slot_id == "priority-pursuits":
+                    priority += 1
+                surface_key = _identity_surface_key(
+                    slot.slot_id, record, index, review=review)
+                expected_keys.add(surface_key)
+                found = by_key.get(surface_key) or []
+                if len(found) != 1:
+                    violations.append({
+                        "rule": "record_identity_surface",
+                        "detail": (f"{surface_key} renders {len(found)} identity "
+                                   "surfaces; expected exactly one"),
+                    })
+                    continue
+                surface = found[0]
+                attrs = surface["attrs"]
+                is_event = str(record.get("kind") or "").casefold() == "event"
+                expected_kind = (
+                    "agency" if not is_event or any(_seal_key(label)
+                                                    for label in labels)
+                    else "company")
+                actual_kind = attrs.get("data-brand-kind")
+                if actual_kind != expected_kind:
+                    violations.append({
+                        "rule": "record_identity_kind",
+                        "detail": (f"{surface_key} renders {actual_kind!r}; "
+                                   f"expected {expected_kind!r}"),
+                    })
+                allowed_keys = {
+                    _brand_key(doc.client_name, expected_kind, label)
+                    for label in labels
+                }
+                actual_key = attrs.get("data-brand-key") or ""
+                if actual_key not in allowed_keys:
+                    violations.append({
+                        "rule": "record_identity_key",
+                        "detail": (f"{surface_key} renders {actual_key!r}; "
+                                   f"expected one of {sorted(allowed_keys)!r}"),
+                    })
+                if attrs.get("data-brand-label") not in labels:
+                    violations.append({
+                        "rule": "record_identity_label",
+                        "detail": f"{surface_key} is not bound to its agency label",
+                    })
+                frozen = (
+                    agency_marks.get(actual_key)
+                    if expected_kind == "agency"
+                    else organization_marks.get(actual_key))
+                state = attrs.get("data-identity-mark")
+                image_sources = [str(image.get("src") or "")
+                                 for image in surface.get("images") or []]
+                if frozen:
+                    if (state != "seal" or frozen not in image_sources
+                            or not frozen.startswith("data:image/")):
+                        violations.append({
+                            "rule": "record_identity_image",
+                            "detail": (f"{surface_key} did not render its frozen "
+                                       "portable identity mark"),
+                        })
+                    else:
+                        embedded += 1
+                elif render_assets is not None:
+                    fallback = " ".join(surface.get("fallback") or []).strip()
+                    if state != "fallback" or not fallback:
+                        violations.append({
+                            "rule": "record_identity_fallback",
+                            "detail": (f"{surface_key} has no frozen mark and no "
+                                       "visible deterministic fallback"),
+                        })
+                    else:
+                        fallbacks += 1
+                elif state == "seal" and any(
+                        src.startswith("data:image/") for src in image_sources):
+                    embedded += 1
+                elif (state == "fallback" and
+                      " ".join(surface.get("fallback") or []).strip()):
+                    fallbacks += 1
+                else:
+                    violations.append({
+                        "rule": "record_identity_fallback",
+                        "detail": f"{surface_key} has an empty identity mark",
+                    })
+
+    extra = sorted(key for key in by_key if key not in expected_keys)
+    if extra:
+        violations.append({
+            "rule": "unexpected_identity_surface",
+            "detail": f"unexpected identity surfaces: {extra[:12]!r}",
+        })
+    return violations, {
+        "expected_placements": expected,
+        "priority_reference_placements": priority,
+        "owned_or_review_placements": expected - priority,
+        "embedded_official_marks": embedded,
+        "visible_fallbacks": fallbacks,
+    }
+
+
 def validate_external_product_html(
     client_html: str, doc: ExternalProductDocument, *,
-    contract_slots: Any = None,
+    contract_slots: Any = None, render_assets: Any = None,
 ) -> dict:
     from agents.golden_press.client_visual_contract import validate_client_visual_contract
     from agents.golden_press.style_contract import unstyled_in_context
@@ -1036,17 +1508,22 @@ def validate_external_product_html(
                            f"unstyled classes: {[name for name, _ in unstyled][:12]}"})
     visual = validate_client_visual_contract(client_html, client_name=doc.client_name)
     violations.extend(visual.get("violations") or [])
+    identity_violations, identity_contract = _validate_identity_contract(
+        client_html, doc, render_assets=render_assets)
+    violations.extend(identity_violations)
     return {
         "schema_version": EXTERNAL_PRODUCT_RENDER_VERSION,
         "ok": not violations,
         "violations": violations,
         "slot_order": order,
         "client_visual_contract": visual,
+        "identity_contract": identity_contract,
     }
 
 
 __all__ = (
     "EXTERNAL_PRODUCT_RENDER_VERSION",
+    "capture_external_product_identity_assets",
     "render_external_product",
     "render_slot",
     "validate_external_product_document",

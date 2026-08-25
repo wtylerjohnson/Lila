@@ -512,6 +512,7 @@ def test_pure_compiler_denies_live_readers_and_is_byte_identical(
         external_product_contract,
         market_map_projection,
         market_map_skeleton,
+        report_templates,
         rival_footprint,
     )
     from agents.reports import report_assets
@@ -530,6 +531,9 @@ def test_pure_compiler_denies_live_readers_and_is_byte_identical(
     monkeypatch.setattr(market_map_skeleton, "load_runtime", forbidden)
     monkeypatch.setattr(report_assets, "client_logo", forbidden)
     monkeypatch.setattr(report_assets, "gtm_logo", forbidden)
+    monkeypatch.setattr(report_assets, "agency_seal", forbidden)
+    monkeypatch.setattr(report_assets, "company_logo", forbidden)
+    monkeypatch.setattr(report_templates, "find_mark", forbidden)
     monkeypatch.setattr(rival_footprint, "load_cached", forbidden)
 
     payload = snapshot.to_dict()
