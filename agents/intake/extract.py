@@ -52,6 +52,30 @@ _RIVAL_PRODUCTS = frozenset({
     "velocloud", "meraki", "catalyst", "nexus", "juniper", "qfx",
     "aruba", "fortinet", "vmware", "silver peak", "cisco",
 })
+_RIVAL_VENDORS = frozenset({
+    "cisco", "juniper", "vmware", "nvidia", "hpe", "hewlett packard",
+    "aruba", "fortinet", "extreme", "palo alto", "meraki",
+    "velocloud", "silver peak", "cumulus",
+})
+_GENERIC_CUSTOMERS = frozenset({
+    "enterprises", "enterprise", "governments", "government",
+    "organizations", "organisation", "customers", "clients",
+    "partners", "companies", "agencies", "fortune", "industry",
+    "the company", "this company",
+})
+_COMPETITOR_LEAD = re.compile(
+    r"(?:unlike|versus|\bvs\.?\b|compared to|compare(?:d)?(?: this)? to|"
+    r"alternative(?:s)? to|competitors?(?: include| are|:)|"
+    r"rivals?(?: include| are|:)|instead of)\s+"
+    r"([A-Z][A-Za-z0-9&.\'-]{1,40}(?:\s+[A-Z][A-Za-z0-9&.\'-]{1,24}){0,3})",
+    re.I,
+)
+_CUSTOMER_LEAD = re.compile(
+    r"(?:customers?(?: include| are|:)|case stud(?:y|ies)[:\s]+|"
+    r"trusted by|used by|deployed (?:at|by)|clients? include|"
+    r"proof points?[:\s]+)\s*(.+?)(?:\.|$)",
+    re.I,
+)
 _ACRONYM_DENY = frozenset({
     "wan", "lan", "vpn", "cvp", "cvx", "apl", "jitc", "dmf",
     "url", "pdf", "api", "cpu", "gpu", "ssd", "qos", "bgp",
@@ -188,6 +212,8 @@ class ExtractedSurface(BaseModel):
     naics: list[tuple[str, str, str]] = Field(default_factory=list)  # code, rationale, role
     exclusions: list[str] = Field(default_factory=list)
     related_entities: list[RelatedEntity] = Field(default_factory=list)
+    competitors: list[str] = Field(default_factory=list)
+    customers: list[str] = Field(default_factory=list)
 
 
 def _clean(text: str) -> str:
@@ -698,6 +724,129 @@ def extract_exclusions(text: str) -> list[str]:
     return found
 
 
+def citation_is_official(url: str, official_domain: Optional[str]) -> bool:
+    if not url or not official_domain:
+        return False
+    host = url.casefold()
+    dom = official_domain.casefold().lstrip(".")
+    return dom in host
+
+
+def is_error_page(text: str) -> bool:
+    """Load-error / interstitial only. Multi-page crawls are not essays."""
+    raw = str(text or "")
+    if not raw.strip():
+        return True
+    if raw.strip().casefold() in {"citation", "cite", "source", "url"}:
+        return True
+    return bool(_GARBAGE.search(raw))
+
+
+def usable_site_text(scrape, *, max_chars: int = 24000) -> str:
+    """Official-site text from usable pages. JS shells do not wipe hubs."""
+    if scrape is None:
+        return ""
+    chunks: list[str] = []
+    pages = getattr(scrape, "pages", None)
+    if pages is not None:
+        for page in pages:
+            text = getattr(page, "text", "") or ""
+            if not text.strip() or is_error_page(text):
+                continue
+            url = getattr(page, "url", "") or ""
+            chunks.append(f"# {url}\n{text}" if url else text)
+        return "\n\n".join(chunks)[:max_chars]
+    if hasattr(scrape, "combined_text"):
+        blob = scrape.combined_text(max_chars=max_chars) or ""
+        if blob.strip() and not is_error_page(blob):
+            return blob[:max_chars]
+    return ""
+
+
+def site_has_usable_text(scrape) -> bool:
+    return bool(usable_site_text(scrape, max_chars=400))
+
+
+def _protect_abbrevs(text: str) -> str:
+    return re.sub(r"\bU\.S\.", "US", str(text or ""))
+
+
+def _party_name(raw: str, *, client_name: str = "") -> str:
+    name = _strip_label(_protect_abbrevs(raw))
+    name = re.split(r",|;|/", name)[0].strip()
+    name = re.sub(r"^(?:the|a|an)\s+", "", name, flags=re.I)
+    run = re.match(
+        r"^((?:the\s+)?[A-Z][A-Za-z0-9&.\'-]{1,40}"
+        r"(?:\s+(?:the\s+)?[A-Z][A-Za-z0-9&.\'-]{1,24}){0,3})",
+        name,
+    )
+    if run:
+        name = run.group(1)
+    name = re.sub(r"^(?:the|a|an)\s+", "", name, flags=re.I)
+    name = _clean(name)
+    if not name or not is_discrete_name(name):
+        return ""
+    if name.casefold() in _GENERIC_CUSTOMERS or name.casefold() in _GENERIC:
+        return ""
+    client = _clean(client_name).casefold()
+    if client and (name.casefold() == client or name.casefold() in client.split()):
+        return ""
+    return name
+
+
+def recall_competitors(text: str, client_name: str = "") -> list[str]:
+    """Named rivals from comparison / vs / alternative language on the site."""
+    raw = _protect_abbrevs(text)
+    found: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        piece = _party_name(name, client_name=client_name)
+        key = piece.casefold()
+        if not piece or key in seen or key in _GENERIC_CUSTOMERS:
+            return
+        if key in _SCHEDULE_TICKER or is_noise_term(piece):
+            return
+        seen.add(key)
+        found.append(piece)
+
+    for match in _COMPETITOR_LEAD.finditer(raw):
+        chunk = match.group(1)
+        for part in re.split(r"\band\b|,", chunk):
+            _add(part)
+    for vendor in _RIVAL_VENDORS:
+        if not re.search(rf"\b{re.escape(vendor)}\b", raw, re.I):
+            continue
+        windows = _windows(raw, vendor)
+        if any(_RIVAL_CUE.search(w) or _COMPETITOR_LEAD.search(w) for w in windows):
+            _add(vendor.title() if vendor.islower() else vendor)
+    return found
+
+
+def recall_customers(text: str, client_name: str = "") -> list[str]:
+    """Named customers / case-study hooks from site proof language."""
+    raw = _protect_abbrevs(text)
+    found: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        piece = _party_name(name, client_name=client_name)
+        key = piece.casefold()
+        if not piece or key in seen:
+            return
+        if key in _RIVAL_VENDORS or key in _RIVAL_PRODUCTS:
+            return
+        if looks_like_contract_or_schedule_id(piece) or is_noise_term(piece):
+            return
+        seen.add(key)
+        found.append(piece)
+
+    for match in _CUSTOMER_LEAD.finditer(raw):
+        for part in re.split(r",|;|\band\b", match.group(1)):
+            _add(part)
+    return found
+
+
 def extract_related_entities(
     text: str, *, bound_name: str = "", official_domain: Optional[str] = None,
 ) -> list[RelatedEntity]:
@@ -743,8 +892,12 @@ def extract_surface(
     naics: list[tuple[str, str, str]] = []
     exclusions: list[str] = []
     related: list[RelatedEntity] = []
+    competitors: list[str] = []
+    customers: list[str] = []
     seen_off: set[str] = set()
     seen_ex: set[str] = set()
+    seen_comp: set[str] = set()
+    seen_cust: set[str] = set()
     skip = {t for t in (client_name or bound_name or "").casefold().split()
             if t in {"inc", "llc", "ltd", "corp", "co", "the", "and", "networks"}}
     skip.add((client_name or "").casefold())
@@ -790,22 +943,38 @@ def extract_surface(
         seen_ex.add(key)
         exclusions.append(piece)
 
+    def _compete(name: str) -> None:
+        piece = _party_name(name, client_name=client_name)
+        key = piece.casefold()
+        if not piece or key in seen_comp or key in seen_off:
+            return
+        seen_comp.add(key)
+        competitors.append(piece)
+
+    def _customer(name: str) -> None:
+        piece = _party_name(name, client_name=client_name)
+        key = piece.casefold()
+        if not piece or key in seen_cust or key in seen_off or key in seen_comp:
+            return
+        seen_cust.add(key)
+        customers.append(piece)
+
     for row in (product_ingest or {}).get("capabilities") or []:
         name = (row.get("name") if isinstance(row, dict) else str(row) or "").strip()
         _offer(name)
 
-    scrape_text = ""
-    if scrape is not None:
-        if hasattr(scrape, "combined_text"):
-            scrape_text = scrape.combined_text(max_chars=4000) or ""
-        elif getattr(scrape, "pages", None):
-            scrape_text = "\n".join(getattr(p, "text", "") or "" for p in scrape.pages)
-        if scrape_text and not is_garbage_text(scrape_text):
-            for name in candidate_names(scrape_text):
-                _offer(name, source_text=scrape_text, implicit=True)
-            for name in recall_products(scrape_text):
-                _offer(name, source_text=scrape_text)
-            naics.extend(extract_naics(scrape_text))
+    scrape_text = usable_site_text(scrape, max_chars=24000)
+    site_ok = bool((product_ingest or {}).get("capabilities")) or bool(scrape_text)
+    if scrape_text:
+        for name in candidate_names(scrape_text):
+            _offer(name, source_text=scrape_text, implicit=True)
+        for name in recall_products(scrape_text):
+            _offer(name, source_text=scrape_text)
+        for name in recall_competitors(scrape_text, client_name or bound_name):
+            _compete(name)
+        for name in recall_customers(scrape_text, client_name or bound_name):
+            _customer(name)
+        naics.extend(extract_naics(scrape_text))
 
     all_findings: list[str] = []
     for probe in probes or []:
@@ -818,17 +987,34 @@ def extract_surface(
         all_findings.append(findings)
         kind = title.casefold()
         names = candidate_names(findings)
+        cites = list(getattr(probe, "citations", None) or (
+            probe.get("citations") if isinstance(probe, dict) else []) or [])
+        official = any(citation_is_official(c, official_domain) for c in cites)
         if "boundar" in kind:
             for name in extract_exclusions(findings):
                 _exclude(name)
-        elif "channel" in kind or "reseller" in kind or "compet" in kind:
+        elif "channel" in kind or "reseller" in kind:
             pass
-        else:
+        elif "compet" in kind:
+            if official:
+                for name in recall_competitors(findings, client_name or bound_name):
+                    _compete(name)
+        elif "customer" in kind or "proof" in kind:
+            if official:
+                for name in recall_customers(findings, client_name or bound_name):
+                    _customer(name)
+        elif official:
             implicit = "offering" in kind or "product" in kind
             for name in names:
                 _offer(name, source_text=findings, implicit=implicit)
             for name in recall_products(findings):
                 _offer(name, source_text=findings)
+        elif site_ok:
+            # Site already painted the product picture; skip generic SERP blurbs.
+            pass
+        else:
+            # Thin site: still refuse generic industry essays as offerings.
+            pass
         for name in extract_exclusions(findings):
             _exclude(name)
         for name in recall_collisions(findings, client_name or bound_name):
@@ -846,8 +1032,9 @@ def extract_surface(
     if structured is not None and not hasattr(structured, "offerings"):
         structured = None
     if structured is not None:
-        for name in structured.offerings or []:
-            _offer(name)
+        if site_ok:
+            for name in structured.offerings or []:
+                _offer(name)
         for code in structured.naics or []:
             raw = str(code).strip()
             if is_plausible_naics_code(raw):
@@ -900,6 +1087,7 @@ def extract_surface(
     return ExtractedSurface(
         offerings=offerings, naics=naics_u,
         exclusions=exclusions, related_entities=related_u,
+        competitors=competitors, customers=customers,
     )
 
 

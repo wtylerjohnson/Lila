@@ -24,15 +24,19 @@ class ResearchProbe(BaseModel):
 
 PROBE_SPECS: tuple[tuple[str, str], ...] = (
     ("offerings",
-     "Name this company's shipped product families from official product pages. "
-     "Include the network operating system, controllers or cloud-management "
-     "platforms, visibility or telemetry fabrics, identity or zero-trust "
-     "network products (for example CloudVision AGNI / Guardian for Network "
-     "Identity when this vendor publishes them), and numbered switch or "
-     "router families (for example the 7050X series and sibling X/R families "
-     "when this vendor publishes them). Quote each name as printed. "
-     "Do not treat GSA schedules, SEWP vehicles, or award IDs as products. "
+     "Start from this company's official-domain product, solutions, and "
+     "platform pages. Name shipped product families as printed there "
+     "(operating system, controllers, visibility fabrics such as DANZ "
+     "Monitoring Fabric, identity products such as CloudVision AGNI / "
+     "Guardian for Network Identity, numbered switch families such as "
+     "7050X). Do not write a generic industry essay. Do not treat GSA "
+     "schedules, SEWP vehicles, or award IDs as products. "
      "Cite official product-page URLs."),
+    ("customers",
+     "Start from the official-domain customers, case-studies, and "
+     "industries pages. Name customers, sectors served, and case-study "
+     "proof points. Quote the sentence that names each customer. "
+     "Do not invent logos. If the site names none, say none found."),
     ("federal_footprint",
      "Does this company sell to the US federal government? "
      "Quote any six-digit NAICS or industry classification the company or "
@@ -45,8 +49,10 @@ PROBE_SPECS: tuple[tuple[str, str], ...] = (
      "Which resellers, distributors, or teaming partners carry this company "
      "into government? Cite partner pages or award text."),
     ("competitors",
-     "Which named rival vendors or products do buyers evaluate against this "
-     "company? Cite analyst notes, reviews, or market reporting."),
+     "Start from official-domain compare, why-us, vs, alternatives, or "
+     "competitive pages. Quote each named rival vendor or product with "
+     "the source sentence. External analyst notes are secondary and must "
+     "not replace site-stated rivals."),
     ("boundaries",
      "Name other companies or brands that share this name or a close spelling. "
      "Search specifically for a music label or records company, an aviation "
@@ -67,17 +73,18 @@ PROBE_SPECS: tuple[tuple[str, str], ...] = (
 
 _PROBE_SYSTEM = """\
 You are researching ONE already-identified company. The official domain is
-binding. Do not switch to a different firm that shares the name. Use web
-search and the official product pages. Cite real URLs.
+binding. After bind, the company's own website is the primary source for
+products, competitors, customers, and proof points. External web search is
+secondary: use it for NAICS filings, namesake collisions, and federal
+footprint, not to invent what the company sells.
 
-Actively seek: (1) named product families including identity products such
-as CloudVision AGNI / Guardian for Network Identity and numbered switch
-families such as the 7050X series when the vendor publishes them; (2) any
-stated six-digit NAICS or industry classification, quoted with the source
-sentence; (3) namesake collisions (music/records, aviation, lookalike
-spellings, aircraft support). Do not treat GSA, SEWP, or award IDs as
-products. If a probe cannot be answered from public sources, say so and
-return no invented names.
+Actively seek on the official site: (1) named product families including
+identity products such as CloudVision AGNI / Guardian for Network Identity,
+DANZ Monitoring Fabric, and numbered switch families such as the 7050X
+series when the vendor publishes them; (2) named rivals on compare / vs /
+alternatives pages; (3) named customers and case studies. Quote source
+sentences. Do not treat GSA, SEWP, or award IDs as products. If a probe
+cannot be answered from public sources, say so and return no invented names.
 """
 
 
@@ -96,7 +103,8 @@ def run_structured_probes(
     for name, focus in specs:
         query = (
             f"Company: {label}. Official domain: {domain}. "
-            f"Search official product pages and SAM/GSA listings when relevant. "
+            f"Start from official-site sections relevant to this probe "
+            f"(products, customers, compare, about, partners). "
             f"Probe: {focus}"
         )
         probe = ResearchProbe(name=name, query=query)

@@ -20,10 +20,13 @@ from agents.intake.extract import (
     excerpt_supports_name,
     extract_surface,
     is_discrete_name,
+    is_error_page,
     is_garbage_text,
     is_plausible_naics_code,
     is_product_name,
     naics_search_role,
+    site_has_usable_text,
+    usable_site_text,
 )
 from agents.intake.identity import IdentityResolution
 
@@ -109,6 +112,8 @@ class CompanyDossier(BaseModel):
     kept_out: list[DossierKeyword] = Field(default_factory=list)
     kept_out_naics: list[DossierNaics] = Field(default_factory=list)
     related_entities: list[RelatedEntity] = Field(default_factory=list)
+    competitors: list[Claim] = Field(default_factory=list)
+    customers: list[Claim] = Field(default_factory=list)
     summary: str = ""
 
     @model_validator(mode="after")
@@ -152,7 +157,7 @@ def _evidence_for_name(
             snippet = excerpt_from(findings, needle=needle)
             if snippet and excerpt_supports_name(name, snippet):
                 return snippet, (citations[0] if citations else fallback_url)
-        if scrape_text and not is_garbage_text(scrape_text):
+        if scrape_text and scrape_text.strip() and not is_error_page(scrape_text):
             if needle.casefold() not in scrape_text.casefold():
                 continue
             snippet = excerpt_from(scrape_text, needle=needle)
@@ -192,6 +197,8 @@ def build_dossier(
     kept_out: list[DossierKeyword] = []
     kept_out_naics: list[DossierNaics] = []
     naics: list[DossierNaics] = []
+    competitors: list[Claim] = []
+    customers: list[Claim] = []
     statements: list[RetrievalUnit] = []
     unknowns: list[str] = []
     n = 0
@@ -261,17 +268,14 @@ def build_dossier(
                 ))
 
     scrape = getattr(research, "scrape", None) if research is not None else None
-    scrape_text = ""
+    scrape_text = usable_site_text(scrape, max_chars=24000)
     if scrape is not None:
-        scrape_text = (
-            scrape.combined_text(max_chars=4000)
-            if hasattr(scrape, "combined_text") else ""
-        )
         root = getattr(scrape, "root_url", None) or identity.website
         pages = getattr(scrape, "pages", None) or []
-        if scrape_text.strip() and not is_garbage_text(scrape_text):
+        if scrape_text:
             add_ev("website", excerpt_from(scrape_text), root)
-        elif scrape_text.strip() and is_garbage_text(scrape_text):
+        elif pages and any(
+                is_error_page(getattr(p, "text", "") or "") for p in pages):
             unknowns.append(
                 "website scrape returned a load-error or interstitial page; "
                 "that text is not an offering"
@@ -316,13 +320,6 @@ def build_dossier(
                     name, ClaimState.INFERRED, [eid] if eid else [],
                     "channel or reseller named in a structured web probe",
                 ))
-        elif "compet" in kind:
-            for name in _discrete_from_findings(findings):
-                eid = add_ev("web_probe", excerpt_from(findings, needle=name), cite)
-                channels.append(_claim(
-                    name, ClaimState.INFERRED, [eid] if eid else [],
-                    "competitor names from a web probe; treat as inferred",
-                ))
 
     surface = extract_surface(
         probes=probes,
@@ -346,6 +343,34 @@ def build_dossier(
             "discrete product name extracted from identity-bound research",
         ))
         existing_off.add(name.casefold())
+
+    for name in surface.competitors:
+        snippet, url = _evidence_for_name(
+            name, probe_blobs, scrape_text, identity.website,
+            require_needle=True)
+        if not snippet or not excerpt_supports_name(name, snippet):
+            continue
+        eid = add_ev("website", snippet, url or identity.website)
+        if not eid:
+            continue
+        competitors.append(_claim(
+            name, ClaimState.COMPANY_ASSERTED, [eid],
+            "named rival on the official site",
+        ))
+
+    for name in surface.customers:
+        snippet, url = _evidence_for_name(
+            name, probe_blobs, scrape_text, identity.website,
+            require_needle=True)
+        if not snippet or not excerpt_supports_name(name, snippet):
+            continue
+        eid = add_ev("website", snippet, url or identity.website)
+        if not eid:
+            continue
+        customers.append(_claim(
+            name, ClaimState.COMPANY_ASSERTED, [eid],
+            "named customer or case-study proof on the official site",
+        ))
 
     seen_n = {row.code for row in naics}
     for row in surface.naics:
@@ -436,7 +461,7 @@ def build_dossier(
                 real = excerpt_from(findings)
                 if real:
                     break
-            if not real and scrape_text and not is_garbage_text(scrape_text):
+            if not real and scrape_text and not is_error_page(scrape_text):
                 real = excerpt_from(scrape_text)
             if real:
                 add_ev("web_probe", real, url)
@@ -466,6 +491,17 @@ def build_dossier(
 
     if identity.is_bound and not offerings:
         unknowns.append("identity is bound but no offerings were evidenced")
+    if identity.is_bound and not site_has_usable_text(scrape) and not (
+            ingest or {}).get("capabilities"):
+        unknowns.append(
+            "official site ingest was thin; offerings and competitors "
+            "are not invented from generic web search"
+        )
+    if identity.is_bound and not competitors:
+        unknowns.append(
+            "no official-site competitors were evidenced; the rival list "
+            "is unknown rather than guessed from generic search"
+        )
     if identity.is_bound and not naics:
         unknowns.append(
             "no six-digit NAICS has been evidenced yet; the code list is "
@@ -504,6 +540,16 @@ def build_dossier(
             status="covered" if statements else "missing",
             note=f"{len(statements)} capability statement(s)",
         ),
+        CoverageCell(
+            topic="competitors",
+            status="covered" if competitors else "missing",
+            note=f"{len(competitors)} official-site rival(s)",
+        ),
+        CoverageCell(
+            topic="customers",
+            status="covered" if customers else "missing",
+            note=f"{len(customers)} customer proof point(s)",
+        ),
     ]
 
     summary_bits = [f"{client_name}."]
@@ -535,5 +581,7 @@ def build_dossier(
         kept_out=kept_out,
         kept_out_naics=kept_out_naics,
         related_entities=related_entities,
+        competitors=competitors,
+        customers=customers,
         summary=" ".join(summary_bits),
     )

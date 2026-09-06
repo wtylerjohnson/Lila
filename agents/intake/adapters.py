@@ -151,10 +151,26 @@ def _entities(dossier: CompanyDossier) -> list[ResearchEntity]:
             rationale=off.rationale or "asserted offering",
             source=src,
         ))
+    for rival in getattr(dossier, "competitors", None) or []:
+        name = " ".join(rival.text.split())[:80]
+        key = ("competitor", name.casefold())
+        if not name or key in seen or rival.state == ClaimState.DISPUTED:
+            continue
+        if not rival.evidence_ids:
+            continue
+        seen.add(key)
+        src = rival.evidence_ids[0]
+        out.append(ResearchEntity(
+            name=name, kind="competitor",
+            rationale=rival.rationale or "named rival on the official site",
+            source=src,
+        ))
     for ch in dossier.channels:
         text = ch.text.casefold()
         kind = "reseller" if "reseller" in text or "distributor" in text or "channel" in text else "competitor"
         if "certification" in text:
+            continue
+        if kind == "competitor":
             continue
         name = " ".join(ch.text.split())[:80]
         key = (kind, name.casefold())
@@ -200,9 +216,20 @@ def retrieval_frame(dossier: CompanyDossier) -> dict:
         and u.offering.casefold() not in _RIVAL_PRODUCTS
     ]
     rivals = [
-        c.text.split(".")[0][:80] for c in dossier.channels
-        if "competitor" in (c.rationale or "").casefold()
-        or "rival" in c.text.casefold()
+        c.text.split(".")[0][:80]
+        for c in (getattr(dossier, "competitors", None) or [])
+        if c.text and c.evidence_ids
+    ]
+    if not rivals:
+        rivals = [
+            c.text.split(".")[0][:80] for c in dossier.channels
+            if "competitor" in (c.rationale or "").casefold()
+            or "rival" in c.text.casefold()
+        ]
+    customers = [
+        c.text.split(".")[0][:80]
+        for c in (getattr(dossier, "customers", None) or [])
+        if c.text and c.evidence_ids
     ]
     tier2 = [k.term for k in dossier.keywords
              if k.category in ("capability", "technology", "search_term")
@@ -221,7 +248,10 @@ def retrieval_frame(dossier: CompanyDossier) -> dict:
         "screen_routing": {
             "tier1_client_names": products[:8] or [dossier.client_name],
             "tier1_rival_names": rivals[:8],
+            "customer_names": customers[:8],
         },
+        "competitors": rivals[:12],
+        "customers": customers[:12],
     }
     lanes = None
     try:
@@ -239,6 +269,8 @@ def retrieval_frame(dossier: CompanyDossier) -> dict:
     return {
         "schema_version": "intake_retrieval.v1",
         "capability_statements": statements,
+        "competitors": rivals[:12],
+        "customers": customers[:12],
         "frame": frame,
         "lanes": lanes,
     }

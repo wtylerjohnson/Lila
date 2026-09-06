@@ -1,11 +1,11 @@
 """Website / public-data scraper (Step 1b).
 
 Bounded crawl of a client's site using only stdlib HTML parsing (no bs4) + httpx.
-Fetches the homepage plus a few high-signal internal pages (about, services,
-capabilities, past performance, contracts), strips scripts/styles to visible text,
-and returns a ScrapeBundle that carries every source URL for traceability.
+After identity bind, this is the primary picture of what the company sells:
+homepage plus marketing sections (products, customers, compare, partners),
+seeded even when the homepage is a JS shell with no links.
 
-Kept dependency-light and polite (small page cap, same-domain only).
+Kept dependency-light and polite (page cap, same-domain only).
 """
 
 from __future__ import annotations
@@ -17,18 +17,64 @@ from urllib.parse import urljoin, urlparse
 import httpx
 from pydantic import BaseModel, Field
 
+# Documented mastery budget. 5 pages was enough for a homepage glance and
+# too little for product + customer + compare hubs.
+SITE_MASTERY_MAX_PAGES = 24
+
 # Internal-link slugs worth following beyond the homepage.
 _PRIORITY_SLUGS = (
     "about",
-    "service",
+    "company",
+    "product",
+    "platform",
+    "solution",
     "capabilit",
+    "service",
+    "industr",
+    "use-case",
+    "usecase",
+    "customer",
+    "case-stud",
+    "casestudy",
+    "partner",
+    "ecosystem",
+    "resource",
+    "blog",
+    "compare",
+    "alternativ",
+    "versus",
+    "/vs",
+    "why-",
+    "competitor",
+    "hardware",
+    "switching",
+    "cloudvision",
+    "/eos",
     "past-performance",
     "past_performance",
     "contract",
-    "solution",
-    "industries",
-    "what-we-do",
 )
+
+# Seeded even when nav extraction fails (JS homepage, empty footer).
+_SEED_PATHS = (
+    "/about",
+    "/about-us",
+    "/company",
+    "/products",
+    "/solutions",
+    "/platform",
+    "/capabilities",
+    "/industries",
+    "/use-cases",
+    "/customers",
+    "/case-studies",
+    "/partners",
+    "/ecosystem",
+    "/resources",
+    "/compare",
+    "/alternatives",
+)
+
 _SKIP_TAGS = {"script", "style", "noscript", "svg", "head"}
 
 
@@ -111,37 +157,62 @@ def check_url(url: str, timeout: float = 15.0) -> tuple[bool, str]:
     return True, text[:300]
 
 
-def scrape_site(root_url: str, max_pages: int = 5) -> ScrapeBundle:
-    """Crawl up to `max_pages` same-domain pages, prioritizing capability content."""
+def _same_domain(url: str, domain: str) -> bool:
+    host = urlparse(url).netloc
+    return bool(host) and (host == domain or host.endswith("." + domain))
+
+
+def _priority_url(url: str) -> bool:
+    low = url.casefold()
+    return any(slug in low for slug in _PRIORITY_SLUGS)
+
+
+def scrape_site(
+    root_url: str,
+    max_pages: int = SITE_MASTERY_MAX_PAGES,
+    *,
+    fetcher=None,
+) -> ScrapeBundle:
+    """Crawl up to `max_pages` same-domain pages, prioritizing mastery sections.
+
+    Seeds product / customer / compare hubs even when the homepage has no
+    extractable nav. Follows in-domain priority links from each fetched page
+    (nav, footer, product hubs). Same-domain only.
+    """
     root = root_url.rstrip("/")
     domain = urlparse(root).netloc
     bundle = ScrapeBundle(root_url=root)
+    fetch = fetcher or _fetch
+    cap = max(1, int(max_pages or SITE_MASTERY_MAX_PAGES))
 
-    home_html = _fetch(root)
-    if home_html is None:
-        return bundle  # site unreachable — caller proceeds on form data alone
-    home_text, links = _extract(home_html)
-    bundle.pages.append(ScrapedPage(url=root, text=home_text))
-    bundle.sources.append(root)
+    queue: list[str] = [root]
+    for path in _SEED_PATHS:
+        seeded = root + path
+        if seeded not in queue:
+            queue.append(seeded)
+    seen: set[str] = set()
 
-    # Rank internal links by priority slug, dedup, same-domain only.
-    candidates: list[str] = []
-    seen = {root}
-    for href in links:
-        absolute = urljoin(root + "/", href).split("#")[0].rstrip("/")
-        if urlparse(absolute).netloc != domain or absolute in seen:
+    while queue and len(bundle.pages) < cap:
+        url = queue.pop(0).split("#")[0].rstrip("/") or root
+        if url in seen or not _same_domain(url, domain):
             continue
-        if any(slug in absolute.lower() for slug in _PRIORITY_SLUGS):
-            seen.add(absolute)
-            candidates.append(absolute)
-
-    for url in candidates[: max_pages - 1]:
-        html = _fetch(url)
+        seen.add(url)
+        html = fetch(url)
         if not html:
             continue
-        text, _ = _extract(html)
-        if text:
+        text, links = _extract(html)
+        if text.strip():
             bundle.pages.append(ScrapedPage(url=url, text=text))
             bundle.sources.append(url)
+        for href in links:
+            absolute = urljoin(url + "/", href).split("#")[0].rstrip("/")
+            if (
+                absolute
+                and absolute not in seen
+                and absolute not in queue
+                and _same_domain(absolute, domain)
+                and _priority_url(absolute)
+            ):
+                queue.append(absolute)
 
     return bundle

@@ -808,16 +808,18 @@ def test_arista_pipeline_quality_without_injected_engines(tmp_path, monkeypatch)
         "agents.decisions.engine.research_engine", lambda: Engine())
     monkeypatch.setattr(
         "agents.decisions.engine.DecisionEngine", lambda *a, **k: Engine())
-    monkeypatch.setattr(
-        "tools.scrape.site.scrape_site",
-        lambda url, max_pages=5: ScrapeBundle(
+    def _js_shell(url, max_pages=5, **_k):
+        return ScrapeBundle(
             root_url=url,
             pages=[ScrapedPage(
                 url=url,
                 text="Error loading the page. Enable JavaScript.",
             )],
             sources=[url],
-        ))
+        )
+
+    monkeypatch.setattr("tools.scrape.site.scrape_site", _js_shell)
+    monkeypatch.setattr("agents.company_research.scrape_site", _js_shell)
     monkeypatch.setattr(
         "agents.intake.pipeline._ingest_bound_site",
         lambda *a, **k: {"capabilities": [], "receipt": {"error": "load"}},
@@ -1051,6 +1053,9 @@ def _press5_probes():
 
 
 def test_structured_probes_seek_named_products_naics_and_namesakes():
+    names = [name for name, _ in PROBE_SPECS]
+    assert "customers" in names
+    assert "competitors" in names
     blob = " ".join(focus for _, focus in PROBE_SPECS).casefold()
     assert "agni" in blob or "guardian for network identity" in blob
     assert "7050x" in blob
@@ -1058,6 +1063,8 @@ def test_structured_probes_seek_named_products_naics_and_namesakes():
     assert "records" in blob or "music" in blob
     assert "aviation" in blob
     assert "award" in blob or "sewp" in blob
+    assert "case stud" in blob or "customers" in blob
+    assert "compare" in blob or "alternativ" in blob or "vs" in blob
 
 
 def test_schedule_and_award_ids_are_not_products():
@@ -1240,16 +1247,18 @@ def test_press5_pipeline_flags_invented_strategy_naics(
         "agents.decisions.engine.research_engine", lambda: Engine())
     monkeypatch.setattr(
         "agents.decisions.engine.DecisionEngine", lambda *a, **k: Engine())
-    monkeypatch.setattr(
-        "tools.scrape.site.scrape_site",
-        lambda url, max_pages=5: ScrapeBundle(
+    def _js_shell(url, max_pages=5, **_k):
+        return ScrapeBundle(
             root_url=url,
             pages=[ScrapedPage(
                 url=url,
                 text="Error loading the page. Enable JavaScript.",
             )],
             sources=[url],
-        ))
+        )
+
+    monkeypatch.setattr("tools.scrape.site.scrape_site", _js_shell)
+    monkeypatch.setattr("agents.company_research.scrape_site", _js_shell)
     monkeypatch.setattr(
         "agents.intake.pipeline._ingest_bound_site",
         lambda *a, **k: {"capabilities": [], "receipt": {"error": "load"}},

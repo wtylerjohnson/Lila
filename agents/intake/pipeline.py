@@ -33,6 +33,7 @@ from agents.intake.dossier import CompanyDossier, build_dossier
 from agents.intake.extract import structure_product_surface
 from agents.intake.identity import IdentityResolution, resolve_identity
 from agents.intake.probes import ResearchProbe, run_structured_probes
+from tools.scrape.site import SITE_MASTERY_MAX_PAGES
 from agents.intake.readiness import evaluate_readiness, render_readiness_markdown
 from agents.intake.yield_sidecar import intake_yield_receipt
 from agents.schemas import IntakeSubmission
@@ -182,7 +183,7 @@ def run_step1(
     *,
     engine=None,
     research_engine=None,
-    max_pages: int = 5,
+    max_pages: int = SITE_MASTERY_MAX_PAGES,
     do_scrape: bool = True,
     do_web: bool = True,
     auto_approve: Optional[bool] = None,
@@ -233,7 +234,8 @@ def run_step1(
                 errors.append(f"scrape: {exc}")
         if do_scrape and bound_url:
             product_ingest = _ingest_bound_site(
-                bound_url, fetcher=ingest_fetcher, max_pages=max(max_pages, 12))
+                bound_url, fetcher=ingest_fetcher,
+                max_pages=max(max_pages, SITE_MASTERY_MAX_PAGES))
         if do_web and research_engine is not None:
             probes = run_structured_probes(identity, research_engine)
             citations = []

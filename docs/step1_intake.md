@@ -14,8 +14,12 @@ company name (+ optional form fields)
  identity resolution (bind official domain, or abstain / ask one question)
         │ bound
         ▼
- identity-bound website ingest (scrape + capability_ingest)
- + structured web probes (offerings, federal footprint, channels, rivals, boundaries, classifications)
+ identity-bound website-first ingest (scrape + capability_ingest,
+   SITE_MASTERY_MAX_PAGES = 24; seeds products/customers/compare even
+   when the homepage is a JS shell)
+ + structured web probes (offerings, customers, federal footprint,
+   channels, competitors, boundaries, classifications; site-anchored
+   after bind; generic SERP is secondary)
         │
         ▼
  dossier (claims with states) + retrieval units + yield sidecar
@@ -71,11 +75,11 @@ Sidecars next to `data/review/<slug>.review.json`:
 
 | Sidecar | Contents |
 |---------|----------|
-| `.dossier.json` | Identity, evidence ledger, discrete offerings/boundaries/channels, keywords, NAICS with rationales, capability statements, `kept_out` exclusions, `kept_out_naics` namesake codes, related legal persons, unknowns. Claim states: `company_asserted`, `corroborated`, `inferred`, `disputed`, `unknown`. Offerings are product names, never scrape errors, probe essays, category headers, or GSA/SEWP/award IDs. `dossier.naics` is the search-core lane; aviation/records namesake codes live on `kept_out_naics`. Empty or polluted cores fail E5/E8. |
+| `.dossier.json` | Identity, evidence ledger, discrete offerings/boundaries/channels, first-class `competitors` and `customers` with evidence_ids from official-site text, keywords, NAICS with rationales, capability statements, `kept_out` exclusions, `kept_out_naics` namesake codes, related legal persons, unknowns. Claim states: `company_asserted`, `corroborated`, `inferred`, `disputed`, `unknown`. Offerings prefer vendor-named products from product pages (EOS, CloudVision, AGNI, DANZ Monitoring Fabric, 7050X), never scrape errors, probe essays, category headers, or GSA/SEWP/award IDs. Generic SERP blurbs must not invent offerings or rivals when the official site is thin. `dossier.naics` is the search-core lane; aviation/records namesake codes live on `kept_out_naics`. Empty or polluted cores fail E5/E8. |
 | `.intake_yield.json` | `term_yield` against the notice store, plus a store census. Empty/unreadable store is named as such; it is not a list of zero counts. No health verdict. |
 | `.intake_adversarial.json` | Challenges against citations and yield titles, not dossier prose. Incomplete review ≠ pass. One bounded repair may drop unsupported claims. |
 | `.intake_readiness.json` | E1-E8 receipts (identity, ingest, probes, company model, retrieval units, yield, adversarial complete, adversarial not fail-closed). |
-| `.intake_retrieval.json` | Capability statements plus `hybrid.frame_lanes` query sets for later opp retrieval. No retrieve is run at intake. |
+| `.intake_retrieval.json` | Capability statements, official-site `competitors` / `customers`, plus `hybrid.frame_lanes` query sets (`tier1_rival_names`, `customer_names`) for later opp retrieval. No retrieve is run at intake. |
 
 The review markdown appendix prints identity, E1-E8, yield titles, and
 adversarial findings.
