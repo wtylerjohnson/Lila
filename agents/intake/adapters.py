@@ -19,7 +19,9 @@ from agents.decisions.schemas import (
 )
 from agents.intake.dossier import ClaimState, CompanyDossier
 from agents.intake.extract import (
+    _RIVAL_PRODUCTS,
     asserted_owned,
+    excerpt_from,
     is_exclusion_name,
     is_product_name,
 )
@@ -171,6 +173,7 @@ def retrieval_frame(dossier: CompanyDossier) -> dict:
     products = [
         u.offering for u in dossier.capability_statements
         if u.offering and is_product_name(u.offering)
+        and u.offering.casefold() not in _RIVAL_PRODUCTS
     ]
     rivals = [
         c.text.split(".")[0][:80] for c in dossier.channels
@@ -306,6 +309,31 @@ def apply_kept_out(strategy: IntakeStrategy, dossier: CompanyDossier) -> IntakeS
     return strategy.model_copy(update={"kept_out": merged})
 
 
+def _next_eid(dossier: CompanyDossier) -> str:
+    nums = []
+    for ev in dossier.evidence:
+        raw = (ev.evidence_id or "").lstrip("E")
+        if raw.isdigit():
+            nums.append(int(raw))
+    return f"E{(max(nums) if nums else 0) + 1:03d}"
+
+
+def _link_naics_evidence(dossier: CompanyDossier, code: str, snippet: str):
+    from agents.intake.dossier import EvidenceItem
+
+    for ev in dossier.evidence:
+        if code in (ev.excerpt or "") and ev.evidence_id:
+            return ev.evidence_id
+    text = (snippet or "").strip()
+    if not text or code not in text or len(text.split()) < 5:
+        return None
+    eid = _next_eid(dossier)
+    dossier.evidence.append(EvidenceItem(
+        evidence_id=eid, source_kind="web_probe", excerpt=text[:500],
+    ))
+    return eid
+
+
 def merge_strategy_into_dossier(
     dossier: CompanyDossier, strategy: IntakeStrategy,
 ) -> CompanyDossier:
@@ -361,20 +389,21 @@ def merge_strategy_into_dossier(
         raw = str(code).strip()
         if raw in have_n or not (raw.isdigit() and len(raw) == 6):
             continue
-        eid = next(
-            (e.evidence_id for e in repaired.evidence
-             if raw in (e.excerpt or "")),
-            None,
-        )
-        if not eid:
-            # Do not assert a core NAICS with an empty ledger.
-            continue
         entry = meta.get(raw)
         why = (getattr(entry, "rationale", None) or "").strip()
+        hay = " ".join(
+            [e.excerpt or "" for e in repaired.evidence]
+            + [why, getattr(strategy, "pursuit_strategy", "") or ""]
+        )
+        snippet = excerpt_from(hay, needle=raw) if raw in hay else ""
+        if not snippet and why and len(why.split()) >= 5 and raw in why:
+            snippet = why
+        eid = _link_naics_evidence(repaired, raw, snippet)
+        if not eid:
+            continue
         if len(why.split()) < 5:
-            why = (
-                f"strategy composer mapped the bound company onto NAICS {raw} "
-                "from evidenced product and federal-footprint research"
+            why = snippet if len((snippet or "").split()) >= 5 else (
+                f"company research cited NAICS {raw} for the bound firm"
             )
         repaired.naics.append(DossierNaics(
             code=raw, title=getattr(entry, "title", "") or "",

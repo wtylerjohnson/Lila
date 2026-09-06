@@ -169,8 +169,10 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   essays, homepage load-errors, schedule/ticker/header fragments, bare
   numbers, and the placeholder excerpt "citation" never become offerings
   or ledger text. A rival platform (VeloCloud) is not an Arista offering
-  unless the source asserts Arista sells it. NAICS that are kept carry
-  real evidence_ids or they are dropped, not asserted empty. Name-collision
+  unless the source asserts Arista sells it. Tool-meta tokens (WebSearch),
+  URL/date shards, and lone acronym scraps are not products. NAICS that
+  appear in probe or page text are kept with real evidence_ids; an empty
+  NAICS list must not be used to green E8. Name-collision
   exclusions from boundary probes seed `kept_out` (Records / Aviation /
   Aristan / OAS Aircraft Support style when mentioned); NYSE, CIKs,
   section headers, and the bare company name stay out. Workshop edits

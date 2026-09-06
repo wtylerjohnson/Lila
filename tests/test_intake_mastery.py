@@ -933,3 +933,65 @@ def test_strategy_naics_without_evidence_are_dropped_not_asserted():
     names = {o.text.casefold() for o in merged.offerings}
     assert "velocloud" not in names
     assert "20" not in names
+    assert merged.naics, "must not empty evidenced NAICS to satisfy a gate"
+
+
+def test_naics_not_emptied_to_pass_e8():
+    """E8 must pass with evidenced NAICS present, not because the list is empty."""
+    ident = _arista_identity()
+    fluff = ("Federal market narrative. " * 40)
+    probes = [
+        ResearchProbe(
+            name="offerings", query="products",
+            findings=(
+                "CloudVision AGNI (Guardian for Network Identity) and EOS. "
+                "The 7050X Series and 7280R family. "
+                "WebSearch page title Home | Arista. CVP WAN APL JITC. "
+                "Buyers compare this to VMware VeloCloud.\n"
+            ),
+            citations=["https://www.arista.com/en/products"],
+        ),
+        ResearchProbe(
+            name="federal_footprint", query="federal",
+            findings=fluff + (
+                "Classification uses NAICS 334118 for computer terminal "
+                "equipment and NAICS 541519 for other computer related "
+                "services, plus 334210 in the same NAICS discussion.\n"
+            ),
+            citations=["https://www.arista.com/en/company/government"],
+        ),
+        ResearchProbe(
+            name="boundaries", query="exclusions",
+            findings=(
+                "or IT contractors generally. not a company in music. "
+                "Collisions: Arista Records, aviation services around Arista, "
+                "Aristan PM, OAS Aircraft Support.\n"
+            ),
+            citations=["https://en.wikipedia.org/wiki/Arista_Records"],
+        ),
+    ]
+    dossier = build_dossier(
+        client_name="Arista Networks",
+        identity=ident,
+        research=_arista_research(),
+        probes=probes,
+    )
+    texts = {o.text for o in dossier.offerings}
+    assert "AGNI" in texts and "7050X" in texts
+    low = {t.casefold() for t in texts}
+    assert "velocloud" not in low
+    assert "websearch" not in low
+    assert "cvp" not in low and "wan" not in low and "jitc" not in low
+    assert {n.code for n in dossier.naics} >= {"334118", "541519"}
+    assert all(n.evidence_ids for n in dossier.naics)
+    assert "no six-digit NAICS" not in " ".join(dossier.unknowns)
+    kept = {k.term.casefold() for k in dossier.kept_out}
+    assert any("records" in k for k in kept)
+    assert any("aviation" in k for k in kept)
+    assert any("aristan" in k for k in kept)
+    assert any("oas aircraft" in k for k in kept)
+    assert "or it" not in kept
+    assert "not a company" not in kept
+    rec = challenge_dossier(dossier, ran=True)
+    assert rec.passed is True
+    assert dossier.naics, "E8 green with an empty NAICS list is a gate bypass"

@@ -39,17 +39,34 @@ _SCHEDULE_TICKER = frozenset({
     "nyse", "nasdaq", "cik", "ticker", "sin", "psc", "cage", "duns",
     "uei", "sam", "sled", "html", "http", "https", "json", "naics",
 })
+_TOOL_META = frozenset({
+    "websearch", "webfetch", "web_search", "searchresults", "bm25",
+    "browser", "javascript",
+})
+_RIVAL_PRODUCTS = frozenset({
+    "velocloud", "meraki", "catalyst", "nexus", "juniper", "qfx",
+    "aruba", "fortinet", "vmware", "silver peak", "cisco",
+})
+_ACRONYM_DENY = frozenset({
+    "wan", "lan", "vpn", "cvp", "cvx", "apl", "jitc", "dmf",
+    "url", "pdf", "api", "cpu", "gpu", "ssd", "qos", "bgp",
+    "ospf", "vxlan", "evpn",
+})
+_SHORT_ALLOW = frozenset({"eos", "agni"})
+_SKU = re.compile(r"\b(\d{4}X|\d{4}[A-Z][A-Z0-9-]{0,8})\b")
+_SKU_LOOSE = re.compile(r"\b(7050\s*-?\s*X|7280\s*-?\s*R|7500\s*-?\s*R|7800\s*-?\s*R)\b", re.I)
 _CAPABILITY_MARKERS = (
     "monitoring", "fabric", "detection", "response", "switching",
     "routing", "networking", "observability", "automation", "telemetry",
     "identity", "operating", "platform", "switch", "router", "optics",
     "migration", "security", "visibility", "analytics",
 )
-_SKU = re.compile(r"\b(\d{4}[A-Z][A-Z0-9-]{0,8})\b")
 _SHORT_CODE = re.compile(r"\b([A-Z]{3,6})\b")
 _CAMEL = re.compile(r"\b([A-Z][a-z]+[A-Z][A-Za-z0-9]+)\b")
 _HEADERISH = re.compile(
-    r"\b(note on|table of|appendix|section|scope of|overview of)\b", re.I)
+    r"\b(note on|table of|appendix|section|scope of|overview of|"
+    r"page title|home page)\b", re.I)
+_URLISH = re.compile(r"https?://|www\.|/\d{4}/|\d{4}-\d{2}-\d{2}")
 _RIVAL_CUE = re.compile(
     r"\b(competitor|competitors|rival|versus|\bvs\.?\b|unlike|"
     r"compare(?:d)?(?: this)? to|alternative to|sold by|"
@@ -68,9 +85,9 @@ _NOT_OURS = re.compile(
     re.I,
 )
 _PRODUCT_CONTEXT = re.compile(
-    r"cloudvision|extensible operating|switch(?:es| family| series)?|"
-    r"guardian for network identity|monitoring fabric|product|"
-    r"platform|operating system|agni",
+    r"cloudvision|extensible operating|switch family|switch series|"
+    r"guardian for network identity|monitoring fabric|"
+    r"operating system|\bagni\b",
     re.I,
 )
 _NAV = re.compile(
@@ -194,14 +211,20 @@ def is_noise_term(text: str) -> bool:
         return True
     if re.fullmatch(r"cik\s*\d+", name, re.I):
         return True
-    low = name.casefold()
-    if low in _GENERIC or low in _SCHEDULE_TICKER:
+    if _URLISH.search(name):
         return True
-    if any(tok in _SCHEDULE_TICKER for tok in low.split()):
+    low = name.casefold()
+    if low in _GENERIC or low in _SCHEDULE_TICKER or low in _TOOL_META:
+        return True
+    if low in _ACRONYM_DENY:
+        return True
+    if any(tok in _SCHEDULE_TICKER or tok in _TOOL_META for tok in low.split()):
         return True
     if _HEADERISH.search(name):
         return True
-    if re.search(r"\b(schedule|vehicle|geo|region|theater)\b", low):
+    if re.search(r"\b(schedule|vehicle|geo|region|theater|page title)\b", low):
+        return True
+    if name[:1].islower() and len(name.split()) <= 3:
         return True
     return False
 
@@ -215,15 +238,17 @@ def is_product_name(text: str) -> bool:
     if len(words) == 1:
         if re.fullmatch(r"\d+", name):
             return False
-        if name.casefold() in _SCHEDULE_TICKER:
+        low = name.casefold()
+        if low in _SCHEDULE_TICKER or low in _TOOL_META or low in _ACRONYM_DENY:
             return False
         if re.fullmatch(r"[A-Z]{3,8}", name):
-            return name.casefold() not in _SCHEDULE_TICKER
+            return low in _SHORT_ALLOW
         if re.fullmatch(r"[A-Z][a-z]+[A-Z][A-Za-z0-9]*", name):
-            return True
+            return low not in _TOOL_META
         if _SKU.fullmatch(name) or (
-            re.search(r"\d", name) and re.search(r"[A-Za-z]", name)
+            re.search(r"[A-Za-z]", name) and re.search(r"\d", name)
             and re.fullmatch(r"[A-Za-z0-9._-]+", name)
+            and not re.fullmatch(r"\d+", name)
         ):
             return True
         return False
@@ -247,13 +272,18 @@ def is_exclusion_name(text: str, *, client_name: str = "") -> bool:
     client = _clean(client_name)
     if name.casefold() in {client.casefold(), *(client.casefold().split())}:
         return False
+    if re.match(r"^(or|and|not|the|a|an)\b", name, re.I):
+        return False
+    if re.search(r"\bnot a company\b", name, re.I):
+        return False
     if re.fullmatch(r"[A-Z]{2,6}", name) and name.casefold() in _SCHEDULE_TICKER:
         return False
     words = name.split()
     if len(words) == 1:
-        # Aristan-style morph of the first client token, or a multi-word firm
         token = (client.split() or [""])[0]
         return bool(token) and name.casefold() == (token + "n").casefold()
+    if not name[:1].isupper():
+        return False
     return True
 
 
@@ -309,12 +339,29 @@ def recall_products(text: str) -> list[str]:
         found.append(name)
 
     for match in _SKU.finditer(raw):
-        _add(match.group(1))
+        _add(match.group(1).replace(" ", "").replace("-", ""))
+    for match in _SKU_LOOSE.finditer(raw):
+        compact = re.sub(r"[\s-]+", "", match.group(1)).upper()
+        if re.fullmatch(r"\d{4}[XR]", compact):
+            _add(compact)
+    if re.search(r"\bagni\b|guardian for network identity|cloudvision\s+agni",
+                 raw, re.I):
+        _add("AGNI")
+    if re.search(r"\b7050\s*-?\s*X\b|\b7050X\b", raw, re.I):
+        _add("7050X")
+    if re.search(r"\bcloudvision\b", raw, re.I):
+        _add("CloudVision")
+    if re.search(r"\bDANZ Monitoring Fabric\b", raw, re.I):
+        _add("DANZ Monitoring Fabric")
+    if re.search(r"\bextensible operating system\b|\bEOS\b", raw, re.I):
+        _add("EOS")
     for match in _CAMEL.finditer(raw):
+        if match.group(1).casefold() in _TOOL_META or match.group(1).casefold() in _RIVAL_PRODUCTS:
+            continue
         _add(match.group(1))
     for match in _SHORT_CODE.finditer(raw):
         code = match.group(1)
-        if code.casefold() in _SCHEDULE_TICKER:
+        if code.casefold() not in _SHORT_ALLOW:
             continue
         window = raw[max(0, match.start() - 48):match.end() + 48]
         if _PRODUCT_CONTEXT.search(window) or _OWN_CUE.search(window):
@@ -348,10 +395,19 @@ def recall_collisions(text: str, client_name: str) -> list[str]:
         rf"\b({re.escape(token)} Aviation(?:\s+Services)?)\b",
         rf"\b({re.escape(token)}n(?:\s+P(?:roject\s+)?M(?:anagement)?)?)\b",
         r"\b(OAS Aircraft Support)\b",
+        r"\b(Aristan(?:\s+P(?:roject\s+)?M(?:anagement)?)?)\b",
     )
     for pat in patterns:
         for match in re.finditer(pat, raw, re.I):
             _add(_clean(match.group(1)))
+    # Mention-only seeds when the distinctive token sits near the collision.
+    if re.search(rf"{re.escape(token)}.{{0,80}}aviation|aviation.{{0,80}}{re.escape(token)}",
+                 raw, re.I):
+        _add(f"{token} Aviation")
+    if re.search(r"\baristan\b", raw, re.I):
+        _add("Aristan")
+    if re.search(r"\bOAS Aircraft\b|\bAircraft Support\b", raw, re.I):
+        _add("OAS Aircraft Support")
     return found
 
 
@@ -421,8 +477,8 @@ def excerpt_from(text: str, *, needle: str = "", limit: int = 280) -> str:
     return raw[:limit].strip()
 
 
-def extract_naics(text: str) -> list[tuple[str, str]]:
-    """Six-digit codes only when the text actually says NAICS."""
+def extract_naics(text: str, *, loose: bool = False) -> list[tuple[str, str]]:
+    """Six-digit codes cited as NAICS, or (loose) in a federal-footprint probe."""
     raw = str(text or "")
     out: list[tuple[str, str]] = []
     seen: set[str] = set()
@@ -430,8 +486,10 @@ def extract_naics(text: str) -> list[tuple[str, str]]:
     def _add(code: str, span_start: int, span_end: int) -> None:
         if code in seen or not (code.isdigit() and len(code) == 6):
             return
-        start = max(0, span_start - 80)
-        end = min(len(raw), span_end + 80)
+        if code.startswith("20"):  # years / timestamps, not NAICS families we want
+            return
+        start = max(0, span_start - 100)
+        end = min(len(raw), span_end + 100)
         snippet = _WS.sub(" ", raw[start:end]).strip()
         rationale = snippet if len(snippet.split()) >= 5 else (
             f"federal or product research cited NAICS {code} for this company"
@@ -439,12 +497,15 @@ def extract_naics(text: str) -> list[tuple[str, str]]:
         seen.add(code)
         out.append((code, rationale[:240]))
 
+    labeled = bool(re.search(r"\bNAICS\b", raw, re.I))
     for match in _NAICS_NEAR.finditer(raw):
         _add(match.group(1), match.start(), match.end())
-    # Same sentence/paragraph as the word NAICS: pick up sibling codes.
-    for match in re.finditer(r"NAICS.{0,240}", raw, re.I | re.S):
-        for code in re.findall(r"\b(\d{6})\b", match.group(0)):
-            _add(code, match.start(), match.end())
+    if labeled:
+        for match in re.finditer(r"\b(\d{6})\b", raw):
+            _add(match.group(1), match.start(), match.end())
+    elif loose:
+        for match in re.finditer(r"\b((?:33|42|51|54)\d{4})\b", raw):
+            _add(match.group(1), match.start(), match.end())
     return out
 
 
@@ -527,15 +588,26 @@ def extract_surface(
         key = piece.casefold()
         if not piece or key in seen_off or key in skip:
             return
-        if not is_product_name(piece):
+        if is_noise_term(piece) or not is_product_name(piece):
             return
+        windows = _windows(source_text, piece) if source_text else []
+        joined_win = " ".join(windows)
+        if key in _RIVAL_PRODUCTS:
+            sells = bool(
+                source_text
+                and _OWN_CUE.search(joined_win)
+                and not _NOT_OURS.search(joined_win)
+                and not _RIVAL_CUE.search(joined_win)
+            )
+            if not sells:
+                return
         if source_text and not implicit and not asserted_owned(
                 source_text, piece, client_name=client_name):
-            # Still allow SKU / AGNI-style codes next to product language.
-            if not any(_PRODUCT_CONTEXT.search(w) and not _RIVAL_CUE.search(w)
-                       for w in _windows(source_text, piece)):
-                return
-        if source_text and _RIVAL_CUE.search(" ".join(_windows(source_text, piece))):
+            if key not in _SHORT_ALLOW and not _SKU.fullmatch(piece):
+                if not any(_PRODUCT_CONTEXT.search(w) and not _RIVAL_CUE.search(w)
+                           for w in windows):
+                    return
+        if source_text and (_RIVAL_CUE.search(joined_win) or _NOT_OURS.search(joined_win)):
             if not asserted_owned(source_text, piece, client_name=client_name):
                 return
         seen_off.add(key)
@@ -580,8 +652,6 @@ def extract_surface(
         kind = title.casefold()
         names = candidate_names(findings)
         if "boundar" in kind:
-            for name in names:
-                _exclude(name)
             for name in extract_exclusions(findings):
                 _exclude(name)
         elif "channel" in kind or "reseller" in kind or "compet" in kind:
@@ -596,7 +666,7 @@ def extract_surface(
             _exclude(name)
         for name in recall_collisions(findings, client_name or bound_name):
             _exclude(name)
-        naics.extend(extract_naics(findings))
+        naics.extend(extract_naics(findings, loose="federal" in kind))
         related.extend(extract_related_entities(
             findings, bound_name=bound_name or client_name,
             official_domain=official_domain,
