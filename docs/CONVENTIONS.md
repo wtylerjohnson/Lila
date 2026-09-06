@@ -234,8 +234,18 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   pages even when the competitor web probe returns no findings.
   A darktrace host plus 10-K / HPE body is still dropped. An
   official Darktrace comparison page may evidence Cisco when the
-  excerpt is an Unlike/versus Cisco claim; a /news Broadcom
-  VMware blurb is not a VMware-rival claim. When official
+  excerpt is an Unlike/versus Cisco claim; a competitor-comparisons
+  page that says the market was historically dominated by Cisco
+  is a Cisco-rival claim. A /news Broadcom VMware blurb is not
+  a VMware-rival claim even when the press room also says vs
+  (URL≠claim). Rival names are companies, not SKU fragments
+  (Cisco Nexus / Nexus 1000V). DoD, DoDIN, and DoDIN APL are
+  certification program names, not offerings. Allowlisted banks
+  (Barclays, Citigroup, Morgan Stanley) and Activ Financial
+  promote from official proof text even in all caps. Core NAICS
+  334210 (telephone apparatus) does not fail E5/E8 just because
+  Aviation is kept_out or the composer also listed 334210 as a
+  near miss; aviation codes 336413/488190 stay parked. When official
   customer-hub or compare evidence
   already names an org or rival, promote that name with the
   matching eid. Do not empty those lists to avoid a title bug.

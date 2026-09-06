@@ -26,6 +26,7 @@ from agents.intake.adapters import (
 from agents.intake.adversarial import (
     Challenge,
     challenge_dossier,
+    conflicting_core_naics,
     run_adversarial,
     soften_related_entity_blocks,
 )
@@ -1451,6 +1452,78 @@ def test_press6_polluted_core_naics_fail_e5_e8():
     assert by_id["E5"]["ok"] is False
     assert by_id["E8"]["ok"] is False
     assert ready["all_ok"] is False
+
+
+def test_press16_334210_near_miss_is_not_aviation_conflict():
+    """334210 core + Aviation kept_out must not fail E5; aviation stays parked."""
+    ident = _arista_identity()
+    probes = [
+        ResearchProbe(
+            name="offerings", query="products",
+            findings=(
+                "Official pages name EOS, CloudVision AGNI, the 7050X "
+                "series, and DANZ Monitoring Fabric."
+            ),
+            citations=["https://www.arista.com/en/products"],
+        ),
+        ResearchProbe(
+            name="federal_footprint", query="federal",
+            findings=(
+                "The SAM listing states NAICS 334118 for computer terminal "
+                "equipment and NAICS 334210 for telephone apparatus "
+                "manufacturing, plus 541519 for other computer related "
+                "services."
+            ),
+            citations=["https://sam.gov"],
+        ),
+        ResearchProbe(
+            name="boundaries", query="exclusions",
+            findings=(
+                "Do not confuse Arista Networks with Arista Aviation. "
+                "Aviation stays out of the search lane."
+            ),
+            citations=["https://en.wikipedia.org/wiki/Arista_Aviation"],
+        ),
+    ]
+    dossier = build_dossier(
+        client_name="Arista Networks",
+        identity=ident,
+        research=_arista_research(),
+        probes=probes,
+    )
+    cores = {n.code for n in dossier.naics if n.role == "core"}
+    parked = {n.code for n in dossier.kept_out_naics}
+    assert "334210" in cores
+    assert {"336413", "488190"} <= parked
+    assert "336413" not in cores
+    strategy = {
+        "inferred_naics": [n.code for n in dossier.naics if n.role == "core"],
+        "near_misses": [
+            {"value": "334210", "kind": "naics"},
+            {"value": "336413", "kind": "naics"},
+            {"value": "488190", "kind": "naics"},
+        ],
+        "kept_out_naics": [
+            {"code": "336413", "role": "boundary"},
+            {"code": "488190", "role": "boundary"},
+        ],
+    }
+    assert conflicting_core_naics(dossier, strategy) == []
+    rec = challenge_dossier(dossier, ran=True, strategy=strategy)
+    assert rec.passed is True
+    ready = evaluate_readiness(
+        identity=ident, dossier=dossier, probes=probes,
+        yield_receipt={
+            "store": {"status": "empty", "row_count": 0, "note": "empty"},
+            "terms": [],
+            "note": "notice store has zero rows; counts are not a market zero",
+        },
+        adversarial=rec, strategy=strategy,
+    )
+    by_id = {row["id"]: row for row in ready["receipts"]}
+    assert by_id["E5"]["ok"] is True
+    assert by_id["E8"]["ok"] is True
+    assert {"336413", "488190"} <= {n.code for n in dossier.kept_out_naics}
 
 
 def test_danz_named_offering_not_visibility_telemetry_umbrella():

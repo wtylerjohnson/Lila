@@ -18,6 +18,7 @@ from agents.intake.extract import (
     exclude_blob_hits_industry,
     is_discrete_name,
     is_garbage_text,
+    is_namesake_industry_naics,
     is_product_name,
 )
 from agents.intake.identity import IdentityResolution
@@ -178,7 +179,12 @@ def strategy_near_miss_naics(strategy) -> list[str]:
 
 
 def conflicting_core_naics(dossier: CompanyDossier, strategy=None) -> list[str]:
-    """Core search NAICS that collide with namesake excludes or near_misses."""
+    """Core search NAICS that collide with namesake excludes or near_misses.
+
+    334210 (telephone apparatus) is not an aviation namesake. A composer
+    near-miss or kept_out tray that also lists it is not an E5/E8 conflict.
+    Aviation/records cores against Aviation/Records kept_out still fail.
+    """
     kept = " ".join(k.term for k in dossier.kept_out)
     near = set(strategy_near_miss_naics(strategy))
     bad: list[str] = []
@@ -186,8 +192,9 @@ def conflicting_core_naics(dossier: CompanyDossier, strategy=None) -> list[str]:
     for entry in dossier.naics:
         if entry.role != "core" or entry.state == ClaimState.COMPANY_ASSERTED:
             continue
-        hit = exclude_blob_hits_industry(entry.code, kept) or entry.code in near
-        if hit and entry.code not in seen:
+        namesake = exclude_blob_hits_industry(entry.code, kept)
+        near_hit = entry.code in near and is_namesake_industry_naics(entry.code)
+        if (namesake or near_hit) and entry.code not in seen:
             seen.add(entry.code)
             bad.append(entry.code)
     return bad

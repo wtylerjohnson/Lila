@@ -166,10 +166,25 @@ _STRONG_COMPARE = re.compile(
     r"competitors?(?: include| are|:)|rivals?(?: include| are|:)|"
     r"competition(?:\s+for|\s+with|\s+against)|"
     r"compete[sd]?(?:\s+with|\s+against)|"
+    r"(?:historically\s+)?dominated by|"
     r"(?<!\bno\s)head-to-head|alternative(?:s)? to)\b",
     re.I,
 )
-_NEWS_PATH = re.compile(r"/news|/press|/blog|/media", re.I)
+# Path segments only. Do not match /media-and-entertainment or /pressure.
+_NEWS_PATH = re.compile(
+    r"(?:^|/)(?:news|press(?:-release)?|blog)(?:/|$|\?|#)",
+    re.I,
+)
+_SKU_RIVAL_FRAGMENT = re.compile(
+    r"\b(nexus(?:\s+\d+\w*)?|catalyst(?:\s+\d+\w*)?|ex series|"
+    r"1000v|9000)\b",
+    re.I,
+)
+_CERTIFICATION_PROGRAM = frozenset({
+    "dod", "dodin", "dodin apl", "apl", "approved products list",
+    "authorization to operate", "ato", "fips", "common criteria",
+    "niap", "jitc",
+})
 _RIVAL_TITLE_TAIL = re.compile(
     r"\s+(comparisons?|overview|alternatives?|versus|\bvs\.?)$",
     re.I,
@@ -209,7 +224,8 @@ _COMPETITOR_LEAD = re.compile(
     r"alternative(?:s)? to|competitors?(?: include| are|:)|"
     r"rivals?(?: include| are|:)|instead of|"
     r"competition(?:\s+for|\s+with|\s+against)|"
-    r"compete[sd]?(?:\s+with|\s+against))\s+"
+    r"compete[sd]?(?:\s+with|\s+against)|"
+    r"(?:historically\s+)?dominated by)\s+"
     r"([A-Z][A-Za-z0-9&.\'-]{1,40}(?:\s+[A-Z][A-Za-z0-9&.\'-]{1,24}){0,3})",
     re.I,
 )
@@ -251,6 +267,7 @@ _RIVAL_CUE = re.compile(
     r"alternative(?:s)?(?: to)?|sold by|"
     r"competition(?:\s+for|\s+with|\s+against)|"
     r"compete[sd]?(?:\s+with|\s+against)|"
+    r"(?:historically\s+)?dominated by|"
     r"from (?:vmware|cisco|juniper)|"
     r"not (?:an? )?(?:arista|our) product)\b",
     re.I,
@@ -488,12 +505,51 @@ def is_noise_term(text: str) -> bool:
     return False
 
 
+def is_certification_program(text: str) -> bool:
+    """DoD / DoDIN APL / ATO-style program names are not products."""
+    name = _clean(text)
+    if not name:
+        return False
+    low = name.casefold()
+    if low in _CERTIFICATION_PROGRAM:
+        return True
+    words = [w for w in re.split(r"[/\s]+", low) if w]
+    if not words:
+        return False
+    if all(w in _CERTIFICATION_PROGRAM or w in {
+            "approved", "products", "list", "program", "programs"}
+           for w in words):
+        return True
+    return False
+
+
+def is_sku_fragment_rival(text: str) -> bool:
+    """Vendor SKU scrap (Cisco Nexus, Nexus 1000V) is not the rival firm."""
+    name = _clean(text)
+    if not name:
+        return False
+    low = name.casefold()
+    if low in {"cisco", "juniper", "vmware", "darktrace", "aruba", "hpe"}:
+        return False
+    return bool(_SKU_RIVAL_FRAGMENT.search(low))
+
+
+def is_news_path_citation(url: str) -> bool:
+    """Press / blog / news URLs are not compare evidence (URL≠claim)."""
+    if not url:
+        return False
+    path = re.sub(r"^https?://[^/]+", "", url.casefold())
+    return bool(_NEWS_PATH.search(path) or _NEWS_PATH.search(url.casefold()))
+
+
 def is_product_name(text: str) -> bool:
     """Named product, platform, OS, or SKU. Rejects schedule/ticker/header noise."""
     name = _clean(text)
     if not is_discrete_name(name) or is_noise_term(name):
         return False
     if looks_like_contract_or_schedule_id(name):
+        return False
+    if is_certification_program(name) or is_sku_fragment_rival(name):
         return False
     if name.casefold() in _CATEGORY_HEADERS:
         return False
@@ -962,13 +1018,17 @@ def is_customer_name(text: str, *, client_name: str = "") -> bool:
         return False
     if _NAV_CHROME.search(name):
         return False
+    if is_product_name(name):
+        return False
+    # Allowlisted buying orgs (Barclays, Citigroup, Morgan Stanley) promote
+    # even when a proof page sets them in all caps or beside section labels.
+    if low in _KNOWN_CUSTOMERS:
+        return True
     if _JOB_TITLE.search(name) or _STORY_TITLE.search(name):
         return False
     if _PEOPLE_NAV.search(name) or _TITLE_TAIL.search(name):
         return False
     if _PROSE_FRAGMENT.search(name) or _SLOGAN.search(name):
-        return False
-    if is_product_name(name):
         return False
     words = name.split()
     if len(words) == 1 and low not in _KNOWN_CUSTOMERS:
@@ -1022,9 +1082,12 @@ def known_customers_in_text(text: str, client_name: str = "") -> list[str]:
     pretty = {
         "us army": "US Army",
         "u.s. army": "US Army",
+        "citi": "Citigroup",
+        "citigroup": "Citigroup",
         "morgan stanley": "Morgan Stanley",
         "hardis group": "Hardis Group",
         "activ financial": "Activ Financial",
+        "barclays": "Barclays",
     }
     for known in sorted(_KNOWN_CUSTOMERS, key=len, reverse=True):
         if not re.search(rf"\b{re.escape(known)}\b", raw, re.I):
@@ -1062,6 +1125,8 @@ def is_competitor_name(text: str, *, client_name: str = "") -> bool:
     if _TITLE_TAIL.search(name) or _PEOPLE_NAV.search(name):
         return False
     if re.search(r"\b(comparison|overview|alternative|versus)\b", low):
+        return False
+    if is_sku_fragment_rival(name):
         return False
     if is_noise_term(name):
         return False
@@ -1103,7 +1168,9 @@ def citation_mismatches_rival(
         and excerpt_supports_name(name, excerpt)
         and _STRONG_COMPARE.search(excerpt)
     )
-    if _NEWS_PATH.search(host) and not strong:
+    # News / press / blog URLs never evidence a rival. A Broadcom VMware
+    # blurb on /en/company/news is URL≠claim even if the page also says vs.
+    if is_news_path_citation(url):
         return True
     path = re.sub(r"^https?://[^/]+", "", host)
     for vendor in _RIVAL_VENDORS:
@@ -1179,6 +1246,8 @@ def recall_competitors(text: str, client_name: str = "") -> list[str]:
     def _add(name: str) -> None:
         piece = normalize_rival_name(name, client_name=client_name)
         if not is_competitor_name(piece, client_name=client_name):
+            return
+        if is_sku_fragment_rival(piece):
             return
         key = piece.casefold()
         if not piece or key in seen or key in _GENERIC_CUSTOMERS:
@@ -1401,6 +1470,8 @@ def extract_surface(
         piece = normalize_rival_name(name, client_name=client_name)
         if not is_competitor_name(piece, client_name=client_name):
             return
+        if is_sku_fragment_rival(piece):
+            return
         key = piece.casefold()
         if not piece or key in seen_comp or key in seen_off:
             return
@@ -1412,7 +1483,10 @@ def extract_surface(
         if not is_customer_name(piece, client_name=client_name):
             return
         key = piece.casefold()
-        if not piece or key in seen_cust or key in seen_off or key in seen_comp:
+        if not piece or key in seen_cust or key in seen_off:
+            return
+        if key in seen_comp and not is_known_customer(
+                piece, client_name=client_name):
             return
         seen_cust.add(key)
         customers.append(piece)
@@ -1436,8 +1510,13 @@ def extract_surface(
         if pages:
             for page in pages:
                 text = page.text or ""
-                for name in recall_competitors(text, client_name or bound_name):
-                    _compete(name)
+                url = getattr(page, "url", "") or ""
+                if not is_news_path_citation(url):
+                    for name in recall_competitors(text, client_name or bound_name):
+                        _compete(name)
+                if is_news_path_citation(url) and not customer_excerpt_ok(
+                        text, url):
+                    continue
                 for name in recall_customers(text, client_name or bound_name):
                     _customer(name)
         else:

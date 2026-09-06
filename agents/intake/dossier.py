@@ -33,8 +33,10 @@ from agents.intake.extract import (
     is_discrete_name,
     is_error_page,
     is_garbage_text,
+    is_news_path_citation,
     is_plausible_naics_code,
     is_product_name,
+    is_sku_fragment_rival,
     naics_search_role,
     recall_competitors,
     recall_customers,
@@ -466,12 +468,16 @@ def build_dossier(
         existing_off.add(name.casefold())
 
     for name in surface.competitors:
+        if is_sku_fragment_rival(name):
+            continue
         snippet, url = _evidence_for_name(
             name, probe_blobs, scrape_text, identity.website,
             require_needle=True, scrape=scrape,
             official_domain=identity.official_domain, prefer_site=True,
             require_compare=True)
         if not snippet or not excerpt_supports_rival(name, snippet):
+            continue
+        if is_news_path_citation(url or ""):
             continue
         if citation_mismatches_rival(
                 url or "", name, identity.official_domain, excerpt=snippet):
@@ -635,9 +641,11 @@ def build_dossier(
             seen_cust.add(key)
         for name in recall_competitors(excerpt, client_name):
             key = name.casefold()
-            if key in seen_comp:
+            if key in seen_comp or is_sku_fragment_rival(name):
                 continue
             if not excerpt_supports_rival(name, excerpt):
+                continue
+            if is_news_path_citation(ev.url or ""):
                 continue
             if citation_mismatches_rival(
                     ev.url or "", name, identity.official_domain,
@@ -656,9 +664,28 @@ def build_dossier(
     for page in pages:
         text = page.text or ""
         url = getattr(page, "url", None) or identity.website
+        if is_news_path_citation(url or ""):
+            for name in known_customers_in_text(text, client_name):
+                key = name.casefold()
+                if key in seen_cust:
+                    continue
+                snippet = excerpt_from(text, needle=name)
+                if not snippet or not excerpt_supports_name(name, snippet):
+                    continue
+                if not customer_excerpt_ok(snippet, url or ""):
+                    continue
+                eid = add_ev("website", snippet, url)
+                if not eid:
+                    continue
+                customers.append(_claim(
+                    name, ClaimState.COMPANY_ASSERTED, [eid],
+                    "allowlisted customer promoted from official-site text",
+                ))
+                seen_cust.add(key)
+            continue
         for name in recall_competitors(text, client_name):
             key = name.casefold()
-            if key in seen_comp:
+            if key in seen_comp or is_sku_fragment_rival(name):
                 continue
             snippet = excerpt_from(text, needle=name)
             if not snippet or not excerpt_supports_rival(name, snippet):

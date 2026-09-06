@@ -24,7 +24,9 @@ from agents.intake.extract import (
     extract_surface,
     is_competitor_name,
     is_customer_name,
+    is_news_path_citation,
     is_product_name,
+    is_sku_fragment_rival,
     normalize_rival_name,
     recall_competitors,
     recall_customers,
@@ -473,6 +475,29 @@ def test_junk_titles_are_not_offerings_or_customers():
         "Competition for the Cisco Nexus 1000V in the hypervisor.",
         "Acme Net",
     )
+    assert "Cisco" in recall_competitors(
+        "The switching market was historically dominated by Cisco.",
+        "Acme Net",
+    )
+    nexus_rivals = recall_competitors(
+        "Competition for the Cisco Nexus 1000V in the hypervisor.",
+        "Acme Net",
+    )
+    assert "Cisco Nexus" not in nexus_rivals
+    assert "Cisco Nexus 1000V" not in nexus_rivals
+    assert "Nexus 1000V" not in nexus_rivals
+    assert is_sku_fragment_rival("Cisco Nexus") is True
+    assert is_sku_fragment_rival("Cisco Nexus 1000V") is True
+    assert is_sku_fragment_rival("Cisco") is False
+    assert is_product_name("DoD") is False
+    assert is_product_name("DoDIN") is False
+    assert is_product_name("DoDIN APL") is False
+    assert is_product_name("Approved Products List") is False
+    assert is_news_path_citation("https://www.arista.com/en/company/news") is True
+    assert is_news_path_citation(
+        "https://www.arista.com/en/solutions/media-and-entertainment") is False
+    assert is_customer_name("MORGAN STANLEY") is True
+    assert is_customer_name("CITIGROUP") is True
     assert is_customer_name("Yahoo!") is False
     assert is_customer_name("Hardis") is True
     assert is_customer_name("Login Wi-Fi Cloud") is False
@@ -502,6 +527,11 @@ def test_junk_titles_are_not_offerings_or_customers():
         "https://www.arista.com/en/company/news", "VMware",
         official_domain="arista.com",
         excerpt="Broadcom closed the VMware acquisition last quarter.",
+    ) is True
+    assert citation_mismatches_rival(
+        "https://www.arista.com/en/company/news", "VMware",
+        official_domain="arista.com",
+        excerpt="Unlike VMware, this news blurb still is not a compare page.",
     ) is True
     assert aviation_codes_to_park("Arista Aviation") == ["336413", "488190"]
     assert is_product_name("CloudVision Data Sheet") is False
@@ -1233,3 +1263,146 @@ def test_press15_scrape_competition_sentence_promotes_cisco():
     texts = {o.text for o in dossier.offerings}
     assert {"EOS", "CloudVision", "AGNI", "7050X"} <= texts
     assert "336413" in {n.code for n in dossier.kept_out_naics}
+
+
+def test_press16_collateral_does_not_undo_cisco_darktrace():
+    """Cisco + Darktrace stay; news VMware, Nexus SKU, DoD offerings do not."""
+    ident = _identity()
+    cisco_url = ROOT + "/en/company/competitor-comparisons"
+    darktrace = ROOT + "/en/ndr-darktrace-comparison"
+    nexus = ROOT + "/en/solutions/v-eos-router"
+    news = ROOT + "/en/company/news"
+    gov = ROOT + "/en/company/government"
+    customers_url = ROOT + "/en/company/customers"
+    scrape = ScrapeBundle(
+        root_url=ROOT,
+        pages=[
+            ScrapedPage(
+                url=cisco_url,
+                text=(
+                    "The data-center switching market was historically "
+                    "dominated by Cisco. Unlike Cisco, Acme ships EOS on "
+                    "every 7050X and positions CloudVision as the compare "
+                    "alternative on this official writeup."
+                ),
+            ),
+            ScrapedPage(
+                url=darktrace,
+                text=(
+                    "NDR Darktrace comparison. Unlike Darktrace, Acme "
+                    "positions AGNI as the identity control point on this "
+                    "official page."
+                ),
+            ),
+            ScrapedPage(
+                url=nexus,
+                text=(
+                    "vEOS Router overview. Competition for the Cisco Nexus "
+                    "1000V in the hypervisor switching lane. Acme ships EOS "
+                    "on the same page. Do not promote the SKU name as a rival."
+                ),
+            ),
+            ScrapedPage(
+                url=news,
+                text=(
+                    "Broadcom closed the VMware acquisition. VMware Cloud "
+                    "Foundation 9.1 sits next to an Acme campus note. "
+                    "Pioneers vs Protectors is a blog teaser on the same "
+                    "press room. This is not a VMware compare claim."
+                ),
+            ),
+            ScrapedPage(
+                url=gov,
+                text=(
+                    "Federal certifications include the DoD, DoDIN, and "
+                    "DoDIN APL approved products list. Acme sells EOS and "
+                    "CloudVision, not those program names."
+                ),
+            ),
+            ScrapedPage(
+                url=customers_url,
+                text=(
+                    "Fixed Mobile Telecoms. French IT. Named Customers. "
+                    "Customers include BARCLAYS, CITIGROUP, MORGAN STANLEY, "
+                    "Activ Financial, Hardis Group, and Microsoft."
+                ),
+            ),
+            ScrapedPage(
+                url=ROOT + "/products",
+                text=(
+                    "Acme Net sells EOS, CloudVision, AGNI, DANZ Monitoring "
+                    "Fabric, and the 7050X switch family."
+                ),
+            ),
+        ],
+        sources=[cisco_url, darktrace, nexus, news, gov, customers_url],
+    )
+    probes = [
+        ResearchProbe(
+            name="competitors",
+            query="rivals",
+            findings="",
+            citations=[],
+        ),
+        ResearchProbe(
+            name="boundaries",
+            query="exclusions",
+            findings=(
+                "Do not confuse Acme Net with Acme Aviation. Aviation "
+                "stays out of the search lane."
+            ),
+            citations=["https://en.wikipedia.org/wiki/Acme_Aviation"],
+        ),
+    ]
+    dossier = build_dossier(
+        client_name="Acme Net",
+        identity=ident,
+        research=CompanyResearch(
+            company_name="Acme Net", website=ROOT, scrape=scrape),
+        probes=probes,
+    )
+    rivals = {c.text: c for c in dossier.competitors}
+    assert "Cisco" in rivals
+    assert "Darktrace" in rivals
+    ev = {e.evidence_id: e for e in dossier.evidence}
+    cisco_url_hit = (ev[rivals["Cisco"].evidence_ids[0]].url or "").casefold()
+    cisco_ex = ev[rivals["Cisco"].evidence_ids[0]].excerpt or ""
+    assert "/news" not in cisco_url_hit
+    assert (
+        "competitor-comparisons" in cisco_url_hit
+        or "v-eos" in cisco_url_hit
+        or "/solutions" in cisco_url_hit
+    )
+    assert "cisco" in cisco_ex.casefold()
+    dark_url = (ev[rivals["Darktrace"].evidence_ids[0]].url or "").casefold()
+    dark_ex = ev[rivals["Darktrace"].evidence_ids[0]].excerpt or ""
+    assert "darktrace" in dark_url
+    assert "/news" not in dark_url
+    assert excerpt_supports_rival("Darktrace", dark_ex)
+    assert "Cisco Nexus" not in rivals
+    assert "Cisco Nexus 1000V" not in rivals
+    assert "Nexus 1000V" not in rivals
+    assert "Here" not in rivals
+    assert "VMware" not in rivals and "Vmware" not in rivals
+    texts = {o.text for o in dossier.offerings}
+    assert {"EOS", "CloudVision", "AGNI", "DANZ Monitoring Fabric",
+            "7050X"} <= texts
+    low_off = {t.casefold() for t in texts}
+    assert "dod" not in low_off
+    assert "dodin" not in low_off
+    assert "dodin apl" not in low_off
+    assert "apl" not in low_off
+    customers = {c.text.casefold() for c in dossier.customers}
+    assert 1 <= len(customers) <= MAX_CUSTOMERS
+    assert {
+        "barclays", "citigroup", "morgan stanley",
+        "activ financial", "hardis group", "microsoft",
+    } <= customers
+    for junk in (
+        "fixed mobile telecoms", "french it", "named customers",
+        "hardis grou",
+    ):
+        assert junk not in customers
+    assert any("aviation" in k.term.casefold() for k in dossier.kept_out)
+    parked = {n.code for n in dossier.kept_out_naics}
+    assert {"336413", "488190"} <= parked
