@@ -165,13 +165,18 @@ Reality in the code wins. When you extend a pattern, extend it here too.
 - Adapters (`agents/intake/adapters.py`) copy evidenced dossier fields onto
   `IntakeStrategy` and a hybrid.frame_lanes-shaped retrieval sidecar.
 - Dossier offerings, keywords, and retrieval units are short discrete
-  product or capability names. Probe essays, homepage load-errors, and
-  the placeholder excerpt "citation" never become offerings or ledger
-  text. NAICS come from evidenced research (or an explicit unknown), not
-  an empty list beside a rich strategy. Name-collision exclusions from
-  boundary probes seed `kept_out` (workshop edits remain the operator
-  path). A related Government Sales LLC is recorded as a federal-path
-  affiliate and does not break or hard-block a correct public-domain bind.
+  product or capability names (EOS, CloudVision, AGNI, 7050X). Probe
+  essays, homepage load-errors, schedule/ticker/header fragments, bare
+  numbers, and the placeholder excerpt "citation" never become offerings
+  or ledger text. A rival platform (VeloCloud) is not an Arista offering
+  unless the source asserts Arista sells it. NAICS that are kept carry
+  real evidence_ids or they are dropped, not asserted empty. Name-collision
+  exclusions from boundary probes seed `kept_out` (Records / Aviation /
+  Aristan / OAS Aircraft Support style when mentioned); NYSE, CIKs,
+  section headers, and the bare company name stay out. Workshop edits
+  remain the operator path. A related Government Sales LLC is recorded
+  as a federal-path affiliate and does not break or hard-block a correct
+  public-domain bind.
 
 ## Pipeline shape
 

@@ -14,7 +14,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field
 
 from agents.intake.dossier import ClaimState, CompanyDossier
-from agents.intake.extract import is_discrete_name, is_garbage_text
+from agents.intake.extract import is_discrete_name, is_garbage_text, is_product_name
 from agents.intake.identity import IdentityResolution
 
 
@@ -187,6 +187,16 @@ def challenge_dossier(
                 statement=(
                     f"offering {off.text[:80]!r} is not a discrete product "
                     "name (load-error, essay, or placeholder)"
+                ),
+                evidence_ids=list(off.evidence_ids),
+            ))
+            continue
+        if off.state == ClaimState.INFERRED and not is_product_name(off.text):
+            rec.challenges.append(Challenge(
+                kind="unsupported_capability", severity="block",
+                statement=(
+                    f"offering {off.text[:80]!r} is inferred noise "
+                    "(schedule, ticker, header, or bare number), not a product"
                 ),
                 evidence_ids=list(off.evidence_ids),
             ))

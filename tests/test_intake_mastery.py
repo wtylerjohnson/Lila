@@ -17,7 +17,11 @@ import pytest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from agents.company_research import CompanyResearch
-from agents.intake.adapters import retrieval_frame, strategy_from_dossier
+from agents.intake.adapters import (
+    merge_strategy_into_dossier,
+    retrieval_frame,
+    strategy_from_dossier,
+)
 from agents.intake.adversarial import (
     Challenge,
     challenge_dossier,
@@ -664,11 +668,11 @@ def test_failed_scrape_and_probe_essay_do_not_become_offerings():
     assert "error loading" not in blob
     assert "javascript" not in blob
     assert "name collisions include" not in blob
-    assert any(t in {"EOS", "CloudVision", "AGNI", "CUE", "UNO",
-                     "DANZ Monitoring Fabric"} for t in texts)
+    assert {"EOS", "CloudVision", "AGNI", "7050X"} <= set(texts)
     assert not any(e.excerpt.strip().casefold() == "citation" for e in dossier.evidence)
     assert all(e.excerpt.strip() for e in dossier.evidence)
     assert {n.code for n in dossier.naics} >= {"334118", "541519"}
+    assert all(n.evidence_ids for n in dossier.naics)
     assert all(len((n.rationale or "").split()) >= 5 for n in dossier.naics)
     exclusions = {k.term.casefold() for k in dossier.kept_out}
     assert any("arista records" in x for x in exclusions)
@@ -816,8 +820,9 @@ def test_arista_pipeline_quality_without_injected_engines(tmp_path, monkeypatch)
     assert result.identity.official_domain == "arista.com"
     texts = [o.text for o in result.dossier.offerings]
     assert all(is_discrete_name(t) for t in texts)
-    assert any(t in {"EOS", "CloudVision"} for t in texts)
+    assert {"EOS", "CloudVision", "AGNI", "7050X"} <= set(texts)
     assert {n.code for n in result.dossier.naics} >= {"334118", "541519"}
+    assert all(n.evidence_ids for n in result.dossier.naics)
     assert result.dossier.kept_out
     assert not any(
         e.excerpt.strip().casefold() == "citation" for e in result.dossier.evidence)
@@ -828,3 +833,103 @@ def test_arista_pipeline_quality_without_injected_engines(tmp_path, monkeypatch)
     scope = tmp_path / "clients" / "arista_networks" / "engagement_scope.json"
     if scope.is_file():
         assert json.loads(scope.read_text()).get("preset") in ("", None)
+
+
+def test_product_precision_rejects_noise_and_rival_keeps_agni_7050x():
+    ident = _arista_identity()
+    probes = [
+        ResearchProbe(
+            name="offerings", query="products",
+            findings=(
+                "## Products\n"
+                "- EOS and CloudVision AGNI (Guardian for Network Identity)\n"
+                "- DANZ Monitoring Fabric\n"
+                "- 7050X family and 7280R / 7500R / 7800R switches\n"
+                "- Note on scope\n"
+                "- 20\n"
+                "- Gap\n"
+                "- GSA Schedule 70 and NASA SEWP\n"
+                "Buyers sometimes compare this to VMware VeloCloud, "
+                "which is not an Arista product.\n"
+            ),
+            citations=["https://www.arista.com/en/products"],
+        ),
+        ResearchProbe(
+            name="federal_footprint", query="federal",
+            findings=(
+                "NYSE: ANET CIK 0001420800. Federal path is Arista Networks "
+                "Government Sales LLC. NAICS 334118 and 541519. Also listed "
+                "NAICS 334210 without further use.\n"
+            ),
+            citations=["https://www.arista.com/en/company/government"],
+        ),
+        ResearchProbe(
+            name="boundaries", query="exclusions",
+            findings=(
+                "Section header Overview. Do not confuse with Arista Records, "
+                "Arista Aviation, Aristan PM, or OAS Aircraft Support. "
+                "Bare token Arista is this company.\n"
+            ),
+            citations=["https://en.wikipedia.org/wiki/Arista_Records"],
+        ),
+    ]
+    dossier = build_dossier(
+        client_name="Arista Networks",
+        identity=ident,
+        research=_arista_research(),
+        probes=probes,
+    )
+    texts = [o.text for o in dossier.offerings]
+    assert {"EOS", "CloudVision", "AGNI", "DANZ Monitoring Fabric",
+            "7050X", "7280R"} <= set(texts)
+    low = {t.casefold() for t in texts}
+    assert "20" not in low
+    assert "gap" not in low
+    assert "note on scope" not in low
+    assert "gsa" not in low and "sewp" not in low
+    assert "velocloud" not in low
+    assert not any(t.casefold() == "arista" for t in texts)
+    frame = retrieval_frame(dossier)
+    tier1 = [t.casefold() for t in frame["frame"]["as_ordered"]["tier1"]]
+    assert "20" not in tier1 and "gap" not in tier1 and "velocloud" not in tier1
+    assert any(t == "agni" for t in tier1) and any(t == "7050x" for t in tier1)
+    assert all(n.evidence_ids for n in dossier.naics)
+    assert {n.code for n in dossier.naics} >= {"334118", "541519"}
+    kept = {k.term.casefold() for k in dossier.kept_out}
+    assert any("records" in k for k in kept)
+    assert any("aviation" in k for k in kept)
+    assert any("aristan" in k for k in kept)
+    assert any("oas aircraft" in k for k in kept)
+    assert "nyse" not in kept
+    assert not any(k.startswith("cik") for k in kept)
+    assert "arista" not in kept
+    assert "overview" not in kept
+    rec = challenge_dossier(dossier, ran=True)
+    assert rec.passed is True
+
+
+def test_strategy_naics_without_evidence_are_dropped_not_asserted():
+    ident = _arista_identity()
+    dossier = build_dossier(
+        client_name="Arista Networks",
+        identity=ident,
+        research=_arista_research(),
+        probes=_arista_probes(),
+    )
+    strategy = strategy_from_dossier(dossier)
+    fake = type("S", (), {
+        "research_entities": [
+            type("E", (), {"name": "VeloCloud", "kind": "product"})(),
+            type("E", (), {"name": "20", "kind": "product"})(),
+        ],
+        "keywords": [],
+        "inferred_naics": list(strategy.inferred_naics) + ["334210", "423430"],
+        "naics_meta": [],
+    })()
+    merged = merge_strategy_into_dossier(dossier, fake)
+    assert "334210" not in {n.code for n in merged.naics}
+    assert "423430" not in {n.code for n in merged.naics}
+    assert all(n.evidence_ids for n in merged.naics)
+    names = {o.text.casefold() for o in merged.offerings}
+    assert "velocloud" not in names
+    assert "20" not in names

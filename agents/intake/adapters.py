@@ -18,7 +18,11 @@ from agents.decisions.schemas import (
     SearchSpec,
 )
 from agents.intake.dossier import ClaimState, CompanyDossier
-from agents.intake.extract import is_discrete_name
+from agents.intake.extract import (
+    asserted_owned,
+    is_exclusion_name,
+    is_product_name,
+)
 from agents.schemas import IntakeSubmission
 
 
@@ -38,7 +42,7 @@ def _keywords(dossier: CompanyDossier) -> list[Keyword]:
     for row in dossier.keywords:
         term = " ".join((row.term or "").split())
         key = term.casefold()
-        if not term or key in seen or not is_discrete_name(term):
+        if not term or key in seen or not is_product_name(term):
             continue
         if row.state == ClaimState.DISPUTED:
             continue
@@ -59,7 +63,8 @@ def _kept_out(dossier: CompanyDossier) -> list[Keyword]:
     for row in dossier.kept_out:
         term = " ".join((row.term or "").split())
         key = term.casefold()
-        if not term or key in seen or not is_discrete_name(term):
+        if not term or key in seen or not is_exclusion_name(
+                term, client_name=dossier.client_name):
             continue
         seen.add(key)
         out.append(Keyword(
@@ -108,7 +113,7 @@ def _entities(dossier: CompanyDossier) -> list[ResearchEntity]:
         key = ("product", name.casefold())
         if not name or key in seen or off.state == ClaimState.DISPUTED:
             continue
-        if not is_discrete_name(name):
+        if not is_product_name(name):
             continue
         if off.state not in (ClaimState.COMPANY_ASSERTED, ClaimState.CORROBORATED,
                              ClaimState.INFERRED):
@@ -165,7 +170,7 @@ def retrieval_frame(dossier: CompanyDossier) -> dict:
     """Shape hybrid.frame_lanes expects, derived from the dossier."""
     products = [
         u.offering for u in dossier.capability_statements
-        if u.offering and is_discrete_name(u.offering)
+        if u.offering and is_product_name(u.offering)
     ]
     rivals = [
         c.text.split(".")[0][:80] for c in dossier.channels
@@ -174,10 +179,10 @@ def retrieval_frame(dossier: CompanyDossier) -> dict:
     ]
     tier2 = [k.term for k in dossier.keywords
              if k.category in ("capability", "technology", "search_term")
-             and is_discrete_name(k.term)]
+             and is_product_name(k.term)]
     statements = [
         u.statement for u in dossier.capability_statements
-        if u.statement.strip() and is_discrete_name(u.offering or "")
+        if u.statement.strip() and is_product_name(u.offering or "")
     ]
     frame = {
         "client_name": dossier.client_name,
@@ -322,7 +327,12 @@ def merge_strategy_into_dossier(
         if getattr(ent, "kind", "") != "product":
             continue
         name = " ".join((ent.name or "").split())
-        if not is_discrete_name(name) or name.casefold() in have_off:
+        if not is_product_name(name) or name.casefold() in have_off:
+            continue
+        blob = " ".join(e.excerpt or "" for e in repaired.evidence)
+        if name.casefold() not in blob.casefold():
+            continue
+        if not asserted_owned(blob, name, client_name=repaired.client_name):
             continue
         repaired.offerings.append(Claim(
             text=name, state=ClaimState.INFERRED,
@@ -333,7 +343,7 @@ def merge_strategy_into_dossier(
 
     for kw in strategy.keywords or []:
         term = " ".join((kw.term or "").split())
-        if not is_discrete_name(term) or term.casefold() in have_kw:
+        if not is_product_name(term) or term.casefold() in have_kw:
             continue
         cat = getattr(getattr(kw, "category", None), "value", None) or "capability"
         if str(cat).casefold() not in {"capability", "technology", "search_term"}:
@@ -351,6 +361,14 @@ def merge_strategy_into_dossier(
         raw = str(code).strip()
         if raw in have_n or not (raw.isdigit() and len(raw) == 6):
             continue
+        eid = next(
+            (e.evidence_id for e in repaired.evidence
+             if raw in (e.excerpt or "")),
+            None,
+        )
+        if not eid:
+            # Do not assert a core NAICS with an empty ledger.
+            continue
         entry = meta.get(raw)
         why = (getattr(entry, "rationale", None) or "").strip()
         if len(why.split()) < 5:
@@ -362,13 +380,14 @@ def merge_strategy_into_dossier(
             code=raw, title=getattr(entry, "title", "") or "",
             role=getattr(entry, "role", None) or "core",
             rationale=why, state=ClaimState.INFERRED,
+            evidence_ids=[eid],
         ))
         have_n.add(raw)
         changed = True
 
     have_stmt = {s.offering.casefold() for s in repaired.capability_statements if s.offering}
     for off in repaired.offerings:
-        if not is_discrete_name(off.text) or off.text.casefold() in have_stmt:
+        if not is_product_name(off.text) or off.text.casefold() in have_stmt:
             continue
         repaired.capability_statements.append(RetrievalUnit(
             statement=f"{repaired.client_name} sells {off.text}.",

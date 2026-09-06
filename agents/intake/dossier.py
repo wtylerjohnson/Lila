@@ -20,6 +20,7 @@ from agents.intake.extract import (
     extract_surface,
     is_discrete_name,
     is_garbage_text,
+    is_product_name,
 )
 from agents.intake.identity import IdentityResolution
 
@@ -316,7 +317,7 @@ def build_dossier(
 
     existing_off = {o.text.casefold() for o in offerings}
     for name in surface.offerings:
-        if name.casefold() in existing_off:
+        if name.casefold() in existing_off or not is_product_name(name):
             continue
         snippet, url = _evidence_for_name(name, probe_blobs, scrape_text, identity.website)
         eid = add_ev("web_probe" if url or snippet else "capability_ingest",
@@ -332,14 +333,17 @@ def build_dossier(
         if code in seen_n:
             continue
         snippet, url = _evidence_for_name(code, probe_blobs, scrape_text, identity.website)
-        eid = add_ev("web_probe", snippet or why, url)
+        excerpt = snippet or why
+        eid = add_ev("web_probe", excerpt, url)
+        if not eid:
+            continue
         rationale = why if len((why or "").split()) >= 5 else (
             f"company research cited NAICS {code} against the bound firm"
         )
         naics.append(DossierNaics(
             code=code, role="core", rationale=rationale,
             state=ClaimState.INFERRED,
-            evidence_ids=[eid] if eid else [],
+            evidence_ids=[eid],
         ))
         seen_n.add(code)
 
@@ -393,7 +397,9 @@ def build_dossier(
     seen_kw = {k.term.casefold() for k in keywords}
     for off in offerings:
         term = " ".join(off.text.split())
-        if not is_discrete_name(term):
+        if not is_product_name(term) and not is_discrete_name(term, allow_one_word=False):
+            continue
+        if not is_product_name(term) and off.state == ClaimState.INFERRED:
             continue
         if term.casefold() not in seen_kw and off.state != ClaimState.UNKNOWN:
             keywords.append(DossierKeyword(

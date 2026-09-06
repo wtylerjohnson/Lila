@@ -31,8 +31,48 @@ _GENERIC = frozenset({
     "offerings", "offering", "overview", "about", "solutions", "solution",
     "capabilities", "capability", "portfolio", "federal", "footprint",
     "channels", "competitors", "boundaries", "company", "government",
-    "partners", "customers", "features", "benefits",
+    "partners", "customers", "features", "benefits", "gap", "note",
+    "scope", "appendix", "section", "schedule", "vehicle",
 })
+_SCHEDULE_TICKER = frozenset({
+    "gsa", "sewp", "gwac", "idiq", "oasis", "mas", "fss", "2git",
+    "nyse", "nasdaq", "cik", "ticker", "sin", "psc", "cage", "duns",
+    "uei", "sam", "sled", "html", "http", "https", "json", "naics",
+})
+_CAPABILITY_MARKERS = (
+    "monitoring", "fabric", "detection", "response", "switching",
+    "routing", "networking", "observability", "automation", "telemetry",
+    "identity", "operating", "platform", "switch", "router", "optics",
+    "migration", "security", "visibility", "analytics",
+)
+_SKU = re.compile(r"\b(\d{4}[A-Z][A-Z0-9-]{0,8})\b")
+_SHORT_CODE = re.compile(r"\b([A-Z]{3,6})\b")
+_CAMEL = re.compile(r"\b([A-Z][a-z]+[A-Z][A-Za-z0-9]+)\b")
+_HEADERISH = re.compile(
+    r"\b(note on|table of|appendix|section|scope of|overview of)\b", re.I)
+_RIVAL_CUE = re.compile(
+    r"\b(competitor|competitors|rival|versus|\bvs\.?\b|unlike|"
+    r"compare(?:d)?(?: this)? to|alternative to|sold by|"
+    r"from (?:vmware|cisco|juniper)|"
+    r"not (?:an? )?(?:arista|our) product)\b",
+    re.I,
+)
+_OWN_CUE = re.compile(
+    r"\b(sells?|selling|offers?|offering|our (?:product|platform|os)|"
+    r"product(?:s| line| family):|operating system|"
+    r"switch family|sku)\b",
+    re.I,
+)
+_NOT_OURS = re.compile(
+    r"\bnot (?:an? )?(?:\w+ ){0,3}product\b|\bcompare(?:d)?(?: this)? to\b",
+    re.I,
+)
+_PRODUCT_CONTEXT = re.compile(
+    r"cloudvision|extensible operating|switch(?:es| family| series)?|"
+    r"guardian for network identity|monitoring fabric|product|"
+    r"platform|operating system|agni",
+    re.I,
+)
 _NAV = re.compile(
     r"\b(learn more|read more|get started|contact us|careers|"
     r"privacy policy|terms of (?:use|service)|cookie|sign in|"
@@ -145,6 +185,176 @@ def _one_word_product(name: str) -> bool:
     return False
 
 
+def is_noise_term(text: str) -> bool:
+    """Meta tokens that must never become offerings or kept_out."""
+    name = _clean(text)
+    if not name:
+        return True
+    if re.fullmatch(r"\d+", name):
+        return True
+    if re.fullmatch(r"cik\s*\d+", name, re.I):
+        return True
+    low = name.casefold()
+    if low in _GENERIC or low in _SCHEDULE_TICKER:
+        return True
+    if any(tok in _SCHEDULE_TICKER for tok in low.split()):
+        return True
+    if _HEADERISH.search(name):
+        return True
+    if re.search(r"\b(schedule|vehicle|geo|region|theater)\b", low):
+        return True
+    return False
+
+
+def is_product_name(text: str) -> bool:
+    """Named product, platform, OS, or SKU. Rejects schedule/ticker/header noise."""
+    name = _clean(text)
+    if not is_discrete_name(name) or is_noise_term(name):
+        return False
+    words = name.split()
+    if len(words) == 1:
+        if re.fullmatch(r"\d+", name):
+            return False
+        if name.casefold() in _SCHEDULE_TICKER:
+            return False
+        if re.fullmatch(r"[A-Z]{3,8}", name):
+            return name.casefold() not in _SCHEDULE_TICKER
+        if re.fullmatch(r"[A-Z][a-z]+[A-Z][A-Za-z0-9]*", name):
+            return True
+        if _SKU.fullmatch(name) or (
+            re.search(r"\d", name) and re.search(r"[A-Za-z]", name)
+            and re.fullmatch(r"[A-Za-z0-9._-]+", name)
+        ):
+            return True
+        return False
+    if any(w.casefold() in {"family", "families", "switches"} for w in words):
+        return False
+    if "and" in {w.casefold() for w in words} and any(_SKU.fullmatch(w) for w in words):
+        return False
+    if any(is_product_name(w) for w in words if w.casefold() not in {
+            "and", "for", "of", "the"}):
+        return True
+    if any(m in name.casefold() for m in _CAPABILITY_MARKERS):
+        return True
+    return False
+
+
+def is_exclusion_name(text: str, *, client_name: str = "") -> bool:
+    """A real other-firm collision, not a ticker, CIK, or bare company token."""
+    name = _clean(text)
+    if not name or is_noise_term(name) or not is_discrete_name(name):
+        return False
+    client = _clean(client_name)
+    if name.casefold() in {client.casefold(), *(client.casefold().split())}:
+        return False
+    if re.fullmatch(r"[A-Z]{2,6}", name) and name.casefold() in _SCHEDULE_TICKER:
+        return False
+    words = name.split()
+    if len(words) == 1:
+        # Aristan-style morph of the first client token, or a multi-word firm
+        token = (client.split() or [""])[0]
+        return bool(token) and name.casefold() == (token + "n").casefold()
+    return True
+
+
+def _windows(text: str, name: str, radius: int = 90) -> list[str]:
+    raw = str(text or "")
+    low = raw.casefold()
+    needle = name.casefold()
+    out: list[str] = []
+    start = 0
+    while True:
+        idx = low.find(needle, start)
+        if idx < 0:
+            break
+        out.append(raw[max(0, idx - radius):idx + len(name) + radius])
+        start = idx + len(name)
+    return out
+
+
+def asserted_owned(text: str, name: str, *, client_name: str = "") -> bool:
+    """True when the source treats this as the bound company's product.
+
+    A competitor mention (VeloCloud vs Arista) is not ownership.
+    """
+    windows = _windows(text, name)
+    if not windows:
+        return False
+    owned = False
+    rival = False
+    for win in windows:
+        if _RIVAL_CUE.search(win) or _NOT_OURS.search(win):
+            rival = True
+        if _OWN_CUE.search(win) and not _NOT_OURS.search(win):
+            owned = True
+        if _PRODUCT_CONTEXT.search(win) and not (
+                _RIVAL_CUE.search(win) or _NOT_OURS.search(win)):
+            owned = True
+    if rival and not owned:
+        return False
+    return owned
+
+
+def recall_products(text: str) -> list[str]:
+    """SKU / AGNI-style codes mentioned in prose, not only in bullets."""
+    raw = str(text or "")
+    found: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        key = name.casefold()
+        if not name or key in seen or not is_product_name(name):
+            return
+        seen.add(key)
+        found.append(name)
+
+    for match in _SKU.finditer(raw):
+        _add(match.group(1))
+    for match in _CAMEL.finditer(raw):
+        _add(match.group(1))
+    for match in _SHORT_CODE.finditer(raw):
+        code = match.group(1)
+        if code.casefold() in _SCHEDULE_TICKER:
+            continue
+        window = raw[max(0, match.start() - 48):match.end() + 48]
+        if _PRODUCT_CONTEXT.search(window) or _OWN_CUE.search(window):
+            _add(code)
+    return found
+
+
+def recall_collisions(text: str, client_name: str) -> list[str]:
+    """Seed known-style false friends when the findings mention them."""
+    raw = str(text or "")
+    token = ""
+    for part in _clean(client_name).split():
+        if part.casefold() not in {"inc", "llc", "ltd", "corp", "co", "the",
+                                   "and", "networks", "network"}:
+            token = part
+            break
+    if not token or len(token) < 4:
+        return []
+    found: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        key = name.casefold()
+        if not name or key in seen or not is_exclusion_name(name, client_name=client_name):
+            return
+        seen.add(key)
+        found.append(name)
+
+    patterns = (
+        rf"\b({re.escape(token)} Records)\b",
+        rf"\b({re.escape(token)} Aviation(?:\s+Services)?)\b",
+        rf"\b({re.escape(token)}n(?:\s+P(?:roject\s+)?M(?:anagement)?)?)\b",
+        r"\b(OAS Aircraft Support)\b",
+    )
+    for pat in patterns:
+        for match in re.finditer(pat, raw, re.I):
+            _add(_clean(match.group(1)))
+    return found
+
+
 _MD_WRAP = re.compile(r"[*_`]+")
 _LEAD_INCLUDE = re.compile(
     r"^(?:include|includes|including|are|with|such as)\s+", re.I)
@@ -216,18 +426,25 @@ def extract_naics(text: str) -> list[tuple[str, str]]:
     raw = str(text or "")
     out: list[tuple[str, str]] = []
     seen: set[str] = set()
-    for match in _NAICS_NEAR.finditer(raw):
-        code = match.group(1)
-        if code in seen:
-            continue
-        start = max(0, match.start() - 80)
-        end = min(len(raw), match.end() + 80)
+
+    def _add(code: str, span_start: int, span_end: int) -> None:
+        if code in seen or not (code.isdigit() and len(code) == 6):
+            return
+        start = max(0, span_start - 80)
+        end = min(len(raw), span_end + 80)
         snippet = _WS.sub(" ", raw[start:end]).strip()
         rationale = snippet if len(snippet.split()) >= 5 else (
             f"federal or product research cited NAICS {code} for this company"
         )
         seen.add(code)
         out.append((code, rationale[:240]))
+
+    for match in _NAICS_NEAR.finditer(raw):
+        _add(match.group(1), match.start(), match.end())
+    # Same sentence/paragraph as the word NAICS: pick up sibling codes.
+    for match in re.finditer(r"NAICS.{0,240}", raw, re.I | re.S):
+        for code in re.findall(r"\b(\d{6})\b", match.group(0)):
+            _add(code, match.start(), match.end())
     return out
 
 
@@ -239,7 +456,7 @@ def extract_exclusions(text: str) -> list[str]:
     def _add(name: str) -> None:
         piece = _strip_label(name)
         key = piece.casefold()
-        if not piece or key in seen or not is_discrete_name(piece):
+        if not piece or key in seen or not is_exclusion_name(piece):
             return
         seen.add(key)
         found.append(piece)
@@ -305,13 +522,22 @@ def extract_surface(
     skip.add((client_name or "").casefold())
     skip.add((bound_name or "").casefold())
 
-    def _offer(name: str) -> None:
+    def _offer(name: str, *, source_text: str = "", implicit: bool = False) -> None:
         piece = _strip_label(name)
         key = piece.casefold()
         if not piece or key in seen_off or key in skip:
             return
-        if not is_discrete_name(piece):
+        if not is_product_name(piece):
             return
+        if source_text and not implicit and not asserted_owned(
+                source_text, piece, client_name=client_name):
+            # Still allow SKU / AGNI-style codes next to product language.
+            if not any(_PRODUCT_CONTEXT.search(w) and not _RIVAL_CUE.search(w)
+                       for w in _windows(source_text, piece)):
+                return
+        if source_text and _RIVAL_CUE.search(" ".join(_windows(source_text, piece))):
+            if not asserted_owned(source_text, piece, client_name=client_name):
+                return
         seen_off.add(key)
         offerings.append(piece)
 
@@ -320,7 +546,7 @@ def extract_surface(
         key = piece.casefold()
         if not piece or key in seen_ex or key in seen_off:
             return
-        if not is_discrete_name(piece):
+        if not is_exclusion_name(piece, client_name=client_name):
             return
         seen_ex.add(key)
         exclusions.append(piece)
@@ -337,9 +563,12 @@ def extract_surface(
             scrape_text = "\n".join(getattr(p, "text", "") or "" for p in scrape.pages)
         if scrape_text and not is_garbage_text(scrape_text):
             for name in candidate_names(scrape_text):
-                _offer(name)
+                _offer(name, source_text=scrape_text, implicit=True)
+            for name in recall_products(scrape_text):
+                _offer(name, source_text=scrape_text)
             naics.extend(extract_naics(scrape_text))
 
+    all_findings: list[str] = []
     for probe in probes or []:
         title = str(getattr(probe, "name", None) or (
             probe.get("name") if isinstance(probe, dict) else "") or "")
@@ -347,6 +576,7 @@ def extract_surface(
             probe.get("findings") if isinstance(probe, dict) else "") or "")
         if not findings.strip() or is_garbage_text(findings) and len(findings) < 80:
             continue
+        all_findings.append(findings)
         kind = title.casefold()
         names = candidate_names(findings)
         if "boundar" in kind:
@@ -357,15 +587,23 @@ def extract_surface(
         elif "channel" in kind or "reseller" in kind or "compet" in kind:
             pass
         else:
+            implicit = "offering" in kind or "product" in kind
             for name in names:
-                _offer(name)
+                _offer(name, source_text=findings, implicit=implicit)
+            for name in recall_products(findings):
+                _offer(name, source_text=findings)
         for name in extract_exclusions(findings):
+            _exclude(name)
+        for name in recall_collisions(findings, client_name or bound_name):
             _exclude(name)
         naics.extend(extract_naics(findings))
         related.extend(extract_related_entities(
             findings, bound_name=bound_name or client_name,
             official_domain=official_domain,
         ))
+    joined = "\n".join(all_findings)
+    for name in recall_collisions(joined, client_name or bound_name):
+        _exclude(name)
 
     if structured is not None and not hasattr(structured, "offerings"):
         structured = None
