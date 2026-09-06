@@ -734,7 +734,7 @@ def build_dossier(
             continue
         if not is_customer_name(name, client_name=client_name):
             continue
-        if not is_bound_sec_filing_url(url, cik or None):
+        if not cik or not is_bound_sec_filing_url(url, cik):
             continue
         if not is_sec_filing_url(url) or not is_customer_roster_excerpt(excerpt):
             continue
