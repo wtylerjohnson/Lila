@@ -71,7 +71,7 @@ Sidecars next to `data/review/<slug>.review.json`:
 
 | Sidecar | Contents |
 |---------|----------|
-| `.dossier.json` | Identity, evidence ledger, offerings/boundaries/channels, keywords, NAICS with rationales, capability statements, unknowns. Claim states: `company_asserted`, `corroborated`, `inferred`, `disputed`, `unknown`. |
+| `.dossier.json` | Identity, evidence ledger, discrete offerings/boundaries/channels, keywords, NAICS with rationales, capability statements, `kept_out` exclusions, related legal persons, unknowns. Claim states: `company_asserted`, `corroborated`, `inferred`, `disputed`, `unknown`. Offerings are product names, never scrape errors or probe essays. |
 | `.intake_yield.json` | `term_yield` against the notice store, plus a store census. Empty/unreadable store is named as such; it is not a list of zero counts. No health verdict. |
 | `.intake_adversarial.json` | Challenges against citations and yield titles, not dossier prose. Incomplete review ≠ pass. One bounded repair may drop unsupported claims. |
 | `.intake_readiness.json` | E1-E8 receipts (identity, ingest, probes, company model, retrieval units, yield, adversarial complete, adversarial not fail-closed). |

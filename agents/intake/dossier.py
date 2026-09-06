@@ -14,6 +14,13 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, Field, model_validator
 
+from agents.intake.extract import (
+    RelatedEntity,
+    excerpt_from,
+    extract_surface,
+    is_discrete_name,
+    is_garbage_text,
+)
 from agents.intake.identity import IdentityResolution
 
 
@@ -95,6 +102,8 @@ class CompanyDossier(BaseModel):
     keywords: list[DossierKeyword] = Field(default_factory=list)
     naics: list[DossierNaics] = Field(default_factory=list)
     capability_statements: list[RetrievalUnit] = Field(default_factory=list)
+    kept_out: list[DossierKeyword] = Field(default_factory=list)
+    related_entities: list[RelatedEntity] = Field(default_factory=list)
     summary: str = ""
 
     @model_validator(mode="after")
@@ -113,6 +122,32 @@ def _claim(text: str, state: ClaimState, eids: list[str], rationale: str) -> Cla
     return Claim(text=text, state=state, evidence_ids=eids, rationale=rationale)
 
 
+def _discrete_from_findings(findings: str) -> list[str]:
+    from agents.intake.extract import candidate_names
+    return candidate_names(findings)
+
+
+def _evidence_for_name(
+    name: str,
+    probe_blobs: list[tuple[str, str, list[str]]],
+    scrape_text: str,
+    fallback_url: Optional[str],
+) -> tuple[str, Optional[str]]:
+    for _title, findings, citations in probe_blobs:
+        snippet = excerpt_from(findings, needle=name)
+        if snippet and name.casefold() in snippet.casefold():
+            return snippet, (citations[0] if citations else fallback_url)
+    if scrape_text and not is_garbage_text(scrape_text):
+        snippet = excerpt_from(scrape_text, needle=name)
+        if snippet:
+            return snippet, fallback_url
+    for _title, findings, citations in probe_blobs:
+        snippet = excerpt_from(findings)
+        if snippet:
+            return snippet, (citations[0] if citations else fallback_url)
+    return name, fallback_url
+
+
 def build_dossier(
     *,
     client_name: str,
@@ -121,34 +156,41 @@ def build_dossier(
     research=None,
     product_ingest: Optional[dict] = None,
     probes: Optional[list] = None,
+    product_surface=None,
 ) -> CompanyDossier:
     """Deterministic dossier from identity + form + ingest + probes.
 
-    No model call. LLM structuring, when used, happens in the pipeline after
-    this baseline exists so an offline path still produces a valid artifact.
+    No model call. LLM structuring, when used, happens in the pipeline and
+    is passed in as ``product_surface`` so an offline path still produces a
+    valid artifact. Offerings are discrete names; probe essays and scrape
+    load-errors are never promoted as products.
     """
     evidence: list[EvidenceItem] = []
     offerings: list[Claim] = []
     boundaries: list[Claim] = []
     channels: list[Claim] = []
     keywords: list[DossierKeyword] = []
+    kept_out: list[DossierKeyword] = []
     naics: list[DossierNaics] = []
     statements: list[RetrievalUnit] = []
     unknowns: list[str] = []
     n = 0
 
-    def add_ev(kind: str, excerpt: str, url: Optional[str] = None) -> str:
+    def add_ev(kind: str, excerpt: str, url: Optional[str] = None) -> Optional[str]:
         nonlocal n
+        text = (excerpt or "").strip()
+        if not text or text.casefold() == "citation":
+            return None
         n += 1
         eid = _eid("E", n)
         evidence.append(EvidenceItem(
             evidence_id=eid, url=url, source_kind=kind,  # type: ignore[arg-type]
-            excerpt=(excerpt or "")[:500],
+            excerpt=text[:500],
         ))
         return eid
 
-    add_ev("identity", identity.rationale or identity.status,
-           identity.website)
+    ident_ex = identity.rationale or identity.status
+    add_ev("identity", ident_ex, identity.website)
     if not identity.is_bound:
         unknowns.append(
             identity.question
@@ -157,52 +199,63 @@ def build_dossier(
 
     if submission is not None:
         services = (getattr(submission, "primary_services", None) or "").strip()
-        if services:
+        if services and is_discrete_name(services, allow_one_word=False):
             eid = add_ev("form", services)
             offerings.append(_claim(
-                services, ClaimState.COMPANY_ASSERTED, [eid],
+                services, ClaimState.COMPANY_ASSERTED,
+                [eid] if eid else [],
                 "stated on the intake form",
             ))
+        elif services:
+            add_ev("form", services)
         diffs = (getattr(submission, "differentiators", None) or "").strip()
-        if diffs:
+        if diffs and is_discrete_name(diffs, allow_one_word=False):
             eid = add_ev("form", diffs)
             offerings.append(_claim(
-                diffs, ClaimState.COMPANY_ASSERTED, [eid],
+                diffs, ClaimState.COMPANY_ASSERTED,
+                [eid] if eid else [],
                 "form differentiator",
             ))
+        elif diffs:
+            add_ev("form", diffs)
         past = (getattr(submission, "past_performance", None) or "").strip()
         if past:
             add_ev("form", past)
         for code in getattr(submission, "known_naics", None) or []:
             raw = str(code).strip()
             if raw.isdigit() and len(raw) == 6:
-                eid = add_ev("form", f"form NAICS {raw}")
+                eid = add_ev("form", f"intake form supplied six-digit NAICS {raw}")
                 naics.append(DossierNaics(
                     code=raw, role="core",
-                    rationale="six-digit NAICS supplied on the intake form",
+                    rationale="six-digit NAICS supplied on the intake form "
+                              "as a company-stated search lane",
                     state=ClaimState.COMPANY_ASSERTED,
-                    evidence_ids=[eid],
+                    evidence_ids=[eid] if eid else [],
                 ))
         for cert in getattr(submission, "certifications", None) or []:
             if str(cert).strip():
                 eid = add_ev("form", str(cert))
                 channels.append(_claim(
                     f"certification {cert}", ClaimState.COMPANY_ASSERTED,
-                    [eid], "form certification",
+                    [eid] if eid else [], "form certification",
                 ))
 
     scrape = getattr(research, "scrape", None) if research is not None else None
+    scrape_text = ""
     if scrape is not None:
-        text = scrape.combined_text(max_chars=4000) if hasattr(scrape, "combined_text") else ""
+        scrape_text = (
+            scrape.combined_text(max_chars=4000)
+            if hasattr(scrape, "combined_text") else ""
+        )
         root = getattr(scrape, "root_url", None) or identity.website
-        if text.strip():
-            eid = add_ev("website", text[:400], root)
-            if not offerings:
-                offerings.append(_claim(
-                    f"website copy from {root}", ClaimState.COMPANY_ASSERTED,
-                    [eid], "homepage and product-adjacent pages were read",
-                ))
         pages = getattr(scrape, "pages", None) or []
+        if scrape_text.strip() and not is_garbage_text(scrape_text):
+            add_ev("website", excerpt_from(scrape_text), root)
+        elif scrape_text.strip() and is_garbage_text(scrape_text):
+            unknowns.append(
+                "website scrape returned a load-error or interstitial page; "
+                "that text is not an offering"
+            )
         if not pages:
             unknowns.append("website scrape returned no pages")
 
@@ -210,77 +263,148 @@ def build_dossier(
     for row in ingest.get("capabilities") or []:
         name = (row.get("name") if isinstance(row, dict) else str(row) or "").strip()
         found_on = (row.get("found_on") if isinstance(row, dict) else "") or identity.website
-        if not name:
+        if not name or not is_discrete_name(name) or is_garbage_text(name):
             continue
-        eid = add_ev("capability_ingest", name, found_on)
+        eid = add_ev("capability_ingest", excerpt_from(name), found_on)
         offerings.append(_claim(
-            name, ClaimState.COMPANY_ASSERTED, [eid],
+            name, ClaimState.COMPANY_ASSERTED, [eid] if eid else [],
             "named on the company's own product or solutions page",
         ))
-        keywords.append(DossierKeyword(
-            term=name, category="capability",
-            rationale="product-surface crawl of the bound official domain",
-            state=ClaimState.COMPANY_ASSERTED, evidence_ids=[eid],
-        ))
-        statements.append(RetrievalUnit(
-            statement=f"{client_name} sells {name}.",
-            offering=name, state=ClaimState.COMPANY_ASSERTED,
-            evidence_ids=[eid],
-        ))
 
+    probe_blobs: list[tuple[str, str, list[str]]] = []
     for probe in probes or []:
-        title = getattr(probe, "name", None) or (
-            probe.get("name") if isinstance(probe, dict) else "probe")
-        findings = getattr(probe, "findings", None) or (
-            probe.get("findings") if isinstance(probe, dict) else "")
+        title = str(getattr(probe, "name", None) or (
+            probe.get("name") if isinstance(probe, dict) else "probe") or "probe")
+        findings = str(getattr(probe, "findings", None) or (
+            probe.get("findings") if isinstance(probe, dict) else "") or "")
         citations = list(getattr(probe, "citations", None) or (
             probe.get("citations") if isinstance(probe, dict) else []) or [])
-        if not str(findings or "").strip():
+        if not findings.strip():
             continue
-        eid = add_ev("web_probe", f"{title}: {str(findings)[:300]}",
-                     citations[0] if citations else None)
-        kind = str(title).casefold()
+        probe_blobs.append((title, findings, citations))
+        cite = citations[0] if citations else None
+        kind = title.casefold()
+        if is_garbage_text(findings) and len(findings) < 80:
+            continue
+        real = excerpt_from(findings)
+        if real:
+            add_ev("web_probe", f"{title}: {real}", cite)
         if "channel" in kind or "reseller" in kind:
-            channels.append(_claim(
-                str(findings)[:240], ClaimState.INFERRED, [eid],
-                "structured web probe; not yet independently corroborated",
-            ))
-        elif "boundar" in kind or "not " in kind:
-            boundaries.append(_claim(
-                str(findings)[:240], ClaimState.INFERRED, [eid],
-                "structured web probe naming what the company does not sell",
-            ))
+            for name in _discrete_from_findings(findings):
+                eid = add_ev("web_probe", excerpt_from(findings, needle=name), cite)
+                channels.append(_claim(
+                    name, ClaimState.INFERRED, [eid] if eid else [],
+                    "channel or reseller named in a structured web probe",
+                ))
         elif "compet" in kind:
-            channels.append(_claim(
-                str(findings)[:240], ClaimState.INFERRED, [eid],
-                "competitor names from a web probe; treat as inferred",
-            ))
-        else:
-            offerings.append(_claim(
-                str(findings)[:240], ClaimState.INFERRED, [eid],
-                f"structured web probe {title}",
-            ))
+            for name in _discrete_from_findings(findings):
+                eid = add_ev("web_probe", excerpt_from(findings, needle=name), cite)
+                channels.append(_claim(
+                    name, ClaimState.INFERRED, [eid] if eid else [],
+                    "competitor names from a web probe; treat as inferred",
+                ))
+
+    surface = extract_surface(
+        probes=probes,
+        scrape=scrape,
+        product_ingest=ingest,
+        structured=product_surface,
+        bound_name=identity.bound_name or "",
+        official_domain=identity.official_domain,
+        client_name=client_name,
+    )
+
+    existing_off = {o.text.casefold() for o in offerings}
+    for name in surface.offerings:
+        if name.casefold() in existing_off:
+            continue
+        snippet, url = _evidence_for_name(name, probe_blobs, scrape_text, identity.website)
+        eid = add_ev("web_probe" if url or snippet else "capability_ingest",
+                     snippet or name, url)
+        offerings.append(_claim(
+            name, ClaimState.INFERRED, [eid] if eid else [],
+            "discrete product name extracted from identity-bound research",
+        ))
+        existing_off.add(name.casefold())
+
+    seen_n = {row.code for row in naics}
+    for code, why in surface.naics:
+        if code in seen_n:
+            continue
+        snippet, url = _evidence_for_name(code, probe_blobs, scrape_text, identity.website)
+        eid = add_ev("web_probe", snippet or why, url)
+        rationale = why if len((why or "").split()) >= 5 else (
+            f"company research cited NAICS {code} against the bound firm"
+        )
+        naics.append(DossierNaics(
+            code=code, role="core", rationale=rationale,
+            state=ClaimState.INFERRED,
+            evidence_ids=[eid] if eid else [],
+        ))
+        seen_n.add(code)
+
+    for name in surface.exclusions:
+        snippet, url = _evidence_for_name(name, probe_blobs, scrape_text, None)
+        eid = add_ev("web_probe", snippet or name, url)
+        boundaries.append(_claim(
+            name, ClaimState.INFERRED, [eid] if eid else [],
+            "name-collision or adjacent work the bound company does not sell",
+        ))
+        kept_out.append(DossierKeyword(
+            term=name, category="exclusion",
+            rationale="evidenced name collision; keep out of search vocabulary",
+            state=ClaimState.INFERRED,
+            evidence_ids=[eid] if eid else [],
+        ))
+
+    related_entities = list(surface.related_entities)
+    for rel in related_entities:
+        snippet, url = _evidence_for_name(
+            rel.name, probe_blobs, scrape_text, rel.official_domain)
+        add_ev("web_probe", snippet or rel.rationale or rel.name,
+               url or rel.official_domain)
 
     if research is not None:
+        cited_urls = set()
+        for _title, findings, citations in probe_blobs:
+            for url in citations:
+                if url in cited_urls:
+                    continue
+                cited_urls.add(url)
+                real = excerpt_from(findings, needle=url) or excerpt_from(findings)
+                if real:
+                    add_ev("web_probe", real, url)
         for url in getattr(research, "web_citations", None) or []:
-            add_ev("web_probe", "citation", url)
+            if url in cited_urls:
+                continue
+            cited_urls.add(url)
+            real = ""
+            for _title, findings, _cites in probe_blobs:
+                real = excerpt_from(findings)
+                if real:
+                    break
+            if not real and scrape_text and not is_garbage_text(scrape_text):
+                real = excerpt_from(scrape_text)
+            if real:
+                add_ev("web_probe", real, url)
         for err in getattr(research, "errors", None) or []:
             unknowns.append(str(err))
 
     seen_kw = {k.term.casefold() for k in keywords}
     for off in offerings:
-        term = " ".join(off.text.split())[:80]
-        if term and term.casefold() not in seen_kw and off.state != ClaimState.UNKNOWN:
+        term = " ".join(off.text.split())
+        if not is_discrete_name(term):
+            continue
+        if term.casefold() not in seen_kw and off.state != ClaimState.UNKNOWN:
             keywords.append(DossierKeyword(
                 term=term, category="capability",
                 rationale=off.rationale or "offering text",
                 state=off.state, evidence_ids=list(off.evidence_ids),
             ))
             seen_kw.add(term.casefold())
-        if off.text and not any(
-                s.offering.casefold() == term.casefold() for s in statements):
+        if not any(s.offering.casefold() == term.casefold() for s in statements):
             statements.append(RetrievalUnit(
-                statement=f"{client_name}: {term}",
+                statement=f"{client_name} sells {term}.",
                 offering=term, state=off.state,
                 evidence_ids=list(off.evidence_ids),
             ))
@@ -288,7 +412,10 @@ def build_dossier(
     if identity.is_bound and not offerings:
         unknowns.append("identity is bound but no offerings were evidenced")
     if identity.is_bound and not naics:
-        unknowns.append("no six-digit NAICS has been evidenced yet")
+        unknowns.append(
+            "no six-digit NAICS has been evidenced yet; the code list is "
+            "unknown rather than empty-as-zero"
+        )
 
     coverage = [
         CoverageCell(
@@ -350,5 +477,7 @@ def build_dossier(
         keywords=keywords,
         naics=naics,
         capability_statements=statements,
+        kept_out=kept_out,
+        related_entities=related_entities,
         summary=" ".join(summary_bits),
     )

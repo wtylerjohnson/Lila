@@ -164,6 +164,14 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   launch searches. `--no-auto-approve` or the env set to off restores the click.
 - Adapters (`agents/intake/adapters.py`) copy evidenced dossier fields onto
   `IntakeStrategy` and a hybrid.frame_lanes-shaped retrieval sidecar.
+- Dossier offerings, keywords, and retrieval units are short discrete
+  product or capability names. Probe essays, homepage load-errors, and
+  the placeholder excerpt "citation" never become offerings or ledger
+  text. NAICS come from evidenced research (or an explicit unknown), not
+  an empty list beside a rich strategy. Name-collision exclusions from
+  boundary probes seed `kept_out` (workshop edits remain the operator
+  path). A related Government Sales LLC is recorded as a federal-path
+  affiliate and does not break or hard-block a correct public-domain bind.
 
 ## Pipeline shape
 

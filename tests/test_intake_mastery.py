@@ -16,9 +16,18 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from agents.company_research import CompanyResearch
 from agents.intake.adapters import retrieval_frame, strategy_from_dossier
-from agents.intake.adversarial import challenge_dossier, run_adversarial
+from agents.intake.adversarial import (
+    Challenge,
+    challenge_dossier,
+    run_adversarial,
+    soften_related_entity_blocks,
+)
 from agents.intake.dossier import Claim, ClaimState, CompanyDossier, build_dossier
+from agents.intake.extract import is_discrete_name
+from agents.intake.probes import ResearchProbe
+from tools.scrape.site import ScrapedPage, ScrapeBundle
 from agents.intake.identity import (
     IdentityCandidate,
     IdentityRoster,
@@ -565,3 +574,257 @@ def test_readiness_e1_e8_shape():
     ids = [row["id"] for row in ready["receipts"]]
     assert ids == ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8"]
     assert ready["receipts"][0]["ok"] is True
+
+
+# ---- Arista dossier quality (CONDITIONAL 11/16 follow-up) ------------------- #
+
+_ARISTA_OFFERINGS = """\
+## Products
+- **EOS** (Extensible Operating System): the network operating system
+- CloudVision / AGNI / CUE / UNO for automation and observability
+- DANZ Monitoring Fabric
+- Network Detection and Response (NDR)
+- 7050X and 7280R switch families
+"""
+
+_ARISTA_FEDERAL = """\
+Arista Networks, Inc. is the public company at arista.com. Federal orders
+often route through Arista Networks Government Sales LLC. Research cites
+NAICS 334118 for computer terminal and related equipment manufacturing and
+NAICS 541519 for other computer related services.
+"""
+
+_ARISTA_BOUNDARIES = """\
+Name collisions include Arista Records (music), Arista Aviation, Aristan
+Project Management, and OAS Aircraft Support. Those firms are not this
+company and must stay out of the search vocabulary.
+"""
+
+
+def _arista_identity():
+    return bind_identity(
+        "Arista Networks",
+        [IdentityCandidate(
+            name="Arista Networks, Inc.", official_domain="arista.com",
+            website="https://www.arista.com", confidence=0.97,
+            rationale="official corporate homepage")],
+    )
+
+
+def _arista_research(*, failed_scrape=True):
+    pages = []
+    if failed_scrape:
+        pages = [ScrapedPage(
+            url="https://www.arista.com",
+            text="Error loading the page. Enable JavaScript to continue.",
+        )]
+    return CompanyResearch(
+        company_name="Arista Networks",
+        website="https://www.arista.com",
+        website_source="web_search",
+        scrape=ScrapeBundle(root_url="https://www.arista.com", pages=pages,
+                            sources=["https://www.arista.com"]),
+        web_citations=["https://www.arista.com/en/products"],
+        errors=["scrape: homepage load error"],
+    )
+
+
+def _arista_probes():
+    return [
+        ResearchProbe(
+            name="offerings", query="products",
+            findings=_ARISTA_OFFERINGS,
+            citations=["https://www.arista.com/en/products/eos"],
+        ),
+        ResearchProbe(
+            name="federal_footprint", query="federal",
+            findings=_ARISTA_FEDERAL,
+            citations=["https://www.arista.com/en/company/government"],
+        ),
+        ResearchProbe(
+            name="boundaries", query="exclusions",
+            findings=_ARISTA_BOUNDARIES,
+            citations=["https://en.wikipedia.org/wiki/Arista_Records"],
+        ),
+    ]
+
+
+def test_failed_scrape_and_probe_essay_do_not_become_offerings():
+    ident = _arista_identity()
+    dossier = build_dossier(
+        client_name="Arista Networks",
+        identity=ident,
+        research=_arista_research(),
+        probes=_arista_probes(),
+    )
+    texts = [o.text for o in dossier.offerings]
+    assert texts
+    assert all(is_discrete_name(t) for t in texts)
+    blob = " ".join(texts).casefold()
+    assert "error loading" not in blob
+    assert "javascript" not in blob
+    assert "name collisions include" not in blob
+    assert any(t in {"EOS", "CloudVision", "AGNI", "CUE", "UNO",
+                     "DANZ Monitoring Fabric"} for t in texts)
+    assert not any(e.excerpt.strip().casefold() == "citation" for e in dossier.evidence)
+    assert all(e.excerpt.strip() for e in dossier.evidence)
+    assert {n.code for n in dossier.naics} >= {"334118", "541519"}
+    assert all(len((n.rationale or "").split()) >= 5 for n in dossier.naics)
+    exclusions = {k.term.casefold() for k in dossier.kept_out}
+    assert any("arista records" in x for x in exclusions)
+    assert any("aviation" in x for x in exclusions)
+    assert any("aristan" in x or "oas aircraft" in x for x in exclusions)
+    assert any("government sales" in r.name.casefold()
+               for r in dossier.related_entities)
+    assert ident.is_bound and ident.official_domain == "arista.com"
+
+    frame = retrieval_frame(dossier)
+    tier1 = frame["frame"]["as_ordered"]["tier1"]
+    assert any(t in {"EOS", "CloudVision", "AGNI", "DANZ Monitoring Fabric"}
+               for t in tier1)
+    assert all(is_discrete_name(t) for t in tier1 if t != "Arista Networks")
+    assert not any(t.casefold().startswith("error") for t in tier1)
+    assert any("CloudVision" in s or "EOS" in s
+               for s in frame["capability_statements"])
+
+    rec = challenge_dossier(dossier, ran=True)
+    assert not any(
+        c.kind == "identity" and c.severity == "block" for c in rec.challenges)
+    assert rec.passed is True
+
+
+def test_dual_entity_does_not_hard_block_correct_bind():
+    ident = _arista_identity()
+    dossier = build_dossier(
+        client_name="Arista Networks",
+        identity=ident,
+        research=_arista_research(),
+        probes=_arista_probes(),
+    )
+    rec = challenge_dossier(dossier, ran=True)
+    rec.challenges.append(Challenge(
+        kind="identity", severity="block",
+        statement=(
+            "Arista Networks, Inc. vs Arista Networks Government Sales LLC "
+            "are two legal persons"
+        ),
+        external_refs=["arista.com"],
+    ))
+    rec.passed = False
+    softened = soften_related_entity_blocks(rec, dossier)
+    assert not any(
+        c.kind == "identity" and c.severity == "block"
+        for c in softened.challenges)
+    assert softened.passed is True
+
+
+def test_wrong_domain_identity_block_is_not_softened():
+    ident = _arista_identity()
+    dossier = build_dossier(client_name="Arista Networks", identity=ident)
+    rec = challenge_dossier(dossier, ran=True)
+    rec.challenges.append(Challenge(
+        kind="identity", severity="block",
+        statement="bound domain is the music label, not the network vendor",
+        external_refs=["aristarecords.com"],
+    ))
+    rec.passed = False
+    softened = soften_related_entity_blocks(rec, dossier)
+    assert any(
+        c.kind == "identity" and c.severity == "block"
+        for c in softened.challenges)
+    assert softened.passed is False
+
+
+def test_arista_pipeline_quality_without_injected_engines(tmp_path, monkeypatch):
+    import agents.review as review
+    from agents.intake.identity import IdentityRoster
+
+    monkeypatch.setattr(review, "REVIEW_DIR", str(tmp_path / "review"))
+    monkeypatch.setenv("LILA_CLIENTS_DIR", str(tmp_path / "clients"))
+    monkeypatch.setenv("LILA_NOTICE_STORE_DIR", str(tmp_path / "empty_store"))
+    monkeypatch.setenv("LILA_ENABLE_INTAKE_AUTO_APPROVE", "off")
+
+    class Engine:
+        def web_research(self, **kwargs):
+            query = str(kwargs.get("query") or "")
+            if "official company" in query.casefold() or "Identify" in query:
+                return (
+                    "Arista Networks official site https://www.arista.com",
+                    ["https://www.arista.com"],
+                )
+            if "not do" in query.casefold() or "Probe: What adjacent" in query:
+                return _ARISTA_BOUNDARIES, [
+                    "https://en.wikipedia.org/wiki/Arista_Records"]
+            if "federal" in query.casefold():
+                return _ARISTA_FEDERAL, [
+                    "https://www.arista.com/en/company/government"]
+            return _ARISTA_OFFERINGS, [
+                "https://www.arista.com/en/products/eos"]
+
+        def structure(self, **kwargs):
+            schema = kwargs.get("schema")
+            name = getattr(schema, "__name__", "")
+            if name == "StructuredProductSurface":
+                return schema(
+                    offerings=["EOS", "CloudVision", "DANZ Monitoring Fabric"],
+                    naics=["334118", "541519"],
+                    exclusions=["Arista Records", "Arista Aviation",
+                                "Aristan Project Management",
+                                "OAS Aircraft Support"],
+                    related_entities=["Arista Networks Government Sales LLC"],
+                )
+            return IdentityRoster(candidates=[
+                IdentityCandidate(
+                    name="Arista Networks, Inc.", official_domain="arista.com",
+                    website="https://www.arista.com", confidence=0.97,
+                    rationale="official corporate homepage",
+                ),
+            ])
+
+        def deliberate(self, *a, **k):
+            raise RuntimeError("strategy unused")
+
+    monkeypatch.setattr(
+        "agents.decisions.engine.research_engine", lambda: Engine())
+    monkeypatch.setattr(
+        "agents.decisions.engine.DecisionEngine", lambda *a, **k: Engine())
+    monkeypatch.setattr(
+        "tools.scrape.site.scrape_site",
+        lambda url, max_pages=5: ScrapeBundle(
+            root_url=url,
+            pages=[ScrapedPage(
+                url=url,
+                text="Error loading the page. Enable JavaScript.",
+            )],
+            sources=[url],
+        ))
+    monkeypatch.setattr(
+        "agents.intake.pipeline._ingest_bound_site",
+        lambda *a, **k: {"capabilities": [], "receipt": {"error": "load"}},
+    )
+
+    searches = []
+    monkeypatch.setattr(
+        "run_searches.main", lambda *a, **k: searches.append(1), raising=False)
+
+    result = run_step1(
+        submission_from_client_name("Arista Networks"),
+        do_scrape=True, do_web=True, auto_approve=False,
+        review_dir=str(tmp_path / "review"), alert_fn=lambda *a: None,
+    )
+    assert result.identity.is_bound
+    assert result.identity.official_domain == "arista.com"
+    texts = [o.text for o in result.dossier.offerings]
+    assert all(is_discrete_name(t) for t in texts)
+    assert any(t in {"EOS", "CloudVision"} for t in texts)
+    assert {n.code for n in result.dossier.naics} >= {"334118", "541519"}
+    assert result.dossier.kept_out
+    assert not any(
+        e.excerpt.strip().casefold() == "citation" for e in result.dossier.evidence)
+    frame = result.retrieval
+    tier1 = frame["frame"]["as_ordered"]["tier1"]
+    assert any(t in {"EOS", "CloudVision"} for t in tier1)
+    assert searches == []
+    scope = tmp_path / "clients" / "arista_networks" / "engagement_scope.json"
+    if scope.is_file():
+        assert json.loads(scope.read_text()).get("preset") in ("", None)

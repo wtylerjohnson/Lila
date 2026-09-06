@@ -18,6 +18,7 @@ from agents.decisions.schemas import (
     SearchSpec,
 )
 from agents.intake.dossier import ClaimState, CompanyDossier
+from agents.intake.extract import is_discrete_name
 from agents.schemas import IntakeSubmission
 
 
@@ -37,7 +38,7 @@ def _keywords(dossier: CompanyDossier) -> list[Keyword]:
     for row in dossier.keywords:
         term = " ".join((row.term or "").split())
         key = term.casefold()
-        if not term or key in seen:
+        if not term or key in seen or not is_discrete_name(term):
             continue
         if row.state == ClaimState.DISPUTED:
             continue
@@ -48,6 +49,24 @@ def _keywords(dossier: CompanyDossier) -> list[Keyword]:
             term=term, category=cat,
             rationale=(row.rationale or "evidenced in the company dossier")[:240],
             origin="system",
+        ))
+    return out
+
+
+def _kept_out(dossier: CompanyDossier) -> list[Keyword]:
+    out: list[Keyword] = []
+    seen: set[str] = set()
+    for row in dossier.kept_out:
+        term = " ".join((row.term or "").split())
+        key = term.casefold()
+        if not term or key in seen or not is_discrete_name(term):
+            continue
+        seen.add(key)
+        out.append(Keyword(
+            term=term, category=KeywordCategory.SEARCH_TERM,
+            rationale=(row.rationale or "evidenced name collision")[:240],
+            origin="system",
+            note="polysemy exclusion from intake identity/boundary research",
         ))
     return out
 
@@ -89,7 +108,10 @@ def _entities(dossier: CompanyDossier) -> list[ResearchEntity]:
         key = ("product", name.casefold())
         if not name or key in seen or off.state == ClaimState.DISPUTED:
             continue
-        if off.state not in (ClaimState.COMPANY_ASSERTED, ClaimState.CORROBORATED):
+        if not is_discrete_name(name):
+            continue
+        if off.state not in (ClaimState.COMPANY_ASSERTED, ClaimState.CORROBORATED,
+                             ClaimState.INFERRED):
             continue
         seen.add(key)
         src = off.evidence_ids[0] if off.evidence_ids else ""
@@ -142,8 +164,8 @@ def _searches(codes: list[str], keywords: list[Keyword],
 def retrieval_frame(dossier: CompanyDossier) -> dict:
     """Shape hybrid.frame_lanes expects, derived from the dossier."""
     products = [
-        u.offering or u.statement for u in dossier.capability_statements
-        if u.offering
+        u.offering for u in dossier.capability_statements
+        if u.offering and is_discrete_name(u.offering)
     ]
     rivals = [
         c.text.split(".")[0][:80] for c in dossier.channels
@@ -151,9 +173,12 @@ def retrieval_frame(dossier: CompanyDossier) -> dict:
         or "rival" in c.text.casefold()
     ]
     tier2 = [k.term for k in dossier.keywords
-             if k.category in ("capability", "technology", "search_term")]
-    statements = [u.statement for u in dossier.capability_statements
-                  if u.statement.strip()]
+             if k.category in ("capability", "technology", "search_term")
+             and is_discrete_name(k.term)]
+    statements = [
+        u.statement for u in dossier.capability_statements
+        if u.statement.strip() and is_discrete_name(u.offering or "")
+    ]
     frame = {
         "client_name": dossier.client_name,
         "as_ordered": {
@@ -197,6 +222,7 @@ def strategy_from_dossier(
     keywords = _keywords(dossier)
     codes, meta = _naics(dossier, submission)
     entities = _entities(dossier)
+    kept_out = _kept_out(dossier)
     set_asides = []
     agencies = []
     if submission is not None:
@@ -238,6 +264,7 @@ def strategy_from_dossier(
         keywords = []
         codes, meta = [], []
         entities = []
+        kept_out = []
 
     return IntakeStrategy(
         client_name=dossier.client_name,
@@ -249,8 +276,114 @@ def strategy_from_dossier(
         set_aside_angles=set_asides,
         searches=searches,
         research_entities=entities,
+        kept_out=kept_out,
         confidence=confidence,
         sources_reviewed=sources,
         requires_human_review=True,
         review_gate=gate,
     )
+
+
+def apply_kept_out(strategy: IntakeStrategy, dossier: CompanyDossier) -> IntakeStrategy:
+    """Seed strategy.kept_out with evidenced name-collision exclusions."""
+    extras = _kept_out(dossier)
+    if not extras:
+        return strategy
+    have = {k.term.casefold() for k in (strategy.kept_out or [])}
+    merged = list(strategy.kept_out or [])
+    for row in extras:
+        if row.term.casefold() in have:
+            continue
+        merged.append(row)
+        have.add(row.term.casefold())
+    if merged == list(strategy.kept_out or []):
+        return strategy
+    return strategy.model_copy(update={"kept_out": merged})
+
+
+def merge_strategy_into_dossier(
+    dossier: CompanyDossier, strategy: IntakeStrategy,
+) -> CompanyDossier:
+    """Copy discrete strategy products/NAICS into a thin dossier.
+
+    Inferred only. Does not invent scope.preset. Blob terms are dropped.
+    """
+    from agents.intake.dossier import (
+        Claim, ClaimState, DossierKeyword, DossierNaics, RetrievalUnit,
+    )
+
+    repaired = dossier.model_copy(deep=True)
+    have_off = {o.text.casefold() for o in repaired.offerings}
+    have_kw = {k.term.casefold() for k in repaired.keywords}
+    have_n = {n.code for n in repaired.naics}
+    changed = False
+
+    for ent in strategy.research_entities or []:
+        if getattr(ent, "kind", "") != "product":
+            continue
+        name = " ".join((ent.name or "").split())
+        if not is_discrete_name(name) or name.casefold() in have_off:
+            continue
+        repaired.offerings.append(Claim(
+            text=name, state=ClaimState.INFERRED,
+            rationale="discrete product retained from the strategy composer",
+        ))
+        have_off.add(name.casefold())
+        changed = True
+
+    for kw in strategy.keywords or []:
+        term = " ".join((kw.term or "").split())
+        if not is_discrete_name(term) or term.casefold() in have_kw:
+            continue
+        cat = getattr(getattr(kw, "category", None), "value", None) or "capability"
+        if str(cat).casefold() not in {"capability", "technology", "search_term"}:
+            continue
+        repaired.keywords.append(DossierKeyword(
+            term=term, category=str(cat).casefold(),
+            rationale=(kw.rationale or "strategy keyword")[:240],
+            state=ClaimState.INFERRED,
+        ))
+        have_kw.add(term.casefold())
+        changed = True
+
+    meta = {e.code: e for e in (strategy.naics_meta or [])}
+    for code in strategy.inferred_naics or []:
+        raw = str(code).strip()
+        if raw in have_n or not (raw.isdigit() and len(raw) == 6):
+            continue
+        entry = meta.get(raw)
+        why = (getattr(entry, "rationale", None) or "").strip()
+        if len(why.split()) < 5:
+            why = (
+                f"strategy composer mapped the bound company onto NAICS {raw} "
+                "from evidenced product and federal-footprint research"
+            )
+        repaired.naics.append(DossierNaics(
+            code=raw, title=getattr(entry, "title", "") or "",
+            role=getattr(entry, "role", None) or "core",
+            rationale=why, state=ClaimState.INFERRED,
+        ))
+        have_n.add(raw)
+        changed = True
+
+    have_stmt = {s.offering.casefold() for s in repaired.capability_statements if s.offering}
+    for off in repaired.offerings:
+        if not is_discrete_name(off.text) or off.text.casefold() in have_stmt:
+            continue
+        repaired.capability_statements.append(RetrievalUnit(
+            statement=f"{repaired.client_name} sells {off.text}.",
+            offering=off.text, state=off.state,
+            evidence_ids=list(off.evidence_ids),
+        ))
+        have_stmt.add(off.text.casefold())
+        changed = True
+
+    if not changed:
+        return dossier
+    # drop the stale "no NAICS" unknown if we now have codes
+    if repaired.naics:
+        repaired.unknowns = [
+            u for u in repaired.unknowns
+            if "no six-digit NAICS" not in u
+        ]
+    return repaired

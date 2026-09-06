@@ -22,9 +22,15 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 from agents.intake import AUTO_APPROVE_TOGGLE
-from agents.intake.adapters import retrieval_frame, strategy_from_dossier
+from agents.intake.adapters import (
+    apply_kept_out,
+    merge_strategy_into_dossier,
+    retrieval_frame,
+    strategy_from_dossier,
+)
 from agents.intake.adversarial import AdversarialRecord, run_adversarial
 from agents.intake.dossier import CompanyDossier, build_dossier
+from agents.intake.extract import structure_product_surface
 from agents.intake.identity import IdentityResolution, resolve_identity
 from agents.intake.probes import ResearchProbe, run_structured_probes
 from agents.intake.readiness import evaluate_readiness, render_readiness_markdown
@@ -242,6 +248,11 @@ def run_step1(
         if research is not None:
             errors.extend(research.errors)
 
+    product_surface = None
+    if identity.is_bound and do_web and research_engine is not None and probes:
+        product_surface = structure_product_surface(
+            research_engine, probes, identity=identity)
+
     dossier = build_dossier(
         client_name=name,
         identity=identity,
@@ -249,6 +260,7 @@ def run_step1(
         research=research,
         product_ingest=product_ingest,
         probes=probes,
+        product_surface=product_surface,
     )
 
     phrases = [k.term for k in dossier.keywords] + [
@@ -289,6 +301,26 @@ def run_step1(
         except Exception as exc:  # noqa: BLE001
             errors.append(f"strategy composer: {exc}")
             strategy = strategy_from_dossier(dossier, submission)
+
+    strategy = apply_kept_out(strategy, dossier)
+    enriched = merge_strategy_into_dossier(dossier, strategy)
+    if enriched is not dossier:
+        dossier = enriched
+        dossier, adversarial = run_adversarial(
+            dossier,
+            yield_receipt=yield_receipt,
+            product_ingest=product_ingest,
+            engine=None,
+        )
+        retrieval = retrieval_frame(dossier)
+        readiness = evaluate_readiness(
+            identity=identity,
+            dossier=dossier,
+            research=research,
+            probes=probes,
+            yield_receipt=yield_receipt,
+            adversarial=adversarial,
+        )
 
     if review_dir is not None:
         review.REVIEW_DIR = review_dir

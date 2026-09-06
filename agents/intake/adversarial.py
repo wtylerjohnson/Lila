@@ -8,11 +8,13 @@ cannot invent new capabilities.
 
 from __future__ import annotations
 
+import re
 from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
 from agents.intake.dossier import ClaimState, CompanyDossier
+from agents.intake.extract import is_discrete_name, is_garbage_text
 from agents.intake.identity import IdentityResolution
 
 
@@ -35,6 +37,84 @@ class AdversarialRecord(BaseModel):
     challenges: list[Challenge] = Field(default_factory=list)
     repairs: list[str] = Field(default_factory=list)
     note: str = ""
+
+
+_RELATED_LEGAL = re.compile(
+    r"government sales|federal sales|related (?:legal )?person|"
+    r"affiliate|public sector|\bllc\b|\binc\.?\b",
+    re.I,
+)
+_WRONG_DOMAIN = re.compile(
+    r"\b([a-z0-9-]+\.(?:com|net|org|io|gov))\b", re.I,
+)
+_FALSE_FRIEND = re.compile(
+    r"\b([A-Z][A-Za-z]+ Records|"
+    r"[A-Z][A-Za-z]+ Aviation(?: Services)?|"
+    r"Aristan(?: Project Management)?|"
+    r"OAS Aircraft Support)\b"
+)
+
+
+def _mentioned_false_friends(dossier: CompanyDossier) -> list[str]:
+    blob = " ".join(
+        [e.excerpt or "" for e in dossier.evidence]
+        + [c.text for c in dossier.boundaries]
+        + [c.text for c in dossier.channels]
+        + list(dossier.unknowns)
+    )
+    found: list[str] = []
+    seen: set[str] = set()
+    for match in _FALSE_FRIEND.finditer(blob):
+        name = match.group(1).strip()
+        key = name.casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        found.append(name)
+    return found
+
+
+def _wrong_company_block(challenge: Challenge, dossier: CompanyDossier) -> bool:
+    bound = (dossier.identity.official_domain or "").casefold()
+    if not bound:
+        return False
+    hay = " ".join([challenge.statement] + list(challenge.external_refs))
+    for match in _WRONG_DOMAIN.finditer(hay):
+        host = match.group(1).casefold()
+        if bound not in host and host not in bound:
+            return True
+    return False
+
+
+def soften_related_entity_blocks(
+    record: AdversarialRecord, dossier: CompanyDossier,
+) -> AdversarialRecord:
+    """A correct public-domain bind is not blocked solely for a federal-path LLC."""
+    if not dossier.identity.is_bound:
+        return record
+    out: list[Challenge] = []
+    changed = False
+    for ch in record.challenges:
+        if (
+            ch.kind == "identity"
+            and ch.severity == "block"
+            and _RELATED_LEGAL.search(ch.statement)
+            and not _wrong_company_block(ch, dossier)
+        ):
+            out.append(ch.model_copy(update={"severity": "warn"}))
+            changed = True
+        else:
+            out.append(ch)
+    if not changed:
+        return record
+    record.challenges = out
+    blocking = [c for c in record.challenges if c.severity == "block"]
+    record.passed = record.complete and not blocking
+    record.note = (
+        "passed" if record.passed
+        else ("blocked" if blocking else "complete_with_warnings")
+    )
+    return record
 
 
 _COMMON_NAME_TOKENS = frozenset({
@@ -101,6 +181,16 @@ def challenge_dossier(
 
     for off in dossier.offerings:
         missing = [i for i in off.evidence_ids if i not in ev_ids]
+        if is_garbage_text(off.text) or not is_discrete_name(off.text):
+            rec.challenges.append(Challenge(
+                kind="unsupported_capability", severity="block",
+                statement=(
+                    f"offering {off.text[:80]!r} is not a discrete product "
+                    "name (load-error, essay, or placeholder)"
+                ),
+                evidence_ids=list(off.evidence_ids),
+            ))
+            continue
         if off.state in (ClaimState.CORROBORATED, ClaimState.COMPANY_ASSERTED):
             if not off.evidence_ids or missing:
                 rec.challenges.append(Challenge(
@@ -164,6 +254,32 @@ def challenge_dossier(
                 + ", ".join(collision)
                 + "; confirm the bound domain is the intended firm and "
                 "that exclusions will be operator-authored later"
+            ),
+            external_refs=[identity.official_domain or ""],
+        ))
+
+    kept = {k.term.casefold() for k in dossier.kept_out}
+    kept.update(c.text.casefold() for c in dossier.boundaries)
+    mentioned = _mentioned_false_friends(dossier)
+    missing_ex = [name for name in mentioned if name.casefold() not in kept]
+    if mentioned and missing_ex:
+        rec.challenges.append(Challenge(
+            kind="polysemy", severity="warn",
+            statement=(
+                "research named other firms sharing this name "
+                + ", ".join(missing_ex[:4])
+                + "; they are not yet in kept_out"
+            ),
+            external_refs=missing_ex[:4],
+        ))
+
+    if identity.is_bound and dossier.related_entities:
+        rec.challenges.append(Challenge(
+            kind="identity", severity="warn",
+            statement=(
+                "related legal person recorded on the federal path ("
+                + ", ".join(r.name for r in dossier.related_entities[:2])
+                + "); the bound public domain stands"
             ),
             external_refs=[identity.official_domain or ""],
         ))
@@ -283,7 +399,11 @@ def run_adversarial(
                 "Challenge wrong identity, unsupported capabilities, name "
                 "polysemy, NAICS overbreadth, and offerings named on the "
                 "site but missing from the model. Return structured challenges. "
-                "If evidence is thin, say incomplete rather than passing."
+                "If evidence is thin, say incomplete rather than passing. "
+                "Do not hard-block a correct official-domain bind solely "
+                "because a related Government Sales LLC or federal-path "
+                "affiliate shares the name. Do not treat a scrape load-error "
+                "as an offering. Demand discrete product names."
             ),
             context=context,
             schema=_ModelChallenge,
@@ -292,6 +412,7 @@ def run_adversarial(
             record.challenges.append(ch)
         if extra.note:
             record.note = (record.note + "; model: " + extra.note).strip("; ")
+        record = soften_related_entity_blocks(record, dossier)
         blocking = [c for c in record.challenges if c.severity == "block"]
         record.passed = record.complete and not blocking
     except Exception as exc:  # noqa: BLE001 - model skip is not a pass upgrade
