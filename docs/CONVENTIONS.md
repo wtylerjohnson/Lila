@@ -243,11 +243,28 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   certification program names, not offerings. Allowlisted banks
   (Barclays, Citigroup, Morgan Stanley) and Activ Financial
   promote from official proof text even in all caps. Bank
-  promotion reads PAGE-level proof ("customers include" /
-  "others include" / testimonials), not the 40-character
-  excerpt window around one name. IPO book-running and
-  investor-conference mentions are not buyers. Truncated
-  case-study card titles (Walsh Universi, Noodles Compa,
+  names that no longer appear on the live site or the latest
+  10-K come from the bound entity's own SEC roster
+  (`agents/intake/sec_customers.py`): S-1 / 424B4 / 10-K text
+  for the CIK resolved from SEC company_tickers.json, never an
+  invented CIK. Promote only from customer-roster sentences
+  ("customers include", "financial services organizations such
+  as", "end customers such as"). Evidence URL is the filing.
+  Prefer a filing that still names the roster when the latest
+  10-K dropped those names. IPO underwriter / cover tables
+  (Morgan Stanley, Citigroup, Barclays as bookrunners) are not
+  buyers. News conference blurbs and synthesized "Named in
+  S-1/10-K" paraphrases are not bank proof.
+  `citation_is_official` stays the company domain; SEC URLs
+  bind through `is_bound_sec_filing_url` for customers only.
+  Soft-fail if SEC is unreachable. Support / careers / company
+  chrome (A-Care, Quick Facts, Corporate Responsibility,
+  Events Calendar, founder concatenations, department lists,
+  Forrester Wave, Data Center Network Solutions) is not a
+  customer. Prefer /case-study|testimonial|customers/ plus the
+  SEC roster. Case-study PDFs and official testimonials
+  (Activ, Hardis, Microsoft when evidenced) still promote.
+  Truncated case-study card titles (Walsh Universi, Noodles Compa,
   PB/UAX Case Stu) and section chrome (Wireless FAQ,
   Real-World Deployments) are not customers. Customer and
   testimonial hubs are crawled before news/blog inside the

@@ -60,6 +60,9 @@ _CUSTOMER_JUNK = frozenset({
     "case studies", "customer success", "proof points", "proof point",
     "pdf", "ease of deployment", "troubleshoot workloads",
     "unmatched visibility", "operating system",
+    "quick facts", "corporate responsibility", "events calendar",
+    "forrester wave", "data center network solutions",
+    "a-care", "acare",
 })
 _INDUSTRY_SEGMENTS = frozenset({
     "hedge funds", "hedge fund", "financial services", "financial service",
@@ -86,7 +89,8 @@ _PEOPLE_NAV = re.compile(
 )
 _TITLE_TAIL = re.compile(
     r"\b(overview|page|home|index|guide|datasheets?|data\s*sheets?|"
-    r"whitepapers?|white\s*papers?|solution\s*briefs?|briefs?)\s*$",
+    r"whitepapers?|white\s*papers?|solution\s*briefs?|briefs?|"
+    r"solutions?|calendar|facts)\s*$",
     re.I,
 )
 _SLOGAN = re.compile(
@@ -113,6 +117,37 @@ _CUSTOMER_HUB = re.compile(
     r"past-performance",
     re.I,
 )
+_CUSTOMER_PATH_OK = re.compile(
+    r"(?:^|/)(?:customers?|case-?stud(?:y|ies)|testimonials?|"
+    r"product-testimonials|proof-?points?|success-stor|"
+    r"past-performance)(?:/|$|\.)",
+    re.I,
+)
+_SUPPORT_CHROME_PATH = re.compile(
+    r"(?:^|/)(?:support|careers?|company)(?:/|$)",
+    re.I,
+)
+_NAMED_IN_FILING = re.compile(
+    r"\bnamed in\b.{0,60}\b(?:s-?1|10-k|424b4|prospectus)\b",
+    re.I,
+)
+_ROSTER_PHRASE = re.compile(
+    r"\b(?:(?:end\s+)?customers?(?:\s+include|\s+are|\s+such as)|"
+    r"(?:clients?|others?)\s+include|"
+    r"(?:financial\s+services\s+)?organizations?\s+such as|"
+    r"end customers?.{0,40}such as)\b",
+    re.I,
+)
+_DEPT_WORDS = frozenset({
+    "support", "engineering", "finance", "sales", "marketing",
+    "legal", "operations", "human", "resources", "careers",
+})
+_ORG_SUFFIX = frozenset({
+    "group", "financial", "army", "inc", "corp", "ltd", "llc",
+    "networks", "systems", "labs", "bank", "capital",
+})
+_SKU_SUPPORT = re.compile(r"\ba-?care\b", re.I)
+_ANALYST_WAVE = re.compile(r"\b(forrester|gartner)\s+wave\b", re.I)
 _UNDERWRITER = re.compile(
     r"\b(book-running|underwriters?|co-managers?|prospectus|"
     r"(?:investor|tmt)\s+conference|technology,\s*media and telecom "
@@ -135,6 +170,9 @@ _CUSTOMER_CHROME = frozenset({
     "wireless faq", "faq", "real-world deployments",
     "real world deployments", "deployments", "literature",
     "resources", "pb/uax case stu", "uax case stu",
+    "quick facts", "corporate responsibility", "events calendar",
+    "forrester wave", "data center network solutions",
+    "a-care", "acare", "support engineering finance",
 })
 _ORG_RUN = re.compile(
     r"\b([A-Z][A-Za-z0-9&'!-]{1,40}"
@@ -1047,6 +1085,8 @@ def is_customer_name(text: str, *, client_name: str = "") -> bool:
         return False
     if is_customer_chrome(name) or is_truncated_org_name(name):
         return False
+    if _SKU_SUPPORT.search(name) or _ANALYST_WAVE.search(name):
+        return False
     if is_product_name(name):
         return False
     # Allowlisted buying orgs (Barclays, Citigroup, Morgan Stanley) promote
@@ -1096,6 +1136,15 @@ def is_customer_name(text: str, *, client_name: str = "") -> bool:
             "fixed", "mobile", "telecoms", "telecom", "french", "it"}
             for w in words):
         return False
+    dept_hits = sum(1 for w in words if w.casefold() in _DEPT_WORDS)
+    if dept_hits >= 2:
+        return False
+    if (
+        len(words) >= 4
+        and low not in _KNOWN_CUSTOMERS
+        and not any(w.casefold() in _ORG_SUFFIX for w in words)
+    ):
+        return False
     return True
 
 
@@ -1129,6 +1178,8 @@ def known_customers_in_text(text: str, client_name: str = "") -> list[str]:
         if not is_customer_name(display, client_name=client_name):
             continue
         if customer_window_is_underwriter(raw, display):
+            continue
+        if any(customer_excerpt_is_sec_paraphrase(w) for w in _windows(raw, display)):
             continue
         seen.add(known)
         found.append(display)
@@ -1302,8 +1353,50 @@ def recall_competitors(text: str, client_name: str = "") -> list[str]:
     return found
 
 
+def _url_path(url: str) -> str:
+    return re.sub(r"^https?://[^/]+", "", (url or "").casefold())
+
+
+def is_sec_filing_url(url: str) -> bool:
+    host = (url or "").casefold()
+    return "sec.gov" in host and "/archives/edgar/data/" in host
+
+
+def customer_url_is_chrome(url: str) -> bool:
+    """Support / careers / company chrome is not a customer roster."""
+    if not url:
+        return False
+    if is_sec_filing_url(url):
+        return False
+    path = _url_path(url)
+    if _CUSTOMER_PATH_OK.search(path):
+        return False
+    if is_news_path_citation(url):
+        return True
+    return bool(_SUPPORT_CHROME_PATH.search(path))
+
+
 def customer_hub_url(url: str) -> bool:
-    return bool(_CUSTOMER_HUB.search(url or ""))
+    """Case-study / testimonial / customers paths, never news or support chrome."""
+    if not url or customer_url_is_chrome(url):
+        return False
+    path = _url_path(url)
+    if _CUSTOMER_PATH_OK.search(path):
+        return True
+    return bool(_CUSTOMER_HUB.search(url) and not _SUPPORT_CHROME_PATH.search(path))
+
+
+def is_customer_roster_excerpt(text: str) -> bool:
+    """Primary roster language from a site hub or a bound SEC filing."""
+    return bool(_ROSTER_PHRASE.search(text or ""))
+
+
+def customer_excerpt_is_sec_paraphrase(text: str) -> bool:
+    """Secondary 'Named in S-1/10-K' blurbs are not primary scrape."""
+    raw = text or ""
+    if not _NAMED_IN_FILING.search(raw):
+        return False
+    return not is_customer_roster_excerpt(raw)
 
 
 def is_truncated_org_name(text: str) -> bool:
@@ -1326,6 +1419,15 @@ def is_customer_chrome(text: str) -> bool:
         return True
     if re.search(r"\bcase\s+stu\b", low):
         return True
+    if _SKU_SUPPORT.search(low) or _ANALYST_WAVE.search(low):
+        return True
+    if re.search(
+            r"\b(quick facts|corporate responsibility|events calendar|"
+            r"data center network solutions)\b", low):
+        return True
+    words = low.split()
+    if sum(1 for w in words if w in _DEPT_WORDS) >= 2:
+        return True
     return False
 
 
@@ -1344,6 +1446,10 @@ def customer_window_is_underwriter(text: str, name: str) -> bool:
 
 def page_has_customer_proof(text: str, url: str = "") -> bool:
     """Page-level proof, not the 40-char excerpt window around one name."""
+    if is_news_path_citation(url) or customer_url_is_chrome(url):
+        return False
+    if customer_excerpt_is_sec_paraphrase(text):
+        return False
     if customer_hub_url(url):
         return True
     raw = text or ""
@@ -1352,11 +1458,16 @@ def page_has_customer_proof(text: str, url: str = "") -> bool:
         or _CUSTOMER_LEAD.search(raw)
         or _ORG_PROOF.search(raw)
         or _CUSTOMER_INCLUDE.search(raw)
+        or is_customer_roster_excerpt(raw)
     )
 
 
 def customer_excerpt_ok(excerpt: str, url: str = "") -> bool:
     """True only for customer/case-study hubs or proof-language excerpts."""
+    if is_news_path_citation(url) or customer_url_is_chrome(url):
+        return False
+    if customer_excerpt_is_sec_paraphrase(excerpt):
+        return False
     if customer_hub_url(url):
         return True
     raw = excerpt or ""
@@ -1365,6 +1476,7 @@ def customer_excerpt_ok(excerpt: str, url: str = "") -> bool:
         or _CUSTOMER_LEAD.search(raw)
         or _ORG_PROOF.search(raw)
         or _CUSTOMER_INCLUDE.search(raw)
+        or is_customer_roster_excerpt(raw)
     )
 
 
@@ -1596,10 +1708,12 @@ def extract_surface(
                 if not is_news_path_citation(url):
                     for name in recall_competitors(text, client_name or bound_name):
                         _compete(name)
-                if is_news_path_citation(url) and not page_has_customer_proof(
-                        text, url):
+                if is_news_path_citation(url) or customer_url_is_chrome(url):
                     continue
                 for name in recall_customers(text, client_name or bound_name):
+                    snippet = excerpt_from(text, needle=name)
+                    if customer_excerpt_is_sec_paraphrase(snippet):
+                        continue
                     _customer(name)
         else:
             for name in recall_competitors(scrape_text, client_name or bound_name):

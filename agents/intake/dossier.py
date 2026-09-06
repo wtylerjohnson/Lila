@@ -21,12 +21,15 @@ from agents.intake.extract import (
     aviation_codes_to_park,
     citation_is_official,
     citation_mismatches_rival,
+    customer_excerpt_is_sec_paraphrase,
     customer_excerpt_ok,
+    customer_url_is_chrome,
     customer_window_is_underwriter,
     cap_customers,
+    is_customer_roster_excerpt,
     is_known_customer,
+    is_sec_filing_url,
     known_customers_in_text,
-    page_has_customer_proof,
     excerpt_from,
     excerpt_supports_name,
     excerpt_supports_rival,
@@ -300,6 +303,7 @@ def build_dossier(
     product_ingest: Optional[dict] = None,
     probes: Optional[list] = None,
     product_surface=None,
+    sec_customers: Optional[list] = None,
 ) -> CompanyDossier:
     """Deterministic dossier from identity + form + ingest + probes.
 
@@ -499,6 +503,10 @@ def build_dossier(
             official_domain=identity.official_domain, prefer_site=True)
         if not snippet or not excerpt_supports_name(name, snippet):
             continue
+        if is_news_path_citation(url or "") or customer_url_is_chrome(url or ""):
+            continue
+        if customer_excerpt_is_sec_paraphrase(snippet):
+            continue
         if not customer_excerpt_ok(snippet, url or "") and not is_known_customer(
                 name, client_name=client_name):
             continue
@@ -636,8 +644,10 @@ def build_dossier(
                 continue
             if not excerpt_supports_name(name, excerpt):
                 continue
-            if is_news_path_citation(ev.url or "") and not page_has_customer_proof(
-                    excerpt, ev.url or ""):
+            if is_news_path_citation(ev.url or "") or customer_url_is_chrome(
+                    ev.url or ""):
+                continue
+            if customer_excerpt_is_sec_paraphrase(excerpt):
                 continue
             customers.append(_claim(
                 name, ClaimState.COMPANY_ASSERTED, [ev.evidence_id],
@@ -670,25 +680,6 @@ def build_dossier(
         text = page.text or ""
         url = getattr(page, "url", None) or identity.website
         if is_news_path_citation(url or ""):
-            if not page_has_customer_proof(text, url or ""):
-                continue
-            for name in known_customers_in_text(text, client_name):
-                key = name.casefold()
-                if key in seen_cust:
-                    continue
-                if customer_window_is_underwriter(text, name):
-                    continue
-                snippet = excerpt_from(text, needle=name)
-                if not snippet or not excerpt_supports_name(name, snippet):
-                    continue
-                eid = add_ev("website", snippet, url)
-                if not eid:
-                    continue
-                customers.append(_claim(
-                    name, ClaimState.COMPANY_ASSERTED, [eid],
-                    "allowlisted customer promoted from official-site text",
-                ))
-                seen_cust.add(key)
             continue
         for name in recall_competitors(text, client_name):
             key = name.casefold()
@@ -708,12 +699,18 @@ def build_dossier(
                 "named rival promoted from official-site competition text",
             ))
             seen_comp.add(key)
+        if customer_url_is_chrome(url or ""):
+            continue
         for name in known_customers_in_text(text, client_name):
             key = name.casefold()
             if key in seen_cust:
                 continue
             snippet = excerpt_from(text, needle=name)
             if not snippet or not excerpt_supports_name(name, snippet):
+                continue
+            if customer_excerpt_is_sec_paraphrase(snippet):
+                continue
+            if customer_window_is_underwriter(text, name):
                 continue
             eid = add_ev("website", snippet, url)
             if not eid:
@@ -723,6 +720,36 @@ def build_dossier(
                 "allowlisted customer promoted from official-site text",
             ))
             seen_cust.add(key)
+
+    from agents.intake.sec_customers import is_bound_sec_filing_url
+    for hit in sec_customers or []:
+        if not isinstance(hit, dict):
+            continue
+        name = str(hit.get("name") or "").strip()
+        excerpt = str(hit.get("excerpt") or "").strip()
+        url = str(hit.get("url") or "").strip()
+        cik = str(hit.get("cik") or "").strip()
+        key = name.casefold()
+        if not name or key in seen_cust:
+            continue
+        if not is_customer_name(name, client_name=client_name):
+            continue
+        if not is_bound_sec_filing_url(url, cik or None):
+            continue
+        if not is_sec_filing_url(url) or not is_customer_roster_excerpt(excerpt):
+            continue
+        if customer_window_is_underwriter(excerpt, name):
+            continue
+        if not excerpt_supports_name(name, excerpt):
+            continue
+        eid = add_ev("web_probe", excerpt, url)
+        if not eid:
+            continue
+        customers.append(_claim(
+            name, ClaimState.COMPANY_ASSERTED, [eid],
+            "named customer from bound-entity SEC customer roster",
+        ))
+        seen_cust.add(key)
 
     exclude_blob = " ".join(k.term for k in kept_out)
     hay = " ".join(

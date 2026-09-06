@@ -193,6 +193,8 @@ def run_step1(
     ingest_fetcher=None,
     scrape_fn=None,
     alert_fn=None,
+    sec_customers=None,
+    sec_fetch=None,
 ) -> Step1Result:
     """Run the mastery pipeline to a review packet. Never starts a sweep."""
     import agents.review as review
@@ -262,6 +264,21 @@ def run_step1(
         product_surface = structure_product_surface(
             research_engine, probes, identity=identity)
 
+    in_pytest = bool(os.environ.get("PYTEST_CURRENT_TEST"))
+    if (
+        sec_customers is None
+        and identity.is_bound
+        and do_web
+        and (sec_fetch is not None or not in_pytest)
+    ):
+        try:
+            from agents.intake.sec_customers import fetch_bound_sec_customers
+            fetcher = sec_fetch or fetch_bound_sec_customers
+            sec_customers = fetcher(identity.bound_name or name, client_name=name)
+        except Exception as exc:  # noqa: BLE001 - live SEC is optional
+            errors.append(f"sec roster: {exc}")
+            sec_customers = []
+
     dossier = build_dossier(
         client_name=name,
         identity=identity,
@@ -270,6 +287,7 @@ def run_step1(
         product_ingest=product_ingest,
         probes=probes,
         product_surface=product_surface,
+        sec_customers=sec_customers or [],
     )
 
     phrases = [k.term for k in dossier.keywords] + [

@@ -20,11 +20,14 @@ from agents.intake.extract import (
     aviation_codes_in_text,
     aviation_codes_to_park,
     citation_mismatches_rival,
+    customer_excerpt_is_sec_paraphrase,
+    customer_url_is_chrome,
     excerpt_supports_rival,
     extract_surface,
     is_competitor_name,
     is_customer_chrome,
     is_customer_name,
+    is_customer_roster_excerpt,
     is_news_path_citation,
     is_product_name,
     is_sku_fragment_rival,
@@ -38,6 +41,33 @@ from agents.intake.extract import (
     site_has_usable_text,
     usable_site_text,
 )
+SEC_424B4 = (
+    "https://www.sec.gov/Archives/edgar/data/1596532/"
+    "000119312514227698/d639957d424b4.htm"
+)
+SEC_ROSTER = (
+    "Our customers include large cloud providers such as Microsoft "
+    "and Netflix and financial services organizations such as "
+    "Barclays, Citigroup, and Morgan Stanley."
+)
+SEC_UNDERWRITER = (
+    "Morgan Stanley, Citigroup, BofA Merrill Lynch, Barclays and "
+    "Credit Suisse are acting as joint book-running managers for "
+    "the offering."
+)
+
+
+def _sec_bank_hits():
+    return [
+        {
+            "name": name,
+            "excerpt": SEC_ROSTER,
+            "url": SEC_424B4,
+            "cik": "0001596532",
+            "form": "424B4",
+        }
+        for name in ("Barclays", "Citigroup", "Morgan Stanley", "Microsoft")
+    ]
 from agents.intake.readiness import evaluate_readiness
 from agents.intake.identity import bind_identity
 from agents.intake.probes import ResearchProbe, run_structured_probes
@@ -1435,7 +1465,7 @@ def test_press16_collateral_does_not_undo_cisco_darktrace():
 
 
 def test_press17_banks_from_page_proof_not_chrome_or_underwriter():
-    """Live P17 shape: S-1 proof far from the names; card titles truncated."""
+    """News S-1 paraphrase is not bank proof; 424B4 roster is."""
     ident = _identity()
     cisco_url = ROOT + "/en/company/competitor-comparisons"
     darktrace = ROOT + "/en/ndr-darktrace-comparison"
@@ -1490,7 +1520,7 @@ def test_press17_banks_from_page_proof_not_chrome_or_underwriter():
                 text=(
                     "The first sub-500ns switching platform keeps our "
                     "competitive advantage. Steve McNeany, CEO, Activ "
-                    "Financial."
+                    "Financial. Named in Arista's 2014 S-1/10-K: Barclays."
                 ),
             ),
             ScrapedPage(
@@ -1529,6 +1559,7 @@ def test_press17_banks_from_page_proof_not_chrome_or_underwriter():
         research=CompanyResearch(
             company_name="Acme Net", website=ROOT, scrape=scrape),
         probes=probes,
+        sec_customers=_sec_bank_hits(),
     )
     rivals = {c.text: c for c in dossier.competitors}
     assert "Cisco" in rivals and "Darktrace" in rivals
@@ -1541,15 +1572,337 @@ def test_press17_banks_from_page_proof_not_chrome_or_underwriter():
     assert {"EOS", "CloudVision", "AGNI", "DANZ Monitoring Fabric",
             "7050X"} <= texts
     assert "dod" not in {t.casefold() for t in texts}
-    customers = {c.text.casefold() for c in dossier.customers}
+    customers = {c.text.casefold(): c for c in dossier.customers}
     assert 1 <= len(customers) <= MAX_CUSTOMERS
     assert {
         "barclays", "citigroup", "morgan stanley", "activ financial",
-    } <= customers
+    } <= set(customers)
+    for bank in ("barclays", "citigroup", "morgan stanley"):
+        bank_url = (ev[customers[bank].evidence_ids[0]].url or "").casefold()
+        bank_ex = ev[customers[bank].evidence_ids[0]].excerpt or ""
+        assert "sec.gov" in bank_url
+        assert "424b4" in bank_url or "archives/edgar" in bank_url
+        assert "/news" not in bank_url
+        assert is_customer_roster_excerpt(bank_ex)
+        assert "book-running" not in bank_ex.casefold()
+    activ_url = (ev[customers["activ financial"].evidence_ids[0]].url or "").casefold()
+    assert "testimonial" in activ_url or "case" in activ_url
     for junk in (
         "wireless faq", "real-world deployments", "walsh universi",
         "noodles compa", "pb/uax case stu", "uax case stu", "hardis grou",
         "fixed mobile telecoms", "french it",
     ):
         assert junk not in customers
+    assert {"336413", "488190"} <= {n.code for n in dossier.kept_out_naics}
+
+
+def test_press18_sec_roster_not_support_chrome_or_news():
+    """P18: banks from bound 424B4 roster; support chrome and news stay out."""
+    ident = _identity()
+    cisco_url = ROOT + "/en/company/competitor-comparisons"
+    darktrace = ROOT + "/en/ndr-darktrace-comparison"
+    news = ROOT + "/en/company/news"
+    support = ROOT + "/en/support/acare"
+    company = ROOT + "/en/company"
+    case_pdf = ROOT + "/assets/data/pdf/CaseStudies/ActivFinancial.pdf"
+    scrape = ScrapeBundle(
+        root_url=ROOT,
+        pages=[
+            ScrapedPage(
+                url=cisco_url,
+                text=(
+                    "The switching market was historically dominated by "
+                    "Cisco. Unlike Cisco, Acme ships EOS on every 7050X. "
+                    "Unlike Juniper, CloudVision is the compare alternative."
+                ),
+            ),
+            ScrapedPage(
+                url=darktrace,
+                text=(
+                    "NDR Darktrace comparison. Unlike Darktrace, Acme "
+                    "positions AGNI as the identity control point."
+                ),
+            ),
+            ScrapedPage(
+                url=news,
+                text=(
+                    "Broadcom closed the VMware acquisition. VMware Cloud "
+                    "Foundation sits next to an Acme campus note. Others "
+                    "include Barclays, Citigroup, and Morgan Stanley from "
+                    "a 2009 conference blurb."
+                ),
+            ),
+            ScrapedPage(
+                url=support,
+                text=(
+                    "A-Care 4-hour SKU. Quick Facts. Corporate "
+                    "Responsibility. Events Calendar. Andy Bechtolsheim "
+                    "Ken Duda. Support Engineering Finance Sales. "
+                    "Forrester Wave. Data Center Network Solutions. "
+                    "Walsh Universi. Customers visit support."
+                ),
+            ),
+            ScrapedPage(
+                url=company,
+                text=(
+                    "Named in Arista's 2014 S-1/10-K: Barclays, Citigroup, "
+                    "and Morgan Stanley. This company chrome page is not "
+                    "a customer roster."
+                ),
+            ),
+            ScrapedPage(
+                url=case_pdf,
+                text=(
+                    "Case study: Activ Financial. The first sub-500ns "
+                    "switching platform keeps our competitive advantage. "
+                    "Steve McNeany, CEO, Activ Financial."
+                ),
+            ),
+            ScrapedPage(
+                url=ROOT + "/en/products/product-testimonials",
+                text=(
+                    "Hardis Group and Microsoft deployed CloudVision. "
+                    "Trusted by US Army for campus switching."
+                ),
+            ),
+            ScrapedPage(
+                url=ROOT + "/products",
+                text=(
+                    "Acme Net sells EOS, CloudVision, AGNI, DANZ Monitoring "
+                    "Fabric, and the 7050X switch family. Federal "
+                    "certifications include the DoD and DoDIN APL. Those "
+                    "are not offerings."
+                ),
+            ),
+        ],
+        sources=[cisco_url, darktrace, news, support, company, case_pdf],
+    )
+    probes = [
+        ResearchProbe(
+            name="competitors", query="rivals", findings="", citations=[]),
+        ResearchProbe(
+            name="boundaries",
+            query="exclusions",
+            findings=(
+                "Do not confuse Acme Net with Acme Aviation. Aviation "
+                "stays out of the search lane."
+            ),
+            citations=["https://en.wikipedia.org/wiki/Acme_Aviation"],
+        ),
+    ]
+    underwriter_hits = [
+        {
+            "name": "Barclays",
+            "excerpt": SEC_UNDERWRITER,
+            "url": SEC_424B4,
+            "cik": "0001596532",
+            "form": "424B4",
+        }
+    ]
+    dossier = build_dossier(
+        client_name="Acme Net",
+        identity=ident,
+        research=CompanyResearch(
+            company_name="Acme Net", website=ROOT, scrape=scrape),
+        probes=probes,
+        sec_customers=_sec_bank_hits() + underwriter_hits,
+    )
+    rivals = {c.text: c for c in dossier.competitors}
+    assert "Cisco" in rivals and "Darktrace" in rivals
+    assert "Juniper" in rivals
+    ev = {e.evidence_id: e for e in dossier.evidence}
+    assert "/news" not in (ev[rivals["Cisco"].evidence_ids[0]].url or "").casefold()
+    assert "Cisco Nexus" not in rivals
+    assert "VMware" not in rivals and "Vmware" not in rivals
+    texts = {o.text for o in dossier.offerings}
+    assert {"EOS", "CloudVision", "AGNI", "DANZ Monitoring Fabric",
+            "7050X"} <= texts
+    assert "dod" not in {t.casefold() for t in texts}
+    assert "dodin" not in {t.casefold() for t in texts}
+    customers = {c.text.casefold(): c for c in dossier.customers}
+    assert 1 <= len(customers) <= MAX_CUSTOMERS
+    assert {
+        "barclays", "citigroup", "morgan stanley",
+        "activ financial", "hardis group", "microsoft",
+    } <= set(customers)
+    for bank in ("barclays", "citigroup", "morgan stanley"):
+        bank_url = (ev[customers[bank].evidence_ids[0]].url or "").casefold()
+        bank_ex = ev[customers[bank].evidence_ids[0]].excerpt or ""
+        assert "sec.gov/archives/edgar/data/1596532/" in bank_url
+        assert "d639957d424b4.htm" in bank_url
+        assert is_customer_roster_excerpt(bank_ex)
+        assert "book-running" not in bank_ex.casefold()
+        assert "named in" not in bank_ex.casefold()
+    activ_url = (ev[customers["activ financial"].evidence_ids[0]].url or "").casefold()
+    assert "casestudies" in activ_url or "case-stud" in activ_url
+    for junk in (
+        "a-care", "acare", "quick facts", "corporate responsibility",
+        "events calendar", "andy bechtolsheim ken duda",
+        "support engineering finance", "forrester wave",
+        "data center network solutions", "walsh universi",
+        "fixed mobile telecoms", "french it",
+    ):
+        assert junk not in customers
+        assert not any(junk in key for key in customers)
+    assert customer_url_is_chrome(support)
+    assert customer_url_is_chrome(company)
+    assert not customer_url_is_chrome(case_pdf)
+    assert customer_excerpt_is_sec_paraphrase(
+        "Named in Arista's 2014 S-1/10-K: Barclays, Citigroup")
+    assert {"336413", "488190"} <= {n.code for n in dossier.kept_out_naics}
+
+
+def test_press18_sec_roster_not_support_chrome_or_news():
+    """P18: banks from bound 424B4 roster; support chrome and news stay out."""
+    ident = _identity()
+    cisco_url = ROOT + "/en/company/competitor-comparisons"
+    darktrace = ROOT + "/en/ndr-darktrace-comparison"
+    news = ROOT + "/en/company/news"
+    support = ROOT + "/en/support/acare"
+    company = ROOT + "/en/company"
+    case_pdf = ROOT + "/assets/data/pdf/CaseStudies/ActivFinancial.pdf"
+    scrape = ScrapeBundle(
+        root_url=ROOT,
+        pages=[
+            ScrapedPage(
+                url=cisco_url,
+                text=(
+                    "The switching market was historically dominated by "
+                    "Cisco. Unlike Cisco, Acme ships EOS on every 7050X. "
+                    "Unlike Juniper, CloudVision is the compare alternative."
+                ),
+            ),
+            ScrapedPage(
+                url=darktrace,
+                text=(
+                    "NDR Darktrace comparison. Unlike Darktrace, Acme "
+                    "positions AGNI as the identity control point."
+                ),
+            ),
+            ScrapedPage(
+                url=news,
+                text=(
+                    "Broadcom closed the VMware acquisition. VMware Cloud "
+                    "Foundation sits next to an Acme campus note. Others "
+                    "include Barclays, Citigroup, and Morgan Stanley from "
+                    "a 2009 conference blurb."
+                ),
+            ),
+            ScrapedPage(
+                url=support,
+                text=(
+                    "A-Care 4-hour SKU. Quick Facts. Corporate "
+                    "Responsibility. Events Calendar. Andy Bechtolsheim "
+                    "Ken Duda. Support Engineering Finance Sales. "
+                    "Forrester Wave. Data Center Network Solutions. "
+                    "Walsh Universi. Customers visit support."
+                ),
+            ),
+            ScrapedPage(
+                url=company,
+                text=(
+                    "Named in Arista's 2014 S-1/10-K: Barclays, Citigroup, "
+                    "and Morgan Stanley. This company chrome page is not "
+                    "a customer roster."
+                ),
+            ),
+            ScrapedPage(
+                url=case_pdf,
+                text=(
+                    "Case study: Activ Financial. The first sub-500ns "
+                    "switching platform keeps our competitive advantage. "
+                    "Steve McNeany, CEO, Activ Financial."
+                ),
+            ),
+            ScrapedPage(
+                url=ROOT + "/en/products/product-testimonials",
+                text=(
+                    "Hardis Group and Microsoft deployed CloudVision. "
+                    "Trusted by US Army for campus switching."
+                ),
+            ),
+            ScrapedPage(
+                url=ROOT + "/products",
+                text=(
+                    "Acme Net sells EOS, CloudVision, AGNI, DANZ Monitoring "
+                    "Fabric, and the 7050X switch family. Federal "
+                    "certifications include the DoD and DoDIN APL. Those "
+                    "are not offerings."
+                ),
+            ),
+        ],
+        sources=[cisco_url, darktrace, news, support, company, case_pdf],
+    )
+    probes = [
+        ResearchProbe(
+            name="competitors", query="rivals", findings="", citations=[]),
+        ResearchProbe(
+            name="boundaries",
+            query="exclusions",
+            findings=(
+                "Do not confuse Acme Net with Acme Aviation. Aviation "
+                "stays out of the search lane."
+            ),
+            citations=["https://en.wikipedia.org/wiki/Acme_Aviation"],
+        ),
+    ]
+    underwriter_hits = [
+        {
+            "name": "Barclays",
+            "excerpt": SEC_UNDERWRITER,
+            "url": SEC_424B4,
+            "cik": "0001596532",
+            "form": "424B4",
+        }
+    ]
+    dossier = build_dossier(
+        client_name="Acme Net",
+        identity=ident,
+        research=CompanyResearch(
+            company_name="Acme Net", website=ROOT, scrape=scrape),
+        probes=probes,
+        sec_customers=_sec_bank_hits() + underwriter_hits,
+    )
+    rivals = {c.text: c for c in dossier.competitors}
+    assert "Cisco" in rivals and "Darktrace" in rivals
+    assert "Juniper" in rivals
+    ev = {e.evidence_id: e for e in dossier.evidence}
+    assert "/news" not in (ev[rivals["Cisco"].evidence_ids[0]].url or "").casefold()
+    assert "Cisco Nexus" not in rivals
+    assert "VMware" not in rivals and "Vmware" not in rivals
+    texts = {o.text for o in dossier.offerings}
+    assert {"EOS", "CloudVision", "AGNI", "DANZ Monitoring Fabric",
+            "7050X"} <= texts
+    assert "dod" not in {t.casefold() for t in texts}
+    assert "dodin" not in {t.casefold() for t in texts}
+    customers = {c.text.casefold(): c for c in dossier.customers}
+    assert 1 <= len(customers) <= MAX_CUSTOMERS
+    assert {
+        "barclays", "citigroup", "morgan stanley",
+        "activ financial", "hardis group", "microsoft",
+    } <= set(customers)
+    for bank in ("barclays", "citigroup", "morgan stanley"):
+        bank_url = (ev[customers[bank].evidence_ids[0]].url or "").casefold()
+        bank_ex = ev[customers[bank].evidence_ids[0]].excerpt or ""
+        assert "sec.gov/archives/edgar/data/1596532/" in bank_url
+        assert "d639957d424b4.htm" in bank_url
+        assert is_customer_roster_excerpt(bank_ex)
+        assert "book-running" not in bank_ex.casefold()
+        assert "named in" not in bank_ex.casefold()
+    activ_url = (ev[customers["activ financial"].evidence_ids[0]].url or "").casefold()
+    assert "casestudies" in activ_url or "case-stud" in activ_url
+    for junk in (
+        "a-care", "acare", "quick facts", "corporate responsibility",
+        "events calendar", "andy bechtolsheim ken duda",
+        "support engineering finance", "forrester wave",
+        "data center network solutions", "walsh universi",
+        "fixed mobile telecoms", "french it",
+    ):
+        assert junk not in customers
+        assert not any(junk in key for key in customers)
+    assert customer_url_is_chrome(support)
+    assert customer_url_is_chrome(company)
+    assert not customer_url_is_chrome(case_pdf)
+    assert customer_excerpt_is_sec_paraphrase(
+        "Named in Arista's 2014 S-1/10-K: Barclays, Citigroup")
     assert {"336413", "488190"} <= {n.code for n in dossier.kept_out_naics}
