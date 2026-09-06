@@ -181,6 +181,14 @@ def run_step1(
 
     name = submission.client_name
     form_website = str(submission.website) if submission.website else None
+    # Name-only CLI must not silently take the offline abstain path because
+    # callers forgot to inject engines (Arista press NO-GO, 2026-09-06).
+    if do_web and research_engine is None:
+        from agents.decisions.engine import research_engine as make_research_engine
+        research_engine = make_research_engine()
+    if engine is None:
+        from agents.decisions.engine import DecisionEngine
+        engine = DecisionEngine()
     identity_engine = research_engine if do_web else None
     identity = resolve_identity(
         name, website=form_website, engine=identity_engine)
