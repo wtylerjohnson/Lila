@@ -425,10 +425,10 @@ def _should_mint_assess_child(
             return False
         if subject.recommendation == LiveRecommendation.NO_BID:
             return False
-        if (subject.recommendation == LiveRecommendation.NONE
-                and subject.classification != LiveClassification.UNSCREENED):
-            return False
-        return True
+        return not (
+            subject.recommendation == LiveRecommendation.NONE
+            and subject.classification != LiveClassification.UNSCREENED
+        )
     if kind == AssessmentSubjectKind.DEVELOPING_THESIS:
         return subject.status not in (
             IntelligenceStatus.RETIRED, IntelligenceStatus.INVALIDATED)

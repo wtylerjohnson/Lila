@@ -56,6 +56,8 @@ from agents.leadgen.from_assess import (
     ROUTE_HOLD,
     coerce_assess_run,
     coerce_target_actions,
+)
+from agents.leadgen.from_assess import (
     main as mapper_main,
 )
 
@@ -124,30 +126,6 @@ def _live_research(*, record_id="L-res", notice_id="N-res"):
         classification=LiveClassification.MARKET_RESEARCH,
         authoritative_evidence=[_evidence(eid="E-res", notice_id=notice_id)],
         recommendation=LiveRecommendation.MONITOR, verified_at=NOW,
-    )
-
-
-def _thesis(*, thesis_id="H1", evidence=None, status=IntelligenceStatus.PROPOSED):
-    return OpportunityThesis(
-        thesis_id=thesis_id, title="Forecasted refresh",
-        predicted_event="Agency may compete a refresh",
-        agency="DHS", lifecycle_stage=LifecycleStage.FUNDED_INTENT,
-        projected_window=ProjectedWindow(label="FY27", end=date(2027, 9, 30)),
-        evidence=evidence or [_evidence(
-            eid="E-forecast", notice_id="forecast",
-            kind=EvidenceKind.AGENCY_FORECAST, tier=EvidenceTier.PROGRAM,
-            primary=True, supports=[EvidenceUse.TIMING],
-            url="https://www.dhs.gov/forecast",
-            excerpt="DHS lists a network visibility refresh in FY27.",
-        )],
-        inference_chain="Forecast names the capability.",
-        falsifier="The forecast line is withdrawn.",
-        watch_trigger="A market-research notice posts.",
-        monitoring_cadence="monthly",
-        evidence_strength=(
-            EvidenceStrength.MODERATE if evidence is None
-            else EvidenceStrength.EARLY),
-        status=status,
     )
 
 
@@ -293,6 +271,9 @@ def test_missing_route_or_clock_holds_with_promotion_condition():
     run = _run(live=[_live_research()])
     actions = _t1_target_actions(notice_id="N-res", record_id="L-res")
     actions["rows"][0]["route_role"] = "unknown_route"
+    actions["rows"][0]["why_now"] = (
+        "No dated clock rides the cited record; timing is unestablished.")
+    actions["rows"][0].pop("period_end", None)
     batch = draft_lead_rows(run, actions)
     assert batch.leads
     row = batch.leads[0]
