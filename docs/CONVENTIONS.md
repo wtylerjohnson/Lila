@@ -21,8 +21,11 @@ Reality in the code wins. When you extend a pattern, extend it here too.
 - `data/review/` · human-gate artifacts: `<slug>.review.json` (strategy
   approval), `<slug>.qualify.json`, `<slug>.horizon.json`,
   `<slug>.live_requirements.json` (exact SAM requirement + attachment
-  decisions), `<slug>.assess_approval.json` (activates Produce), and
-  `<slug>.flag_decisions.json` (flag adjudication).
+  decisions), `<slug>.assess_approval.json` (activates Produce),
+  `<slug>.flag_decisions.json` (flag adjudication), and Step 1 mastery
+  sidecars `<slug>.dossier.json`, `<slug>.intake_yield.json`,
+  `<slug>.intake_adversarial.json`, `<slug>.intake_readiness.json`,
+  `<slug>.intake_retrieval.json`.
 - `data/state/` · runtime: `job_logs/<job>.log` (disk-backed; server
   restarts cannot kill jobs), UI prefs, and agency-report composition cache
   `agency_report_content/<slug>.agency_<a>.content.json`. The cache stores a
@@ -133,6 +136,28 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   surfaces a code as a "Needs your judgment" candidate; a rule NEVER adds a
   code. NAICS remains a coarse boundary filter; the workshop copy and inspector
   never imply NAICS establishes capability fit.
+
+## Step 1 company mastery (2026-09-06)
+
+- Name-only entry is first-class: `run_intake.py --client "Name"` and
+  `POST /api/intake` / `POST /api/run {step: intake}` with only
+  `client_name`. The intake form is optional enrichment.
+- Identity is resolved **before** deep scrape or structured web probes
+  (`agents/intake/identity.py`). A website-guess below
+  `IDENTITY_BIND_MIN_CONFIDENCE` (0.72) is not scraped. Two official-domain
+  candidates abstain with one question rather than contaminating the dossier.
+- Sidecars beside the review packet (additive, legacy packets unchanged):
+  `<slug>.dossier.json`, `.intake_yield.json`, `.intake_adversarial.json`,
+  `.intake_readiness.json`, `.intake_retrieval.json`.
+- Yield at intake wraps `tools.query_terms.term_yield`. An empty or
+  unreadable notice store is named empty; it is never a list of false zeros.
+- The review gate mechanism (`request_approval`, `decide`, `approve.py`,
+  `load_approved`) is preserved. Auto-passthrough is explicit and default ON
+  via `LILA_ENABLE_INTAKE_AUTO_APPROVE` / `is_enabled("intake-auto-approve")`.
+  It only calls `decide()`. It does not invent `scope.preset` and does not
+  launch searches. `--no-auto-approve` or the env set to off restores the click.
+- Adapters (`agents/intake/adapters.py`) copy evidenced dossier fields onto
+  `IntakeStrategy` and a hybrid.frame_lanes-shaped retrieval sidecar.
 
 ## Pipeline shape
 

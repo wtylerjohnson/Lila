@@ -1,89 +1,118 @@
-# Step 1 — Intake → Profile → Approve → Search
+# Step 1 — Name-only company mastery → Review → (optional auto-approve)
 
-The front of the system: capture the client, understand them, get **your** sign-off on
-the strategy and keywords, then launch the three searches.
+LILA Step 1 starts from a **company name only**. The intake form is optional
+enrichment. Before any opportunity identification or lead generation, LILA
+resolves the correct company, ingests the official site plus structured web
+research, writes an evidence-backed dossier, screens vocabulary against the
+notice store, and runs an adversarial challenge. Downstream search still
+requires an approved packet **and** an operator-owned engagement scope.
 
 ```
-(1a) intake form ─┐
-(1b) site scrape ─┴─▶ Claude profiling ─▶ keywords + pursuit strategy + 3 search specs
-                                              │
-                                  ⛔ REVIEW GATE — you approve (alerted)
-                                              │ approved
-                              ┌───────────────┼───────────────┐
-                              ▼               ▼               ▼
-                          SAM.gov        USAspending     general web
-                                                         (Claude web_search)
+company name (+ optional form fields)
+        │
+        ▼
+ identity resolution (bind official domain, or abstain / ask one question)
+        │ bound
+        ▼
+ identity-bound website ingest (scrape + capability_ingest)
+ + structured web probes (offerings, federal footprint, channels, rivals, boundaries)
+        │
+        ▼
+ dossier (claims with states) + retrieval units + yield sidecar
+        │
+        ▼
+ intake adversarial (fail-closed; incomplete review is not a pass)
+        │
+        ▼
+ review packet + E1-E8 readiness receipts
+        │
+        ▼
+ decide()  ·  default: auto-passthrough (LILA_ENABLE_INTAKE_AUTO_APPROVE=on)
+             restore the human click with =off or --no-auto-approve
+        │
+        ⛔ load_approved() still required before run_searches.py
+        ⛔ scope.preset stays empty until the operator sets it
+        ⛔ no outreach is sent
 ```
 
-## 1a. Intake form
-
-[`intake/form.html`](../intake/form.html) — a self-contained form the client fills out
-(services, differentiators, past performance, certifications, known NAICS, target
-agencies). "Download submission JSON" produces an `IntakeSubmission`
-([schema](../agents/schemas.py)). Host it anywhere or send the file; no backend needed.
-
-## 1b. Website / public-data scrape
-
-[`tools/scrape/site.py`](../tools/scrape/site.py) — `scrape_site(url)` does a bounded,
-same-domain crawl (homepage + about/services/capabilities/past-performance pages),
-strips scripts to visible text, and returns a `ScrapeBundle` with every source URL for
-traceability. Stdlib parsing, no new deps. **Verified live** against a real site.
-
-## Profiling (Claude)
-
-[`agents/decisions/intake.py`](../agents/decisions/intake.py) — Claude reads the form +
-scrape and returns a structured [`IntakeStrategy`](../agents/decisions/schemas.py):
-pursuit strategy, **categorized keywords**, inferred NAICS, target agencies, set-aside
-angles, and **at minimum one `SearchSpec` each for sam.gov / usaspending.gov / web**.
-Grounded in the inputs; `sources_reviewed` records what it used.
-
-## Review Gate (you approve) — enforced in code
-
-[`agents/review.py`](../agents/review.py) persists the strategy as **PENDING**, raises an
-alert, and `load_approved()` **raises `PermissionError` until you approve** — so
-`run_searches.py` literally cannot launch searches first.
+## Name-only entry
 
 ```bash
-python3 run_intake.py --submission acme_submission.json    # scrape + profile + ALERT
-#   ... review data/review/<client>.review.md ...
-python3 approve.py "Acme Federal Solutions LLC" --approve   # or --reject --note "..."
-python3 run_searches.py --client "Acme Federal Solutions LLC" \
-    --posted-from 09/01/2024 --posted-to 09/30/2024
+python3 run_intake.py --client "Acme Federal Solutions LLC"
+python3 run_intake.py --client "Acme Federal Solutions LLC" --website https://acmefederal.com
+python3 run_intake.py --submission acme_submission.json   # optional enrichment
 ```
 
-The alert is **pluggable** (`request_approval(strategy, alert_fn=...)`). `run_intake.py`
-uses `agents/alerts.py:desktop_alert` — a **macOS desktop/push notification** (with a
-banner fallback) plus the markdown review packet. Swap in email/Slack later without
-touching the gate.
+Command Center:
 
-## The cataloged source sweep (post-approval)
+- `POST /api/intake` with `{ "client_name": "..." }` (form fields optional)
+- `POST /api/run` with `{ "client_name": "...", "step": "intake" }` when no
+  review packet exists yet (name-only bootstrap)
 
-[`run_searches.py`](../run_searches.py), driven by the approved strategy/keywords:
+`--client` and `--submission` are mutually exclusive. The job command uses
+`--client` when no submission path is supplied.
 
-1. **Procurement and awards** — SAM.gov opportunity census, USAspending market,
-   award, subaward, incumbent, and period-end evidence.
-2. **Official forecasts** — the default contract covers GSA Acquisition
-   Gateway, Army, NASA, and HHS; each child emits its own retrieval receipt.
-3. **Program and budget signals** — official rulemaking, legislation, SBIR,
-   DSIP, budget, oversight, cybersecurity, and agency-specific sources.
-4. **Bounded public-web context** — [`tools/api/web_search.py`](../tools/api/web_search.py)
-   surfaces forecast, RFI, recompete, event, and trade-press context. It is
-   explicitly bounded corroboration, not represented as a census.
+## Identity gate
 
-The authoritative list, boundaries, and required/advisory classifications live
-in [`tools/api/source_catalog.py`](../tools/api/source_catalog.py). Every sweep
-stores `source_coverage_verdict` and `decision_coverage_verdict`. Required lanes
-that are partial, stale, failed, or not run remain usable evidence, but prevent
-the artifact from claiming comprehensive coverage.
+`agents/intake/identity.py` runs **before** deep parallel research.
+
+- Candidates from the form website (if any) and from web search
+- Bind only when one official domain clears the confidence floor (0.72)
+- Two high-confidence domains → **abstain** with one question
+- A low-confidence website guess is **not scraped** (wrong-company guard)
+- Abstain/block does **not** auto-approve, even when the passthrough toggle is on
+
+## Dossier, yield, adversarial, readiness
+
+Sidecars next to `data/review/<slug>.review.json`:
+
+| Sidecar | Contents |
+|---------|----------|
+| `.dossier.json` | Identity, evidence ledger, offerings/boundaries/channels, keywords, NAICS with rationales, capability statements, unknowns. Claim states: `company_asserted`, `corroborated`, `inferred`, `disputed`, `unknown`. |
+| `.intake_yield.json` | `term_yield` against the notice store, plus a store census. Empty/unreadable store is named as such; it is not a list of zero counts. No health verdict. |
+| `.intake_adversarial.json` | Challenges against citations and yield titles, not dossier prose. Incomplete review ≠ pass. One bounded repair may drop unsupported claims. |
+| `.intake_readiness.json` | E1-E8 receipts (identity, ingest, probes, company model, retrieval units, yield, adversarial complete, adversarial not fail-closed). |
+| `.intake_retrieval.json` | Capability statements plus `hybrid.frame_lanes` query sets for later opp retrieval. No retrieve is run at intake. |
+
+The review markdown appendix prints identity, E1-E8, yield titles, and
+adversarial findings.
+
+## Approval passthrough
+
+The gate **mechanism** is unchanged: `request_approval` writes PENDING,
+`approve.py` / `decide()` / `load_approved()` still exist.
+
+Default behavior is an **explicit** auto-passthrough:
+
+```
+LILA_ENABLE_INTAKE_AUTO_APPROVE=on    # default when unset
+LILA_ENABLE_INTAKE_AUTO_APPROVE=off   # restore the human click
+python3 run_intake.py --client "Name" --no-auto-approve
+```
+
+Passthrough only calls `decide()`. It still generates client files on
+approval, still leaves `scope.preset` empty, and still does **not** launch
+`run_searches.py`. Identity abstain/block never auto-approves.
+
+## After approval
+
+```bash
+# only after load_approved() succeeds, and only after the operator sets scope
+python3 run_searches.py --client "Acme Federal Solutions LLC"
+```
+
+The cataloged source sweep, review workshops, and release gates are unchanged.
+See [CONVENTIONS.md](CONVENTIONS.md) for the storage map and gate doctrine.
 
 ## Keys / what runs where
 
 | Piece | Runs now | Needs |
 |-------|----------|-------|
-| Intake form | ✅ static file | — |
-| Site scrape | ✅ live | — |
-| Claude profiling | tested offline (fake client) | `ANTHROPIC_API_KEY` |
-| Review gate | ✅ live | — |
-| SAM.gov search | parser tested vs real-shape fixture | `SAM_GOV_API_KEY` |
-| USAspending search | ✅ live | — |
-| Web search | tested offline (fake client) | `ANTHROPIC_API_KEY` |
+| Name-only CLI / API | yes | company name |
+| Identity bind | yes (offline form URL; live uses web search) | optional engine |
+| Site scrape + capability ingest | yes, after bind | network |
+| Structured probes | yes, after bind | engine / Max plan |
+| Dossier / yield / adversarial / E1-E8 | yes, offline-capable | notice store optional |
+| Review packet | yes | — |
+| Auto-passthrough | default on | `decide()` |
+| SAM / USAspending / web sweep | after approval + operator scope | keys / quota |

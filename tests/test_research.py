@@ -82,3 +82,29 @@ def test_worker_exception_is_soft(monkeypatch):
 def test_flags_can_disable_workers():
     r = research_company("Acme", website="https://acme.com", do_scrape=False, do_web=False)
     assert r.scrape is None and r.web_findings == ""
+
+
+def test_low_confidence_website_guess_is_not_scraped(monkeypatch):
+    """Website guess confidence is a hard gate, not a hint (Step 1)."""
+    scraped = []
+
+    def track(url, max_pages=5):
+        scraped.append(url)
+        return _fake_scrape(url, max_pages=max_pages)
+
+    monkeypatch.setattr(cr, "scrape_site", track)
+
+    class WeakEngine(FakeEngine):
+        def structure(self, *, instructions, findings, schema):
+            return WebsiteGuess(
+                url="https://wrong-company.directory",
+                confidence=0.2,
+                rationale="directory hit",
+            )
+
+    r = research_company("Ghost LLC", website=None, engine=WeakEngine())
+    assert r.website is None
+    assert r.website_source == "not_found"
+    assert scraped == []
+    assert any("bind floor" in e for e in r.errors)
+    assert r.web_findings  # web worker still runs on the legacy helper
