@@ -212,7 +212,13 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   Wi-Fi), or social widgets (Meta, Facebook, Yahoo). Customer
   extract is windowed around proof language and capped
   (`MAX_CUSTOMERS` 24): fewer correct orgs beat hundreds of
-  chrome tokens. Nav/people/page titles (Management Team, Senior
+  chrome tokens. Section labels, truncated names, geography-only
+  tokens, and all-caps role phrases (Named Customers, Revenue
+  Share, MARKET DATA FEED PROVIDER, Costa Rica, Cloud Titans,
+  Hardis Grou) are not customers. Allowlisted banks (Barclays,
+  Citigroup, Morgan Stanley) and Activ Financial / Hardis Group /
+  Microsoft promote from official evidence even without a
+  customer-hub URL. Nav/people/page titles (Management Team, Senior
   Management, Platforms page, Detection and Response Overview)
   and case-study customer codes (JCT600, RACSA, Intuit) are not
   offerings. Slogan / datasheet / antithesis / numbered-header
@@ -222,10 +228,12 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   offerings. Competitor names are rival companies (Cisco,
   Juniper, Aruba, Darktrace), not page titles (Darktrace
   Comparison) and not English openers (Here, This, What). Rival
-  evidence must be a compare / vs / alternative claim whose URL
-  matches that rival (Cisco on /compare, not a Darktrace
-  comparison path; a darktrace host plus 10-K / HPE body is
-  still dropped). When official customer-hub or compare evidence
+  evidence must be a compare / vs / alternative claim. A
+  darktrace host plus 10-K / HPE body is still dropped. An
+  official Darktrace comparison page may evidence Cisco when the
+  excerpt is an Unlike/versus Cisco claim; a /news Broadcom
+  VMware blurb is not a VMware-rival claim. When official
+  customer-hub or compare evidence
   already names an org or rival, promote that name with the
   matching eid. Do not empty those lists to avoid a title bug.
   Product evidence prefers official-site URLs over third-party

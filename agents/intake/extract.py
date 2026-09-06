@@ -145,7 +145,27 @@ _SOCIAL_WIDGETS = frozenset({
 _KNOWN_CUSTOMERS = frozenset({
     "barclays", "citigroup", "citi", "morgan stanley", "hardis",
     "hardis group", "microsoft", "netflix", "us army", "u.s. army",
+    "activ financial",
 })
+_SECTION_LABELS = frozenset({
+    "named customers", "revenue share", "market data",
+    "market data feed provider", "cloud titans",
+})
+_HEADER_VOCAB = frozenset({
+    "named", "customers", "revenue", "share", "market", "data",
+    "feed", "provider", "titans", "overview", "section", "label",
+})
+_GEO_ONLY = frozenset({
+    "costa rica", "united states", "new york", "london", "singapore",
+    "hong kong", "tokyo", "california", "texas", "ireland",
+})
+_STRONG_COMPARE = re.compile(
+    r"\b(unlike|versus|\bvs\.?\b|compared to|compared with|"
+    r"competitors?(?: include| are|:)|rivals?(?: include| are|:)|"
+    r"(?<!\bno\s)head-to-head|alternative(?:s)? to)\b",
+    re.I,
+)
+_NEWS_PATH = re.compile(r"/news|/press|/blog|/media", re.I)
 _RIVAL_TITLE_TAIL = re.compile(
     r"\s+(comparisons?|overview|alternatives?|versus|\bvs\.?)$",
     re.I,
@@ -957,7 +977,55 @@ def is_customer_name(text: str, *, client_name: str = "") -> bool:
             "hedge", "financial", "cloud", "service", "public"}
            for w in words):
         return False
+    if low in _SECTION_LABELS or low in _GEO_ONLY:
+        return False
+    if name.isupper() and len(words) >= 2:
+        return False
+    if name.endswith("…") or name.endswith("..."):
+        return False
+    if words and all(
+            w.casefold() in _HEADER_VOCAB or w.casefold() in _GENERIC
+            for w in words):
+        return False
+    if low not in _KNOWN_CUSTOMERS and any(
+            known.startswith(low) and known != low and len(low) >= 6
+            for known in _KNOWN_CUSTOMERS):
+        return False
+    if any(w.casefold() in {"named", "share", "titans", "provider"}
+           for w in words):
+        return False
     return True
+
+
+def is_known_customer(text: str, *, client_name: str = "") -> bool:
+    name = (_party_name(text, client_name=client_name) or _clean(text)).casefold()
+    return bool(name) and name in _KNOWN_CUSTOMERS
+
+
+def known_customers_in_text(text: str, client_name: str = "") -> list[str]:
+    """Allowlisted orgs named in evidence, even without a customer-hub URL."""
+    raw = _protect_abbrevs(text or "")
+    found: list[str] = []
+    seen: set[str] = set()
+    pretty = {
+        "us army": "US Army",
+        "u.s. army": "US Army",
+        "morgan stanley": "Morgan Stanley",
+        "hardis group": "Hardis Group",
+        "activ financial": "Activ Financial",
+    }
+    for known in sorted(_KNOWN_CUSTOMERS, key=len, reverse=True):
+        if not re.search(rf"\b{re.escape(known)}\b", raw, re.I):
+            continue
+        if any(known == s or known.startswith(s + " ") or s.startswith(known + " ")
+               for s in seen):
+            continue
+        display = pretty.get(known, known.title())
+        if not is_customer_name(display, client_name=client_name):
+            continue
+        seen.add(known)
+        found.append(display)
+    return found
 
 
 def normalize_rival_name(raw: str, *, client_name: str = "") -> str:
@@ -997,8 +1065,9 @@ def excerpt_supports_rival(name: str, snippet: str) -> bool:
 
 def citation_mismatches_rival(
     url: str, name: str, official_domain: Optional[str] = None,
+    excerpt: str = "",
 ) -> bool:
-    """True when the URL is another vendor's site or another rival's page."""
+    """True when the URL is another vendor's site or a non-compare news hit."""
     if not url or not name:
         return False
     host = url.casefold()
@@ -1017,13 +1086,23 @@ def citation_mismatches_rival(
                 continue
             if token in first:
                 return True
+    strong = bool(
+        excerpt
+        and excerpt_supports_name(name, excerpt)
+        and _STRONG_COMPARE.search(excerpt)
+    )
+    if official and _NEWS_PATH.search(host) and not strong:
+        return True
     path = re.sub(r"^https?://[^/]+", "", host)
     for vendor in _RIVAL_VENDORS:
         token = vendor.split()[0]
         if token == rival:
             continue
-        if re.search(rf"[/\-_]{re.escape(token)}([/\-_.]|$|compar)", path):
-            return True
+        if not re.search(rf"[/\-_]{re.escape(token)}([/\-_.]|$|compar)", path):
+            continue
+        if official and strong:
+            return False
+        return True
     return False
 
 
@@ -1187,6 +1266,8 @@ def recall_customers(text: str, client_name: str = "") -> list[str]:
         for part in re.split(r",|;|\band\b", match.group(1)):
             _add(part)
     for name in names_from_customer_context(raw, client_name=client_name):
+        _add(name)
+    for name in known_customers_in_text(raw, client_name=client_name):
         _add(name)
     return found
 

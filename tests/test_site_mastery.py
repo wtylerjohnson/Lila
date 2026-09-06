@@ -457,6 +457,14 @@ def test_junk_titles_are_not_offerings_or_customers():
     assert is_customer_name("Barclays") is True
     assert is_customer_name("Citigroup") is True
     assert is_customer_name("Morgan Stanley") is True
+    assert is_customer_name("Activ Financial") is True
+    assert is_customer_name("Hardis Group") is True
+    assert is_customer_name("Named Customers") is False
+    assert is_customer_name("Revenue Share") is False
+    assert is_customer_name("MARKET DATA FEED PROVIDER") is False
+    assert is_customer_name("Costa Rica") is False
+    assert is_customer_name("Cloud Titans") is False
+    assert is_customer_name("Hardis Grou") is False
     assert is_customer_name("Yahoo!") is False
     assert is_customer_name("Hardis") is True
     assert is_customer_name("Login Wi-Fi Cloud") is False
@@ -472,8 +480,21 @@ def test_junk_titles_are_not_offerings_or_customers():
         "https://www.arista.com/en/company/darktrace-comparison", "Cisco",
         official_domain="arista.com") is True
     assert citation_mismatches_rival(
+        "https://www.arista.com/en/company/darktrace-comparison", "Cisco",
+        official_domain="arista.com",
+        excerpt="Unlike Cisco, Arista ships EOS on this compare writeup.",
+    ) is False
+    assert citation_mismatches_rival(
         "https://www.arista.com/en/company/darktrace-comparison", "Darktrace",
         official_domain="arista.com") is False
+    assert citation_mismatches_rival(
+        "https://www.arista.com/en/company/news", "VMware",
+        official_domain="arista.com") is True
+    assert citation_mismatches_rival(
+        "https://www.arista.com/en/company/news", "VMware",
+        official_domain="arista.com",
+        excerpt="Broadcom closed the VMware acquisition last quarter.",
+    ) is True
     assert aviation_codes_to_park("Arista Aviation") == ["336413", "488190"]
     assert is_product_name("CloudVision Data Sheet") is False
     assert is_product_name("SolutionBrief") is False
@@ -1004,3 +1025,95 @@ def test_aviation_kept_out_parks_canonical_codes_without_digits_on_the_site():
     assert {"336413", "488190"} <= parked
     strategy = strategy_from_dossier(dossier)
     assert {"336413", "488190"} <= {e.code for e in strategy.kept_out_naics}
+
+
+def test_press14_compare_rivals_and_banks_not_fragments():
+    """Fail empty rivals, VMware-from-news-only, and banks omitted for labels."""
+    ident = _identity()
+    news = ROOT + "/en/company/news"
+    darktrace = ROOT + "/en/company/darktrace-comparison"
+    customers_url = ROOT + "/en/company/customers"
+    scrape = ScrapeBundle(
+        root_url=ROOT,
+        pages=[
+            ScrapedPage(
+                url=news,
+                text=(
+                    "Broadcom closed the VMware acquisition. The press note "
+                    "mentions VMware products in the same sentence as Acme "
+                    "campus switching, with no head-to-head compare claim."
+                ),
+            ),
+            ScrapedPage(
+                url=darktrace,
+                text=(
+                    "Darktrace Comparison. Unlike Cisco and Juniper, Acme "
+                    "ships EOS. Unlike Darktrace, Acme positions AGNI as "
+                    "the identity control point on this official writeup."
+                ),
+            ),
+            ScrapedPage(
+                url=customers_url,
+                text=(
+                    "Named Customers. Revenue Share. MARKET DATA FEED "
+                    "PROVIDER. Costa Rica. Cloud Titans. Hardis Grou… "
+                    "Customers include Barclays, Citigroup, Morgan Stanley, "
+                    "Activ Financial, Hardis Group, and Microsoft."
+                ),
+            ),
+            ScrapedPage(
+                url=ROOT + "/products",
+                text=(
+                    "Acme Net sells EOS, CloudVision, AGNI, DANZ Monitoring "
+                    "Fabric, and the 7050X switch family."
+                ),
+            ),
+        ],
+        sources=[news, darktrace, customers_url],
+    )
+    probes = [
+        ResearchProbe(
+            name="boundaries",
+            query="exclusions",
+            findings=(
+                "Do not confuse Acme Net with Acme Aviation. Aviation "
+                "stays out of the search lane."
+            ),
+            citations=["https://en.wikipedia.org/wiki/Acme_Aviation"],
+        ),
+    ]
+    dossier = build_dossier(
+        client_name="Acme Net",
+        identity=ident,
+        research=CompanyResearch(
+            company_name="Acme Net", website=ROOT, scrape=scrape),
+        probes=probes,
+    )
+    rivals = {c.text: c for c in dossier.competitors}
+    assert rivals, "compare pages must not leave competitors empty"
+    assert {"Cisco", "Juniper", "Darktrace"} <= set(rivals)
+    ev = {e.evidence_id: e for e in dossier.evidence}
+    for name in ("Cisco", "Juniper", "Darktrace"):
+        excerpt = ev[rivals[name].evidence_ids[0]].excerpt or ""
+        url = (ev[rivals[name].evidence_ids[0]].url or "").casefold()
+        assert excerpt_supports_rival(name, excerpt)
+        assert "/news" not in url
+        assert "darktrace.com" not in url
+    if "VMware" in rivals or "Vmware" in rivals:
+        vm = rivals.get("VMware") or rivals["Vmware"]
+        assert "/news" not in (ev[vm.evidence_ids[0]].url or "").casefold()
+    customers = {c.text.casefold() for c in dossier.customers}
+    assert 1 <= len(customers) <= MAX_CUSTOMERS
+    assert {
+        "barclays", "citigroup", "morgan stanley",
+        "activ financial", "hardis group", "microsoft",
+    } <= customers
+    for junk in (
+        "named customers", "revenue share", "market data feed provider",
+        "costa rica", "cloud titans", "hardis grou",
+    ):
+        assert junk not in customers
+    texts = {o.text for o in dossier.offerings}
+    assert {"EOS", "CloudVision", "AGNI", "7050X"} <= texts
+    assert any("aviation" in k.term.casefold() for k in dossier.kept_out)
+    assert "336413" in {n.code for n in dossier.kept_out_naics}

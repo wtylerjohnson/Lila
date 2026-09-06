@@ -23,6 +23,8 @@ from agents.intake.extract import (
     citation_mismatches_rival,
     customer_excerpt_ok,
     cap_customers,
+    is_known_customer,
+    known_customers_in_text,
     excerpt_from,
     excerpt_supports_name,
     excerpt_supports_rival,
@@ -205,6 +207,9 @@ def _evidence_for_name(
             if url and require_compare and re.search(
                     r"compare|alternativ|versus|/vs", url, re.I):
                 score += 3
+            if url and require_compare and re.search(
+                    r"/news|/press|/blog|/media", url, re.I):
+                score -= 2
             ranked.append((score, page, text, url))
         ranked.sort(key=lambda row: row[0], reverse=True)
         for needle in needles:
@@ -215,7 +220,8 @@ def _evidence_for_name(
                 if require_compare:
                     if not snippet or not excerpt_supports_rival(name, snippet):
                         continue
-                    if citation_mismatches_rival(url or "", name, official_domain):
+                    if citation_mismatches_rival(
+                            url or "", name, official_domain, excerpt=snippet):
                         continue
                 elif snippet and excerpt_supports_name(name, snippet):
                     return snippet, url or fallback_url
@@ -231,7 +237,8 @@ def _evidence_for_name(
                 if require_compare:
                     if snippet and excerpt_supports_rival(name, snippet):
                         if not citation_mismatches_rival(
-                                fallback_url or "", name, official_domain):
+                                fallback_url or "", name, official_domain,
+                                excerpt=snippet):
                             return snippet, fallback_url
                     continue
                 if snippet and excerpt_supports_name(name, snippet):
@@ -249,7 +256,7 @@ def _evidence_for_name(
                     if not snippet or not excerpt_supports_rival(name, snippet):
                         continue
                     if citation_mismatches_rival(
-                            cite or "", name, official_domain):
+                            cite or "", name, official_domain, excerpt=snippet):
                         continue
                     return snippet, cite or fallback_url
                 if snippet and excerpt_supports_name(name, snippet):
@@ -466,7 +473,8 @@ def build_dossier(
             require_compare=True)
         if not snippet or not excerpt_supports_rival(name, snippet):
             continue
-        if citation_mismatches_rival(url or "", name, identity.official_domain):
+        if citation_mismatches_rival(
+                url or "", name, identity.official_domain, excerpt=snippet):
             continue
         eid = add_ev("website", snippet, url or identity.website)
         if not eid:
@@ -483,7 +491,8 @@ def build_dossier(
             official_domain=identity.official_domain, prefer_site=True)
         if not snippet or not excerpt_supports_name(name, snippet):
             continue
-        if not customer_excerpt_ok(snippet, url or ""):
+        if not customer_excerpt_ok(snippet, url or "") and not is_known_customer(
+                name, client_name=client_name):
             continue
         eid = add_ev("website", snippet, url or identity.website)
         if not eid:
@@ -613,6 +622,17 @@ def build_dossier(
                     "named customer promoted from evidenced site text",
                 ))
                 seen_cust.add(key)
+        for name in known_customers_in_text(excerpt, client_name):
+            key = name.casefold()
+            if key in seen_cust:
+                continue
+            if not excerpt_supports_name(name, excerpt):
+                continue
+            customers.append(_claim(
+                name, ClaimState.COMPANY_ASSERTED, [ev.evidence_id],
+                "allowlisted customer promoted from official evidence",
+            ))
+            seen_cust.add(key)
         for name in recall_competitors(excerpt, client_name):
             key = name.casefold()
             if key in seen_comp:
@@ -620,7 +640,8 @@ def build_dossier(
             if not excerpt_supports_rival(name, excerpt):
                 continue
             if citation_mismatches_rival(
-                    ev.url or "", name, identity.official_domain):
+                    ev.url or "", name, identity.official_domain,
+                    excerpt=excerpt):
                 continue
             competitors.append(_claim(
                 name, ClaimState.COMPANY_ASSERTED, [ev.evidence_id],
