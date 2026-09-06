@@ -16,9 +16,12 @@ from agents.company_research import CompanyResearch
 from agents.intake.adapters import retrieval_frame, strategy_from_dossier
 from agents.intake.dossier import build_dossier
 from agents.intake.extract import (
+    citation_mismatches_rival,
     extract_surface,
+    is_competitor_name,
     is_customer_name,
     is_product_name,
+    normalize_rival_name,
     recall_competitors,
     recall_customers,
     recall_products,
@@ -429,6 +432,22 @@ def test_junk_titles_are_not_offerings_or_customers():
     assert is_customer_name("Cognitive Campus") is False
     assert is_customer_name("Microsoft") is True
     assert is_customer_name("US Army") is True
+    assert is_product_name("Management Team") is False
+    assert is_product_name("Senior Management") is False
+    assert is_product_name("Platforms page") is False
+    assert is_product_name("Detection and Response Overview") is False
+    assert is_product_name("JCT600") is False
+    assert is_product_name("Intuit") is False
+    assert is_customer_name("hedge funds") is False
+    assert is_customer_name("financial services") is False
+    assert is_competitor_name("Darktrace Comparison") is True
+    assert normalize_rival_name("Darktrace Comparison") == "Darktrace"
+    assert citation_mismatches_rival(
+        "https://www.darktrace.com/compare.pdf", "HPE",
+        official_domain="arista.com") is True
+    assert citation_mismatches_rival(
+        "https://www.arista.com/en/products/eos", "Cisco",
+        official_domain="arista.com") is False
 
     ident = _identity()
     scrape = ScrapeBundle(
@@ -468,6 +487,109 @@ def test_junk_titles_are_not_offerings_or_customers():
     assert "Group VP" not in customers
     assert "Cognitive Campus" not in customers
     assert "Microsoft" in customers
+
+
+def test_press11_nav_verticals_and_mismatched_rivals_are_rejected():
+    ident = _identity()
+    eos = ROOT + "/en/products/eos"
+    compare = ROOT + "/en/company/darktrace-comparison"
+    scrape = ScrapeBundle(
+        root_url=ROOT,
+        pages=[
+            ScrapedPage(
+                url=ROOT + "/company/management",
+                text=(
+                    "Management Team. Senior Management. Platforms page. "
+                    "Detection and Response Overview. Case study JCT600 "
+                    "and RACSA. Intuit is a logo wall entry."
+                ),
+            ),
+            ScrapedPage(
+                url=ROOT + "/products",
+                text=(
+                    "Acme Net sells EOS, CloudVision, AGNI, DANZ Monitoring "
+                    "Fabric, and the 7050X switch family on product pages."
+                ),
+            ),
+            ScrapedPage(
+                url=ROOT + "/customers",
+                text=(
+                    "Customers include hedge funds, financial services, "
+                    "and Microsoft. Trusted by US Army for campus switching."
+                ),
+            ),
+            ScrapedPage(
+                url=eos,
+                text=(
+                    "EOS is the Extensible Operating System. Some operators "
+                    "also run Cisco gear in the same closet. No head-to-head."
+                ),
+            ),
+            ScrapedPage(
+                url=compare,
+                text=(
+                    "Darktrace Comparison. Unlike Cisco and Juniper, Acme "
+                    "ships EOS on every official compare page. This is a "
+                    "head-to-head alternatives writeup, not a product SKU."
+                ),
+            ),
+        ],
+        sources=[eos, compare],
+    )
+    probes = [
+        ResearchProbe(
+            name="competitors",
+            query="rivals",
+            findings=(
+                "The 10-K names Extreme and HPE among switching vendors. "
+                "Unlike Cisco, Acme Net ships EOS."
+            ),
+            citations=["https://www.darktrace.com/resources/compare.pdf"],
+        ),
+    ]
+    ingest = {
+        "capabilities": [
+            {"name": "Management Team", "found_on": ROOT + "/company"},
+            {"name": "Intuit", "found_on": ROOT + "/customers"},
+            {"name": "JCT600", "found_on": ROOT + "/customers"},
+        ],
+    }
+    dossier = build_dossier(
+        client_name="Acme Net",
+        identity=ident,
+        research=CompanyResearch(
+            company_name="Acme Net", website=ROOT, scrape=scrape),
+        probes=probes,
+        product_ingest=ingest,
+    )
+    texts = {o.text for o in dossier.offerings}
+    assert "Management Team" not in texts
+    assert "Senior Management" not in texts
+    assert "Platforms page" not in texts
+    assert "Detection and Response Overview" not in texts
+    assert "JCT600" not in texts
+    assert "RACSA" not in texts
+    assert "Intuit" not in texts
+    assert {"EOS", "CloudVision", "AGNI", "7050X"} <= texts
+    assert any("danz" in t.casefold() for t in texts)
+    customers = {c.text.casefold() for c in dossier.customers}
+    assert "hedge funds" not in customers
+    assert "financial services" not in customers
+    assert "microsoft" in customers
+    rivals = {c.text: c for c in dossier.competitors}
+    assert "Darktrace Comparison" not in rivals
+    assert "Cisco" in rivals or "Juniper" in rivals
+    ev = {e.evidence_id: e for e in dossier.evidence}
+    for name in ("Cisco", "Juniper"):
+        if name not in rivals:
+            continue
+        url = (ev[rivals[name].evidence_ids[0]].url or "").casefold()
+        excerpt = ev[rivals[name].evidence_ids[0]].excerpt or ""
+        assert "unlike" in excerpt.casefold() or "versus" in excerpt.casefold()
+        assert "darktrace.com" not in url
+        assert "/eos" not in url
+    assert "Extreme" not in rivals
+    assert "HPE" not in rivals
 
 
 def test_compare_page_competitors_use_site_evidence_urls():

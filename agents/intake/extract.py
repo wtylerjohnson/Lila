@@ -54,6 +54,14 @@ _CUSTOMER_JUNK = frozenset({
     "going big", "group vp", "cognitive campus", "case study",
     "case studies", "customer success",
 })
+_INDUSTRY_SEGMENTS = frozenset({
+    "hedge funds", "hedge fund", "financial services", "financial service",
+    "cloud providers", "service providers", "enterprises", "enterprise",
+    "media", "healthcare", "retail", "education", "manufacturing",
+    "telecommunications", "telecom", "public sector", "verticals",
+    "industries", "sectors", "markets", "service provider",
+    "cloud provider", "fortune 500", "fortune 100",
+})
 _JOB_TITLE = re.compile(
     r"\b(vp|vice president|director|manager|officer|president|"
     r"head of|group vp|engineer)\b",
@@ -62,6 +70,19 @@ _JOB_TITLE = re.compile(
 _STORY_TITLE = re.compile(
     r"\b(success story|customer story|case stud|going big|"
     r"cognitive campus|\bstories\b)\b",
+    re.I,
+)
+_PEOPLE_NAV = re.compile(
+    r"\b(team|staff|leadership|board|careers|executives?|"
+    r"senior management|management team|our people|officers)\b",
+    re.I,
+)
+_TITLE_TAIL = re.compile(
+    r"\b(overview|page|home|index|guide|datasheet|whitepaper)\s*$",
+    re.I,
+)
+_RIVAL_TITLE_TAIL = re.compile(
+    r"\s+(comparisons?|overview|alternatives?|versus|\bvs\.?)$",
     re.I,
 )
 _CATEGORY_HEADERS = frozenset({
@@ -85,7 +106,7 @@ _RIVAL_PRODUCTS = frozenset({
 _RIVAL_VENDORS = frozenset({
     "cisco", "juniper", "vmware", "nvidia", "hpe", "hewlett packard",
     "aruba", "fortinet", "extreme", "palo alto", "meraki",
-    "velocloud", "silver peak", "cumulus",
+    "velocloud", "silver peak", "cumulus", "darktrace",
 })
 _GENERIC_CUSTOMERS = frozenset({
     "enterprises", "enterprise", "governments", "government",
@@ -362,6 +383,8 @@ def is_noise_term(text: str) -> bool:
         return True
     if _HEADERISH.search(name):
         return True
+    if _PEOPLE_NAV.search(name) or _TITLE_TAIL.search(name):
+        return True
     if re.search(r"\b(schedule|vehicle|geo|region|theater|page title)\b", low):
         return True
     if name[:1].islower() and len(name.split()) <= 3:
@@ -377,6 +400,8 @@ def is_product_name(text: str) -> bool:
     if looks_like_contract_or_schedule_id(name):
         return False
     if name.casefold() in _CATEGORY_HEADERS:
+        return False
+    if _PEOPLE_NAV.search(name) or _TITLE_TAIL.search(name):
         return False
     words = name.split()
     if len(words) == 1:
@@ -396,7 +421,8 @@ def is_product_name(text: str) -> bool:
             re.search(r"[A-Za-z]", name) and re.search(r"\d", name)
             and re.fullmatch(r"[A-Za-z][A-Za-z0-9._-]{1,20}", name)
         ):
-            return True
+            # CCS-720XP style. Reject bare account codes (JCT600).
+            return bool(re.search(r"[-_]", name))
         return False
     if any(w.casefold() in {"family", "families", "switches"} for w in words):
         return False
@@ -785,23 +811,87 @@ def is_error_page(text: str) -> bool:
 
 
 def is_customer_name(text: str, *, client_name: str = "") -> bool:
-    """Named buying org. Rejects story titles, job titles, and solution brands."""
+    """Named buying org. Rejects story titles, job titles, and verticals."""
     name = _party_name(text, client_name=client_name)
     if not name:
         return False
     low = name.casefold()
     if low in _CUSTOMER_JUNK or low in _GENERIC or low in _NAV_GLUED:
         return False
+    if low in _INDUSTRY_SEGMENTS or low in _GENERIC_CUSTOMERS:
+        return False
     if low in _IDP_NOISE or low in _RIVAL_VENDORS or low in _RIVAL_PRODUCTS:
         return False
     if _JOB_TITLE.search(name) or _STORY_TITLE.search(name):
         return False
+    if _PEOPLE_NAV.search(name) or _TITLE_TAIL.search(name):
+        return False
     if _PROSE_FRAGMENT.search(name):
         return False
     words = name.split()
-    if any(w.casefold() in {"story", "stories", "success", "going"} for w in words):
+    if any(w.casefold() in {"story", "stories", "success", "going",
+                            "services", "funds", "sector", "vertical"}
+           for w in words):
+        return False
+    if all(w.casefold() in _INDUSTRY_SEGMENTS or w.casefold() in {
+            "hedge", "financial", "cloud", "service", "public"}
+           for w in words):
         return False
     return True
+
+
+def normalize_rival_name(raw: str, *, client_name: str = "") -> str:
+    """Strip page-title tails so 'Darktrace Comparison' becomes Darktrace."""
+    name = _strip_label(raw)
+    name = _RIVAL_TITLE_TAIL.sub("", name)
+    return _party_name(name, client_name=client_name)
+
+
+def is_competitor_name(text: str, *, client_name: str = "") -> bool:
+    """Rival company name. Rejects page titles and comparison headings."""
+    name = normalize_rival_name(text, client_name=client_name)
+    if not name:
+        return False
+    low = name.casefold()
+    if low in _GENERIC or low in _GENERIC_CUSTOMERS or low in _NAV_GLUED:
+        return False
+    if _TITLE_TAIL.search(name) or _PEOPLE_NAV.search(name):
+        return False
+    if re.search(r"\b(comparison|overview|alternative|versus)\b", low):
+        return False
+    if is_noise_term(name):
+        return False
+    return True
+
+
+def excerpt_supports_rival(name: str, snippet: str) -> bool:
+    """True when the excerpt names the rival in a compare / vs claim."""
+    if not excerpt_supports_name(name, snippet):
+        return False
+    return bool(_RIVAL_CUE.search(snippet) or _COMPETITOR_LEAD.search(snippet))
+
+
+def citation_mismatches_rival(
+    url: str, name: str, official_domain: Optional[str] = None,
+) -> bool:
+    """True when the URL is another vendor's site (darktrace URL + HPE claim)."""
+    if not url or not name:
+        return False
+    host = url.casefold()
+    if official_domain and official_domain.casefold().lstrip(".") in host:
+        return False
+    rival = name.casefold().split()[0]
+    label = re.sub(r"^https?://(www\.)?", "", host).split("/")[0].split(":")[0]
+    first = label.split(".")[0]
+    if rival and rival in first:
+        return False
+    for vendor in _RIVAL_VENDORS:
+        token = vendor.split()[0]
+        if token == rival:
+            continue
+        if token in first:
+            return True
+    return False
 
 
 def usable_site_text(scrape, *, max_chars: int = 24000) -> str:
@@ -863,7 +953,9 @@ def recall_competitors(text: str, client_name: str = "") -> list[str]:
     seen: set[str] = set()
 
     def _add(name: str) -> None:
-        piece = _party_name(name, client_name=client_name)
+        piece = normalize_rival_name(name, client_name=client_name)
+        if not is_competitor_name(piece, client_name=client_name):
+            return
         key = piece.casefold()
         if not piece or key in seen or key in _GENERIC_CUSTOMERS:
             return
@@ -1004,7 +1096,9 @@ def extract_surface(
         exclusions.append(piece)
 
     def _compete(name: str) -> None:
-        piece = _party_name(name, client_name=client_name)
+        piece = normalize_rival_name(name, client_name=client_name)
+        if not is_competitor_name(piece, client_name=client_name):
+            return
         key = piece.casefold()
         if not piece or key in seen_comp or key in seen_off:
             return

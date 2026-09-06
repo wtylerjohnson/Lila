@@ -203,10 +203,17 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   IDs (47QSWA18D008F, 0119Y), bare numbers, and the placeholder
   excerpt "citation" never become offerings or ledger text.
   Customers are buying orgs (Microsoft, US Army), not story titles
-  (Customer Success Story, Going Big), job titles (Group VP), or
-  solution-brand phrases (Cognitive Campus). Competitor and product
-  evidence prefer official-site URLs (product-specific when the path
-  names the offering) over third-party PDFs.
+  (Customer Success Story, Going Big), job titles (Group VP),
+  solution-brand phrases (Cognitive Campus), or industry segments
+  (hedge funds, financial services). Nav/people/page titles
+  (Management Team, Senior Management, Platforms page, Detection
+  and Response Overview) and case-study customer codes (JCT600,
+  RACSA, Intuit) are not offerings. Competitor names are rival
+  companies (Cisco, Juniper, Aruba, Darktrace), not page titles
+  (Darktrace Comparison). Rival evidence must be a compare / vs /
+  alternative claim; a darktrace URL plus 10-K body is a
+  URL-versus-claim mismatch and is dropped. Product evidence
+  prefers official-site URLs over third-party PDFs.
   A rival platform (VeloCloud) is not an Arista offering unless the
   source asserts Arista sells it. Tool-meta tokens (WebSearch),
   URL/date shards, and lone acronym scraps are not products. NAICS that

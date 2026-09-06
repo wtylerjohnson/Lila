@@ -18,8 +18,10 @@ from pydantic import BaseModel, Field, model_validator
 from agents.intake.extract import (
     RelatedEntity,
     citation_is_official,
+    citation_mismatches_rival,
     excerpt_from,
     excerpt_supports_name,
+    excerpt_supports_rival,
     extract_surface,
     is_discrete_name,
     is_error_page,
@@ -168,6 +170,7 @@ def _evidence_for_name(
     scrape=None,
     official_domain: Optional[str] = None,
     prefer_site: bool = False,
+    require_compare: bool = False,
 ) -> tuple[str, Optional[str]]:
     needles = [name]
     parts = [t for t in name.split() if t.casefold() not in {
@@ -192,6 +195,9 @@ def _evidence_for_name(
                 score += 2
             if official_domain and citation_is_official(url or "", official_domain):
                 score += 1
+            if url and require_compare and re.search(
+                    r"compare|alternativ|versus|/vs", url, re.I):
+                score += 3
             ranked.append((score, page, text, url))
         ranked.sort(key=lambda row: row[0], reverse=True)
         for needle in needles:
@@ -199,13 +205,28 @@ def _evidence_for_name(
                 if needle.casefold() not in text.casefold():
                     continue
                 snippet = excerpt_from(text, needle=needle)
-                if snippet and excerpt_supports_name(name, snippet):
+                if require_compare:
+                    if not snippet or not excerpt_supports_rival(name, snippet):
+                        continue
+                    if citation_mismatches_rival(url or "", name, official_domain):
+                        continue
+                elif snippet and excerpt_supports_name(name, snippet):
+                    return snippet, url or fallback_url
+                else:
+                    continue
+                if snippet:
                     return snippet, url or fallback_url
         if scrape_text and scrape_text.strip() and not is_error_page(scrape_text):
             for needle in needles:
                 if needle.casefold() not in scrape_text.casefold():
                     continue
                 snippet = excerpt_from(scrape_text, needle=needle)
+                if require_compare:
+                    if snippet and excerpt_supports_rival(name, snippet):
+                        if not citation_mismatches_rival(
+                                fallback_url or "", name, official_domain):
+                            return snippet, fallback_url
+                    continue
                 if snippet and excerpt_supports_name(name, snippet):
                     return snippet, fallback_url
         return None
@@ -216,9 +237,16 @@ def _evidence_for_name(
                 if needle.casefold() not in findings.casefold():
                     continue
                 snippet = excerpt_from(findings, needle=needle)
+                cite = _best_citation(citations, official_domain, name)
+                if require_compare:
+                    if not snippet or not excerpt_supports_rival(name, snippet):
+                        continue
+                    if citation_mismatches_rival(
+                            cite or "", name, official_domain):
+                        continue
+                    return snippet, cite or fallback_url
                 if snippet and excerpt_supports_name(name, snippet):
-                    return snippet, _best_citation(
-                        citations, official_domain, name) or fallback_url
+                    return snippet, cite or fallback_url
         return None
 
     if prefer_site:
@@ -360,7 +388,10 @@ def build_dossier(
     for row in ingest.get("capabilities") or []:
         name = (row.get("name") if isinstance(row, dict) else str(row) or "").strip()
         found_on = (row.get("found_on") if isinstance(row, dict) else "") or identity.website
-        if not name or not is_discrete_name(name) or is_garbage_text(name):
+        if (
+            not name or not is_discrete_name(name) or is_garbage_text(name)
+            or not is_product_name(name)
+        ):
             continue
         eid = add_ev("capability_ingest", excerpt_from(name), found_on)
         offerings.append(_claim(
@@ -424,8 +455,11 @@ def build_dossier(
         snippet, url = _evidence_for_name(
             name, probe_blobs, scrape_text, identity.website,
             require_needle=True, scrape=scrape,
-            official_domain=identity.official_domain, prefer_site=True)
-        if not snippet or not excerpt_supports_name(name, snippet):
+            official_domain=identity.official_domain, prefer_site=True,
+            require_compare=True)
+        if not snippet or not excerpt_supports_rival(name, snippet):
+            continue
+        if citation_mismatches_rival(url or "", name, identity.official_domain):
             continue
         eid = add_ev("website", snippet, url or identity.website)
         if not eid:
