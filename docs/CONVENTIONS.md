@@ -1307,7 +1307,7 @@ coverage claims; nothing in it is a gate value.
   parents plus WATCH/HOLD `LeadRow` children. Pure and fail-closed.
   Never aliases targeting `T1` to `LeadTier`. Never writes
   `data/state/assess_runs/` or participates in `lila_release`.
-  Run: `python -m agents.leadgen.from_assess --assess <run.json>`.
+  Run: `python -m agents.leadgen --assess <run.json>`.
 - Step 1 `CompanyDossier` remains the ontology front door (PR #1). Cite
   it with optional string fields until that PR merges. Do not import
   targeting or Apollo from `agents/leadgen/contracts.py` or

@@ -63,7 +63,7 @@ its rows, or omitted.
 Diagnostic CLI (reads JSON, prints the draft batch, writes nothing):
 
 ```
-python -m agents.leadgen.from_assess \
+python -m agents.leadgen \
   --assess path/to/assess_run.json \
   --target-actions path/to/target_actions.json
 ```
