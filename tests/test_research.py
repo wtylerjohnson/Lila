@@ -33,8 +33,13 @@ class FakeEngine:
 
 
 def _fake_scrape(url, max_pages=5):
-    return ScrapeBundle(root_url=url, pages=[ScrapedPage(url=url, text="We build systems.")],
-                        sources=[url])
+    return ScrapeBundle(
+        root_url=url,
+        pages=[ScrapedPage(
+            url=url,
+            text="We build systems for federal agencies and commercial networks.",
+        )],
+        sources=[url])
 
 
 def test_website_from_form_is_scraped_not_searched(monkeypatch):

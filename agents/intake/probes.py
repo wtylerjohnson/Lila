@@ -87,26 +87,45 @@ sentences. Do not treat GSA, SEWP, or award IDs as products. If a probe
 cannot be answered from public sources, say so and return no invented names.
 """
 
+_SITE_THIN_NOTE = (
+    "Official-site scrape or headless render returned no usable HTML "
+    "(empty body, WAF challenge, or interstitial). For products, "
+    "customers, and competitors you MUST open official-domain URLs and "
+    "cite those URLs. Do not use Wikipedia, Crunchbase, or generic "
+    "company blurbs as the primary picture of what they sell."
+)
+
+_SITE_ANCHORED = frozenset({"offerings", "customers", "competitors"})
+
 
 def run_structured_probes(
     identity: IdentityResolution,
     engine,
     *,
     specs: tuple[tuple[str, str], ...] = PROBE_SPECS,
+    official_urls: Optional[list[str]] = None,
+    site_thin: bool = False,
 ) -> list[ResearchProbe]:
     """Run named probes against the bound identity. Soft-fail per probe."""
     if engine is None or not identity.is_bound:
         return []
     label = identity.bound_name or identity.query_name
     domain = identity.official_domain or identity.website or ""
+    hubs = [u for u in (official_urls or []) if u][:16]
+    hub_line = ""
+    if hubs:
+        hub_line = " Official URLs to open: " + "; ".join(hubs) + "."
     out: list[ResearchProbe] = []
     for name, focus in specs:
         query = (
             f"Company: {label}. Official domain: {domain}. "
             f"Start from official-site sections relevant to this probe "
-            f"(products, customers, compare, about, partners). "
+            f"(products, customers, compare, about, partners)."
+            f"{hub_line} "
             f"Probe: {focus}"
         )
+        if site_thin and name in _SITE_ANCHORED:
+            query = f"{_SITE_THIN_NOTE} {query}"
         probe = ResearchProbe(name=name, query=query)
         try:
             findings, citations = engine.web_research(

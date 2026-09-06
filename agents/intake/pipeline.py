@@ -31,10 +31,10 @@ from agents.intake.adapters import (
 )
 from agents.intake.adversarial import AdversarialRecord, run_adversarial
 from agents.intake.dossier import CompanyDossier, build_dossier
-from agents.intake.extract import structure_product_surface
+from agents.intake.extract import site_has_usable_text, structure_product_surface
 from agents.intake.identity import IdentityResolution, resolve_identity
 from agents.intake.probes import ResearchProbe, run_structured_probes
-from tools.scrape.site import SITE_MASTERY_MAX_PAGES
+from tools.scrape.site import SITE_MASTERY_MAX_PAGES, official_hub_hints
 from agents.intake.readiness import evaluate_readiness, render_readiness_markdown
 from agents.intake.yield_sidecar import intake_yield_receipt
 from agents.schemas import IntakeSubmission
@@ -239,7 +239,12 @@ def run_step1(
                 bound_url, fetcher=ingest_fetcher,
                 max_pages=page_budget)
         if do_web and research_engine is not None:
-            probes = run_structured_probes(identity, research_engine)
+            scrape = getattr(research, "scrape", None)
+            probes = run_structured_probes(
+                identity, research_engine,
+                official_urls=official_hub_hints(bound_url, scrape),
+                site_thin=not site_has_usable_text(scrape),
+            )
             citations = []
             findings = []
             for p in probes:

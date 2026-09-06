@@ -27,8 +27,16 @@ from agents.intake.extract import (
 )
 from agents.intake.readiness import evaluate_readiness
 from agents.intake.identity import bind_identity
-from agents.intake.probes import ResearchProbe
-from tools.scrape.site import SITE_MASTERY_MAX_PAGES, ScrapedPage, ScrapeBundle, scrape_site
+from agents.intake.probes import ResearchProbe, run_structured_probes
+from tools.scrape.site import (
+    SITE_MASTERY_MAX_PAGES,
+    ScrapedPage,
+    ScrapeBundle,
+    discover_official_hubs,
+    js_render_config,
+    official_hub_hints,
+    scrape_site,
+)
 
 
 ROOT = "https://www.acme-net.example"
@@ -89,6 +97,127 @@ def _identity():
 
 def test_mastery_budget_is_documented_and_raised():
     assert SITE_MASTERY_MAX_PAGES >= 24
+    cfg = js_render_config()
+    assert cfg["LILA_INTAKE_JS_RENDER"] is True
+    assert cfg["LILA_INTAKE_JS_STEALTH"] is True
+    assert cfg["LILA_INTAKE_JS_WAIT_MS"] >= 2000
+    assert cfg["LILA_INTAKE_JS_MIN_CHARS"] >= 20
+    assert cfg["LILA_INTAKE_JS_RENDER_CAP"] >= 1
+
+
+def test_interstitial_html_triggers_js_render_path():
+    rendered: list[str] = []
+
+    def fetch(url: str):
+        if url.rstrip("/") == ROOT or url.rstrip("/").endswith("/products"):
+            return "<html><body>Enable JavaScript to view this page.</body></html>"
+        return None
+
+    def render(url: str):
+        rendered.append(url)
+        return _PRODUCTS_HTML
+
+    bundle = scrape_site(ROOT, max_pages=8, fetcher=fetch, renderer=render)
+    assert rendered
+    assert any("/products" in u or u.rstrip("/") == ROOT for u in rendered)
+    texts = " ".join(p.text for p in bundle.pages)
+    assert "EOS" in texts
+    assert "Enable JavaScript" not in usable_site_text(bundle)
+
+
+def test_sitemap_discovers_official_product_hubs():
+    special = ROOT + "/en/products/special-fabric"
+
+    def fetch(url: str):
+        if url.endswith("/sitemap.xml"):
+            return (
+                "<?xml version='1.0'?><urlset>"
+                f"<loc>{special}</loc>"
+                f"<loc>{ROOT}/compare</loc>"
+                "</urlset>"
+            )
+        if url.rstrip("/") == special:
+            return (
+                "<html><body><h1>Special Fabric</h1>"
+                "<p>Acme Net sells EOS and DANZ Monitoring Fabric "
+                "on the special fabric page.</p></body></html>"
+            )
+        return _fetcher(url)
+
+    hubs = discover_official_hubs(ROOT, fetcher=fetch)
+    assert special in hubs
+    bundle = scrape_site(ROOT, max_pages=12, fetcher=fetch)
+    assert special in {p.url for p in bundle.pages}
+
+
+def test_waf_empty_after_render_fails_e2_and_does_not_invent():
+    def fetch(_url: str):
+        return "<html><body></body></html>"
+
+    def render(_url: str):
+        return "<html><body>  </body></html>"
+
+    bundle = scrape_site(ROOT, max_pages=6, fetcher=fetch, renderer=render)
+    assert bundle.pages == []
+    assert bundle.render_failures
+    ident = _identity()
+    probes = [
+        ResearchProbe(
+            name="offerings",
+            query="generic",
+            findings=(
+                "Wikipedia describes Acme Net as a leading cloud networking "
+                "vendor offering EOS, CloudVision, and AGNI."
+            ),
+            citations=["https://en.wikipedia.org/wiki/Acme_Net"],
+        ),
+        ResearchProbe(
+            name="competitors",
+            query="rivals",
+            findings="Analysts list Cisco and Juniper.",
+            citations=["https://www.gartner.com/reviews"],
+        ),
+    ]
+    dossier = build_dossier(
+        client_name="Acme Net",
+        identity=ident,
+        research=CompanyResearch(
+            company_name="Acme Net", website=ROOT, scrape=bundle),
+        probes=probes,
+    )
+    assert dossier.offerings == []
+    assert dossier.competitors == []
+    ready = evaluate_readiness(
+        identity=ident, dossier=dossier,
+        research=CompanyResearch(
+            company_name="Acme Net", website=ROOT, scrape=bundle),
+    )
+    e2 = next(row for row in ready["receipts"] if row["id"] == "E2")
+    assert e2["ok"] is False
+    assert "page(s) read" not in e2["detail"]
+    assert "thin" in " ".join(dossier.unknowns).casefold() or (
+        "failed to render" in e2["detail"])
+
+
+def test_thin_site_probes_require_official_urls():
+    ident = _identity()
+
+    class Engine:
+        def __init__(self):
+            self.queries = []
+
+        def web_research(self, **kwargs):
+            self.queries.append(str(kwargs.get("query") or ""))
+            return "none found", ["https://www.acme-net.example/products"]
+
+    engine = Engine()
+    hubs = official_hub_hints(ROOT, None)
+    run_structured_probes(
+        ident, engine, official_urls=hubs[:6], site_thin=True)
+    blob = " ".join(engine.queries).casefold()
+    assert "wikipedia" in blob or "official-domain urls" in blob
+    assert "acme-net.example" in blob
+    assert any("products" in q for q in engine.queries)
 
 
 def test_scrape_seeds_hubs_when_homepage_is_js_shell():
@@ -348,7 +477,10 @@ def test_compare_page_competitors_use_site_evidence_urls():
         root_url=ROOT,
         pages=[ScrapedPage(
             url=compare,
-            text="Unlike Cisco and Juniper, Acme Net ships EOS on every 7050X.",
+            text=(
+                "Unlike Cisco and Juniper, Acme Net ships EOS on every 7050X. "
+                "The official compare page names those rivals next to CloudVision."
+            ),
         )],
         sources=[compare],
     )

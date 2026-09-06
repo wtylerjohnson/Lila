@@ -15,11 +15,11 @@ company name (+ optional form fields)
         │ bound
         ▼
  identity-bound website-first ingest (scrape + capability_ingest,
-   SITE_MASTERY_MAX_PAGES = 24; seeds products/customers/compare even
-   when the homepage is a JS shell)
+   SITE_MASTERY_MAX_PAGES = 24; sitemap + /en/ seeds; JS render with
+   realistic UA / settled wait when static HTML is an interstitial)
  + structured web probes (offerings, customers, federal footprint,
    channels, competitors, boundaries, classifications; site-anchored
-   after bind; generic SERP is secondary)
+   official-URL cites when render is blocked; generic SERP is secondary)
         │
         ▼
  dossier (claims with states) + retrieval units + yield sidecar

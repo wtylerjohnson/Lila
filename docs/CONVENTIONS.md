@@ -172,11 +172,20 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   about, industries, product-family paths) and follows in-domain
   nav/footer/product-hub links. Interstitial / JS shells are
   `render_failures`, not "pages read". E2 passes only on usable
-  rendered pages (or an honest no-site bind). Optional Playwright
-  render (`LILA_INTAKE_JS_RENDER`, default on) may recover SPA hubs
-  when static HTML is an interstitial; missing browser fails closed.
-  Generic SERP blurbs must not invent offerings or competitors when
-  the official site is thin.
+  rendered pages (or an honest no-site bind). Render fallback chain:
+  JS render (realistic desktop Chrome UA, stealth init, settled-content
+  wait, not networkidle-as-success) then usable static HTML, then
+  site-anchored web research that must cite official-domain URLs for
+  products/customers/competitors. Wikipedia/Crunchbase blurbs stay
+  secondary. Sitemap.xml / robots.txt Sitemap + HTML nav discover
+  product, customers, case-studies, partners, and compare/vs URLs
+  under the bound domain. Env flags (defaults in
+  `tools.scrape.site.js_render_config`): `LILA_INTAKE_JS_RENDER`
+  (on), `LILA_INTAKE_JS_STEALTH` (on), `LILA_INTAKE_JS_WAIT_MS`
+  (20000), `LILA_INTAKE_JS_MIN_CHARS` (80),
+  `LILA_INTAKE_JS_RENDER_CAP` (8). Missing browser or a WAF-empty
+  body fails closed via `render_failures`. Generic SERP blurbs must
+  not invent offerings or competitors when the official site is thin.
 - Structured probes are site-anchored after bind: products, competitors,
   and customers start on the official domain. Probes also seek named
   product families (CloudVision AGNI / Guardian for Network Identity,
