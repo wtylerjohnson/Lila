@@ -24,11 +24,23 @@ class ResearchProbe(BaseModel):
 
 PROBE_SPECS: tuple[tuple[str, str], ...] = (
     ("offerings",
-     "What products, platforms, and services does this company sell? "
-     "Name them as the company names them. Cite official pages."),
+     "Name this company's shipped product families from official product pages. "
+     "Include the network operating system, controllers or cloud-management "
+     "platforms, visibility or telemetry fabrics, identity or zero-trust "
+     "network products (for example CloudVision AGNI / Guardian for Network "
+     "Identity when this vendor publishes them), and numbered switch or "
+     "router families (for example the 7050X series and sibling X/R families "
+     "when this vendor publishes them). Quote each name as printed. "
+     "Do not treat GSA schedules, SEWP vehicles, or award IDs as products. "
+     "Cite official product-page URLs."),
     ("federal_footprint",
-     "What federal or SLED contracting footprint exists: SAM registration, "
-     "GSA or other vehicles, awards, set-asides? Cite primary sources."),
+     "Does this company sell to the US federal government? "
+     "Quote any six-digit NAICS or industry classification the company or "
+     "its SAM / GSA listing states, including the sentence that contains "
+     "the code. Also note SAM registration, GSA / MAS / SEWP vehicles, and "
+     "recent awards, but do not list those vehicle or award IDs as products. "
+     "If no NAICS appears in sources, say none found. Cite the source "
+     "sentence for every code."),
     ("channels",
      "Which resellers, distributors, or teaming partners carry this company "
      "into government? Cite partner pages or award text."),
@@ -36,16 +48,35 @@ PROBE_SPECS: tuple[tuple[str, str], ...] = (
      "Which named rival vendors or products do buyers evaluate against this "
      "company? Cite analyst notes, reviews, or market reporting."),
     ("boundaries",
-     "What adjacent work does this company NOT do? Note name collisions and "
-     "unrelated firms that share the name. Cite sources."),
+     "Name other companies or brands that share this name or a close spelling. "
+     "Search specifically for a music label or records company, an aviation "
+     "or aircraft-support firm, a project-management or PPM vendor, and any "
+     "lookalike spelling. Quote each namesake's full name "
+     "(for example a Records label, an Aviation firm, an Aristan-style "
+     "lookalike, or OAS Aircraft Support when those namesakes exist). "
+     "These are collisions, not this company's offerings. Cite sources."),
+    ("classifications",
+     "Quote any NAICS, PSC, or industry classification this company states, "
+     "with the six-digit code and the sentence that contains it. "
+     "Separately list namesake collisions already found (music/records, "
+     "aviation, project-management lookalikes, aircraft-support firms). "
+     "Do not invent codes. If none appear in sources, say none found."),
 )
 
 
 _PROBE_SYSTEM = """\
 You are researching ONE already-identified company. The official domain is
 binding. Do not switch to a different firm that shares the name. Use web
-search. Cite real URLs. If the probe cannot be answered from public sources,
-say so and return no invented names.
+search and the official product pages. Cite real URLs.
+
+Actively seek: (1) named product families including identity products such
+as CloudVision AGNI / Guardian for Network Identity and numbered switch
+families such as the 7050X series when the vendor publishes them; (2) any
+stated six-digit NAICS or industry classification, quoted with the source
+sentence; (3) namesake collisions (music/records, aviation, lookalike
+spellings, aircraft support). Do not treat GSA, SEWP, or award IDs as
+products. If a probe cannot be answered from public sources, say so and
+return no invented names.
 """
 
 
@@ -64,6 +95,7 @@ def run_structured_probes(
     for name, focus in specs:
         query = (
             f"Company: {label}. Official domain: {domain}. "
+            f"Search official product pages and SAM/GSA listings when relevant. "
             f"Probe: {focus}"
         )
         probe = ResearchProbe(name=name, query=query)

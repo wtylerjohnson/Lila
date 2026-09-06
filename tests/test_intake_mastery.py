@@ -29,8 +29,12 @@ from agents.intake.adversarial import (
     soften_related_entity_blocks,
 )
 from agents.intake.dossier import Claim, ClaimState, CompanyDossier, build_dossier
-from agents.intake.extract import is_discrete_name
-from agents.intake.probes import ResearchProbe
+from agents.intake.extract import (
+    is_discrete_name,
+    is_product_name,
+    looks_like_contract_or_schedule_id,
+)
+from agents.intake.probes import PROBE_SPECS, ResearchProbe
 from tools.scrape.site import ScrapedPage, ScrapeBundle
 from agents.intake.identity import (
     IdentityCandidate,
@@ -756,10 +760,11 @@ def test_arista_pipeline_quality_without_injected_engines(tmp_path, monkeypatch)
                     "Arista Networks official site https://www.arista.com",
                     ["https://www.arista.com"],
                 )
-            if "not do" in query.casefold() or "Probe: What adjacent" in query:
+            q = query.casefold()
+            if "namesake" in q or "music label" in q or "lookalike spelling" in q:
                 return _ARISTA_BOUNDARIES, [
                     "https://en.wikipedia.org/wiki/Arista_Records"]
-            if "federal" in query.casefold():
+            if "naics" in q or "federal" in q or "industry classification" in q:
                 return _ARISTA_FEDERAL, [
                     "https://www.arista.com/en/company/government"]
             return _ARISTA_OFFERINGS, [
@@ -995,3 +1000,278 @@ def test_naics_not_emptied_to_pass_e8():
     rec = challenge_dossier(dossier, ran=True)
     assert rec.passed is True
     assert dossier.naics, "E8 green with an empty NAICS list is a gate bypass"
+
+
+# ---- Press 5: live evidence bottleneck, not extract-only ------------------- #
+
+_PRESS5_OFFERINGS = (
+    "Arista ships EOS and CloudVision. DANZ Monitoring Fabric and the "
+    "7060X6 and 7800R4 platforms appear on the switching page. "
+    "Portfolio essay omits identity products and the 7050 family."
+)
+_PRESS5_FEDERAL = (
+    "Arista holds GSA MAS 47QSWA18D008F and NASA SEWP vehicle 0119Y "
+    "for switching. No industry classification codes are stated."
+)
+_PRESS5_BOUNDARIES = (
+    "Name collision: Arista Records is a separate music label. "
+    "No other namesakes were researched."
+)
+
+
+def _press5_probes():
+    return [
+        ResearchProbe(
+            name="offerings", query="products",
+            findings=_PRESS5_OFFERINGS,
+            citations=["https://www.arista.com/en/products"],
+        ),
+        ResearchProbe(
+            name="federal_footprint", query="federal",
+            findings=_PRESS5_FEDERAL,
+            citations=["https://www.gsaelibrary.gsa.gov"],
+        ),
+        ResearchProbe(
+            name="boundaries", query="exclusions",
+            findings=_PRESS5_BOUNDARIES,
+            citations=["https://en.wikipedia.org/wiki/Arista_Records"],
+        ),
+    ]
+
+
+def test_structured_probes_seek_named_products_naics_and_namesakes():
+    blob = " ".join(focus for _, focus in PROBE_SPECS).casefold()
+    assert "agni" in blob or "guardian for network identity" in blob
+    assert "7050x" in blob
+    assert "naics" in blob
+    assert "records" in blob or "music" in blob
+    assert "aviation" in blob
+    assert "award" in blob or "sewp" in blob
+
+
+def test_schedule_and_award_ids_are_not_products():
+    assert looks_like_contract_or_schedule_id("47QSWA18D008F") is True
+    assert looks_like_contract_or_schedule_id("0119Y") is True
+    assert is_product_name("47QSWA18D008F") is False
+    assert is_product_name("0119Y") is False
+    assert is_product_name("7050X") is True
+    assert is_product_name("7060X6") is True
+    assert is_product_name("7800R4") is True
+    assert is_product_name("EOS") is True
+    assert is_product_name("CloudVision") is True
+
+
+def test_press5_schedule_ids_rejected_and_split_brain_naics_flagged():
+    """Live Press 5 shape: schedule IDs in evidence, no AGNI/NAICS."""
+    ident = _arista_identity()
+    dossier = build_dossier(
+        client_name="Arista Networks",
+        identity=ident,
+        research=_arista_research(),
+        probes=_press5_probes(),
+    )
+    texts = {o.text for o in dossier.offerings}
+    assert {"EOS", "CloudVision", "DANZ Monitoring Fabric",
+            "7060X6", "7800R4"} <= texts
+    assert "47QSWA18D008F" not in texts
+    assert "0119Y" not in texts
+    assert "AGNI" not in texts
+    assert "7050X" not in texts
+    assert dossier.naics == []
+    excerpts = " ".join(e.excerpt or "" for e in dossier.evidence)
+    assert "47QSWA18D008F" in excerpts or "0119Y" in excerpts
+    assert "AGNI" not in excerpts
+    kept = {k.term.casefold() for k in dossier.kept_out}
+    assert any("records" in k for k in kept)
+    assert not any("aviation" in k for k in kept)
+
+    strategy = {
+        "inferred_naics": [
+            "334210", "334220", "513210", "423430", "541519", "541512",
+        ],
+    }
+    rec = challenge_dossier(dossier, ran=True, strategy=strategy)
+    assert any(
+        c.kind == "naics_overbreadth" and c.severity == "block"
+        for c in rec.challenges)
+    assert rec.passed is False
+    ready = evaluate_readiness(
+        identity=ident, dossier=dossier, probes=_press5_probes(),
+        yield_receipt={
+            "store": {"status": "empty", "row_count": 0, "note": "empty"},
+            "terms": [],
+            "note": "notice store has zero rows; counts are not a market zero",
+        },
+        adversarial=rec, strategy=strategy,
+    )
+    by_id = {row["id"]: row for row in ready["receipts"]}
+    assert by_id["E5"]["ok"] is False
+    assert by_id["E8"]["ok"] is False
+    assert ready["all_ok"] is False
+
+
+def test_probe_text_with_agni_naics_aviation_lands_on_dossier():
+    """When probes actually cite the strings, the dossier must capture them."""
+    ident = _arista_identity()
+    probes = [
+        ResearchProbe(
+            name="offerings", query="products",
+            findings=(
+                "Official pages name CloudVision AGNI (Guardian for Network "
+                "Identity) and the 7050X series alongside EOS, CloudVision, "
+                "and DANZ Monitoring Fabric."
+            ),
+            citations=["https://www.arista.com/en/products"],
+        ),
+        ResearchProbe(
+            name="federal_footprint", query="federal",
+            findings=(
+                "The SAM listing states NAICS 334118 for computer terminal "
+                "equipment and NAICS 334210 for telephone apparatus "
+                "manufacturing."
+            ),
+            citations=["https://sam.gov"],
+        ),
+        ResearchProbe(
+            name="classifications", query="classifications",
+            findings=(
+                "Industry classification 541519 appears next to other "
+                "computer related services on the same registration."
+            ),
+            citations=["https://sam.gov"],
+        ),
+        ResearchProbe(
+            name="boundaries", query="exclusions",
+            findings=(
+                "Namesakes include Arista Aviation, Aristan, and OAS "
+                "Aircraft Support, plus Arista Records."
+            ),
+            citations=["https://en.wikipedia.org/wiki/Arista_Records"],
+        ),
+    ]
+    dossier = build_dossier(
+        client_name="Arista Networks",
+        identity=ident,
+        research=_arista_research(),
+        probes=probes,
+    )
+    texts = {o.text for o in dossier.offerings}
+    assert {"EOS", "CloudVision", "AGNI", "7050X",
+            "DANZ Monitoring Fabric"} <= texts
+    assert {n.code for n in dossier.naics} >= {"334118", "334210", "541519"}
+    assert all(n.evidence_ids for n in dossier.naics)
+    excerpts = " ".join(e.excerpt or "" for e in dossier.evidence)
+    assert "AGNI" in excerpts
+    assert "7050X" in excerpts
+    assert "NAICS" in excerpts or "334118" in excerpts
+    kept = {k.term.casefold() for k in dossier.kept_out}
+    assert any("records" in k for k in kept)
+    assert any("aviation" in k for k in kept)
+    assert any("aristan" in k for k in kept)
+    assert any("oas aircraft" in k for k in kept)
+    rec = challenge_dossier(dossier, ran=True)
+    assert rec.passed is True
+
+
+def test_press5_pipeline_flags_invented_strategy_naics(
+        tmp_path, monkeypatch):
+    """After strategy invents NAICS the dossier cannot evidence, E5/E8 fail."""
+    import agents.review as review
+    from agents.decisions.schemas import IntakeStrategy
+    from agents.intake.identity import IdentityRoster
+
+    monkeypatch.setattr(review, "REVIEW_DIR", str(tmp_path / "review"))
+    monkeypatch.setenv("LILA_CLIENTS_DIR", str(tmp_path / "clients"))
+    monkeypatch.setenv("LILA_NOTICE_STORE_DIR", str(tmp_path / "empty_store"))
+    monkeypatch.setenv("LILA_ENABLE_INTAKE_AUTO_APPROVE", "off")
+
+    class Engine:
+        def web_research(self, **kwargs):
+            query = str(kwargs.get("query") or "")
+            q = query.casefold()
+            if "official company" in q or "identify" in q:
+                return (
+                    "Arista Networks official site https://www.arista.com",
+                    ["https://www.arista.com"],
+                )
+            if "namesake" in q or "music label" in q or "lookalike spelling" in q:
+                return _PRESS5_BOUNDARIES, [
+                    "https://en.wikipedia.org/wiki/Arista_Records"]
+            if "naics" in q or "federal" in q or "industry classification" in q:
+                return _PRESS5_FEDERAL, [
+                    "https://www.gsaelibrary.gsa.gov"]
+            return _PRESS5_OFFERINGS, [
+                "https://www.arista.com/en/products"]
+
+        def structure(self, **kwargs):
+            schema = kwargs.get("schema")
+            name = getattr(schema, "__name__", "")
+            if name == "StructuredProductSurface":
+                return schema(
+                    offerings=["EOS", "CloudVision", "DANZ Monitoring Fabric",
+                               "7060X6", "7800R4"],
+                    naics=[],
+                    exclusions=["Arista Records"],
+                    related_entities=[],
+                )
+            return IdentityRoster(candidates=[
+                IdentityCandidate(
+                    name="Arista Networks, Inc.", official_domain="arista.com",
+                    website="https://www.arista.com", confidence=0.97,
+                    rationale="official corporate homepage",
+                ),
+            ])
+
+        def deliberate(self, *a, **k):
+            raise RuntimeError("strategy unused")
+
+    monkeypatch.setattr(
+        "agents.decisions.engine.research_engine", lambda: Engine())
+    monkeypatch.setattr(
+        "agents.decisions.engine.DecisionEngine", lambda *a, **k: Engine())
+    monkeypatch.setattr(
+        "tools.scrape.site.scrape_site",
+        lambda url, max_pages=5: ScrapeBundle(
+            root_url=url,
+            pages=[ScrapedPage(
+                url=url,
+                text="Error loading the page. Enable JavaScript.",
+            )],
+            sources=[url],
+        ))
+    monkeypatch.setattr(
+        "agents.intake.pipeline._ingest_bound_site",
+        lambda *a, **k: {"capabilities": [], "receipt": {"error": "load"}},
+    )
+
+    def fake_strategy(submission, **kwargs):
+        return IntakeStrategy(
+            client_name=submission.client_name,
+            pursuit_strategy="Pursue switching awards from invented codes.",
+            inferred_naics=[
+                "334210", "334220", "513210", "423430", "541519", "541512",
+            ],
+            confidence=0.6,
+            review_gate="review invented NAICS before treating them as evidenced",
+        )
+
+    monkeypatch.setattr("agents.decisions.intake.build_strategy", fake_strategy)
+
+    result = run_step1(
+        submission_from_client_name("Arista Networks"),
+        do_scrape=True, do_web=True, auto_approve=False,
+        review_dir=str(tmp_path / "review"), alert_fn=lambda *a: None,
+    )
+    texts = {o.text for o in result.dossier.offerings}
+    assert "47QSWA18D008F" not in texts
+    assert "0119Y" not in texts
+    assert {"EOS", "CloudVision"} <= texts
+    assert result.dossier.naics == []
+    assert result.adversarial.passed is False
+    assert any(
+        c.kind == "naics_overbreadth" and c.severity == "block"
+        for c in result.adversarial.challenges)
+    by_id = {row["id"]: row for row in result.readiness["receipts"]}
+    assert by_id["E5"]["ok"] is False
+    assert by_id["E8"]["ok"] is False
+    assert result.readiness["all_ok"] is False

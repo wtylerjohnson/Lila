@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from agents.intake.adversarial import AdversarialRecord
+from agents.intake.adversarial import AdversarialRecord, strategy_inferred_naics
 from agents.intake.dossier import CompanyDossier
 from agents.intake.identity import IdentityResolution
 
@@ -34,6 +34,7 @@ def evaluate_readiness(
     probes: Optional[list] = None,
     yield_receipt: Optional[dict] = None,
     adversarial: Optional[AdversarialRecord] = None,
+    strategy=None,
 ) -> dict:
     """Return the E1-E8 receipt block plus an all_ok flag."""
     scrape = getattr(research, "scrape", None) if research is not None else None
@@ -99,16 +100,29 @@ def evaluate_readiness(
             if dossier else "no dossier"
         ),
     )
-    e5 = _row(
-        "E5", "Retrieval representation",
-        bool(dossier and (
-            dossier.keywords or dossier.naics or dossier.capability_statements)),
-        (
+    inferred = strategy_inferred_naics(strategy)
+    split_brain = bool(inferred) and bool(dossier) and not dossier.naics
+    e5_ok = bool(dossier and (
+        dossier.keywords or dossier.naics or dossier.capability_statements
+    )) and not split_brain
+    if split_brain:
+        e5_detail = (
+            "strategy inferred NAICS "
+            + ", ".join(inferred)
+            + " with no dossier evidence; keywords alone are not a retrieval win"
+        )
+    elif dossier:
+        e5_detail = (
             f"{len(dossier.keywords)} keywords, "
             f"{len(dossier.naics)} NAICS, "
             f"{len(dossier.capability_statements)} capability statements"
-            if dossier else "no retrieval units"
-        ),
+        )
+    else:
+        e5_detail = "no retrieval units"
+    e5 = _row(
+        "E5", "Retrieval representation",
+        e5_ok,
+        e5_detail,
     )
     e6 = _row(
         "E6", "Yield receipts",

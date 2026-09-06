@@ -306,21 +306,26 @@ def run_step1(
     enriched = merge_strategy_into_dossier(dossier, strategy)
     if enriched is not dossier:
         dossier = enriched
-        dossier, adversarial = run_adversarial(
-            dossier,
-            yield_receipt=yield_receipt,
-            product_ingest=product_ingest,
-            engine=None,
-        )
-        retrieval = retrieval_frame(dossier)
-        readiness = evaluate_readiness(
-            identity=identity,
-            dossier=dossier,
-            research=research,
-            probes=probes,
-            yield_receipt=yield_receipt,
-            adversarial=adversarial,
-        )
+    # Always re-score after the strategy composer. A no-op merge must not
+    # leave E5/E8 green when strategy invented NAICS the dossier cannot
+    # evidence.
+    dossier, adversarial = run_adversarial(
+        dossier,
+        yield_receipt=yield_receipt,
+        product_ingest=product_ingest,
+        engine=None,
+        strategy=strategy,
+    )
+    retrieval = retrieval_frame(dossier)
+    readiness = evaluate_readiness(
+        identity=identity,
+        dossier=dossier,
+        research=research,
+        probes=probes,
+        yield_receipt=yield_receipt,
+        adversarial=adversarial,
+        strategy=strategy,
+    )
 
     if review_dir is not None:
         review.REVIEW_DIR = review_dir

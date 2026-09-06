@@ -164,21 +164,30 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   launch searches. `--no-auto-approve` or the env set to off restores the click.
 - Adapters (`agents/intake/adapters.py`) copy evidenced dossier fields onto
   `IntakeStrategy` and a hybrid.frame_lanes-shaped retrieval sidecar.
+- Structured probes (and bound-site ingest slugs) must actively seek
+  named product families (identity products such as CloudVision AGNI /
+  Guardian for Network Identity, numbered switch families such as
+  7050X), any stated six-digit NAICS / industry classification with the
+  source sentence, and namesake collisions (Records / Aviation /
+  lookalikes / aircraft support). Extract cannot recall strings the
+  probes never captured.
 - Dossier offerings, keywords, and retrieval units are short discrete
   product or capability names (EOS, CloudVision, AGNI, 7050X). Probe
-  essays, homepage load-errors, schedule/ticker/header fragments, bare
-  numbers, and the placeholder excerpt "citation" never become offerings
-  or ledger text. A rival platform (VeloCloud) is not an Arista offering
-  unless the source asserts Arista sells it. Tool-meta tokens (WebSearch),
+  essays, homepage load-errors, schedule/ticker/header fragments, GSA /
+  SEWP / award IDs (47QSWA18D008F, 0119Y), bare numbers, and the
+  placeholder excerpt "citation" never become offerings or ledger text.
+  A rival platform (VeloCloud) is not an Arista offering unless the
+  source asserts Arista sells it. Tool-meta tokens (WebSearch),
   URL/date shards, and lone acronym scraps are not products. NAICS that
-  appear in probe or page text are kept with real evidence_ids; an empty
-  NAICS list must not be used to green E8. Name-collision
-  exclusions from boundary probes seed `kept_out` (Records / Aviation /
-  Aristan / OAS Aircraft Support style when mentioned); NYSE, CIKs,
-  section headers, and the bare company name stay out. Workshop edits
-  remain the operator path. A related Government Sales LLC is recorded
-  as a federal-path affiliate and does not break or hard-block a correct
-  public-domain bind.
+  appear in probe or page text are kept with real evidence_ids. An empty
+  NAICS list stays empty when nothing is cited; E5/E8 must not treat
+  that as a win while strategy invents NAICS (split-brain is a block).
+  Name-collision exclusions from boundary / classification probes seed
+  `kept_out` (Records / Aviation / Aristan / OAS Aircraft Support style
+  when mentioned); NYSE, CIKs, section headers, and the bare company
+  name stay out. Workshop edits remain the operator path. A related
+  Government Sales LLC is recorded as a federal-path affiliate and does
+  not break or hard-block a correct public-domain bind.
 
 ## Pipeline shape
 

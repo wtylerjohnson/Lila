@@ -53,7 +53,13 @@ _ACRONYM_DENY = frozenset({
     "ospf", "vxlan", "evpn",
 })
 _SHORT_ALLOW = frozenset({"eos", "agni"})
-_SKU = re.compile(r"\b(\d{4}X|\d{4}[A-Z][A-Z0-9-]{0,8})\b")
+# Switch/router families: 7050X, 7060X6, 7280R, 7800R4. Not SEWP 0119Y.
+_SKU = re.compile(r"\b(\d{4}[XR][A-Z0-9]{0,4})\b")
+_GSA_MAS = re.compile(r"^47[A-Z0-9]{8,}$", re.I)
+_LEGACY_GSA = re.compile(r"^GS[-A-Z0-9]+$", re.I)
+_DOD_PIID = re.compile(r"^N[0-9]{5,}[-A-Z0-9]*$", re.I)
+_SEWP_SHORT = re.compile(r"^\d{4}[A-WY-Z]$", re.I)
+_LONG_AWARD = re.compile(r"^[A-Z0-9]{8,}$", re.I)
 _SKU_LOOSE = re.compile(r"\b(7050\s*-?\s*X|7280\s*-?\s*R|7500\s*-?\s*R|7800\s*-?\s*R)\b", re.I)
 _CAPABILITY_MARKERS = (
     "monitoring", "fabric", "detection", "response", "switching",
@@ -101,6 +107,14 @@ _BULLET = re.compile(r"^\s*(?:[-*]|\d+\.)\s+(.+)$", re.M)
 _BOLD = re.compile(r"\*\*(.+?)\*\*")
 _NAICS_NEAR = re.compile(
     r"NAICS(?:\s+(?:code|codes))?\s*[:#]?\s*(\d{6})",
+    re.I,
+)
+_CLASSIFICATION_NEAR = re.compile(
+    r"(?:industry classification|classification codes?|sic)\s*[:#]?\s*(\d{6})",
+    re.I,
+)
+_CLASSIFICATION_LABEL = re.compile(
+    r"\b(?:naics|industry classification|classification codes?|sic)\b",
     re.I,
 )
 _EXCLUSION_LEAD = re.compile(
@@ -202,10 +216,36 @@ def _one_word_product(name: str) -> bool:
     return False
 
 
+def looks_like_contract_or_schedule_id(text: str) -> bool:
+    """GSA/SEWP/award vehicle IDs are not product names (47QSWA18D008F, 0119Y)."""
+    name = _clean(text)
+    if not name:
+        return False
+    compact = re.sub(r"[\s_-]+", "", name)
+    if _SKU.fullmatch(name) or _SKU.fullmatch(compact):
+        return False
+    if (
+        _GSA_MAS.fullmatch(compact)
+        or _LEGACY_GSA.fullmatch(name)
+        or _DOD_PIID.fullmatch(name)
+        or _SEWP_SHORT.fullmatch(compact)
+    ):
+        return True
+    if (
+        _LONG_AWARD.fullmatch(compact)
+        and re.search(r"[A-Za-z]", compact)
+        and re.search(r"\d", compact)
+    ):
+        return True
+    return False
+
+
 def is_noise_term(text: str) -> bool:
     """Meta tokens that must never become offerings or kept_out."""
     name = _clean(text)
     if not name:
+        return True
+    if looks_like_contract_or_schedule_id(name):
         return True
     if re.fullmatch(r"\d+", name):
         return True
@@ -234,6 +274,8 @@ def is_product_name(text: str) -> bool:
     name = _clean(text)
     if not is_discrete_name(name) or is_noise_term(name):
         return False
+    if looks_like_contract_or_schedule_id(name):
+        return False
     words = name.split()
     if len(words) == 1:
         if re.fullmatch(r"\d+", name):
@@ -245,10 +287,12 @@ def is_product_name(text: str) -> bool:
             return low in _SHORT_ALLOW
         if re.fullmatch(r"[A-Z][a-z]+[A-Z][A-Za-z0-9]*", name):
             return low not in _TOOL_META
-        if _SKU.fullmatch(name) or (
+        if _SKU.fullmatch(name):
+            return True
+        # Letter-led product codes (CCS-720XP). Digit-led mixed IDs must be SKUs.
+        if (
             re.search(r"[A-Za-z]", name) and re.search(r"\d", name)
-            and re.fullmatch(r"[A-Za-z0-9._-]+", name)
-            and not re.fullmatch(r"\d+", name)
+            and re.fullmatch(r"[A-Za-z][A-Za-z0-9._-]{1,20}", name)
         ):
             return True
         return False
@@ -497,8 +541,10 @@ def extract_naics(text: str, *, loose: bool = False) -> list[tuple[str, str]]:
         seen.add(code)
         out.append((code, rationale[:240]))
 
-    labeled = bool(re.search(r"\bNAICS\b", raw, re.I))
+    labeled = bool(_CLASSIFICATION_LABEL.search(raw))
     for match in _NAICS_NEAR.finditer(raw):
+        _add(match.group(1), match.start(), match.end())
+    for match in _CLASSIFICATION_NEAR.finditer(raw):
         _add(match.group(1), match.start(), match.end())
     if labeled:
         for match in re.finditer(r"\b(\d{6})\b", raw):
@@ -666,7 +712,8 @@ def extract_surface(
             _exclude(name)
         for name in recall_collisions(findings, client_name or bound_name):
             _exclude(name)
-        naics.extend(extract_naics(findings, loose="federal" in kind))
+        naics.extend(extract_naics(
+            findings, loose="federal" in kind or "classif" in kind))
         related.extend(extract_related_entities(
             findings, bound_name=bound_name or client_name,
             official_domain=official_domain,
@@ -734,11 +781,13 @@ class StructuredProductSurface(BaseModel):
 
 _STRUCTURE_PRODUCTS = """\
 Extract SHORT discrete product and platform names the bound company sells.
-Each offering is a name (EOS, CloudVision), not a paragraph and not a
-page-load error. Extract six-digit NAICS only when the findings cite them.
-Extract name-collision exclusions (other firms that share the name).
-Extract related legal persons (for example a Government Sales LLC) without
-replacing the bound public company. Do not invent names.
+Each offering is a name (EOS, CloudVision, AGNI, 7050X), not a paragraph,
+not a page-load error, and not a GSA/SEWP/award ID (47QSWA18D008F, 0119Y).
+Extract six-digit NAICS only when the findings cite them, with the source
+sentence. Extract name-collision exclusions (Records, Aviation, lookalikes,
+aircraft-support firms that share the name). Extract related legal persons
+(for example a Government Sales LLC) without replacing the bound public
+company. Do not invent names.
 """
 
 

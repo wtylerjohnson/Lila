@@ -126,6 +126,24 @@ _COMMON_NAME_TOKENS = frozenset({
 })
 
 
+def strategy_inferred_naics(strategy) -> list[str]:
+    """Six-digit codes the strategy composer asserted, if any."""
+    if strategy is None:
+        return []
+    raw = getattr(strategy, "inferred_naics", None)
+    if raw is None and isinstance(strategy, dict):
+        raw = strategy.get("inferred_naics")
+    out: list[str] = []
+    seen: set[str] = set()
+    for item in raw or []:
+        code = str(item).strip()
+        if not code or code in seen:
+            continue
+        seen.add(code)
+        out.append(code)
+    return out
+
+
 def _yield_titles(yield_receipt: Optional[dict]) -> list[str]:
     titles: list[str] = []
     for row in (yield_receipt or {}).get("terms") or []:
@@ -152,6 +170,7 @@ def challenge_dossier(
     yield_receipt: Optional[dict] = None,
     product_ingest: Optional[dict] = None,
     ran: bool = True,
+    strategy=None,
 ) -> AdversarialRecord:
     """Structural, fail-closed challenge. No model required."""
     rec = AdversarialRecord(
@@ -251,6 +270,28 @@ def challenge_dossier(
                 statement=f"NAICS {entry.code} is marked core without evidence",
             ))
 
+    inferred = strategy_inferred_naics(strategy)
+    dossier_codes = {n.code for n in dossier.naics}
+    invented = [c for c in inferred if c not in dossier_codes]
+    if invented and not dossier.naics:
+        rec.challenges.append(Challenge(
+            kind="naics_overbreadth", severity="block",
+            statement=(
+                "strategy inferred NAICS "
+                + ", ".join(invented)
+                + " with no dossier evidence; empty dossier NAICS is not a ready win"
+            ),
+        ))
+    elif invented:
+        rec.challenges.append(Challenge(
+            kind="naics_overbreadth", severity="warn",
+            statement=(
+                "strategy inferred NAICS "
+                + ", ".join(invented)
+                + " that the dossier does not evidence"
+            ),
+        ))
+
     tokens = [
         t for t in (identity.query_name or "").casefold().split()
         if t not in {"inc", "llc", "ltd", "corp", "co", "the", "and"}
@@ -324,6 +365,8 @@ def challenge_dossier(
 def bounded_repair(
     dossier: CompanyDossier,
     record: AdversarialRecord,
+    *,
+    strategy=None,
 ) -> tuple[CompanyDossier, AdversarialRecord]:
     """One repair pass: drop unsupported asserted/corroborated offerings.
 
@@ -356,7 +399,7 @@ def bounded_repair(
     repaired.unknowns.append(
         "bounded repair dropped unsupported capabilities; it did not invent replacements"
     )
-    second = challenge_dossier(repaired, ran=True)
+    second = challenge_dossier(repaired, ran=True, strategy=strategy)
     second.repairs = [
         f"dropped unsupported offering: {name[:80]}" for name in removed
     ]
@@ -369,6 +412,7 @@ def run_adversarial(
     yield_receipt: Optional[dict] = None,
     product_ingest: Optional[dict] = None,
     engine=None,
+    strategy=None,
 ) -> tuple[CompanyDossier, AdversarialRecord]:
     """Structural challenge plus optional model pressure-test.
 
@@ -379,8 +423,8 @@ def run_adversarial(
     """
     first = challenge_dossier(
         dossier, yield_receipt=yield_receipt,
-        product_ingest=product_ingest, ran=True)
-    dossier, record = bounded_repair(dossier, first)
+        product_ingest=product_ingest, ran=True, strategy=strategy)
+    dossier, record = bounded_repair(dossier, first, strategy=strategy)
 
     if engine is None:
         return dossier, record
