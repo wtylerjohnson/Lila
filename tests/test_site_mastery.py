@@ -16,7 +16,9 @@ from agents.company_research import CompanyResearch
 from agents.intake.adapters import retrieval_frame, strategy_from_dossier
 from agents.intake.dossier import build_dossier
 from agents.intake.extract import (
+    aviation_codes_in_text,
     citation_mismatches_rival,
+    excerpt_supports_rival,
     extract_surface,
     is_competitor_name,
     is_customer_name,
@@ -440,6 +442,27 @@ def test_junk_titles_are_not_offerings_or_customers():
     assert is_product_name("Intuit") is False
     assert is_customer_name("hedge funds") is False
     assert is_customer_name("financial services") is False
+    assert is_customer_name("proof points") is False
+    assert is_customer_name("PDF") is False
+    assert is_customer_name("PDF. Barclays") is False
+    assert "pdf. barclays" not in {c.casefold() for c in recall_customers(
+        "Proof points PDF. Barclays, Citigroup, Morgan Stanley, Yahoo! "
+        "and Hardis run CloudVision in production."
+    )}
+    assert is_customer_name("troubleshoot workloads") is False
+    assert is_customer_name("ease of deployment") is False
+    assert is_customer_name("6") is False
+    assert is_customer_name("Barclays") is True
+    assert is_customer_name("Citigroup") is True
+    assert is_customer_name("Morgan Stanley") is True
+    assert is_customer_name("Yahoo!") is True
+    assert is_customer_name("Hardis") is True
+    assert is_product_name("CloudVision Data Sheet") is False
+    assert is_product_name("SolutionBrief") is False
+    assert is_product_name("From network security to secure networks") is False
+    assert is_product_name("Unmatched Visibility") is False
+    assert is_product_name("Operating System") is False
+    assert is_product_name("Switching &amp; Routing") is False
     assert is_competitor_name("Darktrace Comparison") is True
     assert normalize_rival_name("Darktrace Comparison") == "Darktrace"
     assert citation_mismatches_rival(
@@ -648,3 +671,151 @@ def test_recall_helpers_need_site_language_not_generic_nouns():
     )
     assert recall_competitors(generic, "Acme Net") == []
     assert recall_customers(generic, "Acme Net") == []
+
+
+def test_press12_slogans_junk_customers_and_empty_rivals_are_balanced():
+    ident = _identity()
+    products = ROOT + "/products"
+    customers_url = ROOT + "/customers"
+    compare = ROOT + "/compare"
+    scrape = ScrapeBundle(
+        root_url=ROOT,
+        pages=[
+            ScrapedPage(
+                url=products,
+                text=(
+                    "CloudVision Data Sheet. SolutionBrief. From network "
+                    "security to secure networks. Unmatched Visibility. "
+                    "Operating System. Switching &amp; Routing. "
+                    "Acme Net sells EOS, CloudVision, AGNI, DANZ Monitoring "
+                    "Fabric, and the 7050X switch family on product pages."
+                ),
+            ),
+            ScrapedPage(
+                url=customers_url,
+                text=(
+                    "Proof points PDF. Troubleshoot workloads. Ease of "
+                    "deployment. 6. Barclays, Citigroup, Morgan Stanley, "
+                    "Yahoo! and Hardis run CloudVision in production."
+                ),
+            ),
+            ScrapedPage(
+                url=compare,
+                text=(
+                    "Unlike Cisco and Juniper, Acme Net ships EOS as the "
+                    "alternative on this official head-to-head compare page."
+                ),
+            ),
+        ],
+        sources=[products, customers_url, compare],
+    )
+    probes = [
+        ResearchProbe(
+            name="boundaries",
+            query="exclusions",
+            findings=(
+                "Do not confuse Acme Net with Acme Aviation Services. "
+                "Aviation stays out of the search lane."
+            ),
+            citations=["https://en.wikipedia.org/wiki/Acme_Aviation"],
+        ),
+        ResearchProbe(
+            name="notes",
+            query="collision-codes",
+            findings=(
+                "Aviation namesake listing 336413 is not this company's "
+                "search lane. Keep the code off core NAICS."
+            ),
+            citations=["https://www.acme-net.example/about"],
+        ),
+    ]
+    dossier = build_dossier(
+        client_name="Acme Net",
+        identity=ident,
+        research=CompanyResearch(
+            company_name="Acme Net", website=ROOT, scrape=scrape),
+        probes=probes,
+    )
+    texts = {o.text for o in dossier.offerings}
+    assert "CloudVision Data Sheet" not in texts
+    assert "SolutionBrief" not in texts
+    assert "From network security to secure networks" not in texts
+    assert "Unmatched Visibility" not in texts
+    assert "Operating System" not in texts
+    assert "Switching &amp; Routing" not in texts
+    assert {"EOS", "CloudVision", "AGNI", "7050X"} <= texts
+    assert any("danz" in t.casefold() for t in texts)
+    customers = {c.text.casefold() for c in dossier.customers}
+    assert "proof points" not in customers
+    assert "pdf" not in customers
+    assert "pdf. barclays" not in customers
+    assert "troubleshoot workloads" not in customers
+    assert "ease of deployment" not in customers
+    assert "6" not in customers
+    assert {"barclays", "citigroup", "morgan stanley", "yahoo", "hardis"} <= customers
+    rivals = {c.text: c for c in dossier.competitors}
+    assert "Darktrace Comparison" not in rivals
+    assert {"Cisco", "Juniper"} <= set(rivals)
+    ev = {e.evidence_id: e for e in dossier.evidence}
+    for name in ("Cisco", "Juniper"):
+        excerpt = ev[rivals[name].evidence_ids[0]].excerpt or ""
+        url = ev[rivals[name].evidence_ids[0]].url or ""
+        assert "unlike" in excerpt.casefold() or "alternative" in excerpt.casefold()
+        assert "darktrace.com" not in url.casefold()
+    kept = {k.term.casefold() for k in dossier.kept_out}
+    assert any("aviation" in k for k in kept)
+    parked = {n.code for n in dossier.kept_out_naics}
+    assert "336413" in aviation_codes_in_text(
+        "Aviation namesake listing 336413 is not this company's search lane.")
+    assert "336413" in parked
+    assert "336413" not in {n.code for n in dossier.naics}
+
+
+def test_press12_promotes_orgs_and_rivals_already_in_evidence():
+    """Surface extract may miss; evidence ledger still promotes real names."""
+    ident = _identity()
+    scrape = ScrapeBundle(
+        root_url=ROOT,
+        pages=[ScrapedPage(
+            url=ROOT + "/products",
+            text=(
+                "Acme Net sells EOS and CloudVision AGNI on the official "
+                "product page. No customer hub is linked from this shell."
+            ),
+        )],
+        sources=[ROOT + "/products"],
+    )
+    probes = [
+        ResearchProbe(
+            name="essay",
+            query="site-dump",
+            findings=(
+                "Proof points PDF troubleshoot workloads ease of deployment 6. "
+                "Barclays, Citigroup, Morgan Stanley, Yahoo! and Hardis run "
+                "CloudVision in production. Unlike Cisco and Juniper, Acme "
+                "ships EOS on the official compare writeup."
+            ),
+            citations=[ROOT + "/customers"],
+        ),
+    ]
+    dossier = build_dossier(
+        client_name="Acme Net",
+        identity=ident,
+        research=CompanyResearch(
+            company_name="Acme Net", website=ROOT, scrape=scrape),
+        probes=probes,
+    )
+    customers = {c.text.casefold() for c in dossier.customers}
+    assert "proof points" not in customers
+    assert "pdf" not in customers
+    assert "barclays" in customers
+    assert "citigroup" in customers
+    rivals = {c.text: c for c in dossier.competitors}
+    assert rivals, "compare-claim rivals in evidence must not leave competitors empty"
+    assert "Cisco" in rivals or "Juniper" in rivals
+    ev = {e.evidence_id: e for e in dossier.evidence}
+    for name, claim in rivals.items():
+        if name not in {"Cisco", "Juniper"}:
+            continue
+        excerpt = ev[claim.evidence_ids[0]].excerpt or ""
+        assert excerpt_supports_rival(name, excerpt)

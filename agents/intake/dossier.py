@@ -17,18 +17,22 @@ from pydantic import BaseModel, Field, model_validator
 
 from agents.intake.extract import (
     RelatedEntity,
+    aviation_codes_in_text,
     citation_is_official,
     citation_mismatches_rival,
     excerpt_from,
     excerpt_supports_name,
     excerpt_supports_rival,
     extract_surface,
+    is_customer_name,
     is_discrete_name,
     is_error_page,
     is_garbage_text,
     is_plausible_naics_code,
     is_product_name,
     naics_search_role,
+    recall_competitors,
+    recall_customers,
     site_has_usable_text,
     usable_site_text,
 )
@@ -579,6 +583,78 @@ def build_dossier(
                 add_ev("web_probe", real, url)
         for err in getattr(research, "errors", None) or []:
             unknowns.append(str(err))
+
+    seen_cust = {c.text.casefold() for c in customers}
+    seen_comp = {c.text.casefold() for c in competitors}
+    for ev in evidence:
+        excerpt = ev.excerpt or ""
+        if not excerpt.strip():
+            continue
+        official = ev.source_kind in {"website", "capability_ingest"} or (
+            citation_is_official(ev.url or "", identity.official_domain)
+        )
+        if not official:
+            continue
+        for name in recall_customers(excerpt, client_name):
+            key = name.casefold()
+            if key in seen_cust or not is_customer_name(name, client_name=client_name):
+                continue
+            if not excerpt_supports_name(name, excerpt):
+                continue
+            customers.append(_claim(
+                name, ClaimState.COMPANY_ASSERTED, [ev.evidence_id],
+                "named customer promoted from evidenced site text",
+            ))
+            seen_cust.add(key)
+        for name in recall_competitors(excerpt, client_name):
+            key = name.casefold()
+            if key in seen_comp:
+                continue
+            if not excerpt_supports_rival(name, excerpt):
+                continue
+            if citation_mismatches_rival(
+                    ev.url or "", name, identity.official_domain):
+                continue
+            competitors.append(_claim(
+                name, ClaimState.COMPANY_ASSERTED, [ev.evidence_id],
+                "named rival promoted from a compare claim in evidence",
+            ))
+            seen_comp.add(key)
+
+    exclude_blob = " ".join(k.term for k in kept_out)
+    hay = " ".join(
+        [scrape_text]
+        + [e.excerpt or "" for e in evidence]
+        + [blob[1] for blob in probe_blobs]
+    )
+    if any(w in exclude_blob.casefold() for w in ("aviation", "aircraft", "oas")):
+        parked = {n.code for n in kept_out_naics}
+        core_ids = {n.code for n in naics}
+        for code in aviation_codes_in_text(hay):
+            if code in parked:
+                continue
+            if code in core_ids:
+                moved = [n for n in naics if n.code == code]
+                naics = [n for n in naics if n.code != code]
+                for entry in moved:
+                    entry.role = "boundary"
+                    kept_out_naics.append(entry)
+                parked.add(code)
+                continue
+            snippet = excerpt_from(hay, needle=code)
+            if not snippet or code not in snippet:
+                continue
+            eid = add_ev("web_probe", snippet)
+            kept_out_naics.append(DossierNaics(
+                code=code, role="boundary",
+                rationale=(
+                    snippet[:240] if len(snippet.split()) >= 5 else
+                    f"aviation namesake; keep NAICS {code} out of search"
+                ),
+                state=ClaimState.INFERRED,
+                evidence_ids=[eid] if eid else [],
+            ))
+            parked.add(code)
 
     seen_kw = {k.term.casefold() for k in keywords}
     for off in offerings:

@@ -35,10 +35,13 @@ _GENERIC = frozenset({
     "scope", "appendix", "section", "schedule", "vehicle",
     "casestudies", "casestudy", "case studies", "learnmore",
     "customersuccess", "customer success", "customer success story",
+    "operating system", "data sheet", "datasheet", "solution brief",
+    "proof points", "proof point",
 })
 _NAV_GLUED = frozenset({
     "casestudies", "casestudy", "learnmore", "customersuccess",
     "goingbig", "cognitivcampus", "cognitivecampus",
+    "solutionbrief", "solutionbriefs", "datasheet", "datasheets",
 })
 _IDP_NOISE = frozenset({
     "onelogin", "okta", "pingidentity", "ping identity", "duo",
@@ -52,7 +55,9 @@ _PROSE_FRAGMENT = re.compile(
 _CUSTOMER_JUNK = frozenset({
     "customer success story", "success story", "customer story",
     "going big", "group vp", "cognitive campus", "case study",
-    "case studies", "customer success",
+    "case studies", "customer success", "proof points", "proof point",
+    "pdf", "ease of deployment", "troubleshoot workloads",
+    "unmatched visibility", "operating system",
 })
 _INDUSTRY_SEGMENTS = frozenset({
     "hedge funds", "hedge fund", "financial services", "financial service",
@@ -78,9 +83,39 @@ _PEOPLE_NAV = re.compile(
     re.I,
 )
 _TITLE_TAIL = re.compile(
-    r"\b(overview|page|home|index|guide|datasheet|whitepaper)\s*$",
+    r"\b(overview|page|home|index|guide|datasheets?|data\s*sheets?|"
+    r"whitepapers?|white\s*papers?|solution\s*briefs?|briefs?)\s*$",
     re.I,
 )
+_SLOGAN = re.compile(
+    r"^(from|to|unmatched|leading|ultimate|discover|unlock|"
+    r"reimagine|welcome)\b|\bfrom\b.+\bto\b|&amp;|&",
+    re.I,
+)
+_CUSTOMER_CONTEXT = re.compile(
+    r"\b(customers?|case stud|trusted by|proof points?|logo|"
+    r"deployed (?:at|by)|used by|clients?)\b",
+    re.I,
+)
+_ORG_PROOF = re.compile(
+    r"\b(customer|case stud|trusted|proof point|deployed|uses|chose|"
+    r"selected|logo|production|ran|running)\b",
+    re.I,
+)
+_ORG_RUN = re.compile(
+    r"\b([A-Z][A-Za-z0-9&'!-]{1,40}"
+    r"(?:\s+[A-Z][A-Za-z0-9&'!-]{1,24}){0,3})\b"
+)
+_NOT_ORG = frozenset({
+    "unlike", "versus", "compared", "alternatives", "alternative",
+    "customers", "customer", "proof", "points", "case", "study",
+    "trusted", "official", "about", "welcome", "ease", "pdf",
+    "operating", "system", "solution", "brief", "data", "sheet",
+})
+_NOT_RIVAL = frozenset({
+    "analyst", "analysts", "gartner", "forrester", "wikipedia",
+    "crunchbase", "industry", "vendors", "vendor", "notes",
+})
 _RIVAL_TITLE_TAIL = re.compile(
     r"\s+(comparisons?|overview|alternatives?|versus|\bvs\.?)$",
     re.I,
@@ -89,6 +124,7 @@ _CATEGORY_HEADERS = frozenset({
     "visibility", "telemetry", "network visibility", "network telemetry",
     "visibility fabric", "telemetry fabric", "visibility and telemetry",
     "visibility or telemetry", "visibility or telemetry fabrics",
+    "operating system", "unmatched visibility",
 })
 _SCHEDULE_TICKER = frozenset({
     "gsa", "sewp", "gwac", "idiq", "oasis", "mas", "fss", "2git",
@@ -155,7 +191,8 @@ _HEADERISH = re.compile(
 _URLISH = re.compile(r"https?://|www\.|/\d{4}/|\d{4}-\d{2}-\d{2}")
 _RIVAL_CUE = re.compile(
     r"\b(competitor|competitors|rival|versus|\bvs\.?\b|unlike|"
-    r"compare(?:d)?(?: this)? to|alternative to|sold by|"
+    r"compare(?:d)?(?: this)? to|compared with|(?<!\bno\s)head-to-head|"
+    r"alternative(?:s)?(?: to)?|sold by|"
     r"from (?:vmware|cisco|juniper)|"
     r"not (?:an? )?(?:arista|our) product)\b",
     re.I,
@@ -402,6 +439,10 @@ def is_product_name(text: str) -> bool:
     if name.casefold() in _CATEGORY_HEADERS:
         return False
     if _PEOPLE_NAV.search(name) or _TITLE_TAIL.search(name):
+        return False
+    if _SLOGAN.search(name) or "&" in name:
+        return False
+    if name.casefold() in {"operating system", "unmatched visibility"}:
         return False
     words = name.split()
     if len(words) == 1:
@@ -687,6 +728,16 @@ def is_aviation_industry_naics(code: str) -> bool:
     return raw in _AVIATION_NAICS or raw.startswith(("3364", "4811", "4881"))
 
 
+def aviation_codes_in_text(text: str) -> list[str]:
+    """Six-digit aviation NAICS that actually appear in the source text."""
+    raw = str(text or "")
+    found: list[str] = []
+    for code in sorted(_AVIATION_NAICS):
+        if re.search(rf"\b{code}\b", raw):
+            found.append(code)
+    return found
+
+
 def is_records_industry_naics(code: str) -> bool:
     raw = str(code or "").strip()
     return raw in _RECORDS_NAICS or raw.startswith("5122")
@@ -815,6 +866,10 @@ def is_customer_name(text: str, *, client_name: str = "") -> bool:
     name = _party_name(text, client_name=client_name)
     if not name:
         return False
+    if not name[:1].isupper():
+        return False
+    if re.fullmatch(r"\d+", name) or len(name) < 2 or "." in name:
+        return False
     low = name.casefold()
     if low in _CUSTOMER_JUNK or low in _GENERIC or low in _NAV_GLUED:
         return False
@@ -822,15 +877,23 @@ def is_customer_name(text: str, *, client_name: str = "") -> bool:
         return False
     if low in _IDP_NOISE or low in _RIVAL_VENDORS or low in _RIVAL_PRODUCTS:
         return False
+    if low in _NOT_ORG or low in _ACRONYM_DENY or low in _TOOL_META:
+        return False
     if _JOB_TITLE.search(name) or _STORY_TITLE.search(name):
         return False
     if _PEOPLE_NAV.search(name) or _TITLE_TAIL.search(name):
         return False
-    if _PROSE_FRAGMENT.search(name):
+    if _PROSE_FRAGMENT.search(name) or _SLOGAN.search(name):
+        return False
+    if is_product_name(name):
         return False
     words = name.split()
-    if any(w.casefold() in {"story", "stories", "success", "going",
-                            "services", "funds", "sector", "vertical"}
+    if any(w.casefold() in {
+            "story", "stories", "success", "going",
+            "services", "funds", "sector", "vertical",
+            "proof", "points", "pdf", "troubleshoot", "workloads",
+            "ease", "deployment", "visibility", "unmatched",
+            "sheet", "brief", "datasheet"}
            for w in words):
         return False
     if all(w.casefold() in _INDUSTRY_SEGMENTS or w.casefold() in {
@@ -854,6 +917,8 @@ def is_competitor_name(text: str, *, client_name: str = "") -> bool:
         return False
     low = name.casefold()
     if low in _GENERIC or low in _GENERIC_CUSTOMERS or low in _NAV_GLUED:
+        return False
+    if low in _NOT_RIVAL or low in _NOT_ORG:
         return False
     if _TITLE_TAIL.search(name) or _PEOPLE_NAV.search(name):
         return False
@@ -925,17 +990,17 @@ def _protect_abbrevs(text: str) -> str:
 
 def _party_name(raw: str, *, client_name: str = "") -> str:
     name = _strip_label(_protect_abbrevs(raw))
-    name = re.split(r",|;|/", name)[0].strip()
+    name = re.split(r",|;|/|\.", name)[0].strip()
     name = re.sub(r"^(?:the|a|an)\s+", "", name, flags=re.I)
     run = re.match(
-        r"^((?:the\s+)?[A-Z][A-Za-z0-9&.\'-]{1,40}"
-        r"(?:\s+(?:the\s+)?[A-Z][A-Za-z0-9&.\'-]{1,24}){0,3})",
+        r"^((?:the\s+)?[A-Z][A-Za-z0-9&'!-]{1,40}"
+        r"(?:\s+(?:the\s+)?[A-Z][A-Za-z0-9&'!-]{1,24}){0,3})",
         name,
     )
     if run:
         name = run.group(1)
     name = re.sub(r"^(?:the|a|an)\s+", "", name, flags=re.I)
-    name = _clean(name)
+    name = _clean(name).rstrip("!")
     if not name or not is_discrete_name(name):
         return ""
     if name.casefold() in _GENERIC_CUSTOMERS or name.casefold() in _GENERIC:
@@ -977,6 +1042,27 @@ def recall_competitors(text: str, client_name: str = "") -> list[str]:
     return found
 
 
+def names_from_customer_context(text: str, client_name: str = "") -> list[str]:
+    """Org names on a proof / case-study / customer page, not lead lists only."""
+    raw = _protect_abbrevs(text)
+    if not raw.strip():
+        return []
+    if not (_CUSTOMER_CONTEXT.search(raw) or _ORG_PROOF.search(raw)):
+        return []
+    found: list[str] = []
+    seen: set[str] = set()
+    for match in _ORG_RUN.finditer(raw):
+        piece = _party_name(match.group(1), client_name=client_name)
+        if not is_customer_name(piece, client_name=client_name):
+            continue
+        key = piece.casefold()
+        if not piece or key in seen or key in _NOT_ORG:
+            continue
+        seen.add(key)
+        found.append(piece)
+    return found
+
+
 def recall_customers(text: str, client_name: str = "") -> list[str]:
     """Named customers / case-study hooks from site proof language."""
     raw = _protect_abbrevs(text)
@@ -996,6 +1082,8 @@ def recall_customers(text: str, client_name: str = "") -> list[str]:
     for match in _CUSTOMER_LEAD.finditer(raw):
         for part in re.split(r",|;|\band\b", match.group(1)):
             _add(part)
+    for name in names_from_customer_context(raw, client_name=client_name):
+        _add(name)
     return found
 
 

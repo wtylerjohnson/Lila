@@ -202,18 +202,29 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   (OneLogin), schedule/ticker/header fragments, GSA / SEWP / award
   IDs (47QSWA18D008F, 0119Y), bare numbers, and the placeholder
   excerpt "citation" never become offerings or ledger text.
-  Customers are buying orgs (Microsoft, US Army), not story titles
+  Customers are buying orgs (Microsoft, US Army, Barclays,
+  Citigroup, Morgan Stanley, Yahoo, Hardis), not story titles
   (Customer Success Story, Going Big), job titles (Group VP),
-  solution-brand phrases (Cognitive Campus), or industry segments
-  (hedge funds, financial services). Nav/people/page titles
-  (Management Team, Senior Management, Platforms page, Detection
-  and Response Overview) and case-study customer codes (JCT600,
-  RACSA, Intuit) are not offerings. Competitor names are rival
-  companies (Cisco, Juniper, Aruba, Darktrace), not page titles
-  (Darktrace Comparison). Rival evidence must be a compare / vs /
+  solution-brand phrases (Cognitive Campus), industry segments
+  (hedge funds, financial services), or proof-page junk (proof
+  points, PDF, troubleshoot workloads, ease of deployment, bare
+  numbers). Nav/people/page titles (Management Team, Senior
+  Management, Platforms page, Detection and Response Overview)
+  and case-study customer codes (JCT600, RACSA, Intuit) are not
+  offerings. Slogan / datasheet titles (CloudVision Data Sheet,
+  SolutionBrief, From network security to secure networks,
+  Unmatched Visibility, generic Operating System, `&amp;` titles)
+  are not offerings. Competitor names are rival companies (Cisco,
+  Juniper, Aruba, Darktrace), not page titles (Darktrace
+  Comparison). Rival evidence must be a compare / vs /
   alternative claim; a darktrace URL plus 10-K body is a
-  URL-versus-claim mismatch and is dropped. Product evidence
+  URL-versus-claim mismatch and is dropped. When evidence already
+  names an org or a compare-claim rival, promote that name onto
+  dossier.customers / dossier.competitors with the matching eid.
+  Do not empty those lists to avoid a title bug. Product evidence
   prefers official-site URLs over third-party PDFs.
+  If Aviation is in kept_out and aviation NAICS codes (336413)
+  appear in evidence, they stay on kept_out_naics.
   A rival platform (VeloCloud) is not an Arista offering unless the
   source asserts Arista sells it. Tool-meta tokens (WebSearch),
   URL/date shards, and lone acronym scraps are not products. NAICS that
