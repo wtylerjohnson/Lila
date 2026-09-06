@@ -26,6 +26,7 @@ from agents.intake.extract import (
     is_plausible_naics_code,
     is_product_name,
     naics_search_role,
+    site_has_usable_text,
 )
 from agents.schemas import IntakeSubmission
 
@@ -347,6 +348,35 @@ def strategy_from_dossier(
         requires_human_review=True,
         review_gate=gate,
     )
+
+
+def apply_site_honesty(strategy: IntakeStrategy, identity, research) -> IntakeStrategy:
+    """Keep review_gate honest when official-site ingest did not render."""
+    if not getattr(identity, "is_bound", False):
+        return strategy
+    if site_has_usable_text(getattr(research, "scrape", None)):
+        return strategy
+    if getattr(identity, "website_source", "") == "not_found":
+        return strategy
+    scrape = getattr(research, "scrape", None)
+    failures = list(getattr(scrape, "render_failures", None) or [])
+    pages = list(getattr(scrape, "pages", None) or [])
+    fetched = len(failures) or len(pages)
+    note = (
+        "Official-site ingest failed to render usable pages"
+        + (f" ({fetched} fetched were empty or interstitial)" if fetched else "")
+        + ". E2 is not a pass. Do not treat generic web research as the site."
+    )
+    gate = (getattr(strategy, "review_gate", None) or "").strip()
+    low = gate.casefold()
+    if "failed to render" in low or "scrape returned nothing" in low:
+        return strategy
+    new_gate = f"{note} {gate}".strip() if gate else note
+    copier = getattr(strategy, "model_copy", None)
+    if callable(copier):
+        return copier(update={"review_gate": new_gate})
+    strategy.review_gate = new_gate
+    return strategy
 
 
 def apply_kept_out(strategy: IntakeStrategy, dossier: CompanyDossier) -> IntakeStrategy:

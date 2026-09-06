@@ -529,6 +529,9 @@ def test_name_only_cli_does_not_require_submission():
     sub = load_submission(args)
     assert sub.client_name == "Acme Federal Solutions LLC"
     assert sub.website is None
+    from tools.scrape.site import SITE_MASTERY_MAX_PAGES
+    assert args.max_pages == SITE_MASTERY_MAX_PAGES
+    assert args.max_pages >= 24
     with pytest.raises(SystemExit):
         build_arg_parser().parse_args([])
 

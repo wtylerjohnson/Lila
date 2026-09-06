@@ -165,13 +165,18 @@ Reality in the code wins. When you extend a pattern, extend it here too.
 - Adapters (`agents/intake/adapters.py`) copy evidenced dossier fields onto
   `IntakeStrategy` and a hybrid.frame_lanes-shaped retrieval sidecar.
 - After identity bind, website-first deep ingest drives the dossier
-  (`tools/scrape/site.py` `SITE_MASTERY_MAX_PAGES` = 24). The crawl seeds
-  official-site hubs (products, solutions, customers, case studies,
-  partners, compare/alternatives, about, industries) and follows
-  in-domain nav/footer/product-hub links. Homepage JS shells are not
-  treated as an empty company. External web probes are secondary
-  (NAICS, namesakes, federal footprint). Generic SERP blurbs must not
-  invent offerings or competitors when the official site is thin.
+  (`tools/scrape/site.py` `SITE_MASTERY_MAX_PAGES` = 24). `run_intake.py`
+  `--max-pages` and `research_company` default to that budget; a CLI 5
+  is floored back up. The crawl seeds `/en/` and bare hubs (products,
+  solutions, customers, case studies, partners, compare/alternatives,
+  about, industries, product-family paths) and follows in-domain
+  nav/footer/product-hub links. Interstitial / JS shells are
+  `render_failures`, not "pages read". E2 passes only on usable
+  rendered pages (or an honest no-site bind). Optional Playwright
+  render (`LILA_INTAKE_JS_RENDER`, default on) may recover SPA hubs
+  when static HTML is an interstitial; missing browser fails closed.
+  Generic SERP blurbs must not invent offerings or competitors when
+  the official site is thin.
 - Structured probes are site-anchored after bind: products, competitors,
   and customers start on the official domain. Probes also seek named
   product families (CloudVision AGNI / Guardian for Network Identity,
@@ -183,9 +188,16 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   in probe prose.
 - Dossier offerings, keywords, and retrieval units are short discrete
   product or capability names (EOS, CloudVision, AGNI, 7050X). Probe
-  essays, homepage load-errors, schedule/ticker/header fragments, GSA /
-  SEWP / award IDs (47QSWA18D008F, 0119Y), bare numbers, and the
-  placeholder excerpt "citation" never become offerings or ledger text.
+  essays, homepage load-errors, sentence fragments ("Also has a
+  telemetry"), nav glue (CaseStudies), third-party IdP names
+  (OneLogin), schedule/ticker/header fragments, GSA / SEWP / award
+  IDs (47QSWA18D008F, 0119Y), bare numbers, and the placeholder
+  excerpt "citation" never become offerings or ledger text.
+  Customers are buying orgs (Microsoft, US Army), not story titles
+  (Customer Success Story, Going Big), job titles (Group VP), or
+  solution-brand phrases (Cognitive Campus). Competitor and product
+  evidence prefer official-site URLs (product-specific when the path
+  names the offering) over third-party PDFs.
   A rival platform (VeloCloud) is not an Arista offering unless the
   source asserts Arista sells it. Tool-meta tokens (WebSearch),
   URL/date shards, and lone acronym scraps are not products. NAICS that

@@ -10,6 +10,8 @@ Kept dependency-light and polite (page cap, same-domain only).
 
 from __future__ import annotations
 
+import os
+import re
 from html.parser import HTMLParser
 from typing import Optional
 from urllib.parse import urljoin, urlparse
@@ -56,23 +58,43 @@ _PRIORITY_SLUGS = (
 )
 
 # Seeded even when nav extraction fails (JS homepage, empty footer).
-_SEED_PATHS = (
-    "/about",
-    "/about-us",
-    "/company",
+# Locale prefixes first: arista.com hubs live under /en/, not the bare path.
+_HUB_PATHS = (
     "/products",
     "/solutions",
-    "/platform",
-    "/capabilities",
-    "/industries",
-    "/use-cases",
     "/customers",
     "/case-studies",
     "/partners",
-    "/ecosystem",
-    "/resources",
     "/compare",
     "/alternatives",
+    "/about",
+    "/company",
+    "/industries",
+    "/products/eos",
+    "/products/cloudvision",
+)
+_SEED_PATHS = tuple(
+    f"{prefix}{path}"
+    for prefix in ("/en", "")
+    for path in _HUB_PATHS
+) + (
+    "/about-us",
+    "/platform",
+    "/capabilities",
+    "/use-cases",
+    "/ecosystem",
+    "/resources",
+)
+
+# Optional JS render budget for interstitial / SPA shells.
+_JS_RENDER_CAP = 8
+_UNRENDERED = re.compile(
+    r"\b(error loading|load error|loading error|browser error|"
+    r"enable javascript|enable js|access denied|just a moment|"
+    r"attention required|cloudflare|captcha|page not found|"
+    r"error code|failed to (?:load|fetch|open)|timeout|"
+    r"502 bad gateway|503 service|404 not found)\b",
+    re.I,
 )
 
 _SKIP_TAGS = {"script", "style", "noscript", "svg", "head"}
@@ -87,9 +109,16 @@ class ScrapeBundle(BaseModel):
     root_url: str
     pages: list[ScrapedPage] = Field(default_factory=list)
     sources: list[str] = Field(default_factory=list, description="every URL fetched (traceability)")
+    render_failures: list[str] = Field(
+        default_factory=list,
+        description="fetched URLs that were empty, interstitial, or failed to render",
+    )
+
+    def usable_pages(self) -> list[ScrapedPage]:
+        return [p for p in self.pages if p.text.strip() and not is_unrendered_text(p.text)]
 
     def combined_text(self, max_chars: int = 40_000) -> str:
-        chunks = [f"# {p.url}\n{p.text}" for p in self.pages]
+        chunks = [f"# {p.url}\n{p.text}" for p in self.usable_pages()]
         return "\n\n".join(chunks)[:max_chars]
 
 
@@ -120,6 +149,45 @@ class _TextExtractor(HTMLParser):
 
     def text(self) -> str:
         return " ".join(self._parts)
+
+
+def is_unrendered_text(text: str) -> bool:
+    """True for empty pages, load-errors, and JS/captcha interstitials."""
+    raw = str(text or "")
+    if not raw.strip():
+        return True
+    if raw.strip().casefold() in {"citation", "cite", "source", "url"}:
+        return True
+    return bool(_UNRENDERED.search(raw))
+
+
+def _js_render_enabled() -> bool:
+    flag = (os.environ.get("LILA_INTAKE_JS_RENDER") or "on").strip().casefold()
+    return flag not in {"0", "off", "false", "no"}
+
+
+def _fetch_rendered(url: str, timeout: float = 25.0) -> Optional[str]:
+    """Best-effort Playwright render. Missing browser is not a crash."""
+    if not _js_render_enabled():
+        return None
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        return None
+    try:
+        with sync_playwright() as player:
+            browser = player.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.goto(url, wait_until="domcontentloaded", timeout=int(timeout * 1000))
+            try:
+                page.wait_for_load_state("networkidle", timeout=8000)
+            except Exception:  # noqa: BLE001 - SPA may never idle
+                pass
+            html = page.content()
+            browser.close()
+            return html
+    except Exception:  # noqa: BLE001 - render is optional
+        return None
 
 
 def _fetch(url: str, timeout: float = 20.0) -> Optional[str]:
@@ -184,6 +252,7 @@ def scrape_site(
     bundle = ScrapeBundle(root_url=root)
     fetch = fetcher or _fetch
     cap = max(1, int(max_pages or SITE_MASTERY_MAX_PAGES))
+    js_left = 0 if fetcher is not None else _JS_RENDER_CAP
 
     queue: list[str] = [root]
     for path in _SEED_PATHS:
@@ -191,6 +260,8 @@ def scrape_site(
         if seeded not in queue:
             queue.append(seeded)
     seen: set[str] = set()
+    empty_hits = 0
+    saw_html = False
 
     while queue and len(bundle.pages) < cap:
         url = queue.pop(0).split("#")[0].rstrip("/") or root
@@ -199,11 +270,28 @@ def scrape_site(
         seen.add(url)
         html = fetch(url)
         if not html:
+            bundle.render_failures.append(url)
+            empty_hits += 1
+            # Dead host: do not walk every seed path.
+            if empty_hits >= 8 and not saw_html:
+                break
             continue
+        saw_html = True
+        empty_hits = 0
         text, links = _extract(html)
-        if text.strip():
+        if is_unrendered_text(text) and js_left > 0 and _priority_url(url):
+            rendered = _fetch_rendered(url)
+            js_left -= 1
+            if rendered:
+                html = rendered
+                text, links = _extract(html)
+        if text.strip() and not is_unrendered_text(text):
             bundle.pages.append(ScrapedPage(url=url, text=text))
             bundle.sources.append(url)
+        else:
+            bundle.render_failures.append(url)
+            if url not in bundle.sources:
+                bundle.sources.append(url)
         for href in links:
             absolute = urljoin(url + "/", href).split("#")[0].rstrip("/")
             if (

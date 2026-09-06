@@ -33,7 +33,37 @@ _GENERIC = frozenset({
     "channels", "competitors", "boundaries", "company", "government",
     "partners", "customers", "features", "benefits", "gap", "note",
     "scope", "appendix", "section", "schedule", "vehicle",
+    "casestudies", "casestudy", "case studies", "learnmore",
+    "customersuccess", "customer success", "customer success story",
 })
+_NAV_GLUED = frozenset({
+    "casestudies", "casestudy", "learnmore", "customersuccess",
+    "goingbig", "cognitivcampus", "cognitivecampus",
+})
+_IDP_NOISE = frozenset({
+    "onelogin", "okta", "pingidentity", "ping identity", "duo",
+    "azure ad", "azuread", "auth0",
+})
+_PROSE_FRAGMENT = re.compile(
+    r"\b(also|has a|is a|there is|this is|these are|we have|"
+    r"coming soon|learn more)\b",
+    re.I,
+)
+_CUSTOMER_JUNK = frozenset({
+    "customer success story", "success story", "customer story",
+    "going big", "group vp", "cognitive campus", "case study",
+    "case studies", "customer success",
+})
+_JOB_TITLE = re.compile(
+    r"\b(vp|vice president|director|manager|officer|president|"
+    r"head of|group vp|engineer)\b",
+    re.I,
+)
+_STORY_TITLE = re.compile(
+    r"\b(success story|customer story|case stud|going big|"
+    r"cognitive campus|\bstories\b)\b",
+    re.I,
+)
 _CATEGORY_HEADERS = frozenset({
     "visibility", "telemetry", "network visibility", "network telemetry",
     "visibility fabric", "telemetry fabric", "visibility and telemetry",
@@ -242,7 +272,11 @@ def is_discrete_name(text: str, *, allow_one_word: bool = True) -> bool:
         return False
     if _NAV.search(name):
         return False
-    if name.casefold() in _GENERIC:
+    if name.casefold() in _GENERIC or name.casefold() in _NAV_GLUED:
+        return False
+    if name.casefold() in _IDP_NOISE:
+        return False
+    if _PROSE_FRAGMENT.search(name):
         return False
     if ":" in name or "(" in name or ")" in name:
         return False
@@ -314,9 +348,13 @@ def is_noise_term(text: str) -> bool:
     if _URLISH.search(name):
         return True
     low = name.casefold()
-    if low in _GENERIC or low in _SCHEDULE_TICKER or low in _TOOL_META:
+    if low in _GENERIC or low in _NAV_GLUED or low in _IDP_NOISE:
+        return True
+    if low in _SCHEDULE_TICKER or low in _TOOL_META:
         return True
     if low in _CATEGORY_HEADERS:
+        return True
+    if _PROSE_FRAGMENT.search(name):
         return True
     if low in _ACRONYM_DENY:
         return True
@@ -350,7 +388,7 @@ def is_product_name(text: str) -> bool:
         if re.fullmatch(r"[A-Z]{3,8}", name):
             return low in _SHORT_ALLOW
         if re.fullmatch(r"[A-Z][a-z]+[A-Z][A-Za-z0-9]*", name):
-            return low not in _TOOL_META
+            return low not in _TOOL_META and low not in _NAV_GLUED and low not in _IDP_NOISE
         if _SKU.fullmatch(name):
             return True
         # Letter-led product codes (CCS-720XP). Digit-led mixed IDs must be SKUs.
@@ -734,12 +772,36 @@ def citation_is_official(url: str, official_domain: Optional[str]) -> bool:
 
 def is_error_page(text: str) -> bool:
     """Load-error / interstitial only. Multi-page crawls are not essays."""
-    raw = str(text or "")
-    if not raw.strip():
-        return True
-    if raw.strip().casefold() in {"citation", "cite", "source", "url"}:
-        return True
-    return bool(_GARBAGE.search(raw))
+    try:
+        from tools.scrape.site import is_unrendered_text
+        return is_unrendered_text(text)
+    except Exception:  # noqa: BLE001 - keep extract usable offline
+        raw = str(text or "")
+        if not raw.strip():
+            return True
+        if raw.strip().casefold() in {"citation", "cite", "source", "url"}:
+            return True
+        return bool(_GARBAGE.search(raw))
+
+
+def is_customer_name(text: str, *, client_name: str = "") -> bool:
+    """Named buying org. Rejects story titles, job titles, and solution brands."""
+    name = _party_name(text, client_name=client_name)
+    if not name:
+        return False
+    low = name.casefold()
+    if low in _CUSTOMER_JUNK or low in _GENERIC or low in _NAV_GLUED:
+        return False
+    if low in _IDP_NOISE or low in _RIVAL_VENDORS or low in _RIVAL_PRODUCTS:
+        return False
+    if _JOB_TITLE.search(name) or _STORY_TITLE.search(name):
+        return False
+    if _PROSE_FRAGMENT.search(name):
+        return False
+    words = name.split()
+    if any(w.casefold() in {"story", "stories", "success", "going"} for w in words):
+        return False
+    return True
 
 
 def usable_site_text(scrape, *, max_chars: int = 24000) -> str:
@@ -831,12 +893,10 @@ def recall_customers(text: str, client_name: str = "") -> list[str]:
 
     def _add(name: str) -> None:
         piece = _party_name(name, client_name=client_name)
+        if not is_customer_name(piece, client_name=client_name):
+            return
         key = piece.casefold()
         if not piece or key in seen:
-            return
-        if key in _RIVAL_VENDORS or key in _RIVAL_PRODUCTS:
-            return
-        if looks_like_contract_or_schedule_id(piece) or is_noise_term(piece):
             return
         seen.add(key)
         found.append(piece)
@@ -953,6 +1013,8 @@ def extract_surface(
 
     def _customer(name: str) -> None:
         piece = _party_name(name, client_name=client_name)
+        if not is_customer_name(piece, client_name=client_name):
+            return
         key = piece.casefold()
         if not piece or key in seen_cust or key in seen_off or key in seen_comp:
             return
@@ -964,7 +1026,7 @@ def extract_surface(
         _offer(name)
 
     scrape_text = usable_site_text(scrape, max_chars=24000)
-    site_ok = bool((product_ingest or {}).get("capabilities")) or bool(scrape_text)
+    site_ok = bool(scrape_text)
     if scrape_text:
         for name in candidate_names(scrape_text):
             _offer(name, source_text=scrape_text, implicit=True)

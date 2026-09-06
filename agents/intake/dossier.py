@@ -8,6 +8,7 @@ silent field on IntakeStrategy.
 
 from __future__ import annotations
 
+import re
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Literal, Optional
@@ -16,6 +17,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from agents.intake.extract import (
     RelatedEntity,
+    citation_is_official,
     excerpt_from,
     excerpt_supports_name,
     extract_surface,
@@ -137,6 +139,25 @@ def _discrete_from_findings(findings: str) -> list[str]:
     return candidate_names(findings)
 
 
+def _best_citation(
+    citations: list[str],
+    official_domain: Optional[str],
+    name: str = "",
+) -> Optional[str]:
+    cites = [c for c in (citations or []) if c]
+    official = [c for c in cites if citation_is_official(c, official_domain)]
+    pool = official or [
+        c for c in cites if not str(c).casefold().endswith(".pdf")
+    ] or cites
+    token = re.sub(r"[^a-z0-9]+", "", (name or "").casefold())
+    if token and len(token) >= 3:
+        for cite in pool:
+            compact = re.sub(r"[^a-z0-9]+", "", str(cite).casefold())
+            if token in compact:
+                return cite
+    return pool[0] if pool else None
+
+
 def _evidence_for_name(
     name: str,
     probe_blobs: list[tuple[str, str, list[str]]],
@@ -144,31 +165,83 @@ def _evidence_for_name(
     fallback_url: Optional[str],
     *,
     require_needle: bool = False,
+    scrape=None,
+    official_domain: Optional[str] = None,
+    prefer_site: bool = False,
 ) -> tuple[str, Optional[str]]:
     needles = [name]
     parts = [t for t in name.split() if t.casefold() not in {
         "the", "a", "an", "and", "of", "for"}]
     if parts and parts[-1].casefold() != name.casefold():
         needles.append(parts[-1])
-    for needle in needles:
-        for _title, findings, citations in probe_blobs:
-            if needle.casefold() not in findings.casefold():
-                continue
-            snippet = excerpt_from(findings, needle=needle)
-            if snippet and excerpt_supports_name(name, snippet):
-                return snippet, (citations[0] if citations else fallback_url)
+    pages = []
+    if scrape is not None:
+        pages = [
+            p for p in (getattr(scrape, "pages", None) or [])
+            if getattr(p, "text", "").strip() and not is_error_page(p.text)
+        ]
+
+    def from_pages() -> Optional[tuple[str, Optional[str]]]:
+        ranked = []
+        token = re.sub(r"[^a-z0-9]+", "", name.casefold())
+        for page in pages:
+            text = page.text or ""
+            url = getattr(page, "url", None)
+            score = 0
+            if token and url and token in re.sub(r"[^a-z0-9]+", "", url.casefold()):
+                score += 2
+            if official_domain and citation_is_official(url or "", official_domain):
+                score += 1
+            ranked.append((score, page, text, url))
+        ranked.sort(key=lambda row: row[0], reverse=True)
+        for needle in needles:
+            for _score, _page, text, url in ranked:
+                if needle.casefold() not in text.casefold():
+                    continue
+                snippet = excerpt_from(text, needle=needle)
+                if snippet and excerpt_supports_name(name, snippet):
+                    return snippet, url or fallback_url
         if scrape_text and scrape_text.strip() and not is_error_page(scrape_text):
-            if needle.casefold() not in scrape_text.casefold():
-                continue
-            snippet = excerpt_from(scrape_text, needle=needle)
-            if snippet and excerpt_supports_name(name, snippet):
-                return snippet, fallback_url
+            for needle in needles:
+                if needle.casefold() not in scrape_text.casefold():
+                    continue
+                snippet = excerpt_from(scrape_text, needle=needle)
+                if snippet and excerpt_supports_name(name, snippet):
+                    return snippet, fallback_url
+        return None
+
+    def from_probes() -> Optional[tuple[str, Optional[str]]]:
+        for needle in needles:
+            for _title, findings, citations in probe_blobs:
+                if needle.casefold() not in findings.casefold():
+                    continue
+                snippet = excerpt_from(findings, needle=needle)
+                if snippet and excerpt_supports_name(name, snippet):
+                    return snippet, _best_citation(
+                        citations, official_domain, name) or fallback_url
+        return None
+
+    if prefer_site:
+        hit = from_pages()
+        if hit:
+            return hit
+        hit = from_probes()
+        if hit:
+            return hit
+    else:
+        hit = from_probes()
+        if hit:
+            return hit
+        hit = from_pages()
+        if hit:
+            return hit
     if require_needle:
         return "", None
     for _title, findings, citations in probe_blobs:
         snippet = excerpt_from(findings)
         if snippet:
-            return snippet, (citations[0] if citations else fallback_url)
+            return snippet, _best_citation(
+                citations, official_domain, name) or fallback_url
     return name, fallback_url
 
 
@@ -335,7 +408,10 @@ def build_dossier(
     for name in surface.offerings:
         if name.casefold() in existing_off or not is_product_name(name):
             continue
-        snippet, url = _evidence_for_name(name, probe_blobs, scrape_text, identity.website)
+        snippet, url = _evidence_for_name(
+            name, probe_blobs, scrape_text, identity.website,
+            scrape=scrape, official_domain=identity.official_domain,
+            prefer_site=True)
         eid = add_ev("web_probe" if url or snippet else "capability_ingest",
                      snippet or name, url)
         offerings.append(_claim(
@@ -347,7 +423,8 @@ def build_dossier(
     for name in surface.competitors:
         snippet, url = _evidence_for_name(
             name, probe_blobs, scrape_text, identity.website,
-            require_needle=True)
+            require_needle=True, scrape=scrape,
+            official_domain=identity.official_domain, prefer_site=True)
         if not snippet or not excerpt_supports_name(name, snippet):
             continue
         eid = add_ev("website", snippet, url or identity.website)
@@ -361,7 +438,8 @@ def build_dossier(
     for name in surface.customers:
         snippet, url = _evidence_for_name(
             name, probe_blobs, scrape_text, identity.website,
-            require_needle=True)
+            require_needle=True, scrape=scrape,
+            official_domain=identity.official_domain, prefer_site=True)
         if not snippet or not excerpt_supports_name(name, snippet):
             continue
         eid = add_ev("website", snippet, url or identity.website)

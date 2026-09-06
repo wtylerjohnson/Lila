@@ -33,6 +33,7 @@ from agents.intake.pipeline import (  # noqa: E402
     run_step1,
     submission_from_client_name,
 )
+from tools.scrape.site import SITE_MASTERY_MAX_PAGES  # noqa: E402
 from agents.schemas import IntakeSubmission  # noqa: E402
 
 
@@ -42,7 +43,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     src.add_argument("--client", help="company name only (required input)")
     src.add_argument("--submission", help="optional intake JSON from the form")
     ap.add_argument("--website", help="optional official website enrichment")
-    ap.add_argument("--max-pages", type=int, default=5)
+    ap.add_argument("--max-pages", type=int, default=SITE_MASTERY_MAX_PAGES)
     ap.add_argument("--no-scrape", action="store_true",
                     help="skip website find+scrape worker")
     ap.add_argument("--no-websearch", action="store_true",

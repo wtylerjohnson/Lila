@@ -15,6 +15,7 @@ from agents.intake.adversarial import (
     strategy_inferred_naics,
 )
 from agents.intake.dossier import CompanyDossier
+from agents.intake.extract import is_error_page
 from agents.intake.identity import IdentityResolution
 
 
@@ -43,6 +44,17 @@ def evaluate_readiness(
     """Return the E1-E8 receipt block plus an all_ok flag."""
     scrape = getattr(research, "scrape", None) if research is not None else None
     pages = list(getattr(scrape, "pages", None) or []) if scrape is not None else []
+    usable = []
+    if scrape is not None:
+        usable_fn = getattr(scrape, "usable_pages", None)
+        if callable(usable_fn):
+            usable = list(usable_fn())
+        else:
+            usable = [
+                p for p in pages
+                if getattr(p, "text", "").strip() and not is_error_page(p.text)
+            ]
+    failures = list(getattr(scrape, "render_failures", None) or []) if scrape is not None else []
     probe_list = list(probes or [])
     cited_probes = 0
     for p in probe_list:
@@ -68,16 +80,26 @@ def evaluate_readiness(
         identity.is_bound,
         identity.rationale or identity.status,
     )
+    e2_ok = bool(identity.is_bound and usable) or bool(
+        identity.is_bound and identity.website_source == "not_found")
+    if usable:
+        e2_detail = f"{len(usable)} usable page(s) from {identity.website}"
+    elif identity.is_bound and identity.website_source == "not_found":
+        e2_detail = "bound domain has no reachable pages"
+    elif identity.is_bound:
+        fetched = len(failures) or len(pages)
+        e2_detail = (
+            f"official-site ingest failed to render "
+            f"({fetched} fetched page(s) were empty or interstitial)"
+            if fetched else
+            "official-site ingest returned no rendered pages"
+        )
+    else:
+        e2_detail = "website ingest skipped; identity not bound"
     e2 = _row(
         "E2", "Identity-bound website ingested",
-        bool(identity.is_bound and pages) or bool(
-            identity.is_bound and identity.website_source == "not_found"),
-        (
-            f"{len(pages)} page(s) read from {identity.website}"
-            if pages else
-            ("bound domain has no reachable pages" if identity.is_bound
-             else "website ingest skipped; identity not bound")
-        ),
+        e2_ok,
+        e2_detail,
     )
     e3 = _row(
         "E3", "Structured web probes cited",

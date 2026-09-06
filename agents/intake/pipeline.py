@@ -24,6 +24,7 @@ from pydantic import BaseModel, Field
 from agents.intake import AUTO_APPROVE_TOGGLE
 from agents.intake.adapters import (
     apply_kept_out,
+    apply_site_honesty,
     merge_strategy_into_dossier,
     retrieval_frame,
     strategy_from_dossier,
@@ -217,25 +218,26 @@ def run_step1(
     probes: list[ResearchProbe] = []
     product_ingest: dict = {"capabilities": [], "receipt": {}}
 
+    page_budget = max(int(max_pages or 0), SITE_MASTERY_MAX_PAGES)
     if identity.is_bound and (do_scrape or do_web):
         bound_url = identity.website
         research = research_company(
             name,
             website=bound_url,
             engine=research_engine,
-            max_pages=max_pages,
+            max_pages=page_budget,
             do_scrape=do_scrape,
             do_web=False,  # structured probes replace the one-blob worker
         )
         if scrape_fn is not None and do_scrape and bound_url:
             try:
-                research.scrape = scrape_fn(bound_url, max_pages=max_pages)
+                research.scrape = scrape_fn(bound_url, max_pages=page_budget)
             except Exception as exc:  # noqa: BLE001
                 errors.append(f"scrape: {exc}")
         if do_scrape and bound_url:
             product_ingest = _ingest_bound_site(
                 bound_url, fetcher=ingest_fetcher,
-                max_pages=max(max_pages, SITE_MASTERY_MAX_PAGES))
+                max_pages=page_budget)
         if do_web and research_engine is not None:
             probes = run_structured_probes(identity, research_engine)
             citations = []
@@ -305,6 +307,7 @@ def run_step1(
             strategy = strategy_from_dossier(dossier, submission)
 
     strategy = apply_kept_out(strategy, dossier)
+    strategy = apply_site_honesty(strategy, identity, research)
     enriched = merge_strategy_into_dossier(dossier, strategy)
     if enriched is not dossier:
         dossier = enriched

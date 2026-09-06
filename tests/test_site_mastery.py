@@ -17,12 +17,15 @@ from agents.intake.adapters import retrieval_frame, strategy_from_dossier
 from agents.intake.dossier import build_dossier
 from agents.intake.extract import (
     extract_surface,
+    is_customer_name,
+    is_product_name,
     recall_competitors,
     recall_customers,
     recall_products,
     site_has_usable_text,
     usable_site_text,
 )
+from agents.intake.readiness import evaluate_readiness
 from agents.intake.identity import bind_identity
 from agents.intake.probes import ResearchProbe
 from tools.scrape.site import SITE_MASTERY_MAX_PAGES, ScrapedPage, ScrapeBundle, scrape_site
@@ -100,6 +103,7 @@ def test_scrape_seeds_hubs_when_homepage_is_js_shell():
     assert ROOT + "/products" in urls
     assert ROOT + "/compare" in urls
     assert ROOT + "/customers" in urls
+    assert ROOT in bundle.render_failures or ROOT not in urls
     assert any("/products" in u for u in fetched)
     assert site_has_usable_text(bundle)
     text = usable_site_text(bundle)
@@ -128,6 +132,11 @@ def test_mock_site_products_competitors_customers_land_on_dossier():
     rivals = {c.text for c in dossier.competitors}
     assert {"Cisco", "Juniper"} <= rivals
     assert all(c.evidence_ids for c in dossier.competitors)
+    ev = {e.evidence_id: e for e in dossier.evidence}
+    for rival in dossier.competitors:
+        url = ev[rival.evidence_ids[0]].url or ""
+        assert "acme-net.example" in url
+        assert not url.casefold().endswith(".pdf")
     customers = {c.text for c in dossier.customers}
     assert "Microsoft" in customers
     assert any(c.casefold() in {"us army", "u.s. army", "netflix"}
@@ -253,6 +262,120 @@ def test_official_probe_still_recalls_products_when_homepage_is_js_shell():
     texts = {o.text for o in dossier.offerings}
     assert {"EOS", "CloudVision", "AGNI", "7050X"} <= texts
     assert any("danz" in t.casefold() for t in texts)
+
+
+def test_failed_scrape_does_not_green_e2():
+    ident = _identity()
+    scrape = ScrapeBundle(
+        root_url=ROOT,
+        pages=[ScrapedPage(
+            url=ROOT,
+            text="Error loading the page. Enable JavaScript.",
+        )],
+        sources=[ROOT],
+        render_failures=[ROOT, ROOT + "/products"],
+    )
+    research = CompanyResearch(
+        company_name="Acme Net", website=ROOT, scrape=scrape)
+    dossier = build_dossier(
+        client_name="Acme Net", identity=ident, research=research)
+    ready = evaluate_readiness(identity=ident, dossier=dossier, research=research)
+    e2 = next(row for row in ready["receipts"] if row["id"] == "E2")
+    assert e2["ok"] is False
+    assert "usable" not in e2["detail"] or "failed to render" in e2["detail"]
+    assert "page(s) read" not in e2["detail"]
+    unknown_blob = " ".join(dossier.unknowns).casefold()
+    assert "thin" in unknown_blob or "load-error" in unknown_blob
+
+
+def test_junk_titles_are_not_offerings_or_customers():
+    assert is_product_name("Also has a telemetry") is False
+    assert is_product_name("CaseStudies") is False
+    assert is_product_name("OneLogin") is False
+    assert is_product_name("EOS") is True
+    assert is_product_name("DANZ Monitoring Fabric") is True
+    assert is_customer_name("Customer Success Story") is False
+    assert is_customer_name("Going Big") is False
+    assert is_customer_name("Group VP") is False
+    assert is_customer_name("Cognitive Campus") is False
+    assert is_customer_name("Microsoft") is True
+    assert is_customer_name("US Army") is True
+
+    ident = _identity()
+    scrape = ScrapeBundle(
+        root_url=ROOT,
+        pages=[
+            ScrapedPage(
+                url=ROOT + "/products",
+                text=(
+                    "Also has a telemetry. CaseStudies. OneLogin SSO. "
+                    "Acme Net sells EOS and CloudVision AGNI."
+                ),
+            ),
+            ScrapedPage(
+                url=ROOT + "/customers",
+                text=(
+                    "Customer Success Story. Going Big. Group VP. "
+                    "Cognitive Campus. Customers include Microsoft."
+                ),
+            ),
+        ],
+        sources=[ROOT + "/products", ROOT + "/customers"],
+    )
+    dossier = build_dossier(
+        client_name="Acme Net",
+        identity=ident,
+        research=CompanyResearch(
+            company_name="Acme Net", website=ROOT, scrape=scrape),
+    )
+    texts = {o.text for o in dossier.offerings}
+    assert "Also has a telemetry" not in texts
+    assert "CaseStudies" not in texts
+    assert "OneLogin" not in texts
+    assert {"EOS", "CloudVision", "AGNI"} <= texts
+    customers = {c.text for c in dossier.customers}
+    assert "Customer Success Story" not in customers
+    assert "Going Big" not in customers
+    assert "Group VP" not in customers
+    assert "Cognitive Campus" not in customers
+    assert "Microsoft" in customers
+
+
+def test_compare_page_competitors_use_site_evidence_urls():
+    ident = _identity()
+    compare = ROOT + "/compare"
+    scrape = ScrapeBundle(
+        root_url=ROOT,
+        pages=[ScrapedPage(
+            url=compare,
+            text="Unlike Cisco and Juniper, Acme Net ships EOS on every 7050X.",
+        )],
+        sources=[compare],
+    )
+    probes = [
+        ResearchProbe(
+            name="competitors",
+            query="rivals",
+            findings="Analyst PDF names Aruba and Juniper as NDR rivals.",
+            citations=["https://www.darktrace.com/some-brief.pdf"],
+        ),
+    ]
+    dossier = build_dossier(
+        client_name="Acme Net",
+        identity=ident,
+        research=CompanyResearch(
+            company_name="Acme Net", website=ROOT, scrape=scrape),
+        probes=probes,
+    )
+    rivals = {c.text: c for c in dossier.competitors}
+    assert {"Cisco", "Juniper"} <= set(rivals)
+    ev = {e.evidence_id: e for e in dossier.evidence}
+    for name in ("Cisco", "Juniper"):
+        eids = rivals[name].evidence_ids
+        assert eids
+        assert ev[eids[0]].url == compare
+        assert "darktrace" not in (ev[eids[0]].url or "").casefold()
+    assert "Aruba" not in rivals
 
 
 def test_recall_helpers_need_site_language_not_generic_nouns():
