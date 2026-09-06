@@ -228,8 +228,11 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   offerings. Competitor names are rival companies (Cisco,
   Juniper, Aruba, Darktrace), not page titles (Darktrace
   Comparison) and not English openers (Here, This, What). Rival
-  evidence must be a compare / vs / alternative claim. A
-  darktrace host plus 10-K / HPE body is still dropped. An
+  evidence must be a compare / vs / alternative / competition
+  claim, including product-page sentences such as "Competition
+  for the Cisco Nexus 1000V". Promotion reads official scrape
+  pages even when the competitor web probe returns no findings.
+  A darktrace host plus 10-K / HPE body is still dropped. An
   official Darktrace comparison page may evidence Cisco when the
   excerpt is an Unlike/versus Cisco claim; a /news Broadcom
   VMware blurb is not a VMware-rival claim. When official

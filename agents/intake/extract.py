@@ -150,6 +150,8 @@ _KNOWN_CUSTOMERS = frozenset({
 _SECTION_LABELS = frozenset({
     "named customers", "revenue share", "market data",
     "market data feed provider", "cloud titans",
+    "fixed mobile telecoms", "fixed mobile", "mobile telecoms",
+    "french it",
 })
 _HEADER_VOCAB = frozenset({
     "named", "customers", "revenue", "share", "market", "data",
@@ -162,6 +164,8 @@ _GEO_ONLY = frozenset({
 _STRONG_COMPARE = re.compile(
     r"\b(unlike|versus|\bvs\.?\b|compared to|compared with|"
     r"competitors?(?: include| are|:)|rivals?(?: include| are|:)|"
+    r"competition(?:\s+for|\s+with|\s+against)|"
+    r"compete[sd]?(?:\s+with|\s+against)|"
     r"(?<!\bno\s)head-to-head|alternative(?:s)? to)\b",
     re.I,
 )
@@ -203,7 +207,9 @@ _GENERIC_CUSTOMERS = frozenset({
 _COMPETITOR_LEAD = re.compile(
     r"(?:unlike|versus|\bvs\.?\b|compared to|compare(?:d)?(?: this)? to|"
     r"alternative(?:s)? to|competitors?(?: include| are|:)|"
-    r"rivals?(?: include| are|:)|instead of)\s+"
+    r"rivals?(?: include| are|:)|instead of|"
+    r"competition(?:\s+for|\s+with|\s+against)|"
+    r"compete[sd]?(?:\s+with|\s+against))\s+"
     r"([A-Z][A-Za-z0-9&.\'-]{1,40}(?:\s+[A-Z][A-Za-z0-9&.\'-]{1,24}){0,3})",
     re.I,
 )
@@ -240,9 +246,11 @@ _HEADERISH = re.compile(
     r"page title|home page)\b", re.I)
 _URLISH = re.compile(r"https?://|www\.|/\d{4}/|\d{4}-\d{2}-\d{2}")
 _RIVAL_CUE = re.compile(
-    r"\b(competitor|competitors|rival|versus|\bvs\.?\b|unlike|"
+    r"\b(competitor|competitors|competition|rival|versus|\bvs\.?\b|unlike|"
     r"compare(?:d)?(?: this)? to|compared with|(?<!\bno\s)head-to-head|"
     r"alternative(?:s)?(?: to)?|sold by|"
+    r"competition(?:\s+for|\s+with|\s+against)|"
+    r"compete[sd]?(?:\s+with|\s+against)|"
     r"from (?:vmware|cisco|juniper)|"
     r"not (?:an? )?(?:arista|our) product)\b",
     re.I,
@@ -994,6 +1002,10 @@ def is_customer_name(text: str, *, client_name: str = "") -> bool:
     if any(w.casefold() in {"named", "share", "titans", "provider"}
            for w in words):
         return False
+    if words and all(w.casefold() in {
+            "fixed", "mobile", "telecoms", "telecom", "french", "it"}
+            for w in words):
+        return False
     return True
 
 
@@ -1091,7 +1103,7 @@ def citation_mismatches_rival(
         and excerpt_supports_name(name, excerpt)
         and _STRONG_COMPARE.search(excerpt)
     )
-    if official and _NEWS_PATH.search(host) and not strong:
+    if _NEWS_PATH.search(host) and not strong:
         return True
     path = re.sub(r"^https?://[^/]+", "", host)
     for vendor in _RIVAL_VENDORS:
@@ -1205,8 +1217,25 @@ def customer_excerpt_ok(excerpt: str, url: str = "") -> bool:
     )
 
 
+def dedupe_customer_names(names: list[str]) -> list[str]:
+    """Keep Hardis Group over Hardis when both appear."""
+    lows = [n.casefold() for n in names]
+    out: list[str] = []
+    seen: set[str] = set()
+    for name in names:
+        low = name.casefold()
+        if low in seen:
+            continue
+        if any(other != low and other.startswith(low + " ") for other in lows):
+            continue
+        seen.add(low)
+        out.append(name)
+    return out
+
+
 def cap_customers(names: list[str], *, limit: int = MAX_CUSTOMERS) -> list[str]:
     """Prefer known orgs, then keep the list in the dozens."""
+    names = dedupe_customer_names(names)
     if len(names) <= limit:
         return names
     known: list[str] = []

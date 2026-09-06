@@ -465,6 +465,14 @@ def test_junk_titles_are_not_offerings_or_customers():
     assert is_customer_name("Costa Rica") is False
     assert is_customer_name("Cloud Titans") is False
     assert is_customer_name("Hardis Grou") is False
+    assert is_customer_name("Fixed Mobile Telecoms") is False
+    assert is_customer_name("Fixed Mobile") is False
+    assert is_customer_name("Mobile Telecoms") is False
+    assert is_customer_name("French IT") is False
+    assert "Cisco" in recall_competitors(
+        "Competition for the Cisco Nexus 1000V in the hypervisor.",
+        "Acme Net",
+    )
     assert is_customer_name("Yahoo!") is False
     assert is_customer_name("Hardis") is True
     assert is_customer_name("Login Wi-Fi Cloud") is False
@@ -1116,4 +1124,112 @@ def test_press14_compare_rivals_and_banks_not_fragments():
     texts = {o.text for o in dossier.offerings}
     assert {"EOS", "CloudVision", "AGNI", "7050X"} <= texts
     assert any("aviation" in k.term.casefold() for k in dossier.kept_out)
+    assert "336413" in {n.code for n in dossier.kept_out_naics}
+
+
+def test_press15_scrape_competition_sentence_promotes_cisco():
+    """E105-like site text must promote Cisco without a competitor probe."""
+    ident = _identity()
+    nexus = ROOT + "/en/solutions/v-eos-router"
+    news = ROOT + "/en/company/news"
+    darktrace = ROOT + "/en/company/darktrace-comparison"
+    customers_url = ROOT + "/en/company/customers"
+    scrape = ScrapeBundle(
+        root_url=ROOT,
+        pages=[
+            ScrapedPage(
+                url=nexus,
+                text=(
+                    "vEOS Router overview. Competition for the Cisco Nexus "
+                    "1000V in the hypervisor switching lane. Acme ships EOS "
+                    "and CloudVision on the same page."
+                ),
+            ),
+            ScrapedPage(
+                url=darktrace,
+                text=(
+                    "Darktrace Comparison. Unlike Juniper and Darktrace, "
+                    "Acme positions AGNI as the identity control point."
+                ),
+            ),
+            ScrapedPage(
+                url=news,
+                text=(
+                    "Broadcom closed the VMware acquisition. The press note "
+                    "names VMware next to Acme campus switching. No compare "
+                    "claim appears on this news page."
+                ),
+            ),
+            ScrapedPage(
+                url=customers_url,
+                text=(
+                    "Fixed Mobile Telecoms. Fixed Mobile. Mobile Telecoms. "
+                    "French IT. Hardis. Hardis Group. Activ Financial. "
+                    "Customers include Barclays, Citigroup, Morgan Stanley, "
+                    "Activ Financial, Hardis Group, and Microsoft."
+                ),
+            ),
+            ScrapedPage(
+                url=ROOT + "/products",
+                text=(
+                    "Acme Net sells EOS, CloudVision, AGNI, DANZ Monitoring "
+                    "Fabric, and the 7050X switch family."
+                ),
+            ),
+        ],
+        sources=[nexus, darktrace, news, customers_url],
+    )
+    probes = [
+        ResearchProbe(
+            name="competitors",
+            query="rivals",
+            findings="",
+            citations=[],
+        ),
+        ResearchProbe(
+            name="boundaries",
+            query="exclusions",
+            findings=(
+                "Do not confuse Acme Net with Acme Aviation. Aviation "
+                "stays out of the search lane."
+            ),
+            citations=["https://en.wikipedia.org/wiki/Acme_Aviation"],
+        ),
+    ]
+    dossier = build_dossier(
+        client_name="Acme Net",
+        identity=ident,
+        research=CompanyResearch(
+            company_name="Acme Net", website=ROOT, scrape=scrape),
+        probes=probes,
+    )
+    rivals = {c.text: c for c in dossier.competitors}
+    assert "Cisco" in rivals
+    ev = {e.evidence_id: e for e in dossier.evidence}
+    cisco_url = (ev[rivals["Cisco"].evidence_ids[0]].url or "").casefold()
+    cisco_ex = ev[rivals["Cisco"].evidence_ids[0]].excerpt or ""
+    assert "nexus" in cisco_url or "v-eos" in cisco_url or "/solutions" in cisco_url
+    assert "/news" not in cisco_url
+    assert "competition" in cisco_ex.casefold() and "cisco" in cisco_ex.casefold()
+    assert "Juniper" in rivals or "Darktrace" in rivals
+    assert "Here" not in rivals
+    vm_url = ""
+    if "VMware" in rivals or "Vmware" in rivals:
+        vm = rivals.get("VMware") or rivals["Vmware"]
+        vm_url = (ev[vm.evidence_ids[0]].url or "").casefold()
+    assert "/news" not in vm_url
+    customers = {c.text.casefold() for c in dossier.customers}
+    assert 1 <= len(customers) <= MAX_CUSTOMERS
+    assert {
+        "barclays", "citigroup", "morgan stanley",
+        "activ financial", "hardis group", "microsoft",
+    } <= customers
+    assert "hardis" not in customers
+    for junk in (
+        "fixed mobile telecoms", "fixed mobile", "mobile telecoms",
+        "french it", "named customers",
+    ):
+        assert junk not in customers
+    texts = {o.text for o in dossier.offerings}
+    assert {"EOS", "CloudVision", "AGNI", "7050X"} <= texts
     assert "336413" in {n.code for n in dossier.kept_out_naics}

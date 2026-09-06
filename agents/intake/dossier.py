@@ -649,6 +649,47 @@ def build_dossier(
             ))
             seen_comp.add(key)
 
+    pages = [
+        p for p in (getattr(scrape, "pages", None) or [])
+        if (getattr(p, "text", "") or "").strip() and not is_error_page(p.text)
+    ]
+    for page in pages:
+        text = page.text or ""
+        url = getattr(page, "url", None) or identity.website
+        for name in recall_competitors(text, client_name):
+            key = name.casefold()
+            if key in seen_comp:
+                continue
+            snippet = excerpt_from(text, needle=name)
+            if not snippet or not excerpt_supports_rival(name, snippet):
+                continue
+            if citation_mismatches_rival(
+                    url or "", name, identity.official_domain, excerpt=snippet):
+                continue
+            eid = add_ev("website", snippet, url)
+            if not eid:
+                continue
+            competitors.append(_claim(
+                name, ClaimState.COMPANY_ASSERTED, [eid],
+                "named rival promoted from official-site competition text",
+            ))
+            seen_comp.add(key)
+        for name in known_customers_in_text(text, client_name):
+            key = name.casefold()
+            if key in seen_cust:
+                continue
+            snippet = excerpt_from(text, needle=name)
+            if not snippet or not excerpt_supports_name(name, snippet):
+                continue
+            eid = add_ev("website", snippet, url)
+            if not eid:
+                continue
+            customers.append(_claim(
+                name, ClaimState.COMPANY_ASSERTED, [eid],
+                "allowlisted customer promoted from official-site text",
+            ))
+            seen_cust.add(key)
+
     exclude_blob = " ".join(k.term for k in kept_out)
     hay = " ".join(
         [scrape_text]
