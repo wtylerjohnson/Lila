@@ -56,11 +56,12 @@ PROBE_SPECS: tuple[tuple[str, str], ...] = (
      "lookalike, or OAS Aircraft Support when those namesakes exist). "
      "These are collisions, not this company's offerings. Cite sources."),
     ("classifications",
-     "Quote any NAICS, PSC, or industry classification this company states, "
-     "with the six-digit code and the sentence that contains it. "
-     "Separately list namesake collisions already found (music/records, "
-     "aviation, project-management lookalikes, aircraft-support firms). "
-     "Do not invent codes. If none appear in sources, say none found."),
+     "Quote any NAICS, PSC, or industry classification THIS bound company "
+     "states for itself, with the six-digit code and the sentence that "
+     "contains it. Do not copy industry codes that belong to a namesake "
+     "or collision firm (aviation, music/records, aircraft support). "
+     "Do not invent codes or lift forecast/solicitation IDs. "
+     "If none appear in sources, say none found."),
 )
 
 

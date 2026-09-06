@@ -23,7 +23,9 @@ from agents.intake.extract import (
     asserted_owned,
     excerpt_from,
     is_exclusion_name,
+    is_plausible_naics_code,
     is_product_name,
+    naics_search_role,
 )
 from agents.schemas import IntakeSubmission
 
@@ -81,22 +83,40 @@ def _kept_out(dossier: CompanyDossier) -> list[Keyword]:
 def _naics(dossier: CompanyDossier, submission: Optional[IntakeSubmission]):
     codes: list[str] = []
     meta: list[NaicsEntry] = []
+    kept_meta: list[NaicsEntry] = []
     seen: set[str] = set()
+    exclude_blob = " ".join(k.term for k in dossier.kept_out)
     for row in dossier.naics:
         if row.code in seen or row.state == ClaimState.DISPUTED:
             continue
+        if not is_plausible_naics_code(row.code):
+            continue
         seen.add(row.code)
-        codes.append(row.code)
-        meta.append(NaicsEntry(
-            code=row.code, title=row.title, role=row.role, origin="system",
+        role = row.role
+        if row.state != ClaimState.COMPANY_ASSERTED:
+            role = naics_search_role(
+                row.code, row.rationale, exclude_blob=exclude_blob)
+            if row.role == "boundary":
+                role = "boundary"
+        entry = NaicsEntry(
+            code=row.code, title=row.title, role=role, origin="system",
             rationale=row.rationale or (
                 "six-digit NAICS retained from evidenced intake inputs"
             ),
-        ))
+            note=(
+                "namesake or collision industry; not a search lane"
+                if role == "boundary" else ""
+            ),
+        )
+        if role == "core":
+            codes.append(row.code)
+            meta.append(entry)
+        else:
+            kept_meta.append(entry)
     if submission is not None:
         for raw in submission.known_naics or []:
             code = str(raw).strip()
-            if code.isdigit() and len(code) == 6 and code not in seen:
+            if is_plausible_naics_code(code) and code not in seen:
                 seen.add(code)
                 codes.append(code)
                 meta.append(NaicsEntry(
@@ -104,7 +124,7 @@ def _naics(dossier: CompanyDossier, submission: Optional[IntakeSubmission]):
                     rationale="six-digit NAICS supplied on the intake form "
                               "and retained by the dossier adapter",
                 ))
-    return codes, meta
+    return codes, meta, kept_meta
 
 
 def _entities(dossier: CompanyDossier) -> list[ResearchEntity]:
@@ -228,7 +248,7 @@ def strategy_from_dossier(
 ) -> IntakeStrategy:
     """Build a reviewable IntakeStrategy without calling the model."""
     keywords = _keywords(dossier)
-    codes, meta = _naics(dossier, submission)
+    codes, meta, kept_naics = _naics(dossier, submission)
     entities = _entities(dossier)
     kept_out = _kept_out(dossier)
     set_asides = []
@@ -270,7 +290,7 @@ def strategy_from_dossier(
         confidence = 0.0
         # Do not emit NAICS/keywords that would look like a bound company.
         keywords = []
-        codes, meta = [], []
+        codes, meta, kept_naics = [], [], []
         entities = []
         kept_out = []
 
@@ -280,6 +300,7 @@ def strategy_from_dossier(
         keywords=keywords,
         inferred_naics=codes,
         naics_meta=meta,
+        kept_out_naics=kept_naics,
         target_agencies=agencies,
         set_aside_angles=set_asides,
         searches=searches,
@@ -387,7 +408,7 @@ def merge_strategy_into_dossier(
     meta = {e.code: e for e in (strategy.naics_meta or [])}
     for code in strategy.inferred_naics or []:
         raw = str(code).strip()
-        if raw in have_n or not (raw.isdigit() and len(raw) == 6):
+        if raw in have_n or not is_plausible_naics_code(raw):
             continue
         entry = meta.get(raw)
         why = (getattr(entry, "rationale", None) or "").strip()
@@ -405,9 +426,14 @@ def merge_strategy_into_dossier(
             why = snippet if len((snippet or "").split()) >= 5 else (
                 f"company research cited NAICS {raw} for the bound firm"
             )
+        exclude_blob = " ".join(k.term for k in repaired.kept_out)
+        role = getattr(entry, "role", None) or naics_search_role(
+            raw, why or snippet, exclude_blob=exclude_blob)
+        if naics_search_role(raw, why or snippet, exclude_blob=exclude_blob) == "boundary":
+            role = "boundary"
         repaired.naics.append(DossierNaics(
             code=raw, title=getattr(entry, "title", "") or "",
-            role=getattr(entry, "role", None) or "core",
+            role=role,
             rationale=why, state=ClaimState.INFERRED,
             evidence_ids=[eid],
         ))

@@ -182,9 +182,17 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   appear in probe or page text are kept with real evidence_ids. An empty
   NAICS list stays empty when nothing is cited; E5/E8 must not treat
   that as a win while strategy invents NAICS (split-brain is a block).
-  Name-collision exclusions from boundary / classification probes seed
-  `kept_out` (Records / Aviation / Aristan / OAS Aircraft Support style
-  when mentioned); NYSE, CIKs, section headers, and the bare company
+  Dossier **core** NAICS are the search/lead-gen lane. Namesake
+  industries (Aviation 336413/488190, music/records 5122xx) are
+  `boundary` or omitted from `inferred_naics`, aligned with `kept_out`.
+  Forecast/solicitation 6-digit fragments (685031) are not NAICS.
+  Core codes that conflict with Aviation/Records excludes or strategy
+  `near_misses` fail E5/E8. `kept_out` rows (OAS, Aristan, Aviation)
+  require an excerpt that actually contains the name; no wrong-eid bind.
+  Prefer the named offering DANZ Monitoring Fabric when evidence has it.
+  Name-collision exclusions from boundary probes seed `kept_out`
+  (Records / Aviation / Aristan / OAS Aircraft Support style when
+  mentioned); NYSE, CIKs, section headers, and the bare company
   name stay out. Workshop edits remain the operator path. A related
   Government Sales LLC is recorded as a federal-path affiliate and does
   not break or hard-block a correct public-domain bind.

@@ -9,7 +9,11 @@ from __future__ import annotations
 
 from typing import Optional
 
-from agents.intake.adversarial import AdversarialRecord, strategy_inferred_naics
+from agents.intake.adversarial import (
+    AdversarialRecord,
+    conflicting_core_naics,
+    strategy_inferred_naics,
+)
 from agents.intake.dossier import CompanyDossier
 from agents.intake.identity import IdentityResolution
 
@@ -102,14 +106,21 @@ def evaluate_readiness(
     )
     inferred = strategy_inferred_naics(strategy)
     split_brain = bool(inferred) and bool(dossier) and not dossier.naics
+    polluted = conflicting_core_naics(dossier, strategy) if dossier else []
     e5_ok = bool(dossier and (
         dossier.keywords or dossier.naics or dossier.capability_statements
-    )) and not split_brain
+    )) and not split_brain and not polluted
     if split_brain:
         e5_detail = (
             "strategy inferred NAICS "
             + ", ".join(inferred)
             + " with no dossier evidence; keywords alone are not a retrieval win"
+        )
+    elif polluted:
+        e5_detail = (
+            "dossier core NAICS "
+            + ", ".join(polluted)
+            + " conflict with kept_out namesakes or strategy near_misses"
         )
     elif dossier:
         e5_detail = (

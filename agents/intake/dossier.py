@@ -17,10 +17,13 @@ from pydantic import BaseModel, Field, model_validator
 from agents.intake.extract import (
     RelatedEntity,
     excerpt_from,
+    excerpt_supports_name,
     extract_surface,
     is_discrete_name,
     is_garbage_text,
+    is_plausible_naics_code,
     is_product_name,
+    naics_search_role,
 )
 from agents.intake.identity import IdentityResolution
 
@@ -133,15 +136,29 @@ def _evidence_for_name(
     probe_blobs: list[tuple[str, str, list[str]]],
     scrape_text: str,
     fallback_url: Optional[str],
+    *,
+    require_needle: bool = False,
 ) -> tuple[str, Optional[str]]:
-    for _title, findings, citations in probe_blobs:
-        snippet = excerpt_from(findings, needle=name)
-        if snippet and name.casefold() in snippet.casefold():
-            return snippet, (citations[0] if citations else fallback_url)
-    if scrape_text and not is_garbage_text(scrape_text):
-        snippet = excerpt_from(scrape_text, needle=name)
-        if snippet:
-            return snippet, fallback_url
+    needles = [name]
+    parts = [t for t in name.split() if t.casefold() not in {
+        "the", "a", "an", "and", "of", "for"}]
+    if parts and parts[-1].casefold() != name.casefold():
+        needles.append(parts[-1])
+    for needle in needles:
+        for _title, findings, citations in probe_blobs:
+            if needle.casefold() not in findings.casefold():
+                continue
+            snippet = excerpt_from(findings, needle=needle)
+            if snippet and excerpt_supports_name(name, snippet):
+                return snippet, (citations[0] if citations else fallback_url)
+        if scrape_text and not is_garbage_text(scrape_text):
+            if needle.casefold() not in scrape_text.casefold():
+                continue
+            snippet = excerpt_from(scrape_text, needle=needle)
+            if snippet and excerpt_supports_name(name, snippet):
+                return snippet, fallback_url
+    if require_needle:
+        return "", None
     for _title, findings, citations in probe_blobs:
         snippet = excerpt_from(findings)
         if snippet:
@@ -329,37 +346,57 @@ def build_dossier(
         existing_off.add(name.casefold())
 
     seen_n = {row.code for row in naics}
-    for code, why in surface.naics:
-        if code in seen_n:
+    for row in surface.naics:
+        code, why = row[0], row[1]
+        prior_role = row[2] if len(row) >= 3 else "core"
+        if code in seen_n or not is_plausible_naics_code(code):
             continue
-        snippet, url = _evidence_for_name(code, probe_blobs, scrape_text, identity.website)
-        excerpt = snippet or why
-        eid = add_ev("web_probe", excerpt, url)
+        snippet, url = _evidence_for_name(
+            code, probe_blobs, scrape_text, identity.website,
+            require_needle=True)
+        if not snippet or code not in snippet:
+            continue
+        eid = add_ev("web_probe", snippet, url)
         if not eid:
             continue
         rationale = why if len((why or "").split()) >= 5 else (
             f"company research cited NAICS {code} against the bound firm"
         )
+        role = "boundary" if prior_role == "boundary" else naics_search_role(
+            code, snippet or rationale)
         naics.append(DossierNaics(
-            code=code, role="core", rationale=rationale,
+            code=code, role=role, rationale=rationale,
             state=ClaimState.INFERRED,
             evidence_ids=[eid],
         ))
         seen_n.add(code)
 
     for name in surface.exclusions:
-        snippet, url = _evidence_for_name(name, probe_blobs, scrape_text, None)
-        eid = add_ev("web_probe", snippet or name, url)
+        snippet, url = _evidence_for_name(
+            name, probe_blobs, scrape_text, None, require_needle=True)
+        if not snippet or not excerpt_supports_name(name, snippet):
+            continue
+        eid = add_ev("web_probe", snippet, url)
+        if not eid:
+            continue
         boundaries.append(_claim(
-            name, ClaimState.INFERRED, [eid] if eid else [],
+            name, ClaimState.INFERRED, [eid],
             "name-collision or adjacent work the bound company does not sell",
         ))
         kept_out.append(DossierKeyword(
             term=name, category="exclusion",
             rationale="evidenced name collision; keep out of search vocabulary",
             state=ClaimState.INFERRED,
-            evidence_ids=[eid] if eid else [],
+            evidence_ids=[eid],
         ))
+
+    exclude_blob = " ".join(k.term for k in kept_out)
+    for entry in naics:
+        if entry.state == ClaimState.COMPANY_ASSERTED:
+            continue
+        if naics_search_role(
+                entry.code, entry.rationale, exclude_blob=exclude_blob) == "boundary":
+            entry.role = "boundary"
 
     related_entities = list(surface.related_entities)
     for rel in related_entities:

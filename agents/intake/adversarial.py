@@ -14,7 +14,12 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field
 
 from agents.intake.dossier import ClaimState, CompanyDossier
-from agents.intake.extract import is_discrete_name, is_garbage_text, is_product_name
+from agents.intake.extract import (
+    exclude_blob_hits_industry,
+    is_discrete_name,
+    is_garbage_text,
+    is_product_name,
+)
 from agents.intake.identity import IdentityResolution
 
 
@@ -144,6 +149,50 @@ def strategy_inferred_naics(strategy) -> list[str]:
     return out
 
 
+def strategy_near_miss_naics(strategy) -> list[str]:
+    """NAICS the strategy composer already cut as a near miss."""
+    if strategy is None:
+        return []
+    raw = getattr(strategy, "near_misses", None)
+    if raw is None and isinstance(strategy, dict):
+        raw = strategy.get("near_misses")
+    out: list[str] = []
+    seen: set[str] = set()
+    for item in raw or []:
+        kind = getattr(item, "kind", None)
+        if kind is None and isinstance(item, dict):
+            kind = item.get("kind")
+        val = getattr(item, "value", None)
+        if val is None and isinstance(item, dict):
+            val = item.get("value")
+        elif val is None and not isinstance(item, dict):
+            val = item
+        code = str(val or "").strip()
+        if not (code.isdigit() and len(code) == 6) or code in seen:
+            continue
+        if kind and str(kind).casefold() not in {"naics", ""}:
+            continue
+        seen.add(code)
+        out.append(code)
+    return out
+
+
+def conflicting_core_naics(dossier: CompanyDossier, strategy=None) -> list[str]:
+    """Core search NAICS that collide with namesake excludes or near_misses."""
+    kept = " ".join(k.term for k in dossier.kept_out)
+    near = set(strategy_near_miss_naics(strategy))
+    bad: list[str] = []
+    seen: set[str] = set()
+    for entry in dossier.naics:
+        if entry.role != "core" or entry.state == ClaimState.COMPANY_ASSERTED:
+            continue
+        hit = exclude_blob_hits_industry(entry.code, kept) or entry.code in near
+        if hit and entry.code not in seen:
+            seen.add(entry.code)
+            bad.append(entry.code)
+    return bad
+
+
 def _yield_titles(yield_receipt: Optional[dict]) -> list[str]:
     titles: list[str] = []
     for row in (yield_receipt or {}).get("terms") or []:
@@ -269,6 +318,18 @@ def challenge_dossier(
                 kind="naics_overbreadth", severity="block",
                 statement=f"NAICS {entry.code} is marked core without evidence",
             ))
+
+    polluted = conflicting_core_naics(dossier, strategy)
+    if polluted:
+        rec.challenges.append(Challenge(
+            kind="naics_overbreadth", severity="block",
+            statement=(
+                "dossier core NAICS "
+                + ", ".join(polluted)
+                + " conflict with kept_out namesakes or strategy near_misses; "
+                "those codes would poison later search"
+            ),
+        ))
 
     inferred = strategy_inferred_naics(strategy)
     dossier_codes = {n.code for n in dossier.naics}

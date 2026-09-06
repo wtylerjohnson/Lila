@@ -117,6 +117,35 @@ _CLASSIFICATION_LABEL = re.compile(
     r"\b(?:naics|industry classification|classification codes?|sic)\b",
     re.I,
 )
+_NAICS_SECTORS = frozenset({
+    "11", "21", "22", "23", "31", "32", "33",
+    "42", "44", "45", "48", "49",
+    "51", "52", "53", "54", "55", "56",
+    "61", "62", "71", "72", "81", "92",
+})
+_AVIATION_NAICS = frozenset({
+    "336411", "336412", "336413", "336414", "336415", "336419",
+    "481111", "481112", "481211", "481212", "481219",
+    "488111", "488119", "488190",
+})
+_RECORDS_NAICS = frozenset({
+    "512110", "512120", "512191", "512199",
+    "512210", "512220", "512230", "512240", "512250", "512290",
+})
+_AVIATION_CUE = re.compile(
+    r"\b(aviation|aircraft(?:-support)?|air transportation)\b", re.I)
+_RECORDS_CUE = re.compile(
+    r"\b(records(?: label)?|music label|sound recording)\b", re.I)
+_COLLISION_CUE = re.compile(
+    r"\b(namesake|collision|false friend|not this company|do not confuse|"
+    r"unrelated|other (?:firm|company)|keep(?:s)? out)\b",
+    re.I,
+)
+_NOT_NAICS_CONTEXT = re.compile(
+    r"\b(forecast|solicitation|notice(?:\s+id)?|pipeline|"
+    r"opportunity id|req(?:uest)?\s*id)\b",
+    re.I,
+)
 _EXCLUSION_LEAD = re.compile(
     r"(?:not (?:to be )?confused with|distinct from|"
     r"unrelated(?: (?:firm|company|companies|firms))?|"
@@ -151,7 +180,7 @@ class ExtractedSurface(BaseModel):
     """Discrete names lifted from probes / scrape / an optional model pass."""
 
     offerings: list[str] = Field(default_factory=list)
-    naics: list[tuple[str, str]] = Field(default_factory=list)  # code, rationale
+    naics: list[tuple[str, str, str]] = Field(default_factory=list)  # code, rationale, role
     exclusions: list[str] = Field(default_factory=list)
     related_entities: list[RelatedEntity] = Field(default_factory=list)
 
@@ -450,7 +479,7 @@ def recall_collisions(text: str, client_name: str) -> list[str]:
         _add(f"{token} Aviation")
     if re.search(r"\baristan\b", raw, re.I):
         _add("Aristan")
-    if re.search(r"\bOAS Aircraft\b|\bAircraft Support\b", raw, re.I):
+    if re.search(r"\bOAS Aircraft Support\b", raw, re.I):
         _add("OAS Aircraft Support")
     return found
 
@@ -508,6 +537,26 @@ def candidate_names(text: str) -> list[str]:
     return found
 
 
+def excerpt_supports_name(name: str, snippet: str) -> bool:
+    """True when the excerpt names the firm or a tight token phrase."""
+    hay = (snippet or "").casefold()
+    needle = (name or "").casefold().strip()
+    if not hay or not needle:
+        return False
+    if needle in hay:
+        return True
+    tokens = [
+        t for t in name.split()
+        if t.casefold() not in {"the", "a", "an", "and", "of", "for"}
+    ]
+    if len(tokens) == 2 and all(t.casefold() in hay for t in tokens):
+        return True
+    if len(tokens) >= 3:
+        phrase = " ".join(tokens[-2:]).casefold()
+        return phrase in hay and tokens[0].casefold() in hay
+    return False
+
+
 def excerpt_from(text: str, *, needle: str = "", limit: int = 280) -> str:
     """A real slice of page/probe text. Never the placeholder 'citation'."""
     raw = _WS.sub(" ", str(text or "")).strip()
@@ -521,25 +570,82 @@ def excerpt_from(text: str, *, needle: str = "", limit: int = 280) -> str:
     return raw[:limit].strip()
 
 
-def extract_naics(text: str, *, loose: bool = False) -> list[tuple[str, str]]:
-    """Six-digit codes cited as NAICS, or (loose) in a federal-footprint probe."""
+def is_plausible_naics_code(code: str) -> bool:
+    """Six digits in a real NAICS sector. Rejects forecast-id fragments (685031)."""
+    raw = str(code or "").strip()
+    if not (raw.isdigit() and len(raw) == 6):
+        return False
+    if raw.startswith("20"):
+        return False
+    return raw[:2] in _NAICS_SECTORS
+
+
+def is_aviation_industry_naics(code: str) -> bool:
+    raw = str(code or "").strip()
+    return raw in _AVIATION_NAICS or raw.startswith(("3364", "4811", "4881"))
+
+
+def is_records_industry_naics(code: str) -> bool:
+    raw = str(code or "").strip()
+    return raw in _RECORDS_NAICS or raw.startswith("5122")
+
+
+def is_namesake_industry_naics(code: str) -> bool:
+    return is_aviation_industry_naics(code) or is_records_industry_naics(code)
+
+
+def exclude_blob_hits_industry(code: str, exclude_blob: str) -> bool:
+    blob = (exclude_blob or "").casefold()
+    if not blob:
+        return False
+    if is_aviation_industry_naics(code) and any(
+            w in blob for w in ("aviation", "aircraft", "oas")):
+        return True
+    if is_records_industry_naics(code) and any(
+            w in blob for w in ("records", "music")):
+        return True
+    return False
+
+
+def naics_search_role(
+    code: str,
+    snippet: str = "",
+    *,
+    exclude_blob: str = "",
+) -> str:
+    """Core only when the code is this company's search lane, not a namesake."""
+    hay = snippet or ""
+    if exclude_blob_hits_industry(code, exclude_blob):
+        return "boundary"
+    if is_aviation_industry_naics(code) and (
+            _AVIATION_CUE.search(hay) or _COLLISION_CUE.search(hay)):
+        return "boundary"
+    if is_records_industry_naics(code) and (
+            _RECORDS_CUE.search(hay) or _COLLISION_CUE.search(hay)):
+        return "boundary"
+    return "core"
+
+
+def extract_naics(text: str, *, loose: bool = False) -> list[tuple[str, str, str]]:
+    """Cited six-digit NAICS with a search role (core | boundary)."""
     raw = str(text or "")
-    out: list[tuple[str, str]] = []
+    out: list[tuple[str, str, str]] = []
     seen: set[str] = set()
 
     def _add(code: str, span_start: int, span_end: int) -> None:
-        if code in seen or not (code.isdigit() and len(code) == 6):
+        if code in seen or not is_plausible_naics_code(code):
             return
-        if code.startswith("20"):  # years / timestamps, not NAICS families we want
-            return
-        start = max(0, span_start - 100)
-        end = min(len(raw), span_end + 100)
+        start = max(0, span_start - 80)
+        end = min(len(raw), span_end + 80)
         snippet = _WS.sub(" ", raw[start:end]).strip()
+        near = raw[max(0, span_start - 24):span_end + 16]
+        if _NOT_NAICS_CONTEXT.search(snippet) and not _CLASSIFICATION_LABEL.search(near):
+            return
         rationale = snippet if len(snippet.split()) >= 5 else (
             f"federal or product research cited NAICS {code} for this company"
         )
         seen.add(code)
-        out.append((code, rationale[:240]))
+        out.append((code, rationale[:240], naics_search_role(code, snippet)))
 
     labeled = bool(_CLASSIFICATION_LABEL.search(raw))
     for match in _NAICS_NEAR.finditer(raw):
@@ -548,6 +654,9 @@ def extract_naics(text: str, *, loose: bool = False) -> list[tuple[str, str]]:
         _add(match.group(1), match.start(), match.end())
     if labeled:
         for match in re.finditer(r"\b(\d{6})\b", raw):
+            window = raw[max(0, match.start() - 40):match.end() + 16]
+            if not _CLASSIFICATION_LABEL.search(window):
+                continue
             _add(match.group(1), match.start(), match.end())
     elif loose:
         for match in re.finditer(r"\b((?:33|42|51|54)\d{4})\b", raw):
@@ -619,7 +728,7 @@ def extract_surface(
 ) -> ExtractedSurface:
     """Union of ingest names, deterministic probe/scrape extract, optional model."""
     offerings: list[str] = []
-    naics: list[tuple[str, str]] = []
+    naics: list[tuple[str, str, str]] = []
     exclusions: list[str] = []
     related: list[RelatedEntity] = []
     seen_off: set[str] = set()
@@ -729,11 +838,9 @@ def extract_surface(
             _offer(name)
         for code in structured.naics or []:
             raw = str(code).strip()
-            if raw.isdigit() and len(raw) == 6:
-                naics.append((
-                    raw,
-                    f"structured extract cited NAICS {raw} from company research",
-                ))
+            if is_plausible_naics_code(raw):
+                why = f"structured extract cited NAICS {raw} from company research"
+                naics.append((raw, why, naics_search_role(raw, why)))
         for name in structured.exclusions or []:
             _exclude(name)
         for name in structured.related_entities or []:
@@ -746,14 +853,27 @@ def extract_surface(
                 rationale="related legal person named in structured extract",
             )])
 
-    # de-dupe naics keeping first rationale
+    fabric = "DANZ Monitoring Fabric"
+    blob = "\n".join(all_findings + [scrape_text])
+    if re.search(r"\bDANZ Monitoring Fabric\b", blob, re.I) or any(
+            o.casefold() == fabric.casefold() for o in offerings):
+        offerings = [o for o in offerings if o.casefold() != "danz"]
+        if fabric.casefold() not in {o.casefold() for o in offerings}:
+            offerings.append(fabric)
+
+    # de-dupe naics keeping first rationale/role
     seen_n: set[str] = set()
-    naics_u: list[tuple[str, str]] = []
-    for code, why in naics:
-        if code in seen_n:
+    naics_u: list[tuple[str, str, str]] = []
+    exclude_blob = " ".join(exclusions)
+    for row in naics:
+        code, why = row[0], row[1]
+        prior_role = row[2] if len(row) == 3 else "core"
+        if code in seen_n or not is_plausible_naics_code(code):
             continue
+        role = "boundary" if prior_role == "boundary" else naics_search_role(
+            code, why, exclude_blob=exclude_blob)
         seen_n.add(code)
-        naics_u.append((code, why))
+        naics_u.append((code, why, role))
 
     seen_r: set[str] = set()
     related_u: list[RelatedEntity] = []
@@ -781,13 +901,13 @@ class StructuredProductSurface(BaseModel):
 
 _STRUCTURE_PRODUCTS = """\
 Extract SHORT discrete product and platform names the bound company sells.
-Each offering is a name (EOS, CloudVision, AGNI, 7050X), not a paragraph,
-not a page-load error, and not a GSA/SEWP/award ID (47QSWA18D008F, 0119Y).
-Extract six-digit NAICS only when the findings cite them, with the source
-sentence. Extract name-collision exclusions (Records, Aviation, lookalikes,
-aircraft-support firms that share the name). Extract related legal persons
-(for example a Government Sales LLC) without replacing the bound public
-company. Do not invent names.
+Each offering is a name (EOS, CloudVision, AGNI, 7050X, DANZ Monitoring
+Fabric), not a paragraph, not a page-load error, and not a GSA/SEWP/award
+ID. Extract six-digit NAICS only when THIS company states them. Do not
+copy aviation/records namesake industry codes or forecast IDs. Extract
+name-collision exclusions only when the findings name that other firm.
+Extract related legal persons (for example a Government Sales LLC) without
+replacing the bound public company. Do not invent names.
 """
 
 

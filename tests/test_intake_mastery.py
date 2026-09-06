@@ -28,9 +28,19 @@ from agents.intake.adversarial import (
     run_adversarial,
     soften_related_entity_blocks,
 )
-from agents.intake.dossier import Claim, ClaimState, CompanyDossier, build_dossier
+from agents.intake.dossier import (
+    Claim,
+    ClaimState,
+    CompanyDossier,
+    DossierKeyword,
+    DossierNaics,
+    build_dossier,
+)
 from agents.intake.extract import (
+    excerpt_supports_name,
+    extract_naics,
     is_discrete_name,
+    is_plausible_naics_code,
     is_product_name,
     looks_like_contract_or_schedule_id,
 )
@@ -1275,3 +1285,147 @@ def test_press5_pipeline_flags_invented_strategy_naics(
     assert by_id["E5"]["ok"] is False
     assert by_id["E8"]["ok"] is False
     assert result.readiness["all_ok"] is False
+
+
+# ---- Press 6: NAICS quality for downstream search / lead-gen --------------- #
+
+_PRESS6_FEDERAL = (
+    "Arista Networks states NAICS 334118 for computer terminal equipment "
+    "and NAICS 541519 for other computer related services. "
+    "Forecast 685031 is a pipeline id, not an industry code. "
+    "Arista Aviation listings use NAICS 336413 and 488190."
+)
+
+
+def test_forecast_id_is_not_a_plausible_naics():
+    assert is_plausible_naics_code("685031") is False
+    assert is_plausible_naics_code("334118") is True
+    assert is_plausible_naics_code("336413") is True
+    rows = extract_naics(_PRESS6_FEDERAL)
+    codes = {c for c, _why, _role in rows}
+    assert "685031" not in codes
+    assert {"334118", "541519"} <= codes
+    aviation = {c: role for c, _why, role in rows if c in {"336413", "488190"}}
+    assert aviation
+    assert all(role == "boundary" for role in aviation.values())
+
+
+def test_press6_aviation_naics_and_forecast_id_are_not_core():
+    ident = _arista_identity()
+    probes = [
+        ResearchProbe(
+            name="offerings", query="products",
+            findings=(
+                "Official pages name EOS, CloudVision AGNI (Guardian for "
+                "Network Identity), the 7050X series, and DANZ Monitoring "
+                "Fabric."
+            ),
+            citations=["https://www.arista.com/en/products"],
+        ),
+        ResearchProbe(
+            name="federal_footprint", query="federal",
+            findings=_PRESS6_FEDERAL,
+            citations=["https://sam.gov"],
+        ),
+        ResearchProbe(
+            name="boundaries", query="exclusions",
+            findings=(
+                "Do not confuse Arista Networks with Arista Aviation "
+                "Services or Arista Records. No OAS listing appears here."
+            ),
+            citations=["https://en.wikipedia.org/wiki/Arista_Records"],
+        ),
+    ]
+    dossier = build_dossier(
+        client_name="Arista Networks",
+        identity=ident,
+        research=_arista_research(),
+        probes=probes,
+    )
+    texts = {o.text for o in dossier.offerings}
+    assert "DANZ Monitoring Fabric" in texts
+    assert "AGNI" in texts and "7050X" in texts
+    cores = {n.code for n in dossier.naics if n.role == "core"}
+    all_codes = {n.code for n in dossier.naics}
+    assert "685031" not in all_codes
+    assert "336413" not in cores
+    assert "488190" not in cores
+    assert {"334118", "541519"} <= cores
+    kept = {k.term.casefold() for k in dossier.kept_out}
+    assert any("aviation" in k for k in kept)
+    assert any("records" in k for k in kept)
+    assert not any("oas" in k for k in kept)
+    for row in dossier.kept_out:
+        assert row.evidence_ids
+        excerpts = [
+            e.excerpt or "" for e in dossier.evidence
+            if e.evidence_id in row.evidence_ids
+        ]
+        assert any(excerpt_supports_name(row.term, ex) for ex in excerpts)
+
+    strategy = strategy_from_dossier(dossier)
+    assert "336413" not in strategy.inferred_naics
+    assert "488190" not in strategy.inferred_naics
+    assert {"334118", "541519"} <= set(strategy.inferred_naics)
+    rec = challenge_dossier(dossier, ran=True, strategy=strategy)
+    assert rec.passed is True
+    ready = evaluate_readiness(
+        identity=ident, dossier=dossier, probes=probes,
+        yield_receipt={
+            "store": {"status": "empty", "row_count": 0, "note": "empty"},
+            "terms": [],
+            "note": "notice store has zero rows; counts are not a market zero",
+        },
+        adversarial=rec, strategy=strategy,
+    )
+    by_id = {row["id"]: row for row in ready["receipts"]}
+    assert by_id["E5"]["ok"] is True
+    assert by_id["E8"]["ok"] is True
+
+
+def test_press6_polluted_core_naics_fail_e5_e8():
+    """Aviation cores while Aviation is kept_out must not green E5/E8."""
+    ident = _arista_identity()
+    dossier = build_dossier(
+        client_name="Arista Networks",
+        identity=ident,
+        research=_arista_research(),
+        probes=_arista_probes(),
+    )
+    dossier.kept_out.append(DossierKeyword(
+        term="Arista Aviation", category="exclusion",
+        rationale="namesake aviation firm",
+        evidence_ids=[],
+    ))
+    dossier.naics.append(DossierNaics(
+        code="336413", role="core",
+        rationale="aviation parts manufacturing leaked into core search",
+        state=ClaimState.INFERRED,
+        evidence_ids=["E999"],
+    ))
+    strategy = {
+        "inferred_naics": [n.code for n in dossier.naics if n.role == "core"],
+        "near_misses": [
+            {"value": "336413", "kind": "naics"},
+            {"value": "488190", "kind": "naics"},
+        ],
+    }
+    rec = challenge_dossier(dossier, ran=True, strategy=strategy)
+    assert any(
+        c.kind == "naics_overbreadth" and c.severity == "block"
+        and "336413" in c.statement
+        for c in rec.challenges)
+    assert rec.passed is False
+    ready = evaluate_readiness(
+        identity=ident, dossier=dossier,
+        yield_receipt={
+            "store": {"status": "empty", "row_count": 0, "note": "empty"},
+            "terms": [],
+            "note": "notice store has zero rows; counts are not a market zero",
+        },
+        adversarial=rec, strategy=strategy,
+    )
+    by_id = {row["id"]: row for row in ready["receipts"]}
+    assert by_id["E5"]["ok"] is False
+    assert by_id["E8"]["ok"] is False
+    assert ready["all_ok"] is False
