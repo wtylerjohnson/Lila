@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import Field
 
@@ -17,8 +17,8 @@ class CurrentNextAction(_FrozenContract):
     schema_version: Literal["leadgen.contracts.v1"] = SCHEMA_VERSION
     verb: NextActionVerb
     object: str = Field(min_length=1)
-    due: Optional[date] = None
-    blocked_by: Optional[str] = None
+    due: date | None = None
+    blocked_by: str | None = None
     owner: str = "operator"
     communication_permission: CommunicationPermission = (
         CommunicationPermission.NONE)

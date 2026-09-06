@@ -5,7 +5,7 @@ Reuses Assess ``PartnerDirection`` literals. Path is not a contact.
 
 from __future__ import annotations
 
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import Field
 
@@ -19,7 +19,7 @@ class SellerTransactionPath(_FrozenContract):
     schema_version: Literal["leadgen.contracts.v1"] = SCHEMA_VERSION
     path_id: str = Field(min_length=1)
     kind: SellerPathKind
-    holder: Optional[str] = None
-    vehicle: Optional[str] = None
-    dossier_cite: Optional[str] = None
-    prime_posture_cite: Optional[str] = None
+    holder: str | None = None
+    vehicle: str | None = None
+    dossier_cite: str | None = None
+    prime_posture_cite: str | None = None

@@ -12,7 +12,6 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
-
 SCHEMA_VERSION = "leadgen.contracts.v1"
 
 

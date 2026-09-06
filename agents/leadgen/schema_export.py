@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from ._base import SCHEMA_VERSION
 from .contracts import LeadRow, OpportunityAssessment
 from .enums import enum_registry_values
 from .motion import BuyingMotion
@@ -18,7 +19,6 @@ from .next_action import CurrentNextAction
 from .pathway import ActionableExternalPathway
 from .seller_path import SellerTransactionPath
 from .traces import DecisionTrace
-from ._base import SCHEMA_VERSION
 
 SCHEMA_DIR = Path(__file__).resolve().parent / "schemas"
 

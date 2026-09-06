@@ -62,7 +62,6 @@ from agents.leadgen.schema_export import (
     write_schemas,
 )
 
-
 NOW = datetime(2026, 9, 6, 12, 0, tzinfo=timezone.utc)
 ROOT = Path(__file__).resolve().parents[1]
 LEADGEN_DIR = ROOT / "agents" / "leadgen"
@@ -90,93 +89,89 @@ def _scope():
 
 
 def _parent(**overrides):
-    fields = dict(
-        assessment_id=compose_assessment_id("R1", "live_solicitation", "L1"),
-        assess_run_id="R1",
-        client_name="Testco",
-        profile_version="P1",
-        scope=_scope(),
-        as_of=NOW,
-        subject_kind=AssessmentSubjectKind.LIVE_SOLICITATION,
-        subject_id="L1",
-        title="Network visibility",
-        agency="DHS",
-        notice_id="N1",
-        solicitation_number="70-TEST-26",
-        lifecycle=LifecycleStage.LIVE_SOLICITATION,
-        live_classification=LiveClassification.BID_NOW,
-        live_recommendation=LiveRecommendation.PURSUE,
-        lead_ids=(),
-    )
-    fields.update(overrides)
-    return OpportunityAssessment(**fields)
+    return OpportunityAssessment(**{
+        "assessment_id": compose_assessment_id(
+            "R1", "live_solicitation", "L1"),
+        "assess_run_id": "R1",
+        "client_name": "Testco",
+        "profile_version": "P1",
+        "scope": _scope(),
+        "as_of": NOW,
+        "subject_kind": AssessmentSubjectKind.LIVE_SOLICITATION,
+        "subject_id": "L1",
+        "title": "Network visibility",
+        "agency": "DHS",
+        "notice_id": "N1",
+        "solicitation_number": "70-TEST-26",
+        "lifecycle": LifecycleStage.LIVE_SOLICITATION,
+        "live_classification": LiveClassification.BID_NOW,
+        "live_recommendation": LiveRecommendation.PURSUE,
+        "lead_ids": (),
+        **overrides,
+    })
 
 
 def _motion(**overrides):
-    fields = dict(
-        motion_id="M1",
-        parent_subject_id="L1",
-        kind=CommercialMotionKind.LIVE_BID,
-        stage=LifecycleStage.LIVE_SOLICITATION,
-        buyer_agency="DHS",
-        buyer_component="CISA",
-        clock=date(2026, 10, 1),
-    )
-    fields.update(overrides)
-    return BuyingMotion(**fields)
+    return BuyingMotion(**{
+        "motion_id": "M1",
+        "parent_subject_id": "L1",
+        "kind": CommercialMotionKind.LIVE_BID,
+        "stage": LifecycleStage.LIVE_SOLICITATION,
+        "buyer_agency": "DHS",
+        "buyer_component": "CISA",
+        "clock": date(2026, 10, 1),
+        **overrides,
+    })
 
 
 def _pathway(**overrides):
-    fields = dict(
-        pathway_id="P1",
-        kind=PathwayKind.SAM_NOTICE,
-        source_url="https://sam.gov/opp/N1/view",
-        evidence=[_evidence()],
-        notice_id="N1",
-        contactability=Contactability.ORGANIZATION_ONLY,
-    )
-    fields.update(overrides)
-    return ActionableExternalPathway(**fields)
+    return ActionableExternalPathway(**{
+        "pathway_id": "P1",
+        "kind": PathwayKind.SAM_NOTICE,
+        "source_url": "https://sam.gov/opp/N1/view",
+        "evidence": [_evidence()],
+        "notice_id": "N1",
+        "contactability": Contactability.ORGANIZATION_ONLY,
+        **overrides,
+    })
 
 
 def _seller(**overrides):
-    fields = dict(
-        path_id="S1",
-        kind=SellerPathKind.CHANNEL_RESELLER,
-        holder="Example Reseller",
-    )
-    fields.update(overrides)
-    return SellerTransactionPath(**fields)
+    return SellerTransactionPath(**{
+        "path_id": "S1",
+        "kind": SellerPathKind.CHANNEL_RESELLER,
+        "holder": "Example Reseller",
+        **overrides,
+    })
 
 
 def _next(**overrides):
-    fields = dict(
-        verb=NextActionVerb.REVIEW_REQUIREMENT_SPAN,
-        object="requirement excerpt on N1",
-        due=date(2026, 10, 1),
-        communication_permission=CommunicationPermission.NONE,
-    )
-    fields.update(overrides)
-    return CurrentNextAction(**fields)
+    return CurrentNextAction(**{
+        "verb": NextActionVerb.REVIEW_REQUIREMENT_SPAN,
+        "object": "requirement excerpt on N1",
+        "due": date(2026, 10, 1),
+        "communication_permission": CommunicationPermission.NONE,
+        **overrides,
+    })
 
 
 def _lead(**overrides):
-    fields = dict(
-        lead_id=compose_lead_id("oa:R1:live_solicitation:L1", "M1", "P1", "S1"),
-        parent_assessment_id="oa:R1:live_solicitation:L1",
-        assess_run_id="R1",
-        buying_motion=_motion(),
-        external_pathway=_pathway(),
-        seller_path=_seller(),
-        next_action=_next(),
-        lead_tier=LeadTier.LEAD_T1,
-        readiness=LeadReadiness.ACTIONABLE,
-        contactability=Contactability.ORGANIZATION_ONLY,
-        communication_permission=CommunicationPermission.NONE,
-        decision_trace_id="dt:R1:L1",
-    )
-    fields.update(overrides)
-    return LeadRow(**fields)
+    return LeadRow(**{
+        "lead_id": compose_lead_id(
+            "oa:R1:live_solicitation:L1", "M1", "P1", "S1"),
+        "parent_assessment_id": "oa:R1:live_solicitation:L1",
+        "assess_run_id": "R1",
+        "buying_motion": _motion(),
+        "external_pathway": _pathway(),
+        "seller_path": _seller(),
+        "next_action": _next(),
+        "lead_tier": LeadTier.LEAD_T1,
+        "readiness": LeadReadiness.ACTIONABLE,
+        "contactability": Contactability.ORGANIZATION_ONLY,
+        "communication_permission": CommunicationPermission.NONE,
+        "decision_trace_id": "dt:R1:L1",
+        **overrides,
+    })
 
 
 def test_parent_is_not_assess_run_and_allows_zero_children():
@@ -360,7 +355,7 @@ def test_decision_trace_rejects_naive_clock():
     with pytest.raises(ValidationError, match="timezone-aware"):
         DecisionTrace(
             trace_id="dt:R1:L1", assess_run_id="R1",
-            as_of=datetime(2026, 9, 6, 12, 0),
+            as_of=datetime(2026, 9, 6, 12, 0),  # noqa: DTZ001
         )
 
 

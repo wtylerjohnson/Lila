@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Literal, Optional
+from typing import Literal
 from urllib.parse import parse_qs, unquote, urlparse
 
 from pydantic import Field, HttpUrl, model_validator
@@ -24,8 +24,8 @@ class PublishedContact(_FrozenContract):
     """A government-published POC. Not an Apollo or invented person."""
 
     name: str = Field(min_length=1)
-    title: Optional[str] = None
-    source_url: Optional[HttpUrl] = None
+    title: str | None = None
+    source_url: HttpUrl | None = None
 
 
 class ActionableExternalPathway(_FrozenContract):
@@ -36,13 +36,13 @@ class ActionableExternalPathway(_FrozenContract):
     kind: PathwayKind
     source_url: HttpUrl
     evidence: tuple[EvidenceRef, ...] = Field(min_length=1)
-    notice_id: Optional[str] = None
+    notice_id: str | None = None
     published_contacts: tuple[PublishedContact, ...] = Field(
         default_factory=tuple)
     contactability: Contactability = Contactability.ORGANIZATION_ONLY
 
     @model_validator(mode="after")
-    def _pathway_is_published_and_kind_honest(self) -> "ActionableExternalPathway":
+    def _pathway_is_published_and_kind_honest(self) -> ActionableExternalPathway:
         if self.kind == PathwayKind.SAM_NOTICE:
             _require_sam_notice_pathway(self)
         elif any(item.kind in _FORECAST_OR_NON_NOTICE

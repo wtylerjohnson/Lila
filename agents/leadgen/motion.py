@@ -8,7 +8,7 @@ LeadRow.
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import Field, model_validator
 
@@ -27,15 +27,15 @@ class BuyingMotion(_FrozenContract):
     kind: CommercialMotionKind
     stage: LifecycleStage
     buyer_agency: str = Field(min_length=1)
-    buyer_component: Optional[str] = None
-    buyer_office: Optional[str] = None
-    clock: Optional[date] = None
-    window: Optional[ProjectedWindow] = None
-    targeting_rule_id: Optional[TargetingRuleId] = None
-    recorded_at: Optional[datetime] = None
+    buyer_component: str | None = None
+    buyer_office: str | None = None
+    clock: date | None = None
+    window: ProjectedWindow | None = None
+    targeting_rule_id: TargetingRuleId | None = None
+    recorded_at: datetime | None = None
 
     @model_validator(mode="after")
-    def _buyer_and_clock_are_required(self) -> "BuyingMotion":
+    def _buyer_and_clock_are_required(self) -> BuyingMotion:
         if self.clock is None and self.window is None:
             raise ValueError(
                 "buying motion requires a clock or projected window")

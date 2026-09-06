@@ -16,15 +16,15 @@ notice, only a motion, or only a contact fails.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import Field, model_validator
 
 from agents.assess.contracts import (
     AssessScope,
+    LifecycleStage,
     LiveClassification,
     LiveRecommendation,
-    LifecycleStage,
 )
 
 from ._base import SCHEMA_VERSION, _FrozenContract, require_aware, require_unique
@@ -64,18 +64,18 @@ class OpportunityAssessment(_FrozenContract):
     subject_id: str = Field(min_length=1)
     title: str = Field(min_length=1)
     agency: str = Field(min_length=1)
-    solicitation_number: Optional[str] = None
-    notice_id: Optional[str] = None
-    lifecycle: Optional[LifecycleStage] = None
-    live_classification: Optional[LiveClassification] = None
-    live_recommendation: Optional[LiveRecommendation] = None
-    requirement_span: Optional[str] = None
-    dossier_schema_version: Optional[str] = None
-    identity_status: Optional[str] = None
+    solicitation_number: str | None = None
+    notice_id: str | None = None
+    lifecycle: LifecycleStage | None = None
+    live_classification: LiveClassification | None = None
+    live_recommendation: LiveRecommendation | None = None
+    requirement_span: str | None = None
+    dossier_schema_version: str | None = None
+    identity_status: str | None = None
     lead_ids: tuple[str, ...] = Field(default_factory=tuple)
 
     @model_validator(mode="after")
-    def _parent_identity_is_coherent(self) -> "OpportunityAssessment":
+    def _parent_identity_is_coherent(self) -> OpportunityAssessment:
         require_aware(self.as_of, "opportunity assessment as_of")
         require_unique(self.lead_ids, "opportunity assessment lead_ids")
         if (self.subject_kind == AssessmentSubjectKind.LIVE_SOLICITATION
@@ -101,10 +101,10 @@ class LeadRow(_FrozenContract):
     contactability: Contactability
     communication_permission: CommunicationPermission
     decision_trace_id: str = Field(min_length=1)
-    outcome_id: Optional[str] = None
+    outcome_id: str | None = None
 
     @model_validator(mode="after")
-    def _four_factors_and_disposition_agree(self) -> "LeadRow":
+    def _four_factors_and_disposition_agree(self) -> LeadRow:
         if TIER_READINESS[self.lead_tier] != self.readiness:
             raise ValueError(
                 "lead readiness must match lead_tier "

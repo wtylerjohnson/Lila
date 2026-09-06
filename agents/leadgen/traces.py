@@ -7,7 +7,7 @@ outcome is not lead-tier REJECT.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import Field, model_validator
 
@@ -23,15 +23,15 @@ class DecisionTrace(_FrozenContract):
     trace_id: str = Field(min_length=1)
     assess_run_id: str = Field(min_length=1)
     as_of: datetime
-    parent_assessment_id: Optional[str] = None
-    lead_id: Optional[str] = None
-    assess_gate: Optional[GateStatus] = None
+    parent_assessment_id: str | None = None
+    lead_id: str | None = None
+    assess_gate: GateStatus | None = None
     steps: tuple[str, ...] = Field(default_factory=tuple)
     evidence_ids: tuple[str, ...] = Field(default_factory=tuple)
     notes: str = ""
 
     @model_validator(mode="after")
-    def _trace_clock_and_ids(self) -> "DecisionTrace":
+    def _trace_clock_and_ids(self) -> DecisionTrace:
         require_aware(self.as_of, "decision trace as_of")
         require_unique(self.evidence_ids, "decision trace evidence_ids")
         return self
