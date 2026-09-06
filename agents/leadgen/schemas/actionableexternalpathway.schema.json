@@ -1,0 +1,276 @@
+{
+  "$defs": {
+    "Contactability": {
+      "description": "Whether a published route to a buyer or holder exists.\n\nEnrichment and Apollo are not contactability. A Target-door lock is\na permission state, not proof that nobody is published.",
+      "enum": [
+        "published_poc",
+        "organization_only",
+        "enrichment_required",
+        "not_contactable"
+      ],
+      "title": "Contactability",
+      "type": "string"
+    },
+    "EvidenceKind": {
+      "enum": [
+        "notice",
+        "agency_forecast",
+        "award",
+        "budget",
+        "legislation",
+        "regulation",
+        "agency_announcement",
+        "watchdog",
+        "subaward",
+        "vehicle",
+        "news",
+        "web_lead"
+      ],
+      "title": "EvidenceKind",
+      "type": "string"
+    },
+    "EvidenceRef": {
+      "description": "One immutable source-backed observation used by an Assess record.",
+      "properties": {
+        "effective_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Effective Date"
+        },
+        "evidence_id": {
+          "minLength": 1,
+          "title": "Evidence Id",
+          "type": "string"
+        },
+        "excerpt": {
+          "minLength": 1,
+          "title": "Excerpt",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/EvidenceKind"
+        },
+        "observed_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observed Date"
+        },
+        "primary_source": {
+          "default": false,
+          "title": "Primary Source",
+          "type": "boolean"
+        },
+        "record_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Record Hash"
+        },
+        "retrieved_at": {
+          "format": "date-time",
+          "title": "Retrieved At",
+          "type": "string"
+        },
+        "source_name": {
+          "minLength": 1,
+          "title": "Source Name",
+          "type": "string"
+        },
+        "source_url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Source Url",
+          "type": "string"
+        },
+        "supports": {
+          "items": {
+            "$ref": "#/$defs/EvidenceUse"
+          },
+          "title": "Supports",
+          "type": "array"
+        },
+        "tier": {
+          "$ref": "#/$defs/EvidenceTier"
+        }
+      },
+      "required": [
+        "evidence_id",
+        "tier",
+        "kind",
+        "source_name",
+        "source_url",
+        "retrieved_at",
+        "excerpt"
+      ],
+      "title": "EvidenceRef",
+      "type": "object"
+    },
+    "EvidenceTier": {
+      "enum": [
+        "notice",
+        "program",
+        "market",
+        "discovery"
+      ],
+      "title": "EvidenceTier",
+      "type": "string"
+    },
+    "EvidenceUse": {
+      "enum": [
+        "requirement",
+        "timing",
+        "funding",
+        "buyer",
+        "capability",
+        "access",
+        "incumbent",
+        "counterevidence"
+      ],
+      "title": "EvidenceUse",
+      "type": "string"
+    },
+    "PathwayKind": {
+      "description": "Public, already-published route a seller can use.",
+      "enum": [
+        "sam_notice",
+        "agency_forecast",
+        "published_poc",
+        "vehicle_ordering",
+        "industry_day",
+        "official_rulemaking"
+      ],
+      "title": "PathwayKind",
+      "type": "string"
+    },
+    "PublishedContact": {
+      "additionalProperties": false,
+      "description": "A government-published POC. Not an Apollo or invented person.",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "source_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Url"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "PublishedContact",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One evidence-bound public pathway. Not a live solicitation census row.",
+  "properties": {
+    "contactability": {
+      "$ref": "#/$defs/Contactability",
+      "default": "organization_only"
+    },
+    "evidence": {
+      "items": {
+        "$ref": "#/$defs/EvidenceRef"
+      },
+      "minItems": 1,
+      "title": "Evidence",
+      "type": "array"
+    },
+    "kind": {
+      "$ref": "#/$defs/PathwayKind"
+    },
+    "notice_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Notice Id"
+    },
+    "pathway_id": {
+      "minLength": 1,
+      "title": "Pathway Id",
+      "type": "string"
+    },
+    "published_contacts": {
+      "items": {
+        "$ref": "#/$defs/PublishedContact"
+      },
+      "title": "Published Contacts",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "leadgen.contracts.v1",
+      "default": "leadgen.contracts.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_url": {
+      "format": "uri",
+      "maxLength": 2083,
+      "minLength": 1,
+      "title": "Source Url",
+      "type": "string"
+    }
+  },
+  "required": [
+    "pathway_id",
+    "kind",
+    "source_url",
+    "evidence"
+  ],
+  "title": "ActionableExternalPathway",
+  "type": "object"
+}

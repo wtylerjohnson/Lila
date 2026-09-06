@@ -1,0 +1,191 @@
+{
+  "$defs": {
+    "CommercialMotionKind": {
+      "description": "What buying event is in motion. Includes live bid; not a lead tier.",
+      "enum": [
+        "live_bid",
+        "renewal",
+        "displacement",
+        "adjacency"
+      ],
+      "title": "CommercialMotionKind",
+      "type": "string"
+    },
+    "LifecycleStage": {
+      "enum": [
+        "early_signal",
+        "funded_intent",
+        "acquisition_planning",
+        "market_research",
+        "presolicitation",
+        "live_solicitation",
+        "award",
+        "recompete"
+      ],
+      "title": "LifecycleStage",
+      "type": "string"
+    },
+    "ProjectedWindow": {
+      "properties": {
+        "end": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "start": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start"
+        }
+      },
+      "required": [
+        "label"
+      ],
+      "title": "ProjectedWindow",
+      "type": "object"
+    },
+    "TargetingRuleId": {
+      "description": "Closed copy of Band 09 targeting ``rule_id`` literals.\n\nThe rule owner remains ``agents.golden_press.targeting_rules`` and\n``data/reference/targeting_personas.json``. This enum exists so a\n``BuyingMotion`` can cite a targeting rule without using ``LeadTier``.\nPersist under the field name ``targeting_rule_id``.",
+      "enum": [
+        "T1",
+        "T2",
+        "T3"
+      ],
+      "title": "TargetingRuleId",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "What buying event is in motion. Not a targeting spec and not a lead.",
+  "properties": {
+    "buyer_agency": {
+      "minLength": 1,
+      "title": "Buyer Agency",
+      "type": "string"
+    },
+    "buyer_component": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Buyer Component"
+    },
+    "buyer_office": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Buyer Office"
+    },
+    "clock": {
+      "anyOf": [
+        {
+          "format": "date",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Clock"
+    },
+    "kind": {
+      "$ref": "#/$defs/CommercialMotionKind"
+    },
+    "motion_id": {
+      "minLength": 1,
+      "title": "Motion Id",
+      "type": "string"
+    },
+    "parent_subject_id": {
+      "minLength": 1,
+      "title": "Parent Subject Id",
+      "type": "string"
+    },
+    "recorded_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Recorded At"
+    },
+    "schema_version": {
+      "const": "leadgen.contracts.v1",
+      "default": "leadgen.contracts.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "stage": {
+      "$ref": "#/$defs/LifecycleStage"
+    },
+    "targeting_rule_id": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TargetingRuleId"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "window": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ProjectedWindow"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "motion_id",
+    "parent_subject_id",
+    "kind",
+    "stage",
+    "buyer_agency"
+  ],
+  "title": "BuyingMotion",
+  "type": "object"
+}

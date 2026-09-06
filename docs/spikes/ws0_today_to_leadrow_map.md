@@ -1,7 +1,9 @@
 # WS0 spike: LILA today to LeadRow
 
-**Status:** SPIKE ONLY. No production schema. No Pydantic LeadRow package.
-No Market Map release change. No merge of experimental trees.
+**Status:** SPIKE MAP (type authority). The additive schema package now
+lives in `agents/leadgen/`. This document remains the parent/child and
+collision map. It is not a contract surface. No Market Map release
+change. No merge of experimental trees.
 
 **Date:** 2026-09-06
 **Base:** `main` at `e589fdf` (print pagination / receipts)

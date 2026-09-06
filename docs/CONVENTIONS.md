@@ -1277,6 +1277,34 @@ coverage claims; nothing in it is a gate value.
   document is not in the repo, say so and map against the operator
   ruling that tasked the spike.
 
+## Lead-gen contracts (2026-09-06)
+
+- `agents/leadgen/` is an additive sibling of `agents/assess/`. It does
+  not replace `AssessRun`, add lead fields to `LiveSolicitation`, or
+  participate in `lila_release`. Opportunity assessment is PARENT;
+  LeadRow is CHILD. Type authority for the first cut is
+  `docs/spikes/ws0_today_to_leadrow_map.md`. Package overview:
+  `docs/leadgen/README.md`.
+- Frozen + `extra=forbid`, same construction rules as Assess (lists in,
+  tuples after validation). Version stamp: `leadgen.contracts.v1`.
+- Enum namespaces must not collide. `LeadTier` values are
+  `LEAD_T1|LEAD_T2|WATCH|HOLD|REJECT` and persist only on field
+  `lead_tier` (display "lead T1" / "lead T2"). Targeting motion
+  `rule_id` stays `T1|T2|T3` on `TargetingRuleId` (a closed copy of
+  `targeting_personas.json`; `targeting_rules.py` remains the rule
+  owner) and persists only on field `targeting_rule_id`. Never store a
+  lead as bare `"tier": "T1"`. There is no lead T3.
+- Stages reuse Assess `LifecycleStage`. Commercial motions, pathways,
+  seller paths, contactability, and communication permission live in
+  `agents/leadgen/enums.py`. Seller path literals reuse
+  `PartnerDirection` plus fail-closed `path_unknown`.
+- JSON Schema export: `python -m agents.leadgen.schema_export` writes
+  `agents/leadgen/schemas/`. Persistence is a later ticket; do not
+  write lead rows into `data/state/assess_runs/`.
+- Step 1 `CompanyDossier` remains the ontology front door (PR #1). Cite
+  it with optional string fields until that PR merges. Do not import
+  targeting or Apollo from `agents/leadgen/contracts.py`.
+
 ## Vocabulary, identity and posture (2026-08-06)
 
 The assessment family kept reporting OUR failures as market facts. Four

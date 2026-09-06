@@ -1,0 +1,745 @@
+{
+  "$defs": {
+    "ActionableExternalPathway": {
+      "additionalProperties": false,
+      "description": "One evidence-bound public pathway. Not a live solicitation census row.",
+      "properties": {
+        "contactability": {
+          "$ref": "#/$defs/Contactability",
+          "default": "organization_only"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        },
+        "kind": {
+          "$ref": "#/$defs/PathwayKind"
+        },
+        "notice_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notice Id"
+        },
+        "pathway_id": {
+          "minLength": 1,
+          "title": "Pathway Id",
+          "type": "string"
+        },
+        "published_contacts": {
+          "items": {
+            "$ref": "#/$defs/PublishedContact"
+          },
+          "title": "Published Contacts",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "leadgen.contracts.v1",
+          "default": "leadgen.contracts.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Source Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "pathway_id",
+        "kind",
+        "source_url",
+        "evidence"
+      ],
+      "title": "ActionableExternalPathway",
+      "type": "object"
+    },
+    "BuyingMotion": {
+      "additionalProperties": false,
+      "description": "What buying event is in motion. Not a targeting spec and not a lead.",
+      "properties": {
+        "buyer_agency": {
+          "minLength": 1,
+          "title": "Buyer Agency",
+          "type": "string"
+        },
+        "buyer_component": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Buyer Component"
+        },
+        "buyer_office": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Buyer Office"
+        },
+        "clock": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Clock"
+        },
+        "kind": {
+          "$ref": "#/$defs/CommercialMotionKind"
+        },
+        "motion_id": {
+          "minLength": 1,
+          "title": "Motion Id",
+          "type": "string"
+        },
+        "parent_subject_id": {
+          "minLength": 1,
+          "title": "Parent Subject Id",
+          "type": "string"
+        },
+        "recorded_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Recorded At"
+        },
+        "schema_version": {
+          "const": "leadgen.contracts.v1",
+          "default": "leadgen.contracts.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "stage": {
+          "$ref": "#/$defs/LifecycleStage"
+        },
+        "targeting_rule_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TargetingRuleId"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "window": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ProjectedWindow"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "motion_id",
+        "parent_subject_id",
+        "kind",
+        "stage",
+        "buyer_agency"
+      ],
+      "title": "BuyingMotion",
+      "type": "object"
+    },
+    "CommercialMotionKind": {
+      "description": "What buying event is in motion. Includes live bid; not a lead tier.",
+      "enum": [
+        "live_bid",
+        "renewal",
+        "displacement",
+        "adjacency"
+      ],
+      "title": "CommercialMotionKind",
+      "type": "string"
+    },
+    "CommunicationPermission": {
+      "description": "Whether any outbound communication is allowed.\n\nDefault is ``none``. This flag never sends mail. Auto-outreach is\nout of scope. ``outreach_authorized`` means both existing operator\ndoors are open; it is not a send instruction.",
+      "enum": [
+        "none",
+        "confirm_published",
+        "target_door_locked",
+        "outreach_authorized"
+      ],
+      "title": "CommunicationPermission",
+      "type": "string"
+    },
+    "Contactability": {
+      "description": "Whether a published route to a buyer or holder exists.\n\nEnrichment and Apollo are not contactability. A Target-door lock is\na permission state, not proof that nobody is published.",
+      "enum": [
+        "published_poc",
+        "organization_only",
+        "enrichment_required",
+        "not_contactable"
+      ],
+      "title": "Contactability",
+      "type": "string"
+    },
+    "CurrentNextAction": {
+      "additionalProperties": false,
+      "description": "One dated (when a clock exists) next action. Owner is the operator.",
+      "properties": {
+        "blocked_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Blocked By"
+        },
+        "communication_permission": {
+          "$ref": "#/$defs/CommunicationPermission",
+          "default": "none"
+        },
+        "due": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Due"
+        },
+        "object": {
+          "minLength": 1,
+          "title": "Object",
+          "type": "string"
+        },
+        "owner": {
+          "default": "operator",
+          "title": "Owner",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "leadgen.contracts.v1",
+          "default": "leadgen.contracts.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "verb": {
+          "$ref": "#/$defs/NextActionVerb"
+        }
+      },
+      "required": [
+        "verb",
+        "object"
+      ],
+      "title": "CurrentNextAction",
+      "type": "object"
+    },
+    "EvidenceKind": {
+      "enum": [
+        "notice",
+        "agency_forecast",
+        "award",
+        "budget",
+        "legislation",
+        "regulation",
+        "agency_announcement",
+        "watchdog",
+        "subaward",
+        "vehicle",
+        "news",
+        "web_lead"
+      ],
+      "title": "EvidenceKind",
+      "type": "string"
+    },
+    "EvidenceRef": {
+      "description": "One immutable source-backed observation used by an Assess record.",
+      "properties": {
+        "effective_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Effective Date"
+        },
+        "evidence_id": {
+          "minLength": 1,
+          "title": "Evidence Id",
+          "type": "string"
+        },
+        "excerpt": {
+          "minLength": 1,
+          "title": "Excerpt",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/EvidenceKind"
+        },
+        "observed_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observed Date"
+        },
+        "primary_source": {
+          "default": false,
+          "title": "Primary Source",
+          "type": "boolean"
+        },
+        "record_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Record Hash"
+        },
+        "retrieved_at": {
+          "format": "date-time",
+          "title": "Retrieved At",
+          "type": "string"
+        },
+        "source_name": {
+          "minLength": 1,
+          "title": "Source Name",
+          "type": "string"
+        },
+        "source_url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Source Url",
+          "type": "string"
+        },
+        "supports": {
+          "items": {
+            "$ref": "#/$defs/EvidenceUse"
+          },
+          "title": "Supports",
+          "type": "array"
+        },
+        "tier": {
+          "$ref": "#/$defs/EvidenceTier"
+        }
+      },
+      "required": [
+        "evidence_id",
+        "tier",
+        "kind",
+        "source_name",
+        "source_url",
+        "retrieved_at",
+        "excerpt"
+      ],
+      "title": "EvidenceRef",
+      "type": "object"
+    },
+    "EvidenceTier": {
+      "enum": [
+        "notice",
+        "program",
+        "market",
+        "discovery"
+      ],
+      "title": "EvidenceTier",
+      "type": "string"
+    },
+    "EvidenceUse": {
+      "enum": [
+        "requirement",
+        "timing",
+        "funding",
+        "buyer",
+        "capability",
+        "access",
+        "incumbent",
+        "counterevidence"
+      ],
+      "title": "EvidenceUse",
+      "type": "string"
+    },
+    "LeadReadiness": {
+      "description": "Operational readiness of a LeadRow. Distinct from ``lead_tier``.",
+      "enum": [
+        "actionable",
+        "watching",
+        "held",
+        "closed"
+      ],
+      "title": "LeadReadiness",
+      "type": "string"
+    },
+    "LeadTier": {
+      "description": "Lead disposition. Not a targeting rule, persona tier, or Assess gate.\n\nPersist under the field name ``lead_tier``. Display as \"lead T1\" /\n\"lead T2\", never as a bare \"T1\".",
+      "enum": [
+        "LEAD_T1",
+        "LEAD_T2",
+        "WATCH",
+        "HOLD",
+        "REJECT"
+      ],
+      "title": "LeadTier",
+      "type": "string"
+    },
+    "LifecycleStage": {
+      "enum": [
+        "early_signal",
+        "funded_intent",
+        "acquisition_planning",
+        "market_research",
+        "presolicitation",
+        "live_solicitation",
+        "award",
+        "recompete"
+      ],
+      "title": "LifecycleStage",
+      "type": "string"
+    },
+    "NextActionVerb": {
+      "description": "Closed next-action verbs. No invented-person outreach verbs.",
+      "enum": [
+        "review_requirement_span",
+        "finish_attachment_inventory",
+        "confirm_sam_census",
+        "refresh_stale_coverage",
+        "confirm_published_poc",
+        "watch_trigger",
+        "validate_partner_path",
+        "target_door_still_locked"
+      ],
+      "title": "NextActionVerb",
+      "type": "string"
+    },
+    "PathwayKind": {
+      "description": "Public, already-published route a seller can use.",
+      "enum": [
+        "sam_notice",
+        "agency_forecast",
+        "published_poc",
+        "vehicle_ordering",
+        "industry_day",
+        "official_rulemaking"
+      ],
+      "title": "PathwayKind",
+      "type": "string"
+    },
+    "ProjectedWindow": {
+      "properties": {
+        "end": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "start": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start"
+        }
+      },
+      "required": [
+        "label"
+      ],
+      "title": "ProjectedWindow",
+      "type": "object"
+    },
+    "PublishedContact": {
+      "additionalProperties": false,
+      "description": "A government-published POC. Not an Apollo or invented person.",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "source_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Url"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "PublishedContact",
+      "type": "object"
+    },
+    "SellerPathKind": {
+      "description": "How this seller can transact. Path is not a named person.\n\n``prime_to_sub`` through ``vehicle_access`` match ``PartnerDirection``.\n``path_unknown`` is fail-closed and cannot carry LEAD_T1/LEAD_T2.",
+      "enum": [
+        "prime_to_sub",
+        "sub_to_prime",
+        "joint_venture",
+        "channel_reseller",
+        "vehicle_access",
+        "path_unknown"
+      ],
+      "title": "SellerPathKind",
+      "type": "string"
+    },
+    "SellerTransactionPath": {
+      "additionalProperties": false,
+      "description": "One seller transaction path. Fail-closed unknown yields HOLD, not prime.",
+      "properties": {
+        "dossier_cite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dossier Cite"
+        },
+        "holder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Holder"
+        },
+        "kind": {
+          "$ref": "#/$defs/SellerPathKind"
+        },
+        "path_id": {
+          "minLength": 1,
+          "title": "Path Id",
+          "type": "string"
+        },
+        "prime_posture_cite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Prime Posture Cite"
+        },
+        "schema_version": {
+          "const": "leadgen.contracts.v1",
+          "default": "leadgen.contracts.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "vehicle": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Vehicle"
+        }
+      },
+      "required": [
+        "path_id",
+        "kind"
+      ],
+      "title": "SellerTransactionPath",
+      "type": "object"
+    },
+    "TargetingRuleId": {
+      "description": "Closed copy of Band 09 targeting ``rule_id`` literals.\n\nThe rule owner remains ``agents.golden_press.targeting_rules`` and\n``data/reference/targeting_personas.json``. This enum exists so a\n``BuyingMotion`` can cite a targeting rule without using ``LeadTier``.\nPersist under the field name ``targeting_rule_id``.",
+      "enum": [
+        "T1",
+        "T2",
+        "T3"
+      ],
+      "title": "TargetingRuleId",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Child lead: four required factors plus readiness and disposition.",
+  "properties": {
+    "assess_run_id": {
+      "minLength": 1,
+      "title": "Assess Run Id",
+      "type": "string"
+    },
+    "buying_motion": {
+      "$ref": "#/$defs/BuyingMotion"
+    },
+    "communication_permission": {
+      "$ref": "#/$defs/CommunicationPermission"
+    },
+    "contactability": {
+      "$ref": "#/$defs/Contactability"
+    },
+    "decision_trace_id": {
+      "minLength": 1,
+      "title": "Decision Trace Id",
+      "type": "string"
+    },
+    "external_pathway": {
+      "$ref": "#/$defs/ActionableExternalPathway"
+    },
+    "lead_id": {
+      "minLength": 1,
+      "title": "Lead Id",
+      "type": "string"
+    },
+    "lead_tier": {
+      "$ref": "#/$defs/LeadTier"
+    },
+    "next_action": {
+      "$ref": "#/$defs/CurrentNextAction"
+    },
+    "outcome_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Outcome Id"
+    },
+    "parent_assessment_id": {
+      "minLength": 1,
+      "title": "Parent Assessment Id",
+      "type": "string"
+    },
+    "readiness": {
+      "$ref": "#/$defs/LeadReadiness"
+    },
+    "schema_version": {
+      "const": "leadgen.contracts.v1",
+      "default": "leadgen.contracts.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "seller_path": {
+      "$ref": "#/$defs/SellerTransactionPath"
+    }
+  },
+  "required": [
+    "lead_id",
+    "parent_assessment_id",
+    "assess_run_id",
+    "buying_motion",
+    "external_pathway",
+    "seller_path",
+    "next_action",
+    "lead_tier",
+    "readiness",
+    "contactability",
+    "communication_permission",
+    "decision_trace_id"
+  ],
+  "title": "LeadRow",
+  "type": "object"
+}

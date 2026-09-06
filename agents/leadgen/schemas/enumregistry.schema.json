@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "assessment_subject": {
+      "enum": [
+        "live_solicitation",
+        "developing_thesis",
+        "partner_link",
+        "motion_subject"
+      ],
+      "type": "string"
+    },
+    "commercial_motion": {
+      "enum": [
+        "live_bid",
+        "renewal",
+        "displacement",
+        "adjacency"
+      ],
+      "type": "string"
+    },
+    "communication_permission": {
+      "enum": [
+        "none",
+        "confirm_published",
+        "target_door_locked",
+        "outreach_authorized"
+      ],
+      "type": "string"
+    },
+    "contactability": {
+      "enum": [
+        "published_poc",
+        "organization_only",
+        "enrichment_required",
+        "not_contactable"
+      ],
+      "type": "string"
+    },
+    "lead_readiness": {
+      "enum": [
+        "actionable",
+        "watching",
+        "held",
+        "closed"
+      ],
+      "type": "string"
+    },
+    "lead_tier": {
+      "enum": [
+        "LEAD_T1",
+        "LEAD_T2",
+        "WATCH",
+        "HOLD",
+        "REJECT"
+      ],
+      "type": "string"
+    },
+    "next_action_verb": {
+      "enum": [
+        "review_requirement_span",
+        "finish_attachment_inventory",
+        "confirm_sam_census",
+        "refresh_stale_coverage",
+        "confirm_published_poc",
+        "watch_trigger",
+        "validate_partner_path",
+        "target_door_still_locked"
+      ],
+      "type": "string"
+    },
+    "pathway": {
+      "enum": [
+        "sam_notice",
+        "agency_forecast",
+        "published_poc",
+        "vehicle_ordering",
+        "industry_day",
+        "official_rulemaking"
+      ],
+      "type": "string"
+    },
+    "seller_path": {
+      "enum": [
+        "prime_to_sub",
+        "sub_to_prime",
+        "joint_venture",
+        "channel_reseller",
+        "vehicle_access",
+        "path_unknown"
+      ],
+      "type": "string"
+    },
+    "stage": {
+      "enum": [
+        "early_signal",
+        "funded_intent",
+        "acquisition_planning",
+        "market_research",
+        "presolicitation",
+        "live_solicitation",
+        "award",
+        "recompete"
+      ],
+      "type": "string"
+    },
+    "targeting_rule_id": {
+      "enum": [
+        "T1",
+        "T2",
+        "T3"
+      ],
+      "type": "string"
+    }
+  },
+  "schema_version": "leadgen.contracts.v1",
+  "title": "Lead-gen enum registry"
+}
