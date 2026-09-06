@@ -52,8 +52,8 @@ PROBE_SPECS: tuple[tuple[str, str], ...] = (
      "Search specifically for a music label or records company, an aviation "
      "or aircraft-support firm, a project-management or PPM vendor, and any "
      "lookalike spelling. Quote each namesake's full name "
-     "(for example a Records label, an Aviation firm, an Aristan-style "
-     "lookalike, or OAS Aircraft Support when those namesakes exist). "
+     "(for example a Records label, an Aviation firm, a lookalike "
+     "spelling, or an aircraft-support firm when those namesakes exist). "
      "These are collisions, not this company's offerings. Cite sources."),
     ("classifications",
      "Quote any NAICS, PSC, or industry classification THIS bound company "

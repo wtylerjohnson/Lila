@@ -182,9 +182,10 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   appear in probe or page text are kept with real evidence_ids. An empty
   NAICS list stays empty when nothing is cited; E5/E8 must not treat
   that as a win while strategy invents NAICS (split-brain is a block).
-  Dossier **core** NAICS are the search/lead-gen lane. Namesake
-  industries (Aviation 336413/488190, music/records 5122xx) are
-  `boundary` or omitted from `inferred_naics`, aligned with `kept_out`.
+  Dossier **core** NAICS (`dossier.naics`) are the search/lead-gen lane.
+  Namesake industries (Aviation 336413/488190, music/records 5122xx) are
+  moved to `dossier.kept_out_naics` and `strategy.kept_out_naics`, aligned
+  with Aviation/Records `kept_out`. They are omitted from `inferred_naics`.
   Forecast/solicitation 6-digit fragments (685031) are not NAICS.
   Core codes that conflict with Aviation/Records excludes or strategy
   `near_misses` fail E5/E8. `kept_out` rows (OAS, Aristan, Aviation)

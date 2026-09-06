@@ -34,6 +34,11 @@ _GENERIC = frozenset({
     "partners", "customers", "features", "benefits", "gap", "note",
     "scope", "appendix", "section", "schedule", "vehicle",
 })
+_CATEGORY_HEADERS = frozenset({
+    "visibility", "telemetry", "network visibility", "network telemetry",
+    "visibility fabric", "telemetry fabric", "visibility and telemetry",
+    "visibility or telemetry", "visibility or telemetry fabrics",
+})
 _SCHEDULE_TICKER = frozenset({
     "gsa", "sewp", "gwac", "idiq", "oasis", "mas", "fss", "2git",
     "nyse", "nasdaq", "cik", "ticker", "sin", "psc", "cage", "duns",
@@ -285,6 +290,8 @@ def is_noise_term(text: str) -> bool:
     low = name.casefold()
     if low in _GENERIC or low in _SCHEDULE_TICKER or low in _TOOL_META:
         return True
+    if low in _CATEGORY_HEADERS:
+        return True
     if low in _ACRONYM_DENY:
         return True
     if any(tok in _SCHEDULE_TICKER or tok in _TOOL_META for tok in low.split()):
@@ -304,6 +311,8 @@ def is_product_name(text: str) -> bool:
     if not is_discrete_name(name) or is_noise_term(name):
         return False
     if looks_like_contract_or_schedule_id(name):
+        return False
+    if name.casefold() in _CATEGORY_HEADERS:
         return False
     words = name.split()
     if len(words) == 1:
@@ -466,9 +475,9 @@ def recall_collisions(text: str, client_name: str) -> list[str]:
     patterns = (
         rf"\b({re.escape(token)} Records)\b",
         rf"\b({re.escape(token)} Aviation(?:\s+Services)?)\b",
-        rf"\b({re.escape(token)}n(?:\s+P(?:roject\s+)?M(?:anagement)?)?)\b",
+        rf"\b({re.escape(token)}n(?:\s+P(?:roject\s+)?M(?:anagement)?)?)\b(?!\s*-?\s*style)",
         r"\b(OAS Aircraft Support)\b",
-        r"\b(Aristan(?:\s+P(?:roject\s+)?M(?:anagement)?)?)\b",
+        r"\b(Aristan(?:\s+P(?:roject\s+)?M(?:anagement)?)?)\b(?!\s*-?\s*style)",
     )
     for pat in patterns:
         for match in re.finditer(pat, raw, re.I):
@@ -477,7 +486,10 @@ def recall_collisions(text: str, client_name: str) -> list[str]:
     if re.search(rf"{re.escape(token)}.{{0,80}}aviation|aviation.{{0,80}}{re.escape(token)}",
                  raw, re.I):
         _add(f"{token} Aviation")
-    if re.search(r"\baristan\b", raw, re.I):
+    if (
+        re.search(r"\bAristan\b", raw, re.I)
+        and not re.search(r"\baristan(?:-|\s+)style\b", raw, re.I)
+    ):
         _add("Aristan")
     if re.search(r"\bOAS Aircraft Support\b", raw, re.I):
         _add("OAS Aircraft Support")
@@ -855,6 +867,7 @@ def extract_surface(
 
     fabric = "DANZ Monitoring Fabric"
     blob = "\n".join(all_findings + [scrape_text])
+    offerings = [o for o in offerings if o.casefold() not in _CATEGORY_HEADERS]
     if re.search(r"\bDANZ Monitoring Fabric\b", blob, re.I) or any(
             o.casefold() == fabric.casefold() for o in offerings):
         offerings = [o for o in offerings if o.casefold() != "danz"]

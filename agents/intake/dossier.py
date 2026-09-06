@@ -107,6 +107,7 @@ class CompanyDossier(BaseModel):
     naics: list[DossierNaics] = Field(default_factory=list)
     capability_statements: list[RetrievalUnit] = Field(default_factory=list)
     kept_out: list[DossierKeyword] = Field(default_factory=list)
+    kept_out_naics: list[DossierNaics] = Field(default_factory=list)
     related_entities: list[RelatedEntity] = Field(default_factory=list)
     summary: str = ""
 
@@ -189,6 +190,7 @@ def build_dossier(
     channels: list[Claim] = []
     keywords: list[DossierKeyword] = []
     kept_out: list[DossierKeyword] = []
+    kept_out_naics: list[DossierNaics] = []
     naics: list[DossierNaics] = []
     statements: list[RetrievalUnit] = []
     unknowns: list[str] = []
@@ -397,6 +399,16 @@ def build_dossier(
         if naics_search_role(
                 entry.code, entry.rationale, exclude_blob=exclude_blob) == "boundary":
             entry.role = "boundary"
+    stay: list[DossierNaics] = []
+    for entry in naics:
+        if (
+            entry.role == "boundary"
+            and entry.state != ClaimState.COMPANY_ASSERTED
+        ):
+            kept_out_naics.append(entry)
+        else:
+            stay.append(entry)
+    naics = stay
 
     related_entities = list(surface.related_entities)
     for rel in related_entities:
@@ -521,6 +533,7 @@ def build_dossier(
         naics=naics,
         capability_statements=statements,
         kept_out=kept_out,
+        kept_out_naics=kept_out_naics,
         related_entities=related_entities,
         summary=" ".join(summary_bits),
     )

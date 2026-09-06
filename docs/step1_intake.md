@@ -71,7 +71,7 @@ Sidecars next to `data/review/<slug>.review.json`:
 
 | Sidecar | Contents |
 |---------|----------|
-| `.dossier.json` | Identity, evidence ledger, discrete offerings/boundaries/channels, keywords, NAICS with rationales, capability statements, `kept_out` exclusions, related legal persons, unknowns. Claim states: `company_asserted`, `corroborated`, `inferred`, `disputed`, `unknown`. Offerings are product names, never scrape errors, probe essays, or GSA/SEWP/award IDs. NAICS require evidence_ids. Core NAICS are the search lane; namesake-industry codes are boundary. Empty or polluted cores (aviation cores while Aviation is kept_out; invented strategy NAICS) fail E5/E8. |
+| `.dossier.json` | Identity, evidence ledger, discrete offerings/boundaries/channels, keywords, NAICS with rationales, capability statements, `kept_out` exclusions, `kept_out_naics` namesake codes, related legal persons, unknowns. Claim states: `company_asserted`, `corroborated`, `inferred`, `disputed`, `unknown`. Offerings are product names, never scrape errors, probe essays, category headers, or GSA/SEWP/award IDs. `dossier.naics` is the search-core lane; aviation/records namesake codes live on `kept_out_naics`. Empty or polluted cores fail E5/E8. |
 | `.intake_yield.json` | `term_yield` against the notice store, plus a store census. Empty/unreadable store is named as such; it is not a list of zero counts. No health verdict. |
 | `.intake_adversarial.json` | Challenges against citations and yield titles, not dossier prose. Incomplete review ≠ pass. One bounded repair may drop unsupported claims. |
 | `.intake_readiness.json` | E1-E8 receipts (identity, ingest, probes, company model, retrieval units, yield, adversarial complete, adversarial not fail-closed). |

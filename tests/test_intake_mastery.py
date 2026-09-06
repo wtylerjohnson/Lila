@@ -18,6 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from agents.company_research import CompanyResearch
 from agents.intake.adapters import (
+    apply_kept_out,
     merge_strategy_into_dossier,
     retrieval_frame,
     strategy_from_dossier,
@@ -1347,9 +1348,14 @@ def test_press6_aviation_naics_and_forecast_id_are_not_core():
     assert "AGNI" in texts and "7050X" in texts
     cores = {n.code for n in dossier.naics if n.role == "core"}
     all_codes = {n.code for n in dossier.naics}
+    parked = {n.code for n in dossier.kept_out_naics}
     assert "685031" not in all_codes
+    assert "685031" not in parked
+    assert "336413" not in all_codes
+    assert "488190" not in all_codes
     assert "336413" not in cores
     assert "488190" not in cores
+    assert {"336413", "488190"} <= parked
     assert {"334118", "541519"} <= cores
     kept = {k.term.casefold() for k in dossier.kept_out}
     assert any("aviation" in k for k in kept)
@@ -1366,7 +1372,11 @@ def test_press6_aviation_naics_and_forecast_id_are_not_core():
     strategy = strategy_from_dossier(dossier)
     assert "336413" not in strategy.inferred_naics
     assert "488190" not in strategy.inferred_naics
+    assert {"336413", "488190"} <= {e.code for e in strategy.kept_out_naics}
     assert {"334118", "541519"} <= set(strategy.inferred_naics)
+    wiped = strategy.model_copy(update={"kept_out_naics": []})
+    restored = apply_kept_out(wiped, dossier)
+    assert {"336413", "488190"} <= {e.code for e in restored.kept_out_naics}
     rec = challenge_dossier(dossier, ran=True, strategy=strategy)
     assert rec.passed is True
     ready = evaluate_readiness(
@@ -1429,3 +1439,55 @@ def test_press6_polluted_core_naics_fail_e5_e8():
     assert by_id["E5"]["ok"] is False
     assert by_id["E8"]["ok"] is False
     assert ready["all_ok"] is False
+
+
+def test_danz_named_offering_not_visibility_telemetry_umbrella():
+    ident = _arista_identity()
+    probes = [
+        ResearchProbe(
+            name="offerings", query="products",
+            findings=(
+                "## Visibility\n"
+                "## Telemetry\n"
+                "Network Visibility and Telemetry fabrics include "
+                "DANZ Monitoring Fabric next to EOS and CloudVision.\n"
+            ),
+            citations=["https://www.arista.com/en/products/danz"],
+        ),
+    ]
+    dossier = build_dossier(
+        client_name="Arista Networks",
+        identity=ident,
+        research=_arista_research(),
+        probes=probes,
+    )
+    texts = {o.text for o in dossier.offerings}
+    low = {t.casefold() for t in texts}
+    assert "DANZ Monitoring Fabric" in texts
+    assert "visibility" not in low
+    assert "telemetry" not in low
+    assert "network visibility" not in low
+
+
+def test_aristan_style_prompt_echo_is_not_invented():
+    ident = _arista_identity()
+    probes = [
+        ResearchProbe(
+            name="boundaries", query="exclusions",
+            findings=(
+                "Search for a lookalike spelling or an Aristan-style "
+                "homophone. None of those firms appear in the cited pages. "
+                "Arista Records is a separate music label."
+            ),
+            citations=["https://en.wikipedia.org/wiki/Arista_Records"],
+        ),
+    ]
+    dossier = build_dossier(
+        client_name="Arista Networks",
+        identity=ident,
+        research=_arista_research(),
+        probes=probes,
+    )
+    kept = {k.term.casefold() for k in dossier.kept_out}
+    assert any("records" in k for k in kept)
+    assert not any("aristan" in k for k in kept)

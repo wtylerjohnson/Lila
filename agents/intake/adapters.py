@@ -86,14 +86,18 @@ def _naics(dossier: CompanyDossier, submission: Optional[IntakeSubmission]):
     kept_meta: list[NaicsEntry] = []
     seen: set[str] = set()
     exclude_blob = " ".join(k.term for k in dossier.kept_out)
-    for row in dossier.naics:
+    parked = list(getattr(dossier, "kept_out_naics", None) or [])
+    for row in list(dossier.naics) + parked:
         if row.code in seen or row.state == ClaimState.DISPUTED:
             continue
         if not is_plausible_naics_code(row.code):
             continue
         seen.add(row.code)
+        parked_set = {n.code for n in parked}
         role = row.role
-        if row.state != ClaimState.COMPANY_ASSERTED:
+        if row.code in parked_set:
+            role = "boundary"
+        elif row.state != ClaimState.COMPANY_ASSERTED:
             role = naics_search_role(
                 row.code, row.rationale, exclude_blob=exclude_blob)
             if row.role == "boundary":
@@ -314,20 +318,39 @@ def strategy_from_dossier(
 
 
 def apply_kept_out(strategy: IntakeStrategy, dossier: CompanyDossier) -> IntakeStrategy:
-    """Seed strategy.kept_out with evidenced name-collision exclusions."""
+    """Seed strategy kept_out lanes from evidenced name and NAICS collisions."""
     extras = _kept_out(dossier)
-    if not extras:
-        return strategy
-    have = {k.term.casefold() for k in (strategy.kept_out or [])}
-    merged = list(strategy.kept_out or [])
+    _, _, kept_naics = _naics(dossier, None)
+    updates: dict = {}
+    current_kept = list(getattr(strategy, "kept_out", None) or [])
+    have = {k.term.casefold() for k in current_kept}
+    merged = list(current_kept)
     for row in extras:
         if row.term.casefold() in have:
             continue
         merged.append(row)
         have.add(row.term.casefold())
-    if merged == list(strategy.kept_out or []):
+    if merged != current_kept:
+        updates["kept_out"] = merged
+    current_naics = list(getattr(strategy, "kept_out_naics", None) or [])
+    have_n = {getattr(e, "code", "") for e in current_naics}
+    merged_n = list(current_naics)
+    for entry in kept_naics:
+        if entry.code in have_n:
+            continue
+        merged_n.append(entry)
+        have_n.add(entry.code)
+    if [getattr(e, "code", "") for e in merged_n] != [
+            getattr(e, "code", "") for e in current_naics]:
+        updates["kept_out_naics"] = merged_n
+    if not updates:
         return strategy
-    return strategy.model_copy(update={"kept_out": merged})
+    copier = getattr(strategy, "model_copy", None)
+    if callable(copier):
+        return copier(update=updates)
+    for key, val in updates.items():
+        setattr(strategy, key, val)
+    return strategy
 
 
 def _next_eid(dossier: CompanyDossier) -> str:
