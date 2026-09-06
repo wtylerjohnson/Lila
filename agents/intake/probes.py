@@ -32,22 +32,6 @@ PROBE_SPECS: tuple[tuple[str, str], ...] = (
      "7050X). Do not write a generic industry essay. Do not treat GSA "
      "schedules, SEWP vehicles, or award IDs as products. "
      "Cite official product-page URLs."),
-    ("customers",
-     "Start from the official-domain customers, case-studies, and "
-     "industries pages. Name customers, sectors served, and case-study "
-     "proof points. Quote the sentence that names each customer. "
-     "Do not invent logos. If the site names none, say none found."),
-    ("federal_footprint",
-     "Does this company sell to the US federal government? "
-     "Quote any six-digit NAICS or industry classification the company or "
-     "its SAM / GSA listing states, including the sentence that contains "
-     "the code. Also note SAM registration, GSA / MAS / SEWP vehicles, and "
-     "recent awards, but do not list those vehicle or award IDs as products. "
-     "If no NAICS appears in sources, say none found. Cite the source "
-     "sentence for every code."),
-    ("channels",
-     "Which resellers, distributors, or teaming partners carry this company "
-     "into government? Cite partner pages or award text."),
     ("competitors",
      "Start from official-domain compare, why-us, vs, alternatives, or "
      "competitive pages. Quote each named rival vendor or product with "
@@ -61,6 +45,17 @@ PROBE_SPECS: tuple[tuple[str, str], ...] = (
      "(for example a Records label, an Aviation firm, a lookalike "
      "spelling, or an aircraft-support firm when those namesakes exist). "
      "These are collisions, not this company's offerings. Cite sources."),
+    ("federal_footprint",
+     "Does this company sell to the US federal government? "
+     "Quote any six-digit NAICS or industry classification the company or "
+     "its SAM / GSA listing states, including the sentence that contains "
+     "the code. Also note SAM registration, GSA / MAS / SEWP vehicles, and "
+     "recent awards, but do not list those vehicle or award IDs as products. "
+     "If no NAICS appears in sources, say none found. Cite the source "
+     "sentence for every code."),
+    ("channels",
+     "Which resellers, distributors, or teaming partners carry this company "
+     "into government? Cite partner pages or award text."),
     ("classifications",
      "Quote any NAICS, PSC, or industry classification THIS bound company "
      "states for itself, with the six-digit code and the sentence that "
@@ -68,6 +63,11 @@ PROBE_SPECS: tuple[tuple[str, str], ...] = (
      "or collision firm (aviation, music/records, aircraft support). "
      "Do not invent codes or lift forecast/solicitation IDs. "
      "If none appear in sources, say none found."),
+    ("customers",
+     "Start from the official-domain customers, case-studies, and "
+     "industries pages. Name customers, sectors served, and case-study "
+     "proof points. Quote the sentence that names each customer. "
+     "Do not invent logos. If the site names none, say none found."),
 )
 
 

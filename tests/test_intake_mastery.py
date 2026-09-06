@@ -1060,6 +1060,7 @@ def test_structured_probes_seek_named_products_naics_and_namesakes():
     names = [name for name, _ in PROBE_SPECS]
     assert "customers" in names
     assert "competitors" in names
+    assert names[-1] == "customers"
     blob = " ".join(focus for _, focus in PROBE_SPECS).casefold()
     assert "agni" in blob or "guardian for network identity" in blob
     assert "7050x" in blob

@@ -15,6 +15,7 @@ import re
 from typing import Any, Callable, Optional
 from agents.intake.extract import (
     customer_window_is_underwriter,
+    is_customer_category_phrase,
     is_customer_name,
     is_customer_roster_excerpt,
     known_customers_in_text,
@@ -31,9 +32,22 @@ FILING_URL = (
 FTS_URL = "https://efts.sec.gov/LATEST/search-index"
 
 CUSTOMER_FORMS = ("424B4", "S-1", "S-1/A", "10-K")
+IPO_FORMS = ("424B4", "S-1", "S-1/A")
 _FORM_RANK = {"424B4": 0, "S-1": 1, "S-1/A": 2, "10-K": 3}
-_MAX_FILINGS = 8
-_MAX_OLDER_FILES = 2
+_MAX_FILINGS = 16
+_MAX_OLDER_FILES = 8
+_BROWSE_ATOM = (
+    "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany"
+    "&CIK={cik}&type={form}&count=20&output=atom&owner=include"
+)
+_ATOM_INDEX = re.compile(
+    r"/Archives/edgar/data/\d+/(\d+)/(\d{10}-\d{2}-\d{6})-index\.htm",
+    re.I,
+)
+_SUBMISSION_FILENAME = re.compile(
+    r"<FILENAME>\s*([^\s<]+\.htm)",
+    re.I,
+)
 
 _LEGAL_TAIL = re.compile(
     r"\b(inc|incorporated|corp|corporation|ltd|llc|co|the|company|plc)\b",
@@ -133,6 +147,8 @@ def extract_roster_customers(
         for name in names:
             if not is_customer_name(name, client_name=client_name):
                 continue
+            if is_customer_category_phrase(name):
+                continue
             if customer_window_is_underwriter(sent, name):
                 continue
             key = name.casefold()
@@ -189,9 +205,47 @@ def _form_sort_key(row: tuple[str, str, str]) -> tuple[int, str]:
     form, acc, _doc = row
     rank = _FORM_RANK.get(form, 9)
     # Prefer older 424B4 / S-1 (IPO roster) over the latest nameless 10-K.
-    if form in {"424B4", "S-1", "S-1/A"}:
+    if form in IPO_FORMS:
         return (rank, acc)
-    return (rank, "")
+    return (rank, "~")
+
+
+def filing_has_named_roster(text: str, client_name: str = "") -> bool:
+    """True only when a roster sentence names a Title-Case buying org."""
+    return bool(extract_roster_customers(text, client_name))
+
+
+def _primary_from_submission(raw: str) -> str:
+    match = _SUBMISSION_FILENAME.search(raw or "")
+    return match.group(1).strip() if match else ""
+
+
+def _filings_from_atom(xml: str, form: str) -> list[tuple[str, str, str]]:
+    rows: list[tuple[str, str, str]] = []
+    seen: set[str] = set()
+    for match in _ATOM_INDEX.finditer(xml or ""):
+        acc = match.group(2)
+        if acc in seen:
+            continue
+        seen.add(acc)
+        rows.append((form, acc, ""))
+    return rows
+
+
+def browse_form_filings(
+    cik: str,
+    form: str,
+    *,
+    fetch_text: Optional[Callable[..., str]] = None,
+) -> list[tuple[str, str, str]]:
+    """EDGAR company browse atom, used when submissions.recent dropped IPOs."""
+    gett = fetch_text or get_text
+    url = _BROWSE_ATOM.format(cik=normalize_cik(cik), form=form)
+    try:
+        xml = gett(url, headers=HEADERS, timeout=8.0, retries=1)
+    except Exception:  # noqa: BLE001
+        return []
+    return _filings_from_atom(xml, form)
 
 
 def list_customer_filings(payload: dict) -> list[tuple[str, str, str]]:
@@ -207,17 +261,26 @@ def list_customer_filings(payload: dict) -> list[tuple[str, str, str]]:
     return out
 
 
+def _older_file_priority(item: dict) -> tuple[int, str]:
+    """Prefer year files that cover the IPO window (2014)."""
+    start = str(item.get("filingFrom") or "")
+    covers_ipo = 0 if start.startswith("2014") or start.startswith("2015") else 1
+    return (covers_ipo, start)
+
+
 def _load_older_submissions(
     payload: dict,
     *,
     fetch_json: Callable[..., Any],
 ) -> list[tuple[str, str, str]]:
-    extra = ((payload.get("filings") or {}).get("files") or [])[:_MAX_OLDER_FILES]
+    extra = [
+        item for item in ((payload.get("filings") or {}).get("files") or [])
+        if isinstance(item, dict) and "submissions" in str(item.get("name") or "")
+    ]
+    extra.sort(key=_older_file_priority)
     rows: list[tuple[str, str, str]] = []
-    for item in extra:
-        name = (item.get("name") if isinstance(item, dict) else "") or ""
-        if not name or "submissions" not in name:
-            continue
+    for item in extra[:_MAX_OLDER_FILES]:
+        name = str(item.get("name") or "")
         url = f"https://data.sec.gov/submissions/{name}"
         try:
             older = fetch_json(url, headers=HEADERS, timeout=8.0, retries=1)
@@ -285,27 +348,23 @@ def fetch_bound_sec_customers(
             SUBMISSIONS_URL.format(cik10=cik),
             headers=HEADERS, timeout=8.0, retries=1,
         )
-        rows = list_customer_filings(submissions)
-        older = _load_older_submissions(submissions, fetch_json=getj)
-        if older:
-            rows = list_customer_filings({"filings": {"recent": {
-                "form": [r[0] for r in rows + older],
-                "accessionNumber": [r[1] for r in rows + older],
-                "primaryDocument": [r[2] for r in rows + older],
-            }}})
-        if not any(form in {"424B4", "S-1", "S-1/A"} for form, _a, _d in rows):
-            rows.extend(_fts_filings(name, cik, fetch_json=getj))
-            rows = list_customer_filings({"filings": {"recent": {
-                "form": [r[0] for r in rows],
-                "accessionNumber": [r[1] for r in rows],
-                "primaryDocument": [r[2] for r in rows],
-            }}})
+        collected: list[tuple[str, str, str]] = list_customer_filings(submissions)
+        collected.extend(_load_older_submissions(submissions, fetch_json=getj))
+        for ipo_form in IPO_FORMS:
+            collected.extend(browse_form_filings(cik, ipo_form, fetch_text=gett))
+        collected.extend(_fts_filings(name, cik, fetch_json=getj))
+        rows = list_customer_filings({"filings": {"recent": {
+            "form": [r[0] for r in collected],
+            "accessionNumber": [r[1] for r in collected],
+            "primaryDocument": [r[2] for r in collected],
+        }}})
         hits: list[dict[str, str]] = []
         seen: set[str] = set()
         for form, acc, doc in rows[:_MAX_FILINGS]:
             url = filing_document_url(cik, acc, doc)
             if not is_bound_sec_filing_url(url, cik):
                 continue
+            raw = ""
             try:
                 raw = gett(url, headers=HEADERS, timeout=12.0, retries=1)
             except Exception:  # noqa: BLE001 - try the complete submission txt
@@ -317,6 +376,14 @@ def fetch_bound_sec_customers(
                     url = txt_url
                 except Exception:  # noqa: BLE001
                     continue
+            if not filing_has_named_roster(raw, client_name or name):
+                # Latest 10-K customer section is often category-only.
+                continue
+            primary = doc or _primary_from_submission(raw)
+            if primary:
+                html_url = filing_document_url(cik, acc, primary)
+                if is_bound_sec_filing_url(html_url, cik):
+                    url = html_url
             for org, excerpt in extract_roster_customers(
                     raw, client_name or name):
                 key = org.casefold()
@@ -330,8 +397,8 @@ def fetch_bound_sec_customers(
                     "cik": cik,
                     "form": form,
                 })
-            # A 424B4 / S-1 roster is enough; do not keep walking 10-Ks.
-            if hits and form in {"424B4", "S-1", "S-1/A"}:
+            # First filing that actually names orgs wins. IPO forms are first.
+            if hits:
                 break
         return hits
     except Exception:  # noqa: BLE001 - live SEC is optional context

@@ -251,7 +251,19 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   ("customers include", "financial services organizations such
   as", "end customers such as"). Evidence URL is the filing.
   Prefer a filing that still names the roster when the latest
-  10-K dropped those names. IPO underwriter / cover tables
+  10-K dropped those names. Do not stop at the latest 10-K when
+  its customer section is category language only (AI Neoclouds,
+  Cloud and AI Titans, financial services organizations,
+  government agencies, Our Customers Our). Walk bound-CIK
+  filings (submissions, older year files, EDGAR browse atom,
+  full-text search) until a named roster is found; prefer 2014
+  424B4 / S-1. Category and segment phrases are not customers.
+  The SEC walk is deterministic and runs after scrape, before
+  LLM probes, so a 300s customer-probe timeout cannot starve
+  the roster or wipe site case-study names (Activ / Hardis /
+  Microsoft). The customers probe runs last among structured
+  probes. Compare / competitor-comparisons URLs beat
+  whitepaper PDFs for rival evidence. IPO underwriter / cover tables
   (Morgan Stanley, Citigroup, Barclays as bookrunners) are not
   buyers. News conference blurbs and synthesized "Named in
   S-1/10-K" paraphrases are not bank proof.

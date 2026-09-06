@@ -25,6 +25,9 @@ from agents.intake.extract import (
     customer_excerpt_ok,
     customer_url_is_chrome,
     customer_window_is_underwriter,
+    is_compare_url,
+    is_customer_category_phrase,
+    is_whitepaper_url,
     cap_customers,
     is_customer_roster_excerpt,
     is_known_customer,
@@ -211,9 +214,10 @@ def _evidence_for_name(
                 score += 2
             if official_domain and citation_is_official(url or "", official_domain):
                 score += 1
-            if url and require_compare and re.search(
-                    r"compare|alternativ|versus|/vs", url, re.I):
-                score += 3
+            if url and require_compare and is_compare_url(url):
+                score += 5
+            if url and require_compare and is_whitepaper_url(url):
+                score -= 4
             if url and require_compare and re.search(
                     r"/news|/press|/blog|/media", url, re.I):
                 score -= 2
@@ -676,6 +680,7 @@ def build_dossier(
         p for p in (getattr(scrape, "pages", None) or [])
         if (getattr(p, "text", "") or "").strip() and not is_error_page(p.text)
     ]
+    pages.sort(key=lambda p: 0 if is_compare_url(getattr(p, "url", "") or "") else 1)
     for page in pages:
         text = page.text or ""
         url = getattr(page, "url", None) or identity.website
@@ -733,6 +738,8 @@ def build_dossier(
         if not name or key in seen_cust:
             continue
         if not is_customer_name(name, client_name=client_name):
+            continue
+        if is_customer_category_phrase(name):
             continue
         if not cik or not is_bound_sec_filing_url(url, cik):
             continue

@@ -71,6 +71,10 @@ _INDUSTRY_SEGMENTS = frozenset({
     "telecommunications", "telecom", "public sector", "verticals",
     "industries", "sectors", "markets", "service provider",
     "cloud provider", "fortune 500", "fortune 100",
+    "ai neoclouds", "ai neocloud", "cloud and ai titans", "ai titans",
+    "financial services organizations", "government agencies",
+    "enterprise customers", "internet and service providers",
+    "large cloud customers", "our customers our", "our customers",
 })
 _JOB_TITLE = re.compile(
     r"\b(vp|vice president|director|manager|officer|president|"
@@ -148,6 +152,20 @@ _ORG_SUFFIX = frozenset({
 })
 _SKU_SUPPORT = re.compile(r"\ba-?care\b", re.I)
 _ANALYST_WAVE = re.compile(r"\b(forrester|gartner)\s+wave\b", re.I)
+_CATEGORY_TOKENS = frozenset({
+    "neoclouds", "neocloud", "titans", "customers", "customer",
+    "clients", "organizations", "organisation", "agencies",
+    "providers", "enterprises", "enterprise", "governments",
+    "internet", "specialty",
+})
+_COMPARE_URL = re.compile(
+    r"compare|alternativ|versus|/vs|competitor",
+    re.I,
+)
+_WHITEPAPER_URL = re.compile(
+    r"whitepaper|white-paper|\.pdf(?:$|[?#])",
+    re.I,
+)
 _UNDERWRITER = re.compile(
     r"\b(book-running|underwriters?|co-managers?|prospectus|"
     r"(?:investor|tmt)\s+conference|technology,\s*media and telecom "
@@ -216,7 +234,8 @@ _SECTION_LABELS = frozenset({
     "market data feed provider", "cloud titans",
     "fixed mobile telecoms", "fixed mobile", "mobile telecoms",
     "french it", "real-world deployments", "real world deployments",
-    "wireless faq",
+    "wireless faq", "our customers", "our customers our",
+    "ai neoclouds", "cloud and ai titans",
 })
 _HEADER_VOCAB = frozenset({
     "named", "customers", "revenue", "share", "market", "data",
@@ -584,6 +603,36 @@ def is_certification_program(text: str) -> bool:
     if all(w in _CERTIFICATION_PROGRAM or w in {
             "approved", "products", "list", "program", "programs"}
            for w in words):
+        return True
+    return False
+
+
+def is_compare_url(url: str) -> bool:
+    """Official compare / vs / competitor-comparisons paths."""
+    if not url:
+        return False
+    return bool(_COMPARE_URL.search(_url_path(url)))
+
+
+def is_whitepaper_url(url: str) -> bool:
+    """Analyst/whitepaper PDFs are secondary to compare pages."""
+    if not url:
+        return False
+    return bool(_WHITEPAPER_URL.search(url.casefold()))
+
+
+def is_customer_category_phrase(text: str) -> bool:
+    """10-K segment language is not a named buying org."""
+    name = _clean(text)
+    low = name.casefold()
+    if not low:
+        return False
+    if low in _INDUSTRY_SEGMENTS or low in _GENERIC_CUSTOMERS:
+        return True
+    if low.startswith("our "):
+        return True
+    words = low.split()
+    if any(w in _CATEGORY_TOKENS for w in words):
         return True
     return False
 
@@ -1075,6 +1124,8 @@ def is_customer_name(text: str, *, client_name: str = "") -> bool:
         return False
     if low in _INDUSTRY_SEGMENTS or low in _GENERIC_CUSTOMERS:
         return False
+    if is_customer_category_phrase(name):
+        return False
     if low in _IDP_NOISE or low in _RIVAL_VENDORS or low in _RIVAL_PRODUCTS:
         return False
     if low in _NOT_ORG or low in _ACRONYM_DENY or low in _TOOL_META:
@@ -1129,8 +1180,12 @@ def is_customer_name(text: str, *, client_name: str = "") -> bool:
             known.startswith(low) and known != low and len(low) >= 6
             for known in _KNOWN_CUSTOMERS):
         return False
-    if any(w.casefold() in {"named", "share", "titans", "provider"}
+    if any(w.casefold() in {
+            "named", "share", "titans", "provider", "customers",
+            "customer", "neoclouds", "neocloud"}
            for w in words):
+        return False
+    if name.casefold().startswith("our "):
         return False
     if words and all(w.casefold() in {
             "fixed", "mobile", "telecoms", "telecom", "french", "it"}
@@ -1432,7 +1487,8 @@ def is_customer_chrome(text: str) -> bool:
         return True
     if re.search(
             r"\b(quick facts|corporate responsibility|events calendar|"
-            r"data center network solutions)\b", low):
+            r"data center network solutions|ai neoclouds|"
+            r"cloud and ai titans|our customers)\b", low):
         return True
     words = low.split()
     if sum(1 for w in words if w in _DEPT_WORDS) >= 2:

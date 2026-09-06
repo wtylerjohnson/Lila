@@ -240,6 +240,23 @@ def run_step1(
             product_ingest = _ingest_bound_site(
                 bound_url, fetcher=ingest_fetcher,
                 max_pages=page_budget)
+
+    in_pytest = bool(os.environ.get("PYTEST_CURRENT_TEST"))
+    if (
+        sec_customers is None
+        and identity.is_bound
+        and do_web
+        and (sec_fetch is not None or not in_pytest)
+    ):
+        try:
+            from agents.intake.sec_customers import fetch_bound_sec_customers
+            fetcher = sec_fetch or fetch_bound_sec_customers
+            sec_customers = fetcher(identity.bound_name or name, client_name=name)
+        except Exception as exc:  # noqa: BLE001 - live SEC is optional
+            errors.append(f"sec roster: {exc}")
+            sec_customers = []
+
+    if identity.is_bound and (do_scrape or do_web):
         if do_web and research_engine is not None:
             scrape = getattr(research, "scrape", None)
             probes = run_structured_probes(
@@ -261,23 +278,11 @@ def run_step1(
 
     product_surface = None
     if identity.is_bound and do_web and research_engine is not None and probes:
-        product_surface = structure_product_surface(
-            research_engine, probes, identity=identity)
-
-    in_pytest = bool(os.environ.get("PYTEST_CURRENT_TEST"))
-    if (
-        sec_customers is None
-        and identity.is_bound
-        and do_web
-        and (sec_fetch is not None or not in_pytest)
-    ):
         try:
-            from agents.intake.sec_customers import fetch_bound_sec_customers
-            fetcher = sec_fetch or fetch_bound_sec_customers
-            sec_customers = fetcher(identity.bound_name or name, client_name=name)
-        except Exception as exc:  # noqa: BLE001 - live SEC is optional
-            errors.append(f"sec roster: {exc}")
-            sec_customers = []
+            product_surface = structure_product_surface(
+                research_engine, probes, identity=identity)
+        except Exception as exc:  # noqa: BLE001 - probe timeout must not abort
+            errors.append(f"structure: {exc}")
 
     dossier = build_dossier(
         client_name=name,

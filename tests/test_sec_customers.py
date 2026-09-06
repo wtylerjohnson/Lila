@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from agents.intake.extract import (
     customer_excerpt_is_sec_paraphrase,
     customer_url_is_chrome,
+    is_customer_category_phrase,
     is_customer_chrome,
     is_customer_name,
     is_customer_roster_excerpt,
@@ -18,6 +19,7 @@ from agents.intake.sec_customers import (
     extract_roster_customers,
     fetch_bound_sec_customers,
     filing_document_url,
+    filing_has_named_roster,
     is_bound_sec_filing_url,
     list_customer_filings,
     resolve_bound_cik,
@@ -37,6 +39,18 @@ UNDERWRITER = (
     "Morgan Stanley, Citigroup, BofA Merrill Lynch, Barclays and "
     "Credit Suisse are acting as joint book-running managers for "
     "the offering."
+)
+TEN_K_CATEGORY = (
+    "Our Customers Our customers include large cloud customers or Cloud "
+    "and AI Titans, other internet and service providers, including "
+    "specialty and AI Neoclouds, and a wide breadth of enterprise "
+    "customers, including financial services organizations and "
+    "government agencies."
+)
+BROWSE_ATOM = (
+    '<?xml version="1.0"?><feed><entry><link href="'
+    "https://www.sec.gov/Archives/edgar/data/1596532/"
+    '000119312514227698/0001193125-14-227698-index.htm"/></entry></feed>'
 )
 
 
@@ -127,6 +141,68 @@ def test_list_filings_orders_ipo_roster_ahead_of_10k():
         }
     })
     assert [r[0] for r in rows][:2] == ["424B4", "S-1"]
+
+
+def test_category_only_10k_is_not_a_named_roster():
+    assert extract_roster_customers(TEN_K_CATEGORY) == []
+    assert filing_has_named_roster(TEN_K_CATEGORY) is False
+    for junk in (
+        "AI Neoclouds", "Our Customers Our", "Cloud and AI Titans",
+        "financial services organizations", "government agencies",
+        "enterprise customers",
+    ):
+        assert is_customer_category_phrase(junk)
+        assert not is_customer_name(junk)
+
+
+def test_fetch_walks_past_category_10k_to_browse_424b4():
+    """Recent FY2025 10-K has no proper nouns; browse still finds the IPO."""
+    tickers = {
+        "0": {"cik_str": 1596532, "title": "Arista Networks, Inc."},
+    }
+    submissions = {
+        "filings": {
+            "recent": {
+                "form": ["10-K"],
+                "accessionNumber": ["0001628280-25-000000"],
+                "primaryDocument": ["anet-20251231.htm"],
+            },
+            "files": [],
+        }
+    }
+
+    def fetch_json(url, **_kw):
+        if "company_tickers" in url:
+            return tickers
+        if "submissions" in url:
+            return submissions
+        if "search-index" in url:
+            return {"hits": {"hits": []}}
+        raise AssertionError(url)
+
+    def fetch_text(url, **_kw):
+        if "browse-edgar" in url and "424B4" in url:
+            return BROWSE_ATOM
+        if "browse-edgar" in url:
+            return "<feed></feed>"
+        if "anet-20251231" in url:
+            return TEN_K_CATEGORY
+        if "000119312514227698" in url or "d639957d424b4" in url:
+            return "<FILENAME>d639957d424b4.htm\n" + ROSTER
+        raise AssertionError(url)
+
+    hits = fetch_bound_sec_customers(
+        "Arista Networks",
+        fetch_json=fetch_json,
+        fetch_text=fetch_text,
+        tickers=tickers,
+    )
+    names = {h["name"].casefold() for h in hits}
+    assert {"barclays", "citigroup", "morgan stanley"} <= names
+    assert "ai neoclouds" not in names
+    assert "our customers our" not in names
+    assert all("d639957d424b4.htm" in h["url"] for h in hits)
+    assert all(h["form"] == "424B4" for h in hits)
 
 
 def test_support_chrome_and_sec_paraphrase_are_rejected():

@@ -1757,18 +1757,36 @@ def test_press18_sec_roster_not_support_chrome_or_news():
     assert {"336413", "488190"} <= {n.code for n in dossier.kept_out_naics}
 
 
-def test_press18_sec_roster_not_support_chrome_or_news():
-    """P18: banks from bound 424B4 roster; support chrome and news stay out."""
+
+def test_press19_named_roster_beats_category_10k_and_whitepaper():
+    """P19: skip FY2025 category 10-K; keep Activ; Darktrace from compare."""
     ident = _identity()
     cisco_url = ROOT + "/en/company/competitor-comparisons"
     darktrace = ROOT + "/en/ndr-darktrace-comparison"
-    news = ROOT + "/en/company/news"
-    support = ROOT + "/en/support/acare"
-    company = ROOT + "/en/company"
+    whitepaper = ROOT + "/assets/data/pdf/whitepaper-switching.pdf"
     case_pdf = ROOT + "/assets/data/pdf/CaseStudies/ActivFinancial.pdf"
+    ten_k = (
+        "https://www.sec.gov/Archives/edgar/data/1596532/"
+        "000162828025000000/anet-20251231.htm"
+    )
+    category = (
+        "Our Customers Our customers include large cloud customers or "
+        "Cloud and AI Titans, other internet and service providers, "
+        "including specialty and AI Neoclouds, and a wide breadth of "
+        "enterprise customers, including financial services "
+        "organizations and government agencies."
+    )
     scrape = ScrapeBundle(
         root_url=ROOT,
         pages=[
+            ScrapedPage(
+                url=whitepaper,
+                text=(
+                    "Whitepaper competitor list. Competitors include Cisco "
+                    "and Juniper in a long PDF table with no Darktrace "
+                    "compare claim on this file."
+                ),
+            ),
             ScrapedPage(
                 url=cisco_url,
                 text=(
@@ -1785,58 +1803,23 @@ def test_press18_sec_roster_not_support_chrome_or_news():
                 ),
             ),
             ScrapedPage(
-                url=news,
-                text=(
-                    "Broadcom closed the VMware acquisition. VMware Cloud "
-                    "Foundation sits next to an Acme campus note. Others "
-                    "include Barclays, Citigroup, and Morgan Stanley from "
-                    "a 2009 conference blurb."
-                ),
-            ),
-            ScrapedPage(
-                url=support,
-                text=(
-                    "A-Care 4-hour SKU. Quick Facts. Corporate "
-                    "Responsibility. Events Calendar. Andy Bechtolsheim "
-                    "Ken Duda. Support Engineering Finance Sales. "
-                    "Forrester Wave. Data Center Network Solutions. "
-                    "Walsh Universi. Customers visit support."
-                ),
-            ),
-            ScrapedPage(
-                url=company,
-                text=(
-                    "Named in Arista's 2014 S-1/10-K: Barclays, Citigroup, "
-                    "and Morgan Stanley. This company chrome page is not "
-                    "a customer roster."
-                ),
-            ),
-            ScrapedPage(
                 url=case_pdf,
                 text=(
                     "Case study: Activ Financial. The first sub-500ns "
                     "switching platform keeps our competitive advantage. "
-                    "Steve McNeany, CEO, Activ Financial."
-                ),
-            ),
-            ScrapedPage(
-                url=ROOT + "/en/products/product-testimonials",
-                text=(
-                    "Hardis Group and Microsoft deployed CloudVision. "
-                    "Trusted by US Army for campus switching."
+                    "Hardis Group and Microsoft deployed CloudVision."
                 ),
             ),
             ScrapedPage(
                 url=ROOT + "/products",
                 text=(
                     "Acme Net sells EOS, CloudVision, AGNI, DANZ Monitoring "
-                    "Fabric, and the 7050X switch family. Federal "
-                    "certifications include the DoD and DoDIN APL. Those "
-                    "are not offerings."
+                    "Fabric, and the 7050X switch family. DoD and DoDIN "
+                    "APL are certifications, not offerings."
                 ),
             ),
         ],
-        sources=[cisco_url, darktrace, news, support, company, case_pdf],
+        sources=[whitepaper, cisco_url, darktrace, case_pdf],
     )
     probes = [
         ResearchProbe(
@@ -1850,15 +1833,29 @@ def test_press18_sec_roster_not_support_chrome_or_news():
             ),
             citations=["https://en.wikipedia.org/wiki/Acme_Aviation"],
         ),
+        ResearchProbe(
+            name="customers",
+            query="proof",
+            findings="",
+            citations=[],
+            error="claude -p timed out after 300s (LILA_LLM_TIMEOUT_S)",
+        ),
     ]
-    underwriter_hits = [
+    sec_hits = _sec_bank_hits() + [
         {
-            "name": "Barclays",
-            "excerpt": SEC_UNDERWRITER,
-            "url": SEC_424B4,
+            "name": "AI Neoclouds",
+            "excerpt": category,
+            "url": ten_k,
             "cik": "0001596532",
-            "form": "424B4",
-        }
+            "form": "10-K",
+        },
+        {
+            "name": "Our Customers Our",
+            "excerpt": category,
+            "url": ten_k,
+            "cik": "0001596532",
+            "form": "10-K",
+        },
     ]
     dossier = build_dossier(
         client_name="Acme Net",
@@ -1866,48 +1863,39 @@ def test_press18_sec_roster_not_support_chrome_or_news():
         research=CompanyResearch(
             company_name="Acme Net", website=ROOT, scrape=scrape),
         probes=probes,
-        sec_customers=_sec_bank_hits() + underwriter_hits,
+        sec_customers=sec_hits,
     )
     rivals = {c.text: c for c in dossier.competitors}
     assert "Cisco" in rivals and "Darktrace" in rivals
     assert "Juniper" in rivals
     ev = {e.evidence_id: e for e in dossier.evidence}
-    assert "/news" not in (ev[rivals["Cisco"].evidence_ids[0]].url or "").casefold()
+    dark_url = (ev[rivals["Darktrace"].evidence_ids[0]].url or "").casefold()
+    assert "darktrace" in dark_url
+    assert "whitepaper" not in dark_url
+    assert not dark_url.endswith(".pdf")
+    assert excerpt_supports_rival(
+        "Darktrace", ev[rivals["Darktrace"].evidence_ids[0]].excerpt or "")
+    cisco_url_hit = (ev[rivals["Cisco"].evidence_ids[0]].url or "").casefold()
+    assert "competitor-comparisons" in cisco_url_hit or "/ndr-" in cisco_url_hit
+    assert "whitepaper" not in cisco_url_hit
     assert "Cisco Nexus" not in rivals
     assert "VMware" not in rivals and "Vmware" not in rivals
     texts = {o.text for o in dossier.offerings}
     assert {"EOS", "CloudVision", "AGNI", "DANZ Monitoring Fabric",
             "7050X"} <= texts
     assert "dod" not in {t.casefold() for t in texts}
-    assert "dodin" not in {t.casefold() for t in texts}
     customers = {c.text.casefold(): c for c in dossier.customers}
-    assert 1 <= len(customers) <= MAX_CUSTOMERS
     assert {
         "barclays", "citigroup", "morgan stanley",
         "activ financial", "hardis group", "microsoft",
     } <= set(customers)
+    assert "ai neoclouds" not in customers
+    assert "our customers our" not in customers
+    assert "cloud and ai titans" not in customers
     for bank in ("barclays", "citigroup", "morgan stanley"):
         bank_url = (ev[customers[bank].evidence_ids[0]].url or "").casefold()
-        bank_ex = ev[customers[bank].evidence_ids[0]].excerpt or ""
-        assert "sec.gov/archives/edgar/data/1596532/" in bank_url
         assert "d639957d424b4.htm" in bank_url
-        assert is_customer_roster_excerpt(bank_ex)
-        assert "book-running" not in bank_ex.casefold()
-        assert "named in" not in bank_ex.casefold()
+        assert "anet-20251231" not in bank_url
     activ_url = (ev[customers["activ financial"].evidence_ids[0]].url or "").casefold()
     assert "casestudies" in activ_url or "case-stud" in activ_url
-    for junk in (
-        "a-care", "acare", "quick facts", "corporate responsibility",
-        "events calendar", "andy bechtolsheim ken duda",
-        "support engineering finance", "forrester wave",
-        "data center network solutions", "walsh universi",
-        "fixed mobile telecoms", "french it",
-    ):
-        assert junk not in customers
-        assert not any(junk in key for key in customers)
-    assert customer_url_is_chrome(support)
-    assert customer_url_is_chrome(company)
-    assert not customer_url_is_chrome(case_pdf)
-    assert customer_excerpt_is_sec_paraphrase(
-        "Named in Arista's 2014 S-1/10-K: Barclays, Citigroup")
     assert {"336413", "488190"} <= {n.code for n in dossier.kept_out_naics}
