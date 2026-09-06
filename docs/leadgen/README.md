@@ -1,7 +1,7 @@
 # Lead-gen contracts (WS0)
 
-Additive schema package. Not a press step, not a UI, not a Market Map
-change.
+Additive schema package plus a thin Press Lead Gen orchestration stub.
+Not a UI. Not a Market Map change. Not full Press Lead Gen.
 
 ## Ruling (locked)
 
@@ -84,8 +84,63 @@ Rules this mapper encodes:
   (or the parent, when a pathway cannot be formed without invention)
   with `next_action.blocked_by` set to the promotion condition.
 
+## Press Lead Gen stub vs full Press Lead Gen
+
+Full Press Lead Gen is the governed pipeline: load company / product
+ontology, discover, assess, mint atomic LeadRows, then keep active
+`LEAD_T1` / `LEAD_T2` lists plus WATCH / HOLD / REJECT receipts.
+
+`agents.leadgen.press` is the **stub**. It documents Build Plan steps
+1-9 and executes them without rewriting discovery or Assess:
+
+| Step | Stub behavior |
+|---|---|
+| 1 | Load client profile / optional intake dossier path. Cite only. Do not redesign Step 1. |
+| 2-5 | Hand off to the existing search, qualify, Assess, and `target_actions` path. Require an `AssessRun`. Do not reimplement discovery. |
+| 6-7 | Call `draft_lead_rows`. Parents stay `OpportunityAssessment`. Children stay WATCH / HOLD. |
+| 8-9 | Write a review receipt listing drafts by `LeadTier`. Active lead T1 / lead T2 lists may be empty. WATCH / HOLD receipts are retained. Coverage and decision-trace fields are placeholders. |
+
+In-process:
+
+```
+from agents.leadgen import run_press
+
+receipt = run_press(
+    assess=assess_run,
+    target_actions=target_actions,
+    review_dir="data/review",
+    write_markdown=True,
+)
+```
+
+CLI:
+
+```
+python -m agents.leadgen.press \
+  --assess path/to/assess_run.json \
+  --target-actions path/to/target_actions.json \
+  --dossier path/to/dossier.json \
+  --review-dir data/review \
+  --markdown
+```
+
+Artifact: `data/review/<slug>.leadgen.json` (optional
+`<slug>.leadgen.md`). Same human-gate family as
+`<slug>.qualify.json` / `<slug>.horizon.json`. Not written into
+`data/state/assess_runs/`.
+
+Failure rules the stub encodes:
+
+- Missing assess input fails closed with an explicit error.
+- Notice-only input (a notice list or a sweep without an AssessRun)
+  is refused. The stub will not invent leads from notices alone.
+- The stub never auto-promotes to `LEAD_T1` or `LEAD_T2`.
+
+Federal Market Map remains the separate external deliverable.
+`lila_release` is untouched. This stub is not a release door.
+
 ## Out of scope here
 
-Command Center Lead Gen orchestration, Market Map / `lila_release`
-edits, Step 1 website-deep work, auto-outreach, communication-
-permission engine.
+Full source-universe discovery rewrite, communication-permission /
+outreach, Command Center Market Map UI, Step 1 website-deep work
+(PR #1), auto-promotion to lead T1 / lead T2.
