@@ -97,19 +97,45 @@ _SLOGAN = re.compile(
 )
 _NUMBERED_HEADER = re.compile(r"^\d+[\.)]\s+")
 _CUSTOMER_CONTEXT = re.compile(
-    r"\b(customers? include|customers? are|case stud|trusted by|"
-    r"proof points?|deployed (?:at|by)|used by|clients? include)\b",
+    r"\b(customers? include|customers? are|customers? such as|"
+    r"others? include|clients? include|named customers|"
+    r"case stud|trusted by|proof points?|testimonials?|"
+    r"deployed (?:at|by)|used by)\b",
     re.I,
 )
 _ORG_PROOF = re.compile(
     r"\b(case stud|trusted by|proof point|customers? include|"
-    r"deployed at|deployed by)\b",
+    r"others? include|testimonials?|deployed at|deployed by)\b",
     re.I,
 )
 _CUSTOMER_HUB = re.compile(
-    r"customer|case-stud|casestudy|proof|success|past-performance",
+    r"customer|case-stud|casestudy|testimonial|proof|success|"
+    r"past-performance",
     re.I,
 )
+_UNDERWRITER = re.compile(
+    r"\b(book-running|underwriters?|co-managers?|prospectus|"
+    r"(?:investor|tmt)\s+conference|technology,\s*media and telecom "
+    r"conference)\b",
+    re.I,
+)
+_CUSTOMER_INCLUDE = re.compile(
+    r"\b(?:customers?|clients?|others?)\s+include\b|"
+    r"\bcustomers?\s+such as\b|"
+    r"\bnamed customers\b|"
+    r"\btestimonials?\b",
+    re.I,
+)
+_TRUNCATED_TAIL = re.compile(
+    r"\b(universi|compa|stu|grou|colleg|departm|solutio|networ|"
+    r"foundat|associat|internation)\s*$",
+    re.I,
+)
+_CUSTOMER_CHROME = frozenset({
+    "wireless faq", "faq", "real-world deployments",
+    "real world deployments", "deployments", "literature",
+    "resources", "pb/uax case stu", "uax case stu",
+})
 _ORG_RUN = re.compile(
     r"\b([A-Z][A-Za-z0-9&'!-]{1,40}"
     r"(?:\s+[A-Z][A-Za-z0-9&'!-]{1,24}){0,3})\b"
@@ -117,7 +143,7 @@ _ORG_RUN = re.compile(
 _NAV_CHROME = re.compile(
     r"\b(login|log in|sign in|toggle|navigation|navbar|menu|"
     r"wi-?fi|series spine|spine|breadcrumb|footer|header|"
-    r"sidebar|cookie|subscribe|skip to)\b",
+    r"sidebar|cookie|subscribe|skip to|faq|deployments?)\b",
     re.I,
 )
 _NOT_ORG = frozenset({
@@ -151,7 +177,8 @@ _SECTION_LABELS = frozenset({
     "named customers", "revenue share", "market data",
     "market data feed provider", "cloud titans",
     "fixed mobile telecoms", "fixed mobile", "mobile telecoms",
-    "french it",
+    "french it", "real-world deployments", "real world deployments",
+    "wireless faq",
 })
 _HEADER_VOCAB = frozenset({
     "named", "customers", "revenue", "share", "market", "data",
@@ -1018,6 +1045,8 @@ def is_customer_name(text: str, *, client_name: str = "") -> bool:
         return False
     if _NAV_CHROME.search(name):
         return False
+    if is_customer_chrome(name) or is_truncated_org_name(name):
+        return False
     if is_product_name(name):
         return False
     # Allowlisted buying orgs (Barclays, Citigroup, Morgan Stanley) promote
@@ -1037,7 +1066,8 @@ def is_customer_name(text: str, *, client_name: str = "") -> bool:
             "story", "stories", "success", "going",
             "services", "funds", "sector", "vertical",
             "proof", "points", "pdf", "troubleshoot", "workloads",
-            "ease", "deployment", "visibility", "unmatched",
+            "ease", "deployment", "deployments", "visibility", "unmatched",
+            "faq", "wireless",
             "sheet", "brief", "datasheet"}
            for w in words):
         return False
@@ -1097,6 +1127,8 @@ def known_customers_in_text(text: str, client_name: str = "") -> list[str]:
             continue
         display = pretty.get(known, known.title())
         if not is_customer_name(display, client_name=client_name):
+            continue
+        if customer_window_is_underwriter(raw, display):
             continue
         seen.add(known)
         found.append(display)
@@ -1274,6 +1306,55 @@ def customer_hub_url(url: str) -> bool:
     return bool(_CUSTOMER_HUB.search(url or ""))
 
 
+def is_truncated_org_name(text: str) -> bool:
+    """Card titles cut mid-word (Walsh Universi, Noodles Compa, Case Stu)."""
+    name = _clean(text)
+    if not name:
+        return False
+    if name.endswith("…") or name.endswith("...") or name.endswith("…"):
+        return True
+    return bool(_TRUNCATED_TAIL.search(name))
+
+
+def is_customer_chrome(text: str) -> bool:
+    """Section/nav labels are not buying orgs."""
+    name = _clean(text)
+    low = name.casefold()
+    if low in _CUSTOMER_CHROME or low in _SECTION_LABELS:
+        return True
+    if re.search(r"\b(faq|deployments?)\b", low):
+        return True
+    if re.search(r"\bcase\s+stu\b", low):
+        return True
+    return False
+
+
+def customer_window_is_underwriter(text: str, name: str) -> bool:
+    """True when the only hits are IPO/conference mentions, not buyers."""
+    wins = _windows(text, name, radius=140)
+    if not wins:
+        return False
+    if any(
+            _CUSTOMER_INCLUDE.search(w) or _CUSTOMER_CONTEXT.search(w)
+            or _ORG_PROOF.search(w)
+            for w in wins):
+        return False
+    return any(_UNDERWRITER.search(w) for w in wins)
+
+
+def page_has_customer_proof(text: str, url: str = "") -> bool:
+    """Page-level proof, not the 40-char excerpt window around one name."""
+    if customer_hub_url(url):
+        return True
+    raw = text or ""
+    return bool(
+        _CUSTOMER_CONTEXT.search(raw)
+        or _CUSTOMER_LEAD.search(raw)
+        or _ORG_PROOF.search(raw)
+        or _CUSTOMER_INCLUDE.search(raw)
+    )
+
+
 def customer_excerpt_ok(excerpt: str, url: str = "") -> bool:
     """True only for customer/case-study hubs or proof-language excerpts."""
     if customer_hub_url(url):
@@ -1283,6 +1364,7 @@ def customer_excerpt_ok(excerpt: str, url: str = "") -> bool:
         _CUSTOMER_CONTEXT.search(raw)
         or _CUSTOMER_LEAD.search(raw)
         or _ORG_PROOF.search(raw)
+        or _CUSTOMER_INCLUDE.search(raw)
     )
 
 
@@ -1514,7 +1596,7 @@ def extract_surface(
                 if not is_news_path_citation(url):
                     for name in recall_competitors(text, client_name or bound_name):
                         _compete(name)
-                if is_news_path_citation(url) and not customer_excerpt_ok(
+                if is_news_path_citation(url) and not page_has_customer_proof(
                         text, url):
                     continue
                 for name in recall_customers(text, client_name or bound_name):

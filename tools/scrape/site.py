@@ -39,6 +39,7 @@ _PRIORITY_SLUGS = (
     "customer",
     "case-stud",
     "casestudy",
+    "testimonial",
     "partner",
     "ecosystem",
     "resource",
@@ -65,6 +66,7 @@ _HUB_PATHS = (
     "/solutions",
     "/customers",
     "/case-studies",
+    "/products/product-testimonials",
     "/partners",
     "/compare",
     "/alternatives",
@@ -358,6 +360,35 @@ def _priority_url(url: str) -> bool:
     return any(slug in low for slug in _PRIORITY_SLUGS)
 
 
+def _customer_proof_url(url: str) -> bool:
+    low = (url or "").casefold()
+    return any(
+        slug in low
+        for slug in (
+            "customer", "case-stud", "casestudy", "testimonial",
+            "proof-point", "proof_point",
+        )
+    )
+
+
+def _news_like_url(url: str) -> bool:
+    low = (url or "").casefold()
+    return bool(re.search(
+        r"(?:^|/)(?:news|press(?:-release)?|blog)(?:/|$|\?|#)", low))
+
+
+def _queue_tier(url: str) -> int:
+    """Customer/case-study hubs before products; news/blog last."""
+    if _customer_proof_url(url):
+        return 0
+    if _news_like_url(url):
+        return 3
+    low = (url or "").casefold()
+    if any(s in low for s in ("product", "solution", "compare", "competitor")):
+        return 1
+    return 2
+
+
 def _locs_from_xml(xml: str, domain: str) -> tuple[list[str], list[str]]:
     pages: list[str] = []
     children: list[str] = []
@@ -481,6 +512,8 @@ def scrape_site(
         seeded = root + path
         if seeded not in queue:
             queue.append(seeded)
+    if len(queue) > 1:
+        queue[1:] = sorted(queue[1:], key=_queue_tier)
     seen: set[str] = set()
     empty_hits = 0
     saw_html = False
@@ -534,6 +567,9 @@ def scrape_site(
                 and _same_domain(absolute, domain)
                 and _priority_url(absolute)
             ):
-                queue.append(absolute)
+                if _customer_proof_url(absolute):
+                    queue.insert(0, absolute)
+                else:
+                    queue.append(absolute)
 
     return bundle

@@ -22,9 +22,11 @@ from agents.intake.extract import (
     citation_is_official,
     citation_mismatches_rival,
     customer_excerpt_ok,
+    customer_window_is_underwriter,
     cap_customers,
     is_known_customer,
     known_customers_in_text,
+    page_has_customer_proof,
     excerpt_from,
     excerpt_supports_name,
     excerpt_supports_rival,
@@ -634,6 +636,9 @@ def build_dossier(
                 continue
             if not excerpt_supports_name(name, excerpt):
                 continue
+            if is_news_path_citation(ev.url or "") and not page_has_customer_proof(
+                    excerpt, ev.url or ""):
+                continue
             customers.append(_claim(
                 name, ClaimState.COMPANY_ASSERTED, [ev.evidence_id],
                 "allowlisted customer promoted from official evidence",
@@ -665,14 +670,16 @@ def build_dossier(
         text = page.text or ""
         url = getattr(page, "url", None) or identity.website
         if is_news_path_citation(url or ""):
+            if not page_has_customer_proof(text, url or ""):
+                continue
             for name in known_customers_in_text(text, client_name):
                 key = name.casefold()
                 if key in seen_cust:
                     continue
+                if customer_window_is_underwriter(text, name):
+                    continue
                 snippet = excerpt_from(text, needle=name)
                 if not snippet or not excerpt_supports_name(name, snippet):
-                    continue
-                if not customer_excerpt_ok(snippet, url or ""):
                     continue
                 eid = add_ev("website", snippet, url)
                 if not eid:

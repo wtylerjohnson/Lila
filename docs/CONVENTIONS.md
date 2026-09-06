@@ -242,7 +242,16 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   (Cisco Nexus / Nexus 1000V). DoD, DoDIN, and DoDIN APL are
   certification program names, not offerings. Allowlisted banks
   (Barclays, Citigroup, Morgan Stanley) and Activ Financial
-  promote from official proof text even in all caps. Core NAICS
+  promote from official proof text even in all caps. Bank
+  promotion reads PAGE-level proof ("customers include" /
+  "others include" / testimonials), not the 40-character
+  excerpt window around one name. IPO book-running and
+  investor-conference mentions are not buyers. Truncated
+  case-study card titles (Walsh Universi, Noodles Compa,
+  PB/UAX Case Stu) and section chrome (Wireless FAQ,
+  Real-World Deployments) are not customers. Customer and
+  testimonial hubs are crawled before news/blog inside the
+  24-page budget. Core NAICS
   334210 (telephone apparatus) does not fail E5/E8 just because
   Aviation is kept_out or the composer also listed 334210 as a
   near miss; aviation codes 336413/488190 stay parked. When official

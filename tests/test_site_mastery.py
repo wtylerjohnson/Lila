@@ -23,10 +23,14 @@ from agents.intake.extract import (
     excerpt_supports_rival,
     extract_surface,
     is_competitor_name,
+    is_customer_chrome,
     is_customer_name,
     is_news_path_citation,
     is_product_name,
     is_sku_fragment_rival,
+    is_truncated_org_name,
+    known_customers_in_text,
+    page_has_customer_proof,
     normalize_rival_name,
     recall_competitors,
     recall_customers,
@@ -498,6 +502,28 @@ def test_junk_titles_are_not_offerings_or_customers():
         "https://www.arista.com/en/solutions/media-and-entertainment") is False
     assert is_customer_name("MORGAN STANLEY") is True
     assert is_customer_name("CITIGROUP") is True
+    assert is_customer_name("Wireless FAQ") is False
+    assert is_customer_name("Real-World Deployments") is False
+    assert is_customer_name("Walsh Universi") is False
+    assert is_customer_name("Noodles Compa") is False
+    assert is_customer_name("PB/UAX Case Stu") is False
+    assert is_truncated_org_name("Walsh Universi") is True
+    assert is_truncated_org_name("Walsh University") is False
+    assert is_customer_chrome("Wireless FAQ") is True
+    assert "Barclays" in known_customers_in_text(
+        "Arista customers include six cloud titans. Others include "
+        "Barclays, Citigroup, Morgan Stanley, Comcast and Equinix."
+    )
+    assert "Barclays" not in known_customers_in_text(
+        "Morgan Stanley, Citigroup, BofA Merrill Lynch, Barclays, "
+        "Credit Suisse are acting as joint book-running managers "
+        "for the offering."
+    )
+    assert page_has_customer_proof(
+        "Arista customers include six cloud titans. Others include "
+        "Barclays, Citigroup and Morgan Stanley.",
+        "https://www.arista.com/en/company/news/press-release/s1",
+    ) is True
     assert is_customer_name("Yahoo!") is False
     assert is_customer_name("Hardis") is True
     assert is_customer_name("Login Wi-Fi Cloud") is False
@@ -1406,3 +1432,124 @@ def test_press16_collateral_does_not_undo_cisco_darktrace():
     assert any("aviation" in k.term.casefold() for k in dossier.kept_out)
     parked = {n.code for n in dossier.kept_out_naics}
     assert {"336413", "488190"} <= parked
+
+
+def test_press17_banks_from_page_proof_not_chrome_or_underwriter():
+    """Live P17 shape: S-1 proof far from the names; card titles truncated."""
+    ident = _identity()
+    cisco_url = ROOT + "/en/company/competitor-comparisons"
+    darktrace = ROOT + "/en/ndr-darktrace-comparison"
+    news = ROOT + "/en/company/news"
+    s1 = ROOT + "/en/company/news/press-release/s1-customers"
+    ipo = ROOT + "/en/company/news/press-release/ipo-pricing"
+    testimonials = ROOT + "/en/products/product-testimonials"
+    campus = ROOT + "/en/solutions/cognitive-campus/literature"
+    scrape = ScrapeBundle(
+        root_url=ROOT,
+        pages=[
+            ScrapedPage(
+                url=cisco_url,
+                text=(
+                    "The switching market was historically dominated by "
+                    "Cisco. Unlike Cisco, Acme ships EOS on every 7050X."
+                ),
+            ),
+            ScrapedPage(
+                url=darktrace,
+                text=(
+                    "NDR Darktrace comparison. Unlike Darktrace, Acme "
+                    "positions AGNI as the identity control point."
+                ),
+            ),
+            ScrapedPage(
+                url=news,
+                text=(
+                    "Broadcom closed the VMware acquisition. VMware Cloud "
+                    "Foundation sits next to an Acme campus note."
+                ),
+            ),
+            ScrapedPage(
+                url=s1,
+                text=(
+                    "Arista's customers include six of the largest cloud "
+                    "services providers based on annual revenue, including "
+                    "Facebook, Microsoft and Yahoo. Others include Barclays, "
+                    "Citigroup, Morgan Stanley, Comcast, Equinix and ESPN."
+                ),
+            ),
+            ScrapedPage(
+                url=ipo,
+                text=(
+                    "Morgan Stanley, Citigroup, BofA Merrill Lynch, Barclays "
+                    "and Credit Suisse are acting as joint book-running "
+                    "managers for the offering."
+                ),
+            ),
+            ScrapedPage(
+                url=testimonials,
+                text=(
+                    "The first sub-500ns switching platform keeps our "
+                    "competitive advantage. Steve McNeany, CEO, Activ "
+                    "Financial."
+                ),
+            ),
+            ScrapedPage(
+                url=campus,
+                text=(
+                    "Wireless FAQ. Real-World Deployments. Walsh Universi "
+                    "Noodles Compa PB/UAX Case Stu. Hardis Grou."
+                ),
+            ),
+            ScrapedPage(
+                url=ROOT + "/products",
+                text=(
+                    "Acme Net sells EOS, CloudVision, AGNI, DANZ Monitoring "
+                    "Fabric, and the 7050X switch family."
+                ),
+            ),
+        ],
+        sources=[cisco_url, darktrace, news, s1, ipo, testimonials, campus],
+    )
+    probes = [
+        ResearchProbe(
+            name="competitors", query="rivals", findings="", citations=[]),
+        ResearchProbe(
+            name="boundaries",
+            query="exclusions",
+            findings=(
+                "Do not confuse Acme Net with Acme Aviation. Aviation "
+                "stays out of the search lane."
+            ),
+            citations=["https://en.wikipedia.org/wiki/Acme_Aviation"],
+        ),
+    ]
+    dossier = build_dossier(
+        client_name="Acme Net",
+        identity=ident,
+        research=CompanyResearch(
+            company_name="Acme Net", website=ROOT, scrape=scrape),
+        probes=probes,
+    )
+    rivals = {c.text: c for c in dossier.competitors}
+    assert "Cisco" in rivals and "Darktrace" in rivals
+    ev = {e.evidence_id: e for e in dossier.evidence}
+    assert "/news" not in (ev[rivals["Cisco"].evidence_ids[0]].url or "").casefold()
+    assert "darktrace" in (ev[rivals["Darktrace"].evidence_ids[0]].url or "").casefold()
+    assert "Cisco Nexus" not in rivals
+    assert "VMware" not in rivals and "Vmware" not in rivals
+    texts = {o.text for o in dossier.offerings}
+    assert {"EOS", "CloudVision", "AGNI", "DANZ Monitoring Fabric",
+            "7050X"} <= texts
+    assert "dod" not in {t.casefold() for t in texts}
+    customers = {c.text.casefold() for c in dossier.customers}
+    assert 1 <= len(customers) <= MAX_CUSTOMERS
+    assert {
+        "barclays", "citigroup", "morgan stanley", "activ financial",
+    } <= customers
+    for junk in (
+        "wireless faq", "real-world deployments", "walsh universi",
+        "noodles compa", "pb/uax case stu", "uax case stu", "hardis grou",
+        "fixed mobile telecoms", "french it",
+    ):
+        assert junk not in customers
+    assert {"336413", "488190"} <= {n.code for n in dossier.kept_out_naics}
