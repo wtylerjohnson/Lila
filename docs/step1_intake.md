@@ -61,6 +61,9 @@ Command Center:
 - Two high-confidence domains → **abstain** with one question
 - A low-confidence website guess is **not scraped** (wrong-company guard)
 - Abstain/block does **not** auto-approve, even when the passthrough toggle is on
+- If `do_web` is on and no research engine was injected, `run_step1`
+  constructs `research_engine()`. A forgotten engine is not an offline
+  abstain. `--no-websearch` still skips live identity search on purpose.
 
 ## Dossier, yield, adversarial, readiness
 

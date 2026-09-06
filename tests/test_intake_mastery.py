@@ -21,6 +21,7 @@ from agents.intake.adversarial import challenge_dossier, run_adversarial
 from agents.intake.dossier import Claim, ClaimState, CompanyDossier, build_dossier
 from agents.intake.identity import (
     IdentityCandidate,
+    IdentityRoster,
     bind_identity,
     registrable_domain,
     resolve_identity,
@@ -103,6 +104,105 @@ def test_name_only_without_engine_abstains():
     out = resolve_identity("Ambiguous Partners")
     assert out.status == "abstain"
     assert "official website" in (out.question or "").casefold()
+
+
+def test_name_only_intake_constructs_research_engine_and_binds(
+        tmp_path, monkeypatch):
+    """Forgotten engines must not force the offline-abstain path.
+
+    The Arista press (NO-GO 3/16) finished in ~410ms with candidates=[]
+    because run_step1 left identity_engine=None. find_website('Arista
+    Networks') binds https://www.arista.com at 0.95 when an engine is
+    actually used. True two-domain ambiguity still abstains elsewhere.
+    """
+    import agents.review as review
+
+    monkeypatch.setattr(review, "REVIEW_DIR", str(tmp_path / "review"))
+    monkeypatch.setenv("LILA_CLIENTS_DIR", str(tmp_path / "clients"))
+    monkeypatch.setenv("LILA_NOTICE_STORE_DIR", str(tmp_path / "empty_store"))
+    monkeypatch.setenv("LILA_ENABLE_INTAKE_AUTO_APPROVE", "off")
+
+    factory_calls = {"research": 0, "strategy": 0}
+
+    class AristaResearchEngine:
+        def web_research(self, **_kwargs):
+            return (
+                "Arista Networks official corporate homepage is "
+                "https://www.arista.com",
+                ["https://www.arista.com"],
+            )
+
+        def structure(self, **_kwargs):
+            return IdentityRoster(candidates=[
+                IdentityCandidate(
+                    name="Arista Networks",
+                    official_domain="arista.com",
+                    website="https://www.arista.com",
+                    confidence=0.95,
+                    rationale="official corporate homepage",
+                ),
+            ])
+
+    class QuietStrategyEngine:
+        def deliberate(self, *a, **k):
+            raise RuntimeError("strategy LLM unused in this wiring test")
+
+    def fake_research_engine():
+        factory_calls["research"] += 1
+        return AristaResearchEngine()
+
+    def fake_decision_engine(*_a, **_k):
+        factory_calls["strategy"] += 1
+        return QuietStrategyEngine()
+
+    monkeypatch.setattr(
+        "agents.decisions.engine.research_engine", fake_research_engine)
+    monkeypatch.setattr(
+        "agents.decisions.engine.DecisionEngine", fake_decision_engine)
+
+    result = run_step1(
+        submission_from_client_name("Arista Networks"),
+        do_scrape=False,
+        do_web=True,
+        auto_approve=False,
+        review_dir=str(tmp_path / "review"),
+        alert_fn=lambda *a: None,
+    )
+    assert factory_calls["research"] >= 1
+    assert result.identity.is_bound
+    assert result.identity.official_domain == "arista.com"
+    assert result.identity.website == "https://www.arista.com"
+    assert result.identity.status == "bound"
+    assert "name alone" not in result.identity.rationale
+    assert factory_calls["strategy"] >= 1
+
+
+def test_name_only_without_web_still_abstains_offline(tmp_path, monkeypatch):
+    """--no-websearch still takes the honest offline path for a bare name."""
+    import agents.review as review
+
+    monkeypatch.setattr(review, "REVIEW_DIR", str(tmp_path / "review"))
+    monkeypatch.setenv("LILA_CLIENTS_DIR", str(tmp_path / "clients"))
+    monkeypatch.setenv("LILA_NOTICE_STORE_DIR", str(tmp_path / "empty_store"))
+
+    constructed = []
+
+    def boom():
+        constructed.append("research")
+        raise AssertionError("offline path must not construct a research engine")
+
+    monkeypatch.setattr(
+        "agents.intake.pipeline._default_research_engine", boom)
+
+    result = run_step1(
+        submission_from_client_name("Arista Networks"),
+        do_scrape=False, do_web=False, auto_approve=False,
+        review_dir=str(tmp_path / "review"), alert_fn=lambda *a: None,
+    )
+    assert constructed == []
+    assert result.identity.status == "abstain"
+    assert not result.identity.is_bound
+    assert "name alone" in result.identity.rationale
 
 
 def test_empty_name_is_blocked():

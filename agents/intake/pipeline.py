@@ -151,6 +151,18 @@ def _append_mastery_markdown(
         pass
 
 
+def _default_research_engine():
+    """Fast research engine (web search / identity). Callers may inject a fake."""
+    from agents.decisions.engine import research_engine as make_research_engine
+    return make_research_engine()
+
+
+def _default_strategy_engine():
+    """Judgment engine for strategy composition. Callers may inject a fake."""
+    from agents.decisions.engine import DecisionEngine
+    return DecisionEngine()
+
+
 def _ingest_bound_site(website: str, *, fetcher=None, max_pages: int = 20) -> dict:
     try:
         from tools.capability_ingest import ingest
@@ -181,14 +193,14 @@ def run_step1(
 
     name = submission.client_name
     form_website = str(submission.website) if submission.website else None
-    # Name-only CLI must not silently take the offline abstain path because
-    # callers forgot to inject engines (Arista press NO-GO, 2026-09-06).
+    # Name-only intake must not silently take the offline-abstain path just
+    # because a caller forgot to pass engines (Arista press NO-GO, 2026-09-06).
+    # Construct the same defaults research_company / build_strategy already
+    # use. --no-websearch (do_web False) still skips the live identity search.
     if do_web and research_engine is None:
-        from agents.decisions.engine import research_engine as make_research_engine
-        research_engine = make_research_engine()
+        research_engine = _default_research_engine()
     if engine is None:
-        from agents.decisions.engine import DecisionEngine
-        engine = DecisionEngine()
+        engine = _default_strategy_engine()
     identity_engine = research_engine if do_web else None
     identity = resolve_identity(
         name, website=form_website, engine=identity_engine)
@@ -262,6 +274,8 @@ def run_step1(
     retrieval = retrieval_frame(dossier)
 
     strategy = strategy_from_dossier(dossier, submission)
+    if identity.is_bound and engine is None:
+        engine = _default_strategy_engine()
     if identity.is_bound and engine is not None:
         try:
             strategy = build_strategy(

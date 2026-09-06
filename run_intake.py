@@ -28,6 +28,7 @@ from tools.env import load_env  # noqa: E402
 load_env()
 
 from agents.alerts import desktop_alert  # noqa: E402
+from agents.decisions.engine import DecisionEngine, research_engine  # noqa: E402
 from agents.intake.pipeline import (  # noqa: E402
     run_step1,
     submission_from_client_name,
@@ -70,11 +71,14 @@ def main(argv: list[str] | None = None) -> int:
     print(f"[1] name-only intake: {submission.client_name}", file=sys.stderr)
     print("[1] identity resolution before deep research ...", file=sys.stderr)
 
+    do_web = not args.no_websearch
     result = run_step1(
         submission,
+        engine=DecisionEngine(),
+        research_engine=research_engine() if do_web else None,
         max_pages=args.max_pages,
         do_scrape=not args.no_scrape,
-        do_web=not args.no_websearch,
+        do_web=do_web,
         auto_approve=False if args.no_auto_approve else None,
         alert_fn=desktop_alert,
     )

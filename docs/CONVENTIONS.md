@@ -146,6 +146,12 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   (`agents/intake/identity.py`). A website-guess below
   `IDENTITY_BIND_MIN_CONFIDENCE` (0.72) is not scraped. Two official-domain
   candidates abstain with one question rather than contaminating the dossier.
+- `run_step1` follows the existing `engine or research_engine()` convention:
+  if `do_web` and no research engine was injected, it constructs
+  `research_engine()`; if no strategy engine was injected, it constructs
+  `DecisionEngine()`. `--no-websearch` still takes the honest offline
+  identity path. Forgetting to pass engines is not a reason to abstain.
+  True two-domain ambiguity still abstains.
 - Sidecars beside the review packet (additive, legacy packets unchanged):
   `<slug>.dossier.json`, `.intake_yield.json`, `.intake_adversarial.json`,
   `.intake_readiness.json`, `.intake_retrieval.json`.
