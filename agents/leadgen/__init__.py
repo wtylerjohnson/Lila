@@ -23,6 +23,7 @@ from .enums import (
     TargetingRuleId,
     enum_registry_values,
 )
+from .from_assess import AssessLeadDrafts, draft_lead_rows
 from .ids import compose_assessment_id, compose_lead_id, compose_trace_id
 from .motion import BuyingMotion
 from .next_action import CurrentNextAction
@@ -36,6 +37,7 @@ __all__ = [
     "SCHEMA_VERSION",
     "TARGETING_RULE_LABELS",
     "ActionableExternalPathway",
+    "AssessLeadDrafts",
     "AssessmentSubjectKind",
     "BuyingMotion",
     "CommercialMotionKind",
@@ -56,5 +58,6 @@ __all__ = [
     "compose_assessment_id",
     "compose_lead_id",
     "compose_trace_id",
+    "draft_lead_rows",
     "enum_registry_values",
 ]

@@ -1301,9 +1301,17 @@ coverage claims; nothing in it is a gate value.
 - JSON Schema export: `python -m agents.leadgen.schema_export` writes
   `agents/leadgen/schemas/`. Persistence is a later ticket; do not
   write lead rows into `data/state/assess_runs/`.
+- Draft mapper: `agents.leadgen.from_assess.draft_lead_rows` reads one
+  `AssessRun` (or AssessRun-shaped dict) plus an optional
+  `target_actions` projection and emits `OpportunityAssessment`
+  parents plus WATCH/HOLD `LeadRow` children. Pure and fail-closed.
+  Never aliases targeting `T1` to `LeadTier`. Never writes
+  `data/state/assess_runs/` or participates in `lila_release`.
+  Run: `python -m agents.leadgen.from_assess --assess <run.json>`.
 - Step 1 `CompanyDossier` remains the ontology front door (PR #1). Cite
   it with optional string fields until that PR merges. Do not import
-  targeting or Apollo from `agents/leadgen/contracts.py`.
+  targeting or Apollo from `agents/leadgen/contracts.py` or
+  `agents/leadgen/from_assess.py`.
 
 ## Vocabulary, identity and posture (2026-08-06)
 
