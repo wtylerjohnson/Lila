@@ -21,6 +21,7 @@ from agents.intake.dossier import ClaimState, CompanyDossier
 from agents.intake.extract import (
     _RIVAL_PRODUCTS,
     asserted_owned,
+    aviation_codes_to_park,
     excerpt_from,
     is_exclusion_name,
     is_plausible_naics_code,
@@ -118,6 +119,18 @@ def _naics(dossier: CompanyDossier, submission: Optional[IntakeSubmission]):
             meta.append(entry)
         else:
             kept_meta.append(entry)
+    for code in aviation_codes_to_park(exclude_blob):
+        if code in seen:
+            continue
+        seen.add(code)
+        kept_meta.append(NaicsEntry(
+            code=code, role="boundary", origin="system",
+            rationale=(
+                f"Aviation is a kept_out namesake; NAICS {code} stays "
+                f"out of the search lane"
+            ),
+            note="namesake or collision industry; not a search lane",
+        ))
     if submission is not None:
         for raw in submission.known_naics or []:
             code = str(raw).strip()

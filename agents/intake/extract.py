@@ -16,6 +16,8 @@ from pydantic import BaseModel, Field
 
 MAX_OFFERING_CHARS = 80
 MAX_OFFERING_WORDS = 8
+MAX_CUSTOMERS = 24
+CANONICAL_AVIATION_PARK = ("336413", "488190")
 
 _WS = re.compile(r"\s+")
 _GARBAGE = re.compile(
@@ -89,32 +91,60 @@ _TITLE_TAIL = re.compile(
 )
 _SLOGAN = re.compile(
     r"^(from|to|unmatched|leading|ultimate|discover|unlock|"
-    r"reimagine|welcome)\b|\bfrom\b.+\bto\b|&amp;|&",
+    r"reimagine|welcome)\b|\bfrom\b.+\bto\b|&amp;|&|"
+    r"\bvs\.?\b",
     re.I,
 )
+_NUMBERED_HEADER = re.compile(r"^\d+[\.)]\s+")
 _CUSTOMER_CONTEXT = re.compile(
-    r"\b(customers?|case stud|trusted by|proof points?|logo|"
-    r"deployed (?:at|by)|used by|clients?)\b",
+    r"\b(customers? include|customers? are|case stud|trusted by|"
+    r"proof points?|deployed (?:at|by)|used by|clients? include)\b",
     re.I,
 )
 _ORG_PROOF = re.compile(
-    r"\b(customer|case stud|trusted|proof point|deployed|uses|chose|"
-    r"selected|logo|production|ran|running)\b",
+    r"\b(case stud|trusted by|proof point|customers? include|"
+    r"deployed at|deployed by)\b",
+    re.I,
+)
+_CUSTOMER_HUB = re.compile(
+    r"customer|case-stud|casestudy|proof|success|past-performance",
     re.I,
 )
 _ORG_RUN = re.compile(
     r"\b([A-Z][A-Za-z0-9&'!-]{1,40}"
     r"(?:\s+[A-Z][A-Za-z0-9&'!-]{1,24}){0,3})\b"
 )
+_NAV_CHROME = re.compile(
+    r"\b(login|log in|sign in|toggle|navigation|navbar|menu|"
+    r"wi-?fi|series spine|spine|breadcrumb|footer|header|"
+    r"sidebar|cookie|subscribe|skip to)\b",
+    re.I,
+)
 _NOT_ORG = frozenset({
     "unlike", "versus", "compared", "alternatives", "alternative",
     "customers", "customer", "proof", "points", "case", "study",
     "trusted", "official", "about", "welcome", "ease", "pdf",
     "operating", "system", "solution", "brief", "data", "sheet",
+    "login", "toggle", "navigation", "menu", "series", "spine",
 })
 _NOT_RIVAL = frozenset({
     "analyst", "analysts", "gartner", "forrester", "wikipedia",
     "crunchbase", "industry", "vendors", "vendor", "notes",
+})
+_FUNCTION_WORDS = frozenset({
+    "here", "this", "what", "there", "that", "when", "where", "why",
+    "how", "then", "thus", "also", "these", "those", "with", "from",
+    "into", "over", "under", "about", "after", "before", "such",
+    "other", "many", "some", "each", "both", "only", "just", "more",
+    "most", "very", "new", "our", "your", "their", "its",
+})
+_SOCIAL_WIDGETS = frozenset({
+    "meta", "facebook", "twitter", "linkedin", "instagram",
+    "youtube", "tiktok", "yahoo",
+})
+_KNOWN_CUSTOMERS = frozenset({
+    "barclays", "citigroup", "citi", "morgan stanley", "hardis",
+    "hardis group", "microsoft", "netflix", "us army", "u.s. army",
 })
 _RIVAL_TITLE_TAIL = re.compile(
     r"\s+(comparisons?|overview|alternatives?|versus|\bvs\.?)$",
@@ -216,7 +246,8 @@ _PRODUCT_CONTEXT = re.compile(
 _NAV = re.compile(
     r"\b(learn more|read more|get started|contact us|careers|"
     r"privacy policy|terms of (?:use|service)|cookie|sign in|"
-    r"log in|subscribe|view all|see all|home|menu|search)\b",
+    r"log in|login|toggle|navigation|subscribe|view all|see all|"
+    r"home|menu|search|wi-?fi)\b",
     re.I,
 )
 _HEADING = re.compile(r"^#{1,4}\s+(.+)$", re.M)
@@ -441,6 +472,8 @@ def is_product_name(text: str) -> bool:
     if _PEOPLE_NAV.search(name) or _TITLE_TAIL.search(name):
         return False
     if _SLOGAN.search(name) or "&" in name:
+        return False
+    if _NUMBERED_HEADER.search(name):
         return False
     if name.casefold() in {"operating system", "unmatched visibility"}:
         return False
@@ -738,6 +771,24 @@ def aviation_codes_in_text(text: str) -> list[str]:
     return found
 
 
+def kept_out_implies_aviation(exclude_blob: str) -> bool:
+    blob = (exclude_blob or "").casefold()
+    return any(w in blob for w in ("aviation", "aircraft", "oas"))
+
+
+def aviation_codes_to_park(exclude_blob: str, hay: str = "") -> list[str]:
+    """Park documented aviation namesake codes when Aviation is kept out.
+
+    Live arista.com never cites 336413. Website-first presses still must
+    park the collision codes once Aviation is a kept_out term.
+    """
+    if not kept_out_implies_aviation(exclude_blob):
+        return []
+    codes = set(aviation_codes_in_text(hay))
+    codes.update(CANONICAL_AVIATION_PARK)
+    return sorted(codes)
+
+
 def is_records_industry_naics(code: str) -> bool:
     raw = str(code or "").strip()
     return raw in _RECORDS_NAICS or raw.startswith("5122")
@@ -879,6 +930,10 @@ def is_customer_name(text: str, *, client_name: str = "") -> bool:
         return False
     if low in _NOT_ORG or low in _ACRONYM_DENY or low in _TOOL_META:
         return False
+    if low in _FUNCTION_WORDS or low in _SOCIAL_WIDGETS:
+        return False
+    if _NAV_CHROME.search(name):
+        return False
     if _JOB_TITLE.search(name) or _STORY_TITLE.search(name):
         return False
     if _PEOPLE_NAV.search(name) or _TITLE_TAIL.search(name):
@@ -888,6 +943,8 @@ def is_customer_name(text: str, *, client_name: str = "") -> bool:
     if is_product_name(name):
         return False
     words = name.split()
+    if len(words) == 1 and low not in _KNOWN_CUSTOMERS:
+        return False
     if any(w.casefold() in {
             "story", "stories", "success", "going",
             "services", "funds", "sector", "vertical",
@@ -918,7 +975,9 @@ def is_competitor_name(text: str, *, client_name: str = "") -> bool:
     low = name.casefold()
     if low in _GENERIC or low in _GENERIC_CUSTOMERS or low in _NAV_GLUED:
         return False
-    if low in _NOT_RIVAL or low in _NOT_ORG:
+    if low in _NOT_RIVAL or low in _NOT_ORG or low in _FUNCTION_WORDS:
+        return False
+    if _NAV_CHROME.search(name):
         return False
     if _TITLE_TAIL.search(name) or _PEOPLE_NAV.search(name):
         return False
@@ -939,22 +998,31 @@ def excerpt_supports_rival(name: str, snippet: str) -> bool:
 def citation_mismatches_rival(
     url: str, name: str, official_domain: Optional[str] = None,
 ) -> bool:
-    """True when the URL is another vendor's site (darktrace URL + HPE claim)."""
+    """True when the URL is another vendor's site or another rival's page."""
     if not url or not name:
         return False
     host = url.casefold()
-    if official_domain and official_domain.casefold().lstrip(".") in host:
-        return False
     rival = name.casefold().split()[0]
+    official = bool(
+        official_domain and official_domain.casefold().lstrip(".") in host
+    )
     label = re.sub(r"^https?://(www\.)?", "", host).split("/")[0].split(":")[0]
     first = label.split(".")[0]
     if rival and rival in first:
-        return False
+        pass
+    elif not official:
+        for vendor in _RIVAL_VENDORS:
+            token = vendor.split()[0]
+            if token == rival:
+                continue
+            if token in first:
+                return True
+    path = re.sub(r"^https?://[^/]+", "", host)
     for vendor in _RIVAL_VENDORS:
         token = vendor.split()[0]
         if token == rival:
             continue
-        if token in first:
+        if re.search(rf"[/\-_]{re.escape(token)}([/\-_.]|$|compar)", path):
             return True
     return False
 
@@ -1042,24 +1110,60 @@ def recall_competitors(text: str, client_name: str = "") -> list[str]:
     return found
 
 
+def customer_hub_url(url: str) -> bool:
+    return bool(_CUSTOMER_HUB.search(url or ""))
+
+
+def customer_excerpt_ok(excerpt: str, url: str = "") -> bool:
+    """True only for customer/case-study hubs or proof-language excerpts."""
+    if customer_hub_url(url):
+        return True
+    raw = excerpt or ""
+    return bool(
+        _CUSTOMER_CONTEXT.search(raw)
+        or _CUSTOMER_LEAD.search(raw)
+        or _ORG_PROOF.search(raw)
+    )
+
+
+def cap_customers(names: list[str], *, limit: int = MAX_CUSTOMERS) -> list[str]:
+    """Prefer known orgs, then keep the list in the dozens."""
+    if len(names) <= limit:
+        return names
+    known: list[str] = []
+    rest: list[str] = []
+    for name in names:
+        if name.casefold() in _KNOWN_CUSTOMERS:
+            known.append(name)
+        else:
+            rest.append(name)
+    out = known + rest
+    return out[:limit]
+
+
 def names_from_customer_context(text: str, client_name: str = "") -> list[str]:
-    """Org names on a proof / case-study / customer page, not lead lists only."""
+    """Orgs in a short window around proof language, not the whole crawl."""
     raw = _protect_abbrevs(text)
     if not raw.strip():
         return []
-    if not (_CUSTOMER_CONTEXT.search(raw) or _ORG_PROOF.search(raw)):
+    windows: list[str] = []
+    for matcher in (_CUSTOMER_CONTEXT, _ORG_PROOF, _CUSTOMER_LEAD):
+        for match in matcher.finditer(raw):
+            windows.append(raw[max(0, match.start() - 20):match.end() + 240])
+    if not windows:
         return []
     found: list[str] = []
     seen: set[str] = set()
-    for match in _ORG_RUN.finditer(raw):
-        piece = _party_name(match.group(1), client_name=client_name)
-        if not is_customer_name(piece, client_name=client_name):
-            continue
-        key = piece.casefold()
-        if not piece or key in seen or key in _NOT_ORG:
-            continue
-        seen.add(key)
-        found.append(piece)
+    for chunk in windows:
+        for match in _ORG_RUN.finditer(chunk):
+            piece = _party_name(match.group(1), client_name=client_name)
+            if not is_customer_name(piece, client_name=client_name):
+                continue
+            key = piece.casefold()
+            if not piece or key in seen or key in _NOT_ORG:
+                continue
+            seen.add(key)
+            found.append(piece)
     return found
 
 
@@ -1214,10 +1318,23 @@ def extract_surface(
             _offer(name, source_text=scrape_text, implicit=True)
         for name in recall_products(scrape_text):
             _offer(name, source_text=scrape_text)
-        for name in recall_competitors(scrape_text, client_name or bound_name):
-            _compete(name)
-        for name in recall_customers(scrape_text, client_name or bound_name):
-            _customer(name)
+        pages = [
+            p for p in (getattr(scrape, "pages", None) or [])
+            if (getattr(p, "text", "") or "").strip()
+            and not is_error_page(p.text)
+        ]
+        if pages:
+            for page in pages:
+                text = page.text or ""
+                for name in recall_competitors(text, client_name or bound_name):
+                    _compete(name)
+                for name in recall_customers(text, client_name or bound_name):
+                    _customer(name)
+        else:
+            for name in recall_competitors(scrape_text, client_name or bound_name):
+                _compete(name)
+            for name in recall_customers(scrape_text, client_name or bound_name):
+                _customer(name)
         naics.extend(extract_naics(scrape_text))
 
     all_findings: list[str] = []
@@ -1327,6 +1444,8 @@ def extract_surface(
             continue
         seen_r.add(key)
         related_u.append(row)
+
+    customers = cap_customers(customers)
 
     return ExtractedSurface(
         offerings=offerings, naics=naics_u,

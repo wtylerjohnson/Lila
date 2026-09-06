@@ -16,7 +16,9 @@ from agents.company_research import CompanyResearch
 from agents.intake.adapters import retrieval_frame, strategy_from_dossier
 from agents.intake.dossier import build_dossier
 from agents.intake.extract import (
+    MAX_CUSTOMERS,
     aviation_codes_in_text,
+    aviation_codes_to_park,
     citation_mismatches_rival,
     excerpt_supports_rival,
     extract_surface,
@@ -455,8 +457,24 @@ def test_junk_titles_are_not_offerings_or_customers():
     assert is_customer_name("Barclays") is True
     assert is_customer_name("Citigroup") is True
     assert is_customer_name("Morgan Stanley") is True
-    assert is_customer_name("Yahoo!") is True
+    assert is_customer_name("Yahoo!") is False
     assert is_customer_name("Hardis") is True
+    assert is_customer_name("Login Wi-Fi Cloud") is False
+    assert is_customer_name("Toggle Navigation") is False
+    assert is_customer_name("Series Spine") is False
+    assert is_customer_name("Meta") is False
+    assert is_customer_name("Facebook") is False
+    assert is_competitor_name("Here") is False
+    assert is_competitor_name("This") is False
+    assert is_product_name("Secure Networks vs. Network Security") is False
+    assert is_product_name("1. Operating System") is False
+    assert citation_mismatches_rival(
+        "https://www.arista.com/en/company/darktrace-comparison", "Cisco",
+        official_domain="arista.com") is True
+    assert citation_mismatches_rival(
+        "https://www.arista.com/en/company/darktrace-comparison", "Darktrace",
+        official_domain="arista.com") is False
+    assert aviation_codes_to_park("Arista Aviation") == ["336413", "488190"]
     assert is_product_name("CloudVision Data Sheet") is False
     assert is_product_name("SolutionBrief") is False
     assert is_product_name("From network security to secure networks") is False
@@ -470,6 +488,9 @@ def test_junk_titles_are_not_offerings_or_customers():
         official_domain="arista.com") is True
     assert citation_mismatches_rival(
         "https://www.arista.com/en/products/eos", "Cisco",
+        official_domain="arista.com") is False
+    assert citation_mismatches_rival(
+        "https://www.arista.com/compare", "Cisco",
         official_domain="arista.com") is False
 
     ident = _identity()
@@ -515,7 +536,8 @@ def test_junk_titles_are_not_offerings_or_customers():
 def test_press11_nav_verticals_and_mismatched_rivals_are_rejected():
     ident = _identity()
     eos = ROOT + "/en/products/eos"
-    compare = ROOT + "/en/company/darktrace-comparison"
+    compare = ROOT + "/compare"
+    darktrace = ROOT + "/en/company/darktrace-comparison"
     scrape = ScrapeBundle(
         root_url=ROOT,
         pages=[
@@ -551,13 +573,20 @@ def test_press11_nav_verticals_and_mismatched_rivals_are_rejected():
             ScrapedPage(
                 url=compare,
                 text=(
-                    "Darktrace Comparison. Unlike Cisco and Juniper, Acme "
-                    "ships EOS on every official compare page. This is a "
-                    "head-to-head alternatives writeup, not a product SKU."
+                    "Unlike Cisco and Juniper, Acme ships EOS on every "
+                    "official compare page. This is a head-to-head "
+                    "alternatives writeup, not a product SKU."
+                ),
+            ),
+            ScrapedPage(
+                url=darktrace,
+                text=(
+                    "Darktrace Comparison. Here is what the NDR rival "
+                    "looks like next to CloudVision AGNI on this page."
                 ),
             ),
         ],
-        sources=[eos, compare],
+        sources=[eos, compare, darktrace],
     )
     probes = [
         ResearchProbe(
@@ -610,6 +639,7 @@ def test_press11_nav_verticals_and_mismatched_rivals_are_rejected():
         excerpt = ev[rivals[name].evidence_ids[0]].excerpt or ""
         assert "unlike" in excerpt.casefold() or "versus" in excerpt.casefold()
         assert "darktrace.com" not in url
+        assert "darktrace-comparison" not in url
         assert "/eos" not in url
     assert "Extreme" not in rivals
     assert "HPE" not in rivals
@@ -752,7 +782,8 @@ def test_press12_slogans_junk_customers_and_empty_rivals_are_balanced():
     assert "troubleshoot workloads" not in customers
     assert "ease of deployment" not in customers
     assert "6" not in customers
-    assert {"barclays", "citigroup", "morgan stanley", "yahoo", "hardis"} <= customers
+    assert {"barclays", "citigroup", "morgan stanley", "hardis"} <= customers
+    assert "yahoo" not in customers
     rivals = {c.text: c for c in dossier.competitors}
     assert "Darktrace Comparison" not in rivals
     assert {"Cisco", "Juniper"} <= set(rivals)
@@ -819,3 +850,157 @@ def test_press12_promotes_orgs_and_rivals_already_in_evidence():
             continue
         excerpt = ev[claim.evidence_ids[0]].excerpt or ""
         assert excerpt_supports_rival(name, excerpt)
+
+
+def test_press13_chrome_here_and_aviation_park_are_stable():
+    """Invariants that fail both the empty-list and 342-chrome cases."""
+    ident = _identity()
+    customers_url = ROOT + "/customers"
+    compare = ROOT + "/compare"
+    darktrace = ROOT + "/en/company/darktrace-comparison"
+    scrape = ScrapeBundle(
+        root_url=ROOT,
+        pages=[
+            ScrapedPage(
+                url=ROOT,
+                text=(
+                    "Login Wi-Fi Cloud. Toggle Navigation. Series Spine. "
+                    "Meta Facebook Yahoo share widgets sit in the footer. "
+                    "Secure Networks vs. Network Security. "
+                    "1. Operating System. 2. Platform. "
+                    "Acme Net sells EOS, CloudVision, AGNI, DANZ Monitoring "
+                    "Fabric, and the 7050X switch family."
+                ),
+            ),
+            ScrapedPage(
+                url=customers_url,
+                text=(
+                    "Customers include Barclays, Citigroup, Morgan Stanley, "
+                    "Hardis Group, and Microsoft. Trusted by US Army for "
+                    "campus switching. Case study: Barclays deployed "
+                    "CloudVision in production."
+                ),
+            ),
+            ScrapedPage(
+                url=compare,
+                text=(
+                    "Unlike Cisco and Juniper, Acme Net ships EOS on this "
+                    "official compare page. Alternatives to Cisco include "
+                    "Acme CloudVision."
+                ),
+            ),
+            ScrapedPage(
+                url=darktrace,
+                text=(
+                    "Darktrace Comparison. Here is what the NDR writeup "
+                    "says next to CloudVision. Unlike Darktrace, Acme "
+                    "positions AGNI as the identity control point."
+                ),
+            ),
+        ],
+        sources=[ROOT, customers_url, compare, darktrace],
+    )
+    probes = [
+        ResearchProbe(
+            name="boundaries",
+            query="exclusions",
+            findings=(
+                "Do not confuse Acme Net with Acme Aviation Services. "
+                "Aviation stays out of the search lane."
+            ),
+            citations=["https://en.wikipedia.org/wiki/Acme_Aviation"],
+        ),
+        ResearchProbe(
+            name="essay",
+            query="site-dump",
+            findings=(
+                "Here is what the crawl found. Login Wi-Fi. Toggle "
+                "Navigation. Series Spine. Aviation namesake listing "
+                "336413 is not this company's search lane."
+            ),
+            citations=[ROOT + "/about"],
+        ),
+    ]
+    dossier = build_dossier(
+        client_name="Acme Net",
+        identity=ident,
+        research=CompanyResearch(
+            company_name="Acme Net", website=ROOT, scrape=scrape),
+        probes=probes,
+    )
+    customers = [c.text for c in dossier.customers]
+    customer_keys = {c.casefold() for c in customers}
+    assert 1 <= len(customers) <= MAX_CUSTOMERS
+    assert len(customers) <= 24
+    chrome = (
+        "login", "toggle", "navigation", "series spine", "wi-fi",
+        "meta", "facebook", "yahoo",
+    )
+    assert not any(tok in " ".join(customer_keys) for tok in chrome)
+    assert {
+        "barclays", "citigroup", "morgan stanley", "microsoft",
+    } <= customer_keys
+    assert any("hardis" in k for k in customer_keys)
+    assert any("army" in k for k in customer_keys)
+    texts = {o.text for o in dossier.offerings}
+    assert "Secure Networks vs. Network Security" not in texts
+    assert "1. Operating System" not in texts
+    assert {"EOS", "CloudVision", "AGNI", "7050X"} <= texts
+    rivals = {c.text: c for c in dossier.competitors}
+    assert "Here" not in rivals
+    assert "This" not in rivals
+    assert "Darktrace" in rivals
+    assert "Cisco" in rivals or "Juniper" in rivals
+    ev = {e.evidence_id: e for e in dossier.evidence}
+    if "Cisco" in rivals:
+        url = (ev[rivals["Cisco"].evidence_ids[0]].url or "").casefold()
+        assert "darktrace-comparison" not in url
+        assert "darktrace.com" not in url
+    kept = {k.term.casefold() for k in dossier.kept_out}
+    assert any("aviation" in k for k in kept)
+    parked = {n.code for n in dossier.kept_out_naics}
+    assert "336413" in parked
+    assert "336413" not in {n.code for n in dossier.naics}
+
+
+def test_aviation_kept_out_parks_canonical_codes_without_digits_on_the_site():
+    """Live arista.com never cites 336413; Aviation kept_out still parks it."""
+    ident = _identity()
+    scrape = ScrapeBundle(
+        root_url=ROOT,
+        pages=[ScrapedPage(
+            url=ROOT + "/products",
+            text=(
+                "Acme Net sells EOS and CloudVision. No NAICS digits "
+                "appear on this official product page."
+            ),
+        )],
+        sources=[ROOT + "/products"],
+    )
+    probes = [
+        ResearchProbe(
+            name="boundaries",
+            query="exclusions",
+            findings=(
+                "Do not confuse Acme Net with Acme Aviation. Aviation "
+                "is a namesake collision, not a product line."
+            ),
+            citations=["https://en.wikipedia.org/wiki/Acme_Aviation"],
+        ),
+    ]
+    dossier = build_dossier(
+        client_name="Acme Net",
+        identity=ident,
+        research=CompanyResearch(
+            company_name="Acme Net", website=ROOT, scrape=scrape),
+        probes=probes,
+    )
+    assert any("aviation" in k.term.casefold() for k in dossier.kept_out)
+    site_blob = " ".join(p.text for p in scrape.pages)
+    probe_blob = " ".join(p.findings for p in probes)
+    assert "336413" not in site_blob
+    assert "336413" not in probe_blob
+    parked = {n.code for n in dossier.kept_out_naics}
+    assert {"336413", "488190"} <= parked
+    strategy = strategy_from_dossier(dossier)
+    assert {"336413", "488190"} <= {e.code for e in strategy.kept_out_naics}

@@ -16,10 +16,13 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field, model_validator
 
 from agents.intake.extract import (
+    MAX_CUSTOMERS,
     RelatedEntity,
-    aviation_codes_in_text,
+    aviation_codes_to_park,
     citation_is_official,
     citation_mismatches_rival,
+    customer_excerpt_ok,
+    cap_customers,
     excerpt_from,
     excerpt_supports_name,
     excerpt_supports_rival,
@@ -480,6 +483,8 @@ def build_dossier(
             official_domain=identity.official_domain, prefer_site=True)
         if not snippet or not excerpt_supports_name(name, snippet):
             continue
+        if not customer_excerpt_ok(snippet, url or ""):
+            continue
         eid = add_ev("website", snippet, url or identity.website)
         if not eid:
             continue
@@ -595,17 +600,19 @@ def build_dossier(
         )
         if not official:
             continue
-        for name in recall_customers(excerpt, client_name):
-            key = name.casefold()
-            if key in seen_cust or not is_customer_name(name, client_name=client_name):
-                continue
-            if not excerpt_supports_name(name, excerpt):
-                continue
-            customers.append(_claim(
-                name, ClaimState.COMPANY_ASSERTED, [ev.evidence_id],
-                "named customer promoted from evidenced site text",
-            ))
-            seen_cust.add(key)
+        if customer_excerpt_ok(excerpt, ev.url or ""):
+            for name in recall_customers(excerpt, client_name):
+                key = name.casefold()
+                if key in seen_cust or not is_customer_name(
+                        name, client_name=client_name):
+                    continue
+                if not excerpt_supports_name(name, excerpt):
+                    continue
+                customers.append(_claim(
+                    name, ClaimState.COMPANY_ASSERTED, [ev.evidence_id],
+                    "named customer promoted from evidenced site text",
+                ))
+                seen_cust.add(key)
         for name in recall_competitors(excerpt, client_name):
             key = name.casefold()
             if key in seen_comp:
@@ -626,35 +633,43 @@ def build_dossier(
         [scrape_text]
         + [e.excerpt or "" for e in evidence]
         + [blob[1] for blob in probe_blobs]
+        + [k.term for k in kept_out]
     )
-    if any(w in exclude_blob.casefold() for w in ("aviation", "aircraft", "oas")):
-        parked = {n.code for n in kept_out_naics}
-        core_ids = {n.code for n in naics}
-        for code in aviation_codes_in_text(hay):
-            if code in parked:
-                continue
-            if code in core_ids:
-                moved = [n for n in naics if n.code == code]
-                naics = [n for n in naics if n.code != code]
-                for entry in moved:
-                    entry.role = "boundary"
-                    kept_out_naics.append(entry)
-                parked.add(code)
-                continue
-            snippet = excerpt_from(hay, needle=code)
-            if not snippet or code not in snippet:
-                continue
-            eid = add_ev("web_probe", snippet)
-            kept_out_naics.append(DossierNaics(
-                code=code, role="boundary",
-                rationale=(
-                    snippet[:240] if len(snippet.split()) >= 5 else
-                    f"aviation namesake; keep NAICS {code} out of search"
-                ),
-                state=ClaimState.INFERRED,
-                evidence_ids=[eid] if eid else [],
-            ))
+    parked = {n.code for n in kept_out_naics}
+    core_ids = {n.code for n in naics}
+    for code in aviation_codes_to_park(exclude_blob, hay):
+        if code in parked:
+            continue
+        if code in core_ids:
+            moved = [n for n in naics if n.code == code]
+            naics = [n for n in naics if n.code != code]
+            for entry in moved:
+                entry.role = "boundary"
+                kept_out_naics.append(entry)
             parked.add(code)
+            continue
+        snippet = excerpt_from(hay, needle=code)
+        if not snippet or code not in snippet:
+            snippet = (
+                f"Aviation is a kept_out namesake; NAICS {code} stays "
+                f"out of the search lane"
+            )
+        eid = add_ev("web_probe", snippet)
+        kept_out_naics.append(DossierNaics(
+            code=code, role="boundary",
+            rationale=snippet[:240],
+            state=ClaimState.INFERRED,
+            evidence_ids=[eid] if eid else [],
+        ))
+        parked.add(code)
+
+    kept_names = cap_customers(
+        [c.text for c in customers if is_customer_name(
+            c.text, client_name=client_name)],
+        limit=MAX_CUSTOMERS,
+    )
+    keep_c = {n.casefold() for n in kept_names}
+    customers = [c for c in customers if c.text.casefold() in keep_c][:MAX_CUSTOMERS]
 
     seen_kw = {k.term.casefold() for k in keywords}
     for off in offerings:
