@@ -1,4 +1,4 @@
-# Step 1 — Name-only company mastery → Review → (optional auto-approve)
+# Step 1 · Name-only company mastery → Review → (optional auto-approve)
 
 LILA Step 1 starts from a **company name only**. The intake form is optional
 enrichment. Before any opportunity identification or lead generation, LILA
@@ -113,6 +113,6 @@ See [CONVENTIONS.md](CONVENTIONS.md) for the storage map and gate doctrine.
 | Site scrape + capability ingest | yes, after bind | network |
 | Structured probes | yes, after bind | engine / Max plan |
 | Dossier / yield / adversarial / E1-E8 | yes, offline-capable | notice store optional |
-| Review packet | yes | — |
+| Review packet | yes | none |
 | Auto-passthrough | default on | `decide()` |
 | SAM / USAspending / web sweep | after approval + operator scope | keys / quota |
