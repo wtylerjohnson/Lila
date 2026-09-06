@@ -1264,6 +1264,19 @@ coverage claims; nothing in it is a gate value.
   checkout; every session gets its own worktree on a named branch; Tyler
   does every merge; never `git worktree prune`. Full text in CLAUDE.md.
 
+## Spike reports (2026-09-06)
+
+- Pre-implementation maps live in `docs/spikes/<topic>.md`. A spike is
+  reviewable feedstock, not a contract surface and not a schema. It may
+  recommend an additive file layout. It must not delete Assess models,
+  change Market Map release, or ship Pydantic packages.
+- Reality in the code still wins. Cite paths and field names from the
+  checkout (and from an unmerged branch when that branch is the named
+  authority, as with Step 1 intake on
+  `cursor/step1-intake-mastery-da3f` / PR #1). If a locked product
+  document is not in the repo, say so and map against the operator
+  ruling that tasked the spike.
+
 ## Vocabulary, identity and posture (2026-08-06)
 
 The assessment family kept reporting OUR failures as market facts. Four
