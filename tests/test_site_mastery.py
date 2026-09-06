@@ -553,6 +553,11 @@ def test_junk_titles_are_not_offerings_or_customers():
         "Arista customers include six cloud titans. Others include "
         "Barclays, Citigroup and Morgan Stanley.",
         "https://www.arista.com/en/company/news/press-release/s1",
+    ) is False
+    assert page_has_customer_proof(
+        "Arista customers include six cloud titans. Others include "
+        "Barclays, Citigroup and Morgan Stanley.",
+        "https://www.arista.com/en/company/customers",
     ) is True
     assert is_customer_name("Yahoo!") is False
     assert is_customer_name("Hardis") is True

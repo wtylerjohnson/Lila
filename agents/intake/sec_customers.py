@@ -15,7 +15,6 @@ import re
 from typing import Any, Callable, Optional
 from agents.intake.extract import (
     customer_window_is_underwriter,
-    excerpt_from,
     is_customer_name,
     is_customer_roster_excerpt,
     known_customers_in_text,
@@ -140,7 +139,7 @@ def extract_roster_customers(
             if key in seen:
                 continue
             seen.add(key)
-            found.append((name, excerpt_from(sent, needle=name, limit=400)))
+            found.append((name, sent[:400]))
     return found
 
 

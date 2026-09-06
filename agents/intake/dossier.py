@@ -505,7 +505,7 @@ def build_dossier(
             continue
         if is_news_path_citation(url or "") or customer_url_is_chrome(url or ""):
             continue
-        if customer_excerpt_is_sec_paraphrase(snippet):
+        if customer_excerpt_is_sec_paraphrase(snippet, name):
             continue
         if not customer_excerpt_ok(snippet, url or "") and not is_known_customer(
                 name, client_name=client_name):
@@ -647,7 +647,7 @@ def build_dossier(
             if is_news_path_citation(ev.url or "") or customer_url_is_chrome(
                     ev.url or ""):
                 continue
-            if customer_excerpt_is_sec_paraphrase(excerpt):
+            if customer_excerpt_is_sec_paraphrase(excerpt, name):
                 continue
             customers.append(_claim(
                 name, ClaimState.COMPANY_ASSERTED, [ev.evidence_id],
@@ -708,7 +708,7 @@ def build_dossier(
             snippet = excerpt_from(text, needle=name)
             if not snippet or not excerpt_supports_name(name, snippet):
                 continue
-            if customer_excerpt_is_sec_paraphrase(snippet):
+            if customer_excerpt_is_sec_paraphrase(snippet, name):
                 continue
             if customer_window_is_underwriter(text, name):
                 continue

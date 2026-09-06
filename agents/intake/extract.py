@@ -1179,7 +1179,7 @@ def known_customers_in_text(text: str, client_name: str = "") -> list[str]:
             continue
         if customer_window_is_underwriter(raw, display):
             continue
-        if any(customer_excerpt_is_sec_paraphrase(w) for w in _windows(raw, display)):
+        if any(customer_excerpt_is_sec_paraphrase(w, display) for w in _windows(raw, display)):
             continue
         seen.add(known)
         found.append(display)
@@ -1391,12 +1391,21 @@ def is_customer_roster_excerpt(text: str) -> bool:
     return bool(_ROSTER_PHRASE.search(text or ""))
 
 
-def customer_excerpt_is_sec_paraphrase(text: str) -> bool:
+def customer_excerpt_is_sec_paraphrase(text: str, name: str = "") -> bool:
     """Secondary 'Named in S-1/10-K' blurbs are not primary scrape."""
     raw = text or ""
     if not _NAMED_IN_FILING.search(raw):
         return False
-    return not is_customer_roster_excerpt(raw)
+    if is_customer_roster_excerpt(raw):
+        return False
+    if not name:
+        return True
+    needle = name.casefold()
+    for match in _NAMED_IN_FILING.finditer(raw):
+        clause = raw[match.start():match.end() + 80]
+        if needle in clause.casefold():
+            return True
+    return False
 
 
 def is_truncated_org_name(text: str) -> bool:
@@ -1712,7 +1721,7 @@ def extract_surface(
                     continue
                 for name in recall_customers(text, client_name or bound_name):
                     snippet = excerpt_from(text, needle=name)
-                    if customer_excerpt_is_sec_paraphrase(snippet):
+                    if customer_excerpt_is_sec_paraphrase(snippet, name):
                         continue
                     _customer(name)
         else:
