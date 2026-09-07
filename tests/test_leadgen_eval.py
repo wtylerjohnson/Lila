@@ -378,7 +378,11 @@ def test_whitespace_evidence_fails_c1(field):
 
 
 @pytest.mark.parametrize("field", ["holder", "vehicle", "dossier_cite", "prime_posture_cite"])
-@pytest.mark.parametrize("dummy", ["unknown", "TBD", "n/a", "na", "none", "unk", "x", " "])
+@pytest.mark.parametrize("dummy", [
+    "unknown", "TBD", "n/a", "na", "none", "unk", "x", " ",
+    "placeholder", "TBA", "null", "??", "-", "[Placeholder]",
+    "T.B.D.", "to be announced", "\u200bTBD\ufeff", "\u200b\u2060",
+])
 def test_dummy_route_cannot_escape_notice_only(field, dummy):
     route = {"holder": None, "vehicle": None, "dossier_cite": None,
              "prime_posture_cite": None}
@@ -412,6 +416,107 @@ def test_blank_fit_cannot_escape_solicitation_in_direct_check():
     lead = _lead(seller_path=_seller(holder=None))
     overlay = EvalOverlay(subject_id=lead.lead_id).model_copy(update={"product_fit_cites": ("", " ")})
     assert is_solicitation_only(lead, overlay)
+
+
+@pytest.mark.parametrize("tier", [LeadTier.LEAD_T1, LeadTier.LEAD_T2])
+@pytest.mark.parametrize("name", [
+    "TBD", "placeholder", "TBA", "null", "??", "-",
+    "[Placeholder]", "T.B.D.", "to be announced", "\u200bTBD\ufeff", "\u200b\u2060",
+])
+def test_dummy_published_contact_cannot_escape_notice_only(tier, name):
+    lead = _lead(
+        lead_tier=tier, seller_path=_seller(holder=None),
+        external_pathway=_pathway(published_contacts=[PublishedContact(name=name)]),
+    )
+    card = score_pack(_pack([lead], overlays={
+        lead.lead_id: {"solicitation_only": False},
+    }))
+    for check in ("TIER.SOLICITATION_ONLY", "PACK.SOLICITATION_ONLY_T1T2"):
+        assert _verdict(card, check).verdict is CheckVerdict.FAIL
+
+
+@pytest.mark.parametrize("name", ["", " "])
+def test_empty_contact_name_is_rejected_and_cannot_bypass_direct_check(name):
+    with pytest.raises(ValidationError):
+        PublishedContact(name=name)
+    contact = PublishedContact(name="TBD").model_copy(update={"name": name})
+    lead = _lead(
+        seller_path=_seller(holder=None),
+        external_pathway=_pathway(published_contacts=[contact]),
+    )
+    assert is_solicitation_only(
+        lead, EvalOverlay(subject_id=lead.lead_id, solicitation_only=False),
+    )
+
+
+@pytest.mark.parametrize("tier", [LeadTier.LEAD_T1, LeadTier.LEAD_T2])
+@pytest.mark.parametrize("notice_signal", ["tier", "kind", "host", "subdomain"])
+def test_notice_fit_cite_cannot_escape_notice_only(tier, notice_signal):
+    evidence = _evidence().model_dump(mode="json")
+    evidence.update(tier="program", kind="budget", source_url="https://agency.example/budget")
+    if notice_signal in {"host", "subdomain"}:
+        host = "sam.gov" if notice_signal == "host" else "www.sam.gov"
+        evidence["source_url"] = f"https://{host}/opp/N1/view"
+    else:
+        evidence[notice_signal] = "notice"
+    lead = _lead(
+        lead_tier=tier, seller_path=_seller(holder=None),
+        external_pathway=_pathway(evidence=[_evidence(eid="BASE"), evidence]),
+    )
+    card = score_pack(_pack([lead], overlays={
+        lead.lead_id: {"solicitation_only": False, "product_fit_cites": ["E1"]},
+    }))
+    for check in ("TIER.SOLICITATION_ONLY", "PACK.SOLICITATION_ONLY_T1T2"):
+        assert _verdict(card, check).verdict is CheckVerdict.FAIL
+
+
+@pytest.mark.parametrize("tier", [LeadTier.LEAD_T1, LeadTier.LEAD_T2])
+def test_combined_placeholder_span_and_notice_fit_remains_notice_only(tier):
+    lead = _lead(lead_tier=tier, seller_path=_seller(holder="placeholder"))
+    parent = _parent(
+        lead_ids=[lead.lead_id],
+        requirement_span="The contractor shall provide packet capture.",
+    )
+    card = score_pack(_pack([lead], parents=[parent], overlays={
+        lead.lead_id: {"solicitation_only": False, "product_fit_cites": ["E1"]},
+    }))
+    for check in ("TIER.SOLICITATION_ONLY", "PACK.SOLICITATION_ONLY_T1T2",
+                  "TIER.T1T2_REQUIRES_AF"):
+        assert _verdict(card, check).verdict is CheckVerdict.FAIL
+
+
+@pytest.mark.parametrize("cite", ["\u200b", " \u200b\ufeff\u2060 "])
+def test_invisible_fit_cite_cannot_gain_credit(cite):
+    evidence = _evidence(eid=cite).model_dump(mode="json")
+    evidence.update(tier="program", kind="budget", source_url="https://agency.example/fit")
+    lead = _lead(
+        seller_path=_seller(holder=None),
+        external_pathway=_pathway(evidence=[_evidence(eid="BASE"), evidence]),
+    )
+    card = score_pack(_pack([lead], overlays={
+        lead.lead_id: {"solicitation_only": False, "product_fit_cites": [cite]},
+    }))
+    for check in ("B1", "B2", "TIER.SOLICITATION_ONLY", "PACK.SOLICITATION_ONLY_T1T2"):
+        assert _verdict(card, check).verdict is CheckVerdict.FAIL
+
+
+@pytest.mark.parametrize("extra", ["contact", "route", "fit"])
+def test_substantive_extra_still_clears_solicitation_only(extra):
+    fit = _evidence(eid="FIT1").model_dump(mode="json")
+    fit.update(tier="program", kind="budget", source_url="https://agency.example/fit")
+    lead = _lead(
+        seller_path=_seller(holder="Example Reseller" if extra == "route" else None),
+        external_pathway=_pathway(
+            evidence=[_evidence(), fit],
+            published_contacts=[PublishedContact(name="Jane Doe")] if extra == "contact" else [],
+        ),
+    )
+    card = score_pack(_pack([lead], overlays={
+        lead.lead_id: {"solicitation_only": False,
+                       "product_fit_cites": ["E1", "FIT1"] if extra == "fit" else []},
+    }))
+    for check in ("TIER.SOLICITATION_ONLY", "PACK.SOLICITATION_ONLY_T1T2"):
+        assert _verdict(card, check).verdict is CheckVerdict.PASS
 
 
 @pytest.mark.parametrize("overlay", [

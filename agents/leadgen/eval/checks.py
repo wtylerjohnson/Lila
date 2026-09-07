@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from typing import Any
+from unicodedata import category
 from urllib.parse import unquote, urlsplit
 
 from agents.assess.contracts import (
@@ -34,7 +35,10 @@ from .models import (
     ScoreInput,
 )
 
-_UNKNOWN_BUYERS = frozenset({"", "unknown", "unk", "n/a", "na", "none", "tbd", "x", "?"})
+_UNKNOWN_BUYERS = frozenset({
+    "", "unknown", "unk", "na", "none", "tbd", "x", "placeholder", "tba", "null",
+    "tobedetermined", "tobeannounced", "notavailable", "notapplicable", "notknown",
+})
 _INTENT_MOTIONS = frozenset({
     CommercialMotionKind.LIVE_BID,
     CommercialMotionKind.RENEWAL,
@@ -105,6 +109,10 @@ def _usable_evidence(item: EvidenceRef) -> bool:
                 and item.source_name.strip()) and not _login_wall(item)
 
 
+def _clean_cite(value: str) -> str:
+    return "".join(char for char in value if category(char) != "Cf").strip()
+
+
 def _resolved_overlay(
     overlay: EvalOverlay, evidence: Iterable[EvidenceRef],
 ) -> EvalOverlay:
@@ -112,10 +120,16 @@ def _resolved_overlay(
 
     ids = {item.evidence_id for item in evidence if _usable_evidence(item)}
     return overlay.model_copy(update={
-        field: tuple(cite.strip() for cite in getattr(overlay, field)
-                     if cite.strip() and cite.strip() in ids)
+        field: tuple(_clean_cite(cite) for cite in getattr(overlay, field)
+                     if _clean_cite(cite) and _clean_cite(cite) in ids)
         for field in EvalOverlay.model_fields if field.endswith("_cites")
     })
+
+
+def _notice_evidence(item: EvidenceRef) -> bool:
+    host = (urlsplit(str(item.source_url)).hostname or "").casefold()
+    return (item.tier is EvidenceTier.NOTICE or item.kind is EvidenceKind.NOTICE
+            or host == "sam.gov" or host.endswith(".sam.gov"))
 
 
 def is_solicitation_only(lead: LeadRow, overlay: EvalOverlay) -> bool:
@@ -127,13 +141,13 @@ def is_solicitation_only(lead: LeadRow, overlay: EvalOverlay) -> bool:
     pathway = lead.external_pathway
     has_route_cite = any(_named(value) for value in (
         path.holder, path.vehicle, path.dossier_cite, path.prime_posture_cite))
-    has_contacts = bool(pathway.published_contacts)
-    has_fit = bool(_resolved_overlay(overlay, pathway.evidence).product_fit_cites)
+    has_contacts = any(_named(contact.name) for contact in pathway.published_contacts)
+    # A notice cannot supply the evidence claimed to go beyond that notice.
+    has_fit = bool(_resolved_overlay(
+        overlay, (item for item in pathway.evidence if not _notice_evidence(item)),
+    ).product_fit_cites)
     notice_backed = pathway.kind is PathwayKind.SAM_NOTICE or any(
-        item.tier is EvidenceTier.NOTICE or item.kind is EvidenceKind.NOTICE
-        or (urlsplit(str(item.source_url)).hostname or "").casefold()
-        in {"sam.gov", "www.sam.gov"}
-        for item in pathway.evidence
+        _notice_evidence(item) for item in pathway.evidence
     )
     return notice_backed and not has_route_cite and not has_contacts and not has_fit
 
@@ -364,7 +378,9 @@ def _orphan_lead_ids(pack: ScoreInput) -> list[str]:
 
 
 def _named(value: str | None) -> bool:
-    return " ".join(str(value or "").split()).casefold() not in _UNKNOWN_BUYERS
+    # Punctuation, spacing, and invisible formatting cannot disguise a sentinel.
+    token = "".join(char for char in str(value or "").casefold() if char.isalnum())
+    return token not in _UNKNOWN_BUYERS
 
 
 def _one_line(text: str) -> str:
