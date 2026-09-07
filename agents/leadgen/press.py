@@ -38,6 +38,7 @@ from .from_assess import (
     coerce_target_actions,
     draft_lead_rows,
 )
+from .press_html import render_html
 from .traces import DecisionTrace
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -141,7 +142,7 @@ class PressLeadGenReceipt(_FrozenContract):
     """Review artifact for the Press Lead Gen stub.
 
     This is not a Market Map bundle and not an Assess run envelope.
-    Persistence lives under ``data/review/<slug>.leadgen.json``.
+    Primary persistence is branded HTML; JSON and optional Markdown are sidecars.
     """
 
     schema_version: Literal["leadgen.contracts.v1"] = SCHEMA_VERSION
@@ -167,6 +168,7 @@ class PressLeadGenReceipt(_FrozenContract):
     coverage_placeholder: str = COVERAGE_PLACEHOLDER
     decision_trace_placeholder: str = TRACE_PLACEHOLDER
     market_map_untouched: Literal[True] = True
+    html_path: str | None = None
     json_path: str | None = None
     markdown_path: str | None = None
 
@@ -183,6 +185,31 @@ def leadgen_summary_path(
     client_name: str, *, review_dir: str | Path,
 ) -> Path:
     return Path(review_dir) / f"{client_slug(client_name)}.leadgen.md"
+
+
+def leadgen_html_path(
+    client_name: str, *, review_dir: str | Path,
+) -> Path:
+    """Desktop-friendly primary filename dated by the local press day."""
+    return Path(review_dir).expanduser().resolve() / (
+        f"{client_slug(client_name)}_Press_Lead_Gen_CLIENT_DELIVERABLE_"
+        f"{datetime.now(timezone.utc).astimezone().date().isoformat()}.html"
+    )
+
+
+def _copy_html_to_desktop(client_name: str, html_path: str, html: str) -> None:
+    """Mirror into an existing exact client folder; never interpret a path."""
+    if client_name in {".", ".."} or Path(client_name).name != client_name:
+        return
+    folder = Path.home() / "Desktop" / client_name
+    if folder.is_dir():
+        destination = folder / Path(html_path).name
+        if destination.resolve() != Path(html_path).resolve():
+            try:
+                atomic_write_text(str(destination), html)
+            except OSError as exc:
+                print(f"warning: Desktop copy failed ({exc}); primary HTML: "
+                      f"{html_path}", file=sys.stderr)
 
 
 def require_assess_input(
@@ -343,8 +370,10 @@ def run_press(
 ) -> PressLeadGenReceipt:
     """Execute Build Plan steps 1-9 as a stub and optionally persist.
 
-    ``review_dir`` writes ``<slug>.leadgen.json`` (and optional
-    ``<slug>.leadgen.md``). Omit it for an in-memory receipt.
+    ``review_dir`` always writes branded CLIENT_DELIVERABLE HTML and a
+    ``<slug>.leadgen.json`` sidecar (plus optional ``<slug>.leadgen.md``).
+    Omit it for an in-memory receipt. HTML naming uses the local press day;
+    the assessment clock remains visible in the report.
     """
 
     run = require_assess_input(assess)
@@ -449,9 +478,12 @@ def run_press(
         ),
     )
 
+    html_path = None
     json_path = None
     markdown_path = None
     if review_dir is not None:
+        review_dir = Path(review_dir).expanduser().resolve()
+        html_path = str(leadgen_html_path(identity, review_dir=review_dir))
         json_path = str(leadgen_receipt_path(identity, review_dir=review_dir))
         if write_markdown:
             markdown_path = str(
@@ -475,9 +507,14 @@ def run_press(
         watch_receipts=by_tier[LeadTier.WATCH],
         hold_receipts=by_tier[LeadTier.HOLD],
         reject_receipts=by_tier[LeadTier.REJECT],
+        html_path=html_path,
         json_path=json_path,
         markdown_path=markdown_path,
     )
+    if html_path:
+        html = render_html(receipt)
+        atomic_write_text(html_path, html)
+        _copy_html_to_desktop(identity, html_path, html)
     if json_path:
         atomic_write_json(json_path, receipt.model_dump(mode="json"))
     if markdown_path:
@@ -543,7 +580,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Press Lead Gen orchestration stub (steps 1-9). Requires "
-            "an AssessRun. Writes a review receipt. Does not replace "
+            "an AssessRun. Writes primary branded HTML and a JSON sidecar. Does not replace "
             "Market Map or lila_release."))
     parser.add_argument(
         "--assess", required=True,
@@ -560,10 +597,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Optional Step 1 intake dossier JSON path (cite only)")
     parser.add_argument(
         "--review-dir", default=str(DEFAULT_REVIEW_DIR),
-        help="Directory for <slug>.leadgen.json (default data/review)")
+        help="Directory for primary CLIENT_DELIVERABLE HTML and JSON sidecar "
+             "(default data/review)")
     parser.add_argument(
         "--markdown", action="store_true",
-        help="Also write <slug>.leadgen.md")
+        help="Also write the optional <slug>.leadgen.md sidecar")
     args = parser.parse_args(argv)
     try:
         receipt = run_press(
@@ -580,6 +618,8 @@ def main(argv: list[str] | None = None) -> int:
     json.dump(
         receipt.model_dump(mode="json"), sys.stdout, indent=2, default=str)
     sys.stdout.write("\n")
+    if receipt.html_path:
+        print(f"[out] {receipt.html_path}", file=sys.stderr)
     if receipt.json_path:
         print(f"[out] {receipt.json_path}", file=sys.stderr)
     if receipt.markdown_path:
