@@ -423,14 +423,14 @@ def run_press(
         _step(
             2, PressStepStatus.HANDOFF,
             "source-universe discovery stays on run_searches / the "
-            "gate-designated sweep artifact. Stub does not launch a "
+            "gate-designated sweep artifact. Press does not launch a "
             "search.",
             artifact="data/cleaned/searches_<slug>.json",
         ),
         _step(
             3, PressStepStatus.HANDOFF,
             "SAM qualify stays on run_qualify / "
-            "data/review/<slug>.qualify.json. Stub does not re-qualify "
+            "data/review/<slug>.qualify.json. Press does not re-qualify "
             "notices.",
             artifact="data/review/<slug>.qualify.json",
         ),

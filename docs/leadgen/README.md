@@ -154,6 +154,8 @@ Failure rules the real path encodes:
   is refused. Press will not invent leads from notices alone.
 - Promotion never quota-fills. Solicitation-only rows cannot green
   `LEAD_T1` or `LEAD_T2`.
+- Incomplete required Assess coverage blocks T1/T2. The qualifier
+  does not strip a vehicle cite or stamp `auth_only=false`.
 - HOLD remains the default when a pathway, seller route, clock, or
   approaching-decision receipt is missing.
 

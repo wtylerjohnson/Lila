@@ -42,9 +42,8 @@ from .traces import DecisionTrace
 
 QUALIFIER_VERSION = "leadgen.qualify.v1"
 
-# Coverage / stub-gate holds are Assess-release posture, not missing
-# lead-leg evidence. They may keep a row off T1/T2 but must not dump
-# an otherwise complete four-leg draft to HOLD.
+# Incomplete required Assess coverage may leave a four-leg draft on
+# WATCH. It cannot green LEAD_T1 / LEAD_T2.
 _COVERAGE_HOLD_MARK = "required Assess coverage is incomplete"
 _DECISION_MARKERS = (
     "renewal decision",
@@ -52,9 +51,8 @@ _DECISION_MARKERS = (
     "documented decision",
     "option exercise",
     "recompete",
-    "follow-on",
+    "follow-on decision",
     "award decision",
-    "incumbent",
 )
 _BARE_EXPIRY_MARKERS = (
     "period ends",
@@ -64,16 +62,18 @@ _BARE_EXPIRY_MARKERS = (
     "expiry",
     "expiration",
 )
+# Role language only. Capability vocabulary is product fit, not a
+# vendor component role.
 _COMPONENT_ROLE_MARKERS = (
     "component role",
     "vendor component",
     "named vendor",
-    "subcontractor",
-    "switching",
-    "optics",
-    "routing",
-    "packet capture",
-    "capability product",
+    "subcontractor role",
+)
+_RECOMPETE_MARKERS = (
+    "recompete",
+    "prime-led",
+    "prime led",
 )
 
 
@@ -159,9 +159,6 @@ def overlays_for_promoted(
         if not receipt:
             continue
         body: dict[str, Any] = {"receipt": receipt}
-        if lead.lead_tier in (LeadTier.LEAD_T1, LeadTier.LEAD_T2):
-            body["auth_only"] = False
-            body["solicitation_only"] = False
         fit = [
             item.evidence_id for item in lead.external_pathway.evidence
             if item.kind is not EvidenceKind.NOTICE
@@ -212,14 +209,14 @@ def _qualify_one(
     if lead.lead_tier is LeadTier.REJECT:
         return lead, trace, False
 
-    path = _path_for_promotion(lead, subject, partners)
+    path = lead.seller_path
     four = _four_legs_present(lead, parent, path)
     if not four:
         return _keep_hold(lead, path, trace, "HOLD: four LeadRow legs are incomplete")
 
     klass = _promotion_class(lead, parent, subject, partners, action_row)
     solicitation_only = _solicitation_only(lead, path)
-    structural = _structural_holds(lead)
+    blockers = _t12_blockers(lead, path)
 
     if solicitation_only:
         return _as_watch_or_hold(
@@ -237,11 +234,11 @@ def _qualify_one(
         )
 
     if klass in (PromotionClass.INCUMBENT_RENEWAL, PromotionClass.PRIME_RECOMPETE):
-        if structural or path.kind is SellerPathKind.PATH_UNKNOWN:
+        if blockers or path.kind is SellerPathKind.PATH_UNKNOWN:
             return _as_watch_or_hold(
                 lead, path, trace,
                 f"WATCH: {klass.value} four-leg draft retained; "
-                + (structural or "seller route is still path_unknown"),
+                + (blockers or "seller route is still path_unknown"),
                 watch=True,
             )
         t1_ok = (
@@ -409,14 +406,9 @@ def _is_incumbent_renewal(
 ) -> bool:
     if lead.buying_motion.kind is not CommercialMotionKind.RENEWAL:
         return False
-    holder = (
-        _named(lead.seller_path.holder)
-        or _named(_incumbent_name(subject, partners))
-        or any(_named(partner.partner_name) for partner in partners)
-    )
-    if not holder:
+    if not _named(lead.seller_path.holder):
         return False
-    return _approaching_decision(lead, subject, action_row, parent)
+    return _approaching_decision(lead, subject, action_row)
 
 
 def _is_prime_recompete(
@@ -426,27 +418,27 @@ def _is_prime_recompete(
     partners: tuple[PartnerOpportunity, ...],
     action_row: Mapping[str, Any],
 ) -> bool:
+    del parent, subject
     prime = (
         lead.seller_path.kind is SellerPathKind.PRIME_TO_SUB
         or any(
             partner.direction.value == SellerPathKind.PRIME_TO_SUB.value
             for partner in partners
         )
-        or lead.buying_motion.kind is CommercialMotionKind.DISPLACEMENT
     )
     if not prime:
         return False
     role_text = " ".join(part for part in (
         _clean(action_row.get("why_this_account")),
-        _clean(action_row.get("recommended_action")),
         *(partner.role_hypothesis for partner in partners),
-        _clean(getattr(subject, "likely_acquisition_path", None)),
-        parent.requirement_span or "",
-        lead.buying_motion.buyer_component or "",
     ) if part).casefold()
     if not any(marker in role_text for marker in _COMPONENT_ROLE_MARKERS):
         return False
-    if not (_named(lead.buying_motion.buyer_component) or role_text):
+    recompete_text = " ".join(part for part in (
+        role_text,
+        _clean(action_row.get("why_now")).casefold(),
+    ) if part)
+    if not any(marker in recompete_text for marker in _RECOMPETE_MARKERS):
         return False
     return True
 
@@ -477,14 +469,13 @@ def _approaching_decision(
     lead: LeadRow,
     subject: Any,
     action_row: Mapping[str, Any],
-    parent: OpportunityAssessment,
 ) -> bool:
+    # Requirement span is product fit, not a decision receipt.
     text = " ".join(part for part in (
         _clean(action_row.get("why_now")),
         _clean(getattr(subject, "watch_trigger", None)),
         _clean(getattr(subject, "predicted_event", None)),
         _clean(getattr(subject, "inference_chain", None)),
-        parent.requirement_span or "",
     ) if part).casefold()
     if not text:
         return False
@@ -498,36 +489,6 @@ def _approaching_decision(
     if expiry_only:
         return False
     return lead.buying_motion.clock is not None or lead.next_action.due is not None
-
-
-def _path_for_promotion(
-    lead: LeadRow,
-    subject: Any,
-    partners: tuple[PartnerOpportunity, ...],
-) -> SellerTransactionPath:
-    path = lead.seller_path
-    if not _named(path.holder):
-        incumbent = _incumbent_name(subject, partners)
-        if incumbent:
-            path = path.model_copy(update={"holder": incumbent})
-    if _named(path.vehicle) and not _timing_evidenced(lead):
-        # A vehicle seat without dated intent evidence is auth-only (D3).
-        path = path.model_copy(update={"vehicle": None})
-    return path
-
-
-def _incumbent_name(
-    subject: Any, partners: tuple[PartnerOpportunity, ...],
-) -> str | None:
-    for partner in partners:
-        name = _clean(partner.partner_name)
-        if _named(name):
-            return name
-    if isinstance(subject, OpportunityThesis):
-        name = _clean(subject.incumbent)
-        if _named(name):
-            return name
-    return None
 
 
 def _timing_evidenced(lead: LeadRow) -> bool:
@@ -553,6 +514,18 @@ def _solicitation_only(lead: LeadRow, path: SellerTransactionPath) -> bool:
     return notice_backed and not has_route and not has_contacts and not has_fit
 
 
+def _t12_blockers(lead: LeadRow, path: SellerTransactionPath) -> str:
+    parts = [part for part in (_structural_holds(lead),) if part]
+    if path.kind is SellerPathKind.PATH_UNKNOWN:
+        parts.append("seller route is still path_unknown")
+    if _named(path.vehicle) and not _timing_evidenced(lead):
+        parts.append(
+            "vehicle cite without timing or funding evidence; "
+            "authorization is not buying intent"
+        )
+    return "; ".join(parts)
+
+
 def _structural_holds(lead: LeadRow) -> str:
     text = (lead.next_action.blocked_by or "").casefold()
     marks = (
@@ -564,12 +537,9 @@ def _structural_holds(lead: LeadRow) -> str:
         "clock unestablished",
         "seller route unestablished",
         "pathway unestablished",
+        _COVERAGE_HOLD_MARK.casefold(),
     )
     hits = [mark for mark in marks if mark in text]
-    if _COVERAGE_HOLD_MARK.casefold() in text:
-        hits = [hit for hit in hits if hit != _COVERAGE_HOLD_MARK.casefold()]
-    if GATES_NOT_READY.casefold() in text:
-        hits = [hit for hit in hits if hit != GATES_NOT_READY.casefold()]
     return "; ".join(hits)
 
 

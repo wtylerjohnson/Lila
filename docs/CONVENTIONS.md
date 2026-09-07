@@ -1316,7 +1316,10 @@ coverage claims; nothing in it is a gate value.
   `qualify_drafts`. HOLD remains the fail-closed default when four-leg
   receipts are missing. A small evidenced subset may promote to WATCH
   or `LEAD_T2` (at most one `LEAD_T1` when incumbent-renewal timing
-  evidence is present). REJECT only with a real receipt. No quota fill.
+  evidence is present). Incomplete required Assess coverage blocks
+  T1/T2. The qualifier does not strip a vehicle cite or stamp
+  `auth_only=false` to buy a skeptic D3 PASS. REJECT only with a real
+  receipt. No quota fill.
   Steps 8-9 write branded HTML (primary, when `review_dir` is set) plus
   `data/review/<slug>.leadgen.json` (optional
   `data/review/<slug>.leadgen.md`). `stub` is False when the qualifier

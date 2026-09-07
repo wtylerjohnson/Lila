@@ -12,9 +12,8 @@ import json
 from datetime import date
 from pathlib import Path
 
-import pytest
-
 from agents.assess.contracts import (
+    CoverageStatus,
     EvidenceKind,
     EvidenceUse,
     LiveClassification,
@@ -38,6 +37,7 @@ from tests.test_leadgen_from_assess import (
     _partner,
     _review_fields,
     _run,
+    _sam_coverage,
     _t1_target_actions,
 )
 
@@ -91,14 +91,35 @@ def _timed_live(*, record_id="L1", notice_id="N1"):
     )
 
 
+def _holder_partner(*, partner_id="P1", linked=("L1",)):
+    """Named holder without a vehicle cite.
+
+    A SEWP / schedule seat is authorization, not buying intent. T2
+    promotion tests use this so a vehicle cite cannot buy the tier.
+    """
+
+    return _partner(partner_id=partner_id, linked=linked).model_copy(update={
+        "vehicle_or_channel": None,
+    })
+
+
 def _prime_partner(*, partner_id="P-prime", linked=("L1",)):
     return _partner(partner_id=partner_id, linked=linked).model_copy(update={
         "direction": PartnerDirection.PRIME_TO_SUB,
+        "vehicle_or_channel": None,
         "role_hypothesis": (
             "Prime holds the vehicle; the named vendor component role "
             "is packet capture on the CISA switching fabric."
         ),
     })
+
+
+def _assert_not_t1t2(receipt):
+    tiers = {row.lead_tier for row in receipt.leads}
+    assert LeadTier.LEAD_T1 not in tiers
+    assert LeadTier.LEAD_T2 not in tiers
+    assert receipt.active_lead_t1 == ()
+    assert receipt.active_lead_t2 == ()
 
 
 def test_thin_evidence_stays_hold():
@@ -113,20 +134,19 @@ def test_thin_evidence_stays_hold():
 
 
 def test_four_leg_bare_expiry_promotes_to_watch_not_t1t2():
-    run = _run(partners=[_partner()])
+    run = _run(partners=[_holder_partner()])
     receipt = run_press(assess=run, target_actions=_t1_target_actions())
     assert receipt.stub is False
     assert receipt.leads
     assert {row.lead_tier for row in receipt.leads} == {LeadTier.WATCH}
-    assert receipt.active_lead_t1 == ()
-    assert receipt.active_lead_t2 == ()
+    _assert_not_t1t2(receipt)
     row = receipt.leads[0]
     assert "WATCH" in (row.next_action.blocked_by or "")
     assert "four-leg" in (row.next_action.blocked_by or "")
 
 
 def test_four_leg_renewal_decision_promotes_to_t2():
-    run = _run(partners=[_partner()])
+    run = _run(partners=[_holder_partner()])
     receipt = run_press(assess=run, target_actions=_decision_actions())
     assert receipt.stub is False
     assert {row.lead_tier for row in receipt.leads} == {LeadTier.LEAD_T2}
@@ -189,7 +209,7 @@ def test_prime_recompete_with_component_role_promotes_to_t2():
 
 def test_html_path_still_produced(tmp_path):
     receipt = run_press(
-        assess=_run(partners=[_partner()]),
+        assess=_run(partners=[_holder_partner()]),
         target_actions=_decision_actions(),
         review_dir=tmp_path,
     )
@@ -207,7 +227,7 @@ def test_html_path_still_produced(tmp_path):
 
 
 def test_eval_scores_promoted_pack_without_typeerror_and_af_pass():
-    run = _run(partners=[_partner()])
+    run = _run(partners=[_holder_partner()])
     receipt = run_press(assess=run, target_actions=_decision_actions())
     payload = receipt.model_dump(mode="json")
     card = score_pack(payload)
@@ -250,7 +270,7 @@ def test_checked_in_promoted_fixture_scores_without_typeerror():
 
 
 def test_mapper_still_watch_or_hold_only():
-    run = _run(partners=[_partner()])
+    run = _run(partners=[_holder_partner()])
     batch = draft_lead_rows(run, _decision_actions())
     assert {row.lead_tier for row in batch.leads} <= {
         LeadTier.WATCH, LeadTier.HOLD}
@@ -260,7 +280,7 @@ def test_mapper_still_watch_or_hold_only():
 
 def test_no_quota_keys_on_receipt():
     receipt = run_press(
-        assess=_run(partners=[_partner()]),
+        assess=_run(partners=[_holder_partner()]),
         target_actions=_decision_actions(),
     )
     dumped = receipt.model_dump(mode="json")
@@ -268,3 +288,81 @@ def test_no_quota_keys_on_receipt():
         assert key not in dumped
     html = render_html(receipt)
     assert "lead T2" in html.casefold() or "LEAD_T2" in html
+
+
+def test_incumbent_in_requirement_span_plus_bare_expiry_is_not_t2():
+    excerpt = "The incumbent contractor shall provide packet capture."
+    live = _live_bid_now().model_copy(update={
+        "requirement_excerpt": excerpt,
+        "authoritative_evidence": [_evidence(excerpt=excerpt)],
+    })
+    receipt = run_press(
+        assess=_run(live=[live], partners=[_holder_partner()]),
+        target_actions=_t1_target_actions(),
+    )
+    _assert_not_t1t2(receipt)
+
+
+def test_displacement_plus_packet_capture_is_not_prime_recompete():
+    actions = _t1_target_actions()
+    actions["rows"][0]["row_class"] = "displacement"
+    actions["rows"][0]["rule_id"] = "T2"
+    receipt = run_press(
+        assess=_run(partners=[_holder_partner()]),
+        target_actions=actions,
+    )
+    _assert_not_t1t2(receipt)
+
+
+def test_routing_and_optics_are_not_component_role():
+    excerpt = "The contractor shall provide routing and optics."
+    live = _live_bid_now().model_copy(update={
+        "requirement_excerpt": excerpt,
+        "authoritative_evidence": [_evidence(excerpt=excerpt)],
+    })
+    actions = _t1_target_actions()
+    actions["rows"][0]["row_class"] = "displacement"
+    actions["rows"][0]["rule_id"] = "T2"
+    receipt = run_press(
+        assess=_run(live=[live], partners=[_holder_partner()]),
+        target_actions=actions,
+    )
+    _assert_not_t1t2(receipt)
+
+
+def test_incomplete_required_coverage_blocks_t1_t2():
+    run = _run(
+        partners=[_holder_partner()],
+        coverage=[_sam_coverage(status=CoverageStatus.PARTIAL)],
+    )
+    receipt = run_press(assess=run, target_actions=_decision_actions())
+    _assert_not_t1t2(receipt)
+    assert receipt.leads
+    blocked = (receipt.leads[0].next_action.blocked_by or "").casefold()
+    assert "required assess coverage is incomplete" in blocked
+
+
+def test_vehicle_cite_is_not_stripped_and_does_not_green_t2():
+    receipt = run_press(
+        assess=_run(partners=[_partner()]),
+        target_actions=_decision_actions(),
+    )
+    assert receipt.leads
+    row = receipt.leads[0]
+    assert row.seller_path.vehicle == "SEWP V"
+    _assert_not_t1t2(receipt)
+    blocked = (row.next_action.blocked_by or "").casefold()
+    assert "vehicle" in blocked
+    assert "authorization is not buying intent" in blocked
+
+
+def test_overlays_do_not_self_certify_auth_or_solicitation_only():
+    receipt = run_press(
+        assess=_run(partners=[_holder_partner()]),
+        target_actions=_decision_actions(),
+    )
+    assert {row.lead_tier for row in receipt.leads} == {LeadTier.LEAD_T2}
+    assert receipt.eval_overlays
+    for body in receipt.eval_overlays.values():
+        assert "auth_only" not in body
+        assert "solicitation_only" not in body

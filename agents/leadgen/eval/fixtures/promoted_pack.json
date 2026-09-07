@@ -122,9 +122,7 @@
   ],
   "overlays": {
     "lr:oa:R1:live_solicitation:L1:M1:P1:S1": {
-      "receipt": "LEAD_T2: incumbent_renewal with named buyer, dated clock, published pathway, and seller route channel_reseller via Example Reseller",
-      "auth_only": false,
-      "solicitation_only": false
+      "receipt": "LEAD_T2: incumbent_renewal with named buyer, dated clock, published pathway, and seller route channel_reseller via Example Reseller"
     }
   }
 }
