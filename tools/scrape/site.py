@@ -51,6 +51,7 @@ _PRIORITY_SLUGS = (
     "/vs",
     "why-",
     "competitor",
+    "network-detection",
     "hardware",
     "switching",
     "cloudvision",
@@ -78,6 +79,8 @@ _HUB_PATHS = (
     "/products/cloudvision",
     "/company/competitor-comparisons",
     "/ndr-darktrace-comparison",
+    "/products/network-detection-and-response",
+    "/products/network-detection-and-response/competitor-comparisons",
 )
 _SEED_PATHS = tuple(
     f"{prefix}{path}"
@@ -91,6 +94,15 @@ _SEED_PATHS = tuple(
     "/ecosystem",
     "/resources",
 )
+
+# Named case-study PDFs. Seeded so compare-hub priority cannot starve Activ/Hardis.
+_CUSTOMER_PDF_SEEDS = (
+    "/assets/data/pdf/CaseStudies/ActivFinancial.pdf",
+    "/assets/data/pdf/CaseStudies/HardisGroup.pdf",
+    "/assets/data/pdf/CaseStudies/Hardis.pdf",
+)
+_COMPARE_PAGE_CAP = 8
+_CUSTOMER_PDF_RESERVE = 3
 
 # Optional JS render budget for interstitial / SPA / WAF shells.
 # Env: LILA_INTAKE_JS_RENDER=on|off
@@ -387,6 +399,14 @@ def _compare_hub_url(url: str) -> bool:
         r"compare|alternativ|versus|/vs|competitor|darktrace", low))
 
 
+def _named_customer_pdf_url(url: str) -> bool:
+    """Activ / Hardis case-study PDFs reserved inside the page budget."""
+    low = (url or "").casefold()
+    if "casestud" not in low:
+        return False
+    return bool(re.search(r"activ|hardis", low))
+
+
 def _queue_tier(url: str) -> int:
     """Compare hubs first, then customers, then products; news/blog last."""
     if _compare_hub_url(url):
@@ -524,14 +544,38 @@ def scrape_site(
         seeded = root + path
         if seeded not in queue:
             queue.append(seeded)
+    for path in _CUSTOMER_PDF_SEEDS:
+        seeded = root + path
+        if seeded not in queue:
+            queue.append(seeded)
     if len(queue) > 1:
         queue[1:] = sorted(queue[1:], key=_queue_tier)
     seen: set[str] = set()
     empty_hits = 0
     saw_html = False
 
+    def _pop_next() -> str:
+        remaining = cap - len(bundle.pages)
+        have_pdf = sum(
+            1 for p in bundle.pages if _named_customer_pdf_url(p.url))
+        need = _CUSTOMER_PDF_RESERVE - have_pdf
+        if need > 0 and remaining <= need + 1:
+            for i, cand in enumerate(queue):
+                if _named_customer_pdf_url(cand):
+                    return queue.pop(i)
+            for i, cand in enumerate(queue):
+                if _customer_proof_url(cand) and cand.casefold().endswith(".pdf"):
+                    return queue.pop(i)
+        return queue.pop(0)
+
+    def _compare_load() -> int:
+        return (
+            sum(1 for u in queue if _compare_hub_url(u))
+            + sum(1 for p in bundle.pages if _compare_hub_url(p.url))
+        )
+
     while queue and len(bundle.pages) < cap:
-        url = queue.pop(0).split("#")[0].rstrip("/") or root
+        url = _pop_next().split("#")[0].rstrip("/") or root
         if url in seen or not _same_domain(url, domain):
             continue
         seen.add(url)
@@ -580,7 +624,10 @@ def scrape_site(
                 and _priority_url(absolute)
             ):
                 if _compare_hub_url(absolute):
-                    queue.insert(0, absolute)
+                    if _compare_load() >= _COMPARE_PAGE_CAP:
+                        queue.append(absolute)
+                    else:
+                        queue.insert(0, absolute)
                 elif _customer_proof_url(absolute):
                     idx = 0
                     while idx < len(queue) and _compare_hub_url(queue[idx]):

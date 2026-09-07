@@ -1281,14 +1281,41 @@ def excerpt_supports_rival(name: str, snippet: str) -> bool:
     """True when the excerpt names the rival in a compare / vs claim."""
     if not excerpt_supports_name(name, snippet):
         return False
-    return bool(_RIVAL_CUE.search(snippet) or _COMPETITOR_LEAD.search(snippet))
+    raw = snippet or ""
+    token = re.escape(name.split()[0]) if name.split() else ""
+    if token and re.search(
+            rf"\bnot\s+(?:a |an |the )?(?:named )?{token}\b|"
+            rf"\b{token}\s+(?:and\s+\w+\s+)?(?:is|are)\s+not\b",
+            raw, re.I):
+        return False
+    return bool(_RIVAL_CUE.search(raw) or _COMPETITOR_LEAD.search(raw))
+
+
+def _path_named_vendors(url: str) -> set[str]:
+    path = _url_path(url)
+    found: set[str] = set()
+    for vendor in _RIVAL_VENDORS:
+        token = vendor.split()[0]
+        if re.search(rf"[/\-_]{re.escape(token)}([/\-_.]|$|compar)", path):
+            found.add(token)
+    return found
+
+
+def rival_url_names_other_vendor(url: str, name: str) -> bool:
+    """True when the path is a named compare page for a different rival."""
+    if not url or not name:
+        return False
+    rival = name.casefold().split()[0]
+    others = _path_named_vendors(url)
+    others.discard(rival)
+    return bool(others)
 
 
 def citation_mismatches_rival(
     url: str, name: str, official_domain: Optional[str] = None,
     excerpt: str = "",
 ) -> bool:
-    """True when the URL is another vendor's site or a non-compare news hit."""
+    """True when the URL is another vendor's site or a named-other-rival page."""
     if not url or not name:
         return False
     host = url.casefold()
@@ -1307,24 +1334,13 @@ def citation_mismatches_rival(
                 continue
             if token in first:
                 return True
-    strong = bool(
-        excerpt
-        and excerpt_supports_name(name, excerpt)
-        and _STRONG_COMPARE.search(excerpt)
-    )
     # News / press / blog URLs never evidence a rival. A Broadcom VMware
     # blurb on /en/company/news is URL≠claim even if the page also says vs.
     if is_news_path_citation(url):
         return True
-    path = re.sub(r"^https?://[^/]+", "", host)
-    for vendor in _RIVAL_VENDORS:
-        token = vendor.split()[0]
-        if token == rival:
-            continue
-        if not re.search(rf"[/\-_]{re.escape(token)}([/\-_.]|$|compar)", path):
-            continue
-        if official and strong:
-            return False
+    # ndr-darktrace-comparison is Darktrace evidence only. A strong
+    # Unlike-Cisco sentence on that page still mismatches Cisco/Juniper.
+    if rival_url_names_other_vendor(url, name):
         return True
     return False
 

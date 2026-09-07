@@ -49,6 +49,7 @@ from agents.intake.extract import (
     naics_search_role,
     recall_competitors,
     recall_customers,
+    rival_url_names_other_vendor,
     site_has_usable_text,
     usable_site_text,
 )
@@ -217,6 +218,18 @@ def _evidence_for_name(
                 score += 1
             if url and require_compare and is_compare_url(url):
                 score += 5
+            if url and require_compare and token and token in re.sub(
+                    r"[^a-z0-9]+", "", (url or "").casefold()):
+                score += 6
+            if url and require_compare and "competitor-comparisons" in (
+                    url or "").casefold():
+                score += 4
+            if require_compare and re.search(
+                    r"historically\s+dominated by", text, re.I):
+                score += 3
+            if url and require_compare and rival_url_names_other_vendor(
+                    url, name):
+                score -= 12
             if url and require_compare and is_whitepaper_url(url):
                 score -= 4
             if url and require_compare and re.search(
@@ -236,6 +249,8 @@ def _evidence_for_name(
             getattr(page, "url", "")
             for page in pages
             if is_compare_url(getattr(page, "url", "") or "")
+            and not rival_url_names_other_vendor(
+                getattr(page, "url", "") or "", name)
             and name.casefold() in (page.text or "").casefold()
             and excerpt_supports_rival(
                 name, excerpt_from(page.text or "", needle=name))

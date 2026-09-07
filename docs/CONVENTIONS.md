@@ -232,11 +232,13 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   claim, including product-page sentences such as "Competition
   for the Cisco Nexus 1000V". Promotion reads official scrape
   pages even when the competitor web probe returns no findings.
-  A darktrace host plus 10-K / HPE body is still dropped. An
-  official Darktrace comparison page may evidence Cisco when the
-  excerpt is an Unlike/versus Cisco claim; a competitor-comparisons
-  page that says the market was historically dominated by Cisco
-  is a Cisco-rival claim. A /news Broadcom VMware blurb is not
+  A darktrace host plus 10-K / HPE body is still dropped. A
+  named-other-rival path (ndr-darktrace-comparison) never
+  evidences Cisco or Juniper, even with a strong Unlike-Cisco
+  excerpt. Cisco and Juniper bind to a Cisco/Juniper-matching
+  compare URL or competitor-comparisons (prefer "historically
+  dominated by Cisco"). `/en/products/network-detection-and-response/competitor-comparisons`
+  is a seeded hub. A /news Broadcom VMware blurb is not
   a VMware-rival claim even when the press room also says vs
   (URL≠claim). Rival names are companies, not SKU fragments
   (Cisco Nexus / Nexus 1000V). DoD, DoDIN, and DoDIN APL are
@@ -266,7 +268,10 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   URLs are queued ahead of CaseStudies PDF paths (the live
   `/assets/data/pdf/CaseStudies/` slug matches `casestud`,
   so those PDFs are crawlable) so Darktrace cannot fall out
-  of the 24-page budget.
+  of the 24-page budget. Compare-link discovery is capped so
+  it cannot starve named CaseStudies PDFs; Activ Financial
+  and Hardis Group stay seeded and reserve three page slots
+  near the end of the budget.
   Rival evidence for Cisco, Juniper, and Darktrace must be a
   compare-shaped URL with a matching claim, not /products/eos
   ISE context or a 451 whitepaper PDF. ExtraHop compare URLs
