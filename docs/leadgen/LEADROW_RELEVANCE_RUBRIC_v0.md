@@ -100,7 +100,7 @@ vehicle/adjacency path with no demand clock fails D3.
 | TIER.RECEIPT_JUSTIFIED | WATCH / HOLD / REJECT must carry `blocked_by`, overlay `receipt`, or trace notes |
 | PACK.SOLICITATION_ONLY_T1T2 | pack FAIL when any T1/T2 is solicitation-only (target: zero) |
 | PACK.NO_QUOTA_FILL | pack FAIL when `quota` / `fill_to` / `min_t1` / `min_t2` is present; scorer invents zero rows |
-| PACK.REJECT_NOT_DROPPED | every input REJECT lead_id appears on the scorecard |
+| PACK.REJECT_NOT_DROPPED | every input REJECT lead_id appears on the scorecard. Null or blank `DecisionTrace.lead_id` is not a declared lead (parent traces with no child); those traces do not fail this check. Missing real string ids still FAIL. |
 
 ## Overlay fields (eval.v0, not LeadRow v1)
 
