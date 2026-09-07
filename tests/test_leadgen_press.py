@@ -1,8 +1,8 @@
-"""Press Lead Gen orchestration stub.
+"""Press Lead Gen orchestration (thin real path).
 
-Doctrine 2026-09-06: stub executes Build Plan steps 1-9; Assess is
-parent; drafts are WATCH/HOLD only; notice-only input is refused;
-Market Map / lila_release stay untouched.
+Doctrine 2026-09-07: press executes Build Plan steps 1-9; Assess is
+parent; HOLD remains fail-closed when evidence is thin; notice-only
+input is refused; Market Map / lila_release stay untouched.
 """
 
 from __future__ import annotations
@@ -70,7 +70,7 @@ def test_stub_on_assess_and_target_actions_is_parent_plus_watch_hold(tmp_path):
         review_dir=tmp_path,
         write_markdown=True,
     )
-    assert receipt.stub is True
+    assert receipt.stub is False
     assert receipt.market_map_untouched is True
     assert receipt.assess_run_id == "R1"
     assert receipt.client_name == "Testco"
@@ -117,7 +117,7 @@ def test_stub_on_assess_and_target_actions_is_parent_plus_watch_hold(tmp_path):
     assert payload["active_lead_t2"] == []
     assert payload["market_map_untouched"] is True
     summary = md_path.read_text(encoding="utf-8")
-    assert "Press Lead Gen stub receipt" in summary
+    assert "Press Lead Gen receipt" in summary
     assert "lila_release is untouched" in summary
     assert "—" not in summary
     assert leadgen_receipt_path("Testco", review_dir=tmp_path) == json_path
@@ -225,7 +225,7 @@ def test_cli_refuses_notice_only(tmp_path, capsys):
     assert "notice-only" in capsys.readouterr().err
 
 
-def test_stub_does_not_write_assess_runs(tmp_path, monkeypatch):
+def test_press_does_not_write_assess_runs(tmp_path, monkeypatch):
     assess_runs = tmp_path / "assess_runs"
     assess_runs.mkdir()
     monkeypatch.chdir(tmp_path)
@@ -306,7 +306,7 @@ def test_html_receipts_links_and_copy_hygiene():
         assert str(lead.external_pathway.source_url) in html
     for tier in LeadTier:
         assert f'id="tier-{tier.value}"' in html
-    assert "0 active leads. Empty is expected" in html
+    assert "0 active leads. Empty is expected when four-leg receipts are missing." in html
     assert "Coverage placeholder" in html
     assert "Decision-trace placeholder" in html
 
@@ -346,7 +346,7 @@ def test_html_receipts_links_and_copy_hygiene():
     assert "\u2014" not in html
 
 
-def test_draft_mapper_and_stub_agree_on_children():
+def test_draft_mapper_and_press_agree_on_children_when_not_promoted():
     run = _run(partners=[_partner()])
     actions = _t1_target_actions()
     batch = draft_lead_rows(run, actions)

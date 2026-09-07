@@ -147,7 +147,7 @@ def _section(number: int, anchor: str, title: str, subtitle: str, body: str) -> 
 
 
 def render_html(receipt: PressLeadGenReceipt) -> str:
-    """Render the receipt without discovery, enrichment, promotion, or I/O."""
+    """Render the receipt without discovery, enrichment, or I/O."""
     parents = {p.assessment_id: p for p in receipt.parents}
     parent_anchors = {p.assessment_id: f"parent-{i}"
                       for i, p in enumerate(receipt.parents)}
@@ -230,8 +230,8 @@ def render_html(receipt: PressLeadGenReceipt) -> str:
             '<th>Next action / dependency</th><th>Evidence</th></tr></thead><tbody>'
             + "".join(rows) + '</tbody></table></div>' if rows else
             '<p class="empty">' + (
-                f'{_text(bucket.label)}: 0 active leads. Empty is expected until '
-                'sales-ready gates exist.' if bucket.active else
+                f'{_text(bucket.label)}: 0 active leads. Empty is expected '
+                'when four-leg receipts are missing.' if bucket.active else
                 f'{_text(bucket.label)}: 0 receipts.'
             ) + '</p>'
         )
@@ -269,8 +269,11 @@ def render_html(receipt: PressLeadGenReceipt) -> str:
 <section class="hero"><div class="eyebrow">Primary deliverable · HTML</div>
 <h1>{_text(receipt.client_name)}<br>Press Lead Gen</h1>
 <p class="lead">Opportunity assessments, lead tiers, and the evidence behind the next action.</p>
-<p class="boundary">Orchestration stub. Active lead T1 / lead T2 remain empty until sales-ready gates exist.
-Assessment run: {_text(receipt.assess_run_id)}.</p></section>
+<p class="boundary">{
+    "Orchestration stub. Active lead T1 / lead T2 remain empty."
+    if receipt.stub else
+    "Real qualifier ran. HOLD remains the fail-closed default when evidence is thin."
+} Assessment run: {_text(receipt.assess_run_id)}.</p></section>
 <div class="metrics">{metrics}</div>
 <nav class="nav" aria-label="Report sections"><a href="#parents">Parents</a>
 <a href="#tier-LEAD_T1">Lead T1 / T2</a><a href="#tier-WATCH">Watch</a>

@@ -1308,20 +1308,21 @@ coverage claims; nothing in it is a gate value.
   Never aliases targeting `T1` to `LeadTier`. Never writes
   `data/state/assess_runs/` or participates in `lila_release`.
   Run: `python -m agents.leadgen --assess <run.json>`.
-- Press Lead Gen stub (2026-09-06): `agents.leadgen.press.run_press`
-  documents and executes Build Plan steps 1-9 as a stub. Step 1 cites
+- Press Lead Gen thin real path (2026-09-07): `agents.leadgen.press.run_press`
+  documents and executes Build Plan steps 1-9. Step 1 cites
   an optional client profile / intake dossier path. Steps 2-5 hand off
   to the existing search / qualify / Assess / target_actions path and
-  do not reimplement discovery. Steps 6-7 call `draft_lead_rows`.
-  Steps 8-9 write a human-gate receipt at
+  do not reimplement discovery. Steps 6-7 call `draft_lead_rows` then
+  `qualify_drafts`. HOLD remains the fail-closed default when four-leg
+  receipts are missing. A small evidenced subset may promote to WATCH
+  or `LEAD_T2` (at most one `LEAD_T1` when incumbent-renewal timing
+  evidence is present). REJECT only with a real receipt. No quota fill.
+  Steps 8-9 write branded HTML (primary, when `review_dir` is set) plus
   `data/review/<slug>.leadgen.json` (optional
-  `data/review/<slug>.leadgen.md`) listing drafts by `LeadTier`.
-  Active `LEAD_T1` / `LEAD_T2` lists may be empty; WATCH / HOLD
-  receipts are retained; coverage and decision-trace fields are
-  placeholders. Missing assess input fails closed. Notice-only input
-  is refused. The stub never auto-promotes to lead T1 / lead T2 and
-  never participates in `lila_release`. This is not full Press Lead
-  Gen. Market Map remains the separate external deliverable.
+  `data/review/<slug>.leadgen.md`). `stub` is False when the qualifier
+  ran. Missing assess input fails closed. Notice-only input is refused.
+  Press never participates in `lila_release`. Market Map remains the
+  separate external deliverable.
   Run: `python -m agents.leadgen.press --assess <run.json>`.
 - Read-only AssessRun export for press (2026-09-07):
   `agents.leadgen.export_assess.export_current_assess_run` dumps the

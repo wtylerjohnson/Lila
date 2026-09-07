@@ -1,14 +1,15 @@
-"""Press Lead Gen orchestration stub (contract only).
+"""Press Lead Gen orchestration (thin real path).
 
-Documents and executes Build Plan steps 1-9 as a stub. Opportunity
-assessment stays the parent. LeadRow stays the child. This module does
-not replace Assess, Market Map, or ``lila_release``.
+Documents and executes Build Plan steps 1-9. Opportunity assessment
+stays the parent. LeadRow stays the child. This module does not
+replace Assess, Market Map, or ``lila_release``.
 
     python -m agents.leadgen.press --assess <run.json>
 
 Missing assess input fails closed. Notice-only input is refused. The
-stub never invents leads from notices and never auto-promotes to
-``LEAD_T1`` or ``LEAD_T2``.
+fail-closed default remains HOLD when four-leg evidence is thin. A
+small evidenced subset may promote to WATCH / LEAD_T2 (at most one
+LEAD_T1) through ``qualify_drafts``. Promotion never quota-fills.
 """
 
 from __future__ import annotations
@@ -39,35 +40,35 @@ from .from_assess import (
     draft_lead_rows,
 )
 from .press_html import render_html
+from .qualify import QUALIFIER_VERSION, overlays_for_promoted, qualify_drafts
 from .traces import DecisionTrace
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_REVIEW_DIR = REPO_ROOT / "data" / "review"
 
 MISSING_ASSESS = (
-    "missing assess input: Press Lead Gen stub requires an AssessRun "
+    "missing assess input: Press Lead Gen requires an AssessRun "
     "(or AssessRun-shaped dict). It will not invent leads from notices "
     "alone."
 )
 NOTICE_ONLY = (
-    "notice-only input refused: Press Lead Gen stub will not invent "
+    "notice-only input refused: Press Lead Gen will not invent "
     "leads from notices or sweep results. Pass an AssessRun (or "
     "AssessRun-shaped dict)."
 )
-NO_AUTO_PROMOTE = (
-    "sales-ready gates do not exist; stub does not auto-promote to "
-    "lead T1 or lead T2"
+NO_QUOTA_FILL = (
+    "qualifier does not quota-fill; HOLD remains the fail-closed "
+    "default when four-leg receipts are missing"
 )
 COVERAGE_PLACEHOLDER = (
     "Assess source coverage remains on AssessRun.coverage and any "
-    "DecisionTrace rows from draft_lead_rows. This stub does not "
-    "recompute the source-universe census."
+    "DecisionTrace rows from draft_lead_rows plus qualify_drafts. "
+    "Press does not recompute the source-universe census."
 )
 TRACE_PLACEHOLDER = (
-    "Decision traces from draft_lead_rows are retained. Full Press "
-    "Lead Gen will expand the intake, search, assess, motion, "
-    "pathway, path, action, and tier trail. This stub does not "
-    "rewrite Assess models."
+    "Decision traces from draft_lead_rows are retained and annotated "
+    "when qualify_drafts promotes a row. Press does not rewrite "
+    "Assess models."
 )
 MARKET_MAP_NOTE = (
     "Federal Market Map remains a separate deliverable. "
@@ -94,22 +95,23 @@ BUILD_PLAN_STEPS: tuple[tuple[int, str, str], ...] = (
     (6, "draft_parents",
      "Mint OpportunityAssessment parents via draft_lead_rows."),
     (7, "draft_children",
-     "Mint WATCH / HOLD LeadRow children via draft_lead_rows."),
+     "Mint fail-closed LeadRow children via draft_lead_rows, then "
+     "qualify a small evidenced subset."),
     (8, "publish_tiers",
-     ("Publish a receipt listing draft rows by LeadTier. Active "
-      "LEAD_T1 / LEAD_T2 lists may be empty.")),
+     ("Publish a receipt listing rows by LeadTier. WATCH / LEAD_T2 "
+      "may appear when four-leg receipts exist; at most one LEAD_T1.")),
     (9, "publish_coverage_trace",
-     ("Retain WATCH / HOLD receipts and coverage / decision-trace "
-      "placeholders.")),
+     ("Retain WATCH / HOLD / REJECT receipts and coverage / "
+      "decision-trace fields.")),
 )
 
 
 class PressLeadGenError(ValueError):
-    """Fail-closed Press Lead Gen stub error."""
+    """Fail-closed Press Lead Gen error."""
 
 
 class PressStepStatus(str, Enum):
-    """Per-step stub status. Not a lead tier and not an Assess gate."""
+    """Per-step press status. Not a lead tier and not an Assess gate."""
 
     COMPLETE = "complete"
     HANDOFF = "handoff"
@@ -118,7 +120,7 @@ class PressStepStatus(str, Enum):
 
 
 class PressStepReceipt(_FrozenContract):
-    """One Build Plan step as executed (or handed off) by the stub."""
+    """One Build Plan step as executed (or handed off) by press."""
 
     schema_version: Literal["leadgen.contracts.v1"] = SCHEMA_VERSION
     step: int
@@ -139,14 +141,17 @@ class LeadTierBucket(_FrozenContract):
 
 
 class PressLeadGenReceipt(_FrozenContract):
-    """Review artifact for the Press Lead Gen stub.
+    """Review artifact for Press Lead Gen.
 
     This is not a Market Map bundle and not an Assess run envelope.
     Primary persistence is branded HTML; JSON and optional Markdown are sidecars.
+    ``stub`` is False when the real qualifier ran. Do not treat HOLD-only
+    output as a stub receipt.
     """
 
     schema_version: Literal["leadgen.contracts.v1"] = SCHEMA_VERSION
-    stub: Literal[True] = True
+    stub: bool = False
+    qualifier: str = QUALIFIER_VERSION
     client_name: str = Field(min_length=1)
     client_slug: str = Field(min_length=1)
     assess_run_id: str = Field(min_length=1)
@@ -168,6 +173,7 @@ class PressLeadGenReceipt(_FrozenContract):
     coverage_placeholder: str = COVERAGE_PLACEHOLDER
     decision_trace_placeholder: str = TRACE_PLACEHOLDER
     market_map_untouched: Literal[True] = True
+    eval_overlays: dict[str, dict[str, Any]] = Field(default_factory=dict)
     html_path: str | None = None
     json_path: str | None = None
     markdown_path: str | None = None
@@ -335,18 +341,6 @@ def _tier_buckets(
     )
 
 
-def _refuse_auto_promote(leads: tuple[LeadRow, ...]) -> None:
-    promoted = [
-        row.lead_id for row in leads
-        if row.lead_tier in (LeadTier.LEAD_T1, LeadTier.LEAD_T2)
-    ]
-    if promoted:
-        raise PressLeadGenError(
-            "stub refused auto-promotion to lead T1 or lead T2: "
-            + ", ".join(promoted)
-        )
-
-
 def _step(
     number: int, status: PressStepStatus, notes: str,
     *, artifact: str | None = None,
@@ -368,12 +362,13 @@ def run_press(
     write_markdown: bool = False,
     as_of: datetime | None = None,
 ) -> PressLeadGenReceipt:
-    """Execute Build Plan steps 1-9 as a stub and optionally persist.
+    """Execute Build Plan steps 1-9 and optionally persist.
 
     ``review_dir`` always writes branded CLIENT_DELIVERABLE HTML and a
     ``<slug>.leadgen.json`` sidecar (plus optional ``<slug>.leadgen.md``).
     Omit it for an in-memory receipt. HTML naming uses the local press day;
-    the assessment clock remains visible in the report.
+    the assessment clock remains visible in the report. The real
+    qualifier always runs; ``stub`` is False on the receipt.
     """
 
     run = require_assess_input(assess)
@@ -411,13 +406,14 @@ def run_press(
     projection = _load_target_actions(target_actions)
     action_rows = list(projection.get("rows") or [])
     batch = draft_lead_rows(run, projection)
+    batch = qualify_drafts(batch, run, projection)
     parents = _bind_dossier_cites(
         batch.parents,
         dossier_schema_version=dossier["dossier_schema_version"],
         identity_status=dossier["identity_status"],
     )
     leads = batch.leads
-    _refuse_auto_promote(leads)
+    overlays = overlays_for_promoted(batch)
     buckets = _tier_buckets(leads)
     by_tier = {bucket.lead_tier: bucket.lead_ids for bucket in buckets}
 
@@ -462,18 +458,18 @@ def run_press(
         ),
         _step(
             7, PressStepStatus.COMPLETE,
-            f"draft_lead_rows minted {len(leads)} LeadRow child(ren). "
-            + NO_AUTO_PROMOTE,
+            f"draft_lead_rows minted {len(leads)} LeadRow child(ren); "
+            f"{QUALIFIER_VERSION} ran. " + NO_QUOTA_FILL,
         ),
         _step(
             8, PressStepStatus.COMPLETE,
-            "receipt lists drafts by LeadTier. Active lead T1 / lead "
-            "T2 lists are empty until sales-ready gates exist.",
+            "receipt lists rows by LeadTier. Active lead T1 / lead "
+            "T2 stay empty unless four-leg receipts promoted them.",
         ),
         _step(
             9, PressStepStatus.COMPLETE,
-            "WATCH / HOLD receipts retained. Coverage and "
-            "decision-trace fields are placeholders. "
+            "WATCH / HOLD / REJECT receipts retained. Coverage and "
+            "decision-trace fields stay honest. "
             + MARKET_MAP_NOTE,
         ),
     )
@@ -507,6 +503,7 @@ def run_press(
         watch_receipts=by_tier[LeadTier.WATCH],
         hold_receipts=by_tier[LeadTier.HOLD],
         reject_receipts=by_tier[LeadTier.REJECT],
+        eval_overlays=overlays,
         html_path=html_path,
         json_path=json_path,
         markdown_path=markdown_path,
@@ -523,19 +520,19 @@ def run_press(
 
 
 def render_markdown(receipt: PressLeadGenReceipt) -> str:
-    """Operator-facing stub summary. Internal review copy only."""
+    """Operator-facing press summary. Internal review copy only."""
 
     lines = [
-        f"# Press Lead Gen stub receipt · {receipt.client_name}",
+        f"# Press Lead Gen receipt · {receipt.client_name}",
         "",
-        "This is the orchestration stub, not full Press Lead Gen.",
+        f"Qualifier {receipt.qualifier} ran. stub={receipt.stub}.",
         MARKET_MAP_NOTE,
         "",
         f"Assess run: {receipt.assess_run_id}",
         f"Parents: {len(receipt.parents)}",
-        f"Draft leads: {len(receipt.leads)}",
-        f"Active lead T1: {len(receipt.active_lead_t1)} (empty is expected)",
-        f"Active lead T2: {len(receipt.active_lead_t2)} (empty is expected)",
+        f"Lead rows: {len(receipt.leads)}",
+        f"Active lead T1: {len(receipt.active_lead_t1)}",
+        f"Active lead T2: {len(receipt.active_lead_t2)}",
         "",
         "## By lead tier",
         "",
@@ -575,13 +572,13 @@ def render_markdown(receipt: PressLeadGenReceipt) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Thin CLI for the Press Lead Gen stub."""
+    """Thin CLI for Press Lead Gen."""
 
     parser = argparse.ArgumentParser(
         description=(
-            "Press Lead Gen orchestration stub (steps 1-9). Requires "
-            "an AssessRun. Writes primary branded HTML and a JSON sidecar. Does not replace "
-            "Market Map or lila_release."))
+            "Press Lead Gen (steps 1-9). Requires an AssessRun. "
+            "Writes primary branded HTML and a JSON sidecar. Does not "
+            "replace Market Map or lila_release."))
     parser.add_argument(
         "--assess", required=True,
         help="Path to an AssessRun JSON object (or a golden pack "
