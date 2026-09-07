@@ -124,6 +124,21 @@ python -m agents.leadgen.press \
   --markdown
 ```
 
+Produce the AssessRun file from an already completed assessment
+(read-only; does not run AssessmentChain and does not invent leads):
+
+```
+python -m agents.leadgen.export_assess --client "Arista Networks"
+python -m agents.leadgen.export_assess --client "Arista Networks" \
+  --output /tmp/arista.assess_run.json
+```
+
+If no current pointer exists, the exporter fails closed and names
+the operator cutover (`python -m tools.assess_refresh --client
+"Arista Networks" --activate`). Market Map packs, worksheets,
+notice lists, `source_records` dumps, and Testco-shaped demo
+fixtures (`arista_demo.assess_run.json`) are refused.
+
 Artifact: `data/review/<slug>.leadgen.json` (optional
 `<slug>.leadgen.md`). Same human-gate family as
 `<slug>.qualify.json` / `<slug>.horizon.json`. Not written into
@@ -160,6 +175,47 @@ A frozen Arista (or any client) press receipt is the same `--pack`
 path. Optional `--overlays` adds C3 email-status and D3 auth-only
 facts. The scorer never invents rows, never auto-promotes, and never
 drops REJECT.
+
+## AssessRun for press (Arista, operator Mac)
+
+Press Lead Gen needs a real `AssessRun`, not a Market Map pack and
+not the Testco-shaped Desktop demo `arista_demo.assess_run.json`.
+`python3 run_assessment.py` / AssessmentChain do not write that file.
+
+1. Confirm a current pointer (read-only):
+
+```
+python -m agents.leadgen.export_assess --client "Arista Networks"
+```
+
+2. If that fails closed with `no current AssessRun`, materialize from
+   the existing completed sweep / qualify / horizon artifacts (this
+   writes the current pointer; it is not a new SAM extract):
+
+```
+python -m tools.assess_refresh --client "Arista Networks" --activate
+python -m agents.leadgen.export_assess --client "Arista Networks" \
+  --output ~/Desktop/Arista/arista.assess_run.json
+```
+
+   If there is no sweep yet, run search through the Command Center
+   (not ad hoc bash, and not Step 1 intake extract). Then activate.
+
+3. Press + skeptic eval:
+
+```
+python -m agents.leadgen.press \
+  --assess ~/Desktop/Arista/arista.assess_run.json \
+  --markdown
+python -m agents.leadgen.eval.score \
+  --pack data/review/arista_networks.leadgen.json \
+  --md /tmp/arista.scorecard.md \
+  --csv /tmp/arista.scorecard.csv
+```
+
+`--from-file` on the exporter will refuse notice lists, Market Map /
+worksheet packs, `source_records` dumps, and a Testco demo labeled as
+Arista. It will not invent SAM notices.
 
 ## Out of scope here
 

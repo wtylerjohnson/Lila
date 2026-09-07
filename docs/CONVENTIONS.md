@@ -1323,6 +1323,18 @@ coverage claims; nothing in it is a gate value.
   never participates in `lila_release`. This is not full Press Lead
   Gen. Market Map remains the separate external deliverable.
   Run: `python -m agents.leadgen.press --assess <run.json>`.
+- Read-only AssessRun export for press (2026-09-07):
+  `agents.leadgen.export_assess.export_current_assess_run` dumps the
+  current immutable pointer under `data/state/assess_runs/` (or
+  validates `--from-file`) as a press-ready envelope wrapping `run`.
+  It never calls `materialize_current_assess_run`, never writes
+  `data/state/assess_runs/`, and never invents live/horizon records
+  from notices, Market Map, worksheets, or `source_records`.
+  `run_assessment.py` / `AssessmentChain` do not write AssessRun
+  JSON; first materialization of a completed sweep remains
+  `python -m tools.assess_refresh --client "Name" --activate`.
+  Testco-shaped demo fixtures labeled as Arista fail closed.
+  Run: `python -m agents.leadgen.export_assess --client "Name"`.
 - Skeptic eval harness (2026-09-07): `agents.leadgen.eval` scores
   press/draft LeadRow JSON plus parent assessments. It does not score
   Step 1 dossier hygiene and does not touch intake extract. Rubrics:
