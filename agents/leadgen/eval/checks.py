@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from typing import Any
 
+from agents.assess.contracts import LifecycleStage
 from agents.leadgen.contracts import LeadRow, OpportunityAssessment
 from agents.leadgen.enums import (
     CommercialMotionKind,
@@ -13,16 +15,15 @@ from agents.leadgen.enums import (
     SellerPathKind,
 )
 from agents.leadgen.traces import DecisionTrace
-from agents.assess.contracts import LifecycleStage
 
-from .load import overlay_for, overlay_index
+from .load import load_score_input, overlay_for, overlay_index
 from .models import (
     CheckResult,
     CheckVerdict,
     EmailStatus,
     EvalOverlay,
-    ScoreInput,
     Scorecard,
+    ScoreInput,
 )
 
 _UNKNOWN_BUYERS = frozenset({"", "unknown", "unk", "n/a", "na", "none"})
@@ -88,6 +89,19 @@ def is_solicitation_only(lead: LeadRow, overlay: EvalOverlay) -> bool:
     )
 
 
+def score_pack(
+    payload: Any,
+    overlays: Any = None,
+    *,
+    source_label: str | None = None,
+) -> Scorecard:
+    """Score one press receipt, draft batch, or eval pack."""
+
+    pack = load_score_input(
+        payload, overlays, source_label=source_label)
+    return score_input(pack)
+
+
 def score_input(pack: ScoreInput) -> Scorecard:
     """Score every parent and every child, including REJECT."""
 
@@ -103,7 +117,7 @@ def score_input(pack: ScoreInput) -> Scorecard:
         parent = parents.get(lead.parent_assessment_id)
         trace = traces.get(lead.decision_trace_id)
         checks.extend(score_lead(lead, parent, trace, overlay))
-    checks.extend(score_pack(pack, checks))
+    checks.extend(pack_level_checks(pack, checks))
     reject_ids = tuple(
         lead.lead_id for lead in pack.leads
         if lead.lead_tier is LeadTier.REJECT
@@ -222,7 +236,7 @@ def score_parent(
     ]
 
 
-def score_pack(
+def pack_level_checks(
     pack: ScoreInput,
     already: list[CheckResult],
 ) -> list[CheckResult]:

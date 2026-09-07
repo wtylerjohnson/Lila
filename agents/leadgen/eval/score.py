@@ -13,11 +13,9 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any
 
-from .checks import score_input
-from .load import ScoreLoadError, load_score_input
-from .models import ScoreInput, Scorecard
+from .checks import score_pack
+from .load import ScoreLoadError
 from .render import render_csv, render_markdown
 
 TINY_FIXTURE = (
@@ -36,23 +34,6 @@ DESCRIPTION = (
     "scorecard.csv. Tiny fixture: "
     f"--pack {TINY_FIXTURE}."
 )
-
-
-def score_pack(
-    payload: Any,
-    overlays: Any = None,
-    *,
-    source_label: str | None = None,
-) -> Scorecard:
-    """Score one press receipt, draft batch, or eval pack."""
-
-    pack = load_score_input(
-        payload, overlays, source_label=source_label)
-    return score_input(pack)
-
-
-def score_score_input(pack: ScoreInput) -> Scorecard:
-    return score_input(pack)
 
 
 def main(argv: list[str] | None = None) -> int:

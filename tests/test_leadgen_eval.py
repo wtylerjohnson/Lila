@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import ast
 import json
+import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -28,8 +30,14 @@ from agents.leadgen.eval import (
     render_markdown,
     score_pack,
 )
-from agents.leadgen.eval.score import TINY_FIXTURE, main as score_main
-from tests.test_leadgen_contracts import _lead, _motion, _next, _parent, _pathway, _seller
+from agents.leadgen.eval.score import TINY_FIXTURE
+from tests.test_leadgen_contracts import (
+    _lead,
+    _motion,
+    _next,
+    _parent,
+    _seller,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 EVAL_DIR = ROOT / "agents" / "leadgen" / "eval"
@@ -184,24 +192,32 @@ def test_reject_receipt_is_not_silently_dropped():
     assert _verdict(card, "PACK.REJECT_NOT_DROPPED").verdict is CheckVerdict.PASS
 
 
-def test_cli_help_and_tiny_fixture(tmp_path, capsys):
-    assert score_main(["--help"]) == 0
-    help_text = capsys.readouterr().out
+def test_cli_help_and_tiny_fixture(tmp_path):
+    proc = subprocess.run(
+        [sys.executable, "-m", "agents.leadgen.eval.score", "--help"],
+        cwd=ROOT, capture_output=True, text=True, check=False,
+    )
+    assert proc.returncode == 0
+    help_text = proc.stdout
     assert "--pack" in help_text
     assert "LeadRow" in help_text
     assert "C3" in help_text
     md_path = tmp_path / "scorecard.md"
     csv_path = tmp_path / "scorecard.csv"
-    assert score_main([
-        "--pack", str(TINY_FIXTURE),
-        "--md", str(md_path),
-        "--csv", str(csv_path),
-    ]) == 0
-    captured = capsys.readouterr()
-    payload = json.loads(captured.out)
+    scored = subprocess.run(
+        [
+            sys.executable, "-m", "agents.leadgen.eval.score",
+            "--pack", str(TINY_FIXTURE),
+            "--md", str(md_path),
+            "--csv", str(csv_path),
+        ],
+        cwd=ROOT, capture_output=True, text=True, check=False,
+    )
+    assert scored.returncode == 0
+    payload = json.loads(scored.stdout)
     assert payload["schema_version"] == "leadgen.eval.v0"
     assert payload["lead_ids"]
-    assert "[out]" in captured.err
+    assert "[out]" in scored.stderr
     text = md_path.read_text(encoding="utf-8")
     assert "LeadRow relevance scorecard" in text
     assert "—" not in text
