@@ -1264,6 +1264,82 @@ coverage claims; nothing in it is a gate value.
   checkout; every session gets its own worktree on a named branch; Tyler
   does every merge; never `git worktree prune`. Full text in CLAUDE.md.
 
+## Spike reports (2026-09-06)
+
+- Pre-implementation maps live in `docs/spikes/<topic>.md`. A spike is
+  reviewable feedstock, not a contract surface and not a schema. It may
+  recommend an additive file layout. It must not delete Assess models,
+  change Market Map release, or ship Pydantic packages.
+- Reality in the code still wins. Cite paths and field names from the
+  checkout (and from an unmerged branch when that branch is the named
+  authority, as with Step 1 intake on
+  `cursor/step1-intake-mastery-da3f` / PR #1). If a locked product
+  document is not in the repo, say so and map against the operator
+  ruling that tasked the spike.
+
+## Lead-gen contracts (2026-09-06)
+
+- `agents/leadgen/` is an additive sibling of `agents/assess/`. It does
+  not replace `AssessRun`, add lead fields to `LiveSolicitation`, or
+  participate in `lila_release`. Opportunity assessment is PARENT;
+  LeadRow is CHILD. Type authority for the first cut is
+  `docs/spikes/ws0_today_to_leadrow_map.md`. Package overview:
+  `docs/leadgen/README.md`.
+- Frozen + `extra=forbid`, same construction rules as Assess (lists in,
+  tuples after validation). Version stamp: `leadgen.contracts.v1`.
+- Enum namespaces must not collide. `LeadTier` values are
+  `LEAD_T1|LEAD_T2|WATCH|HOLD|REJECT` and persist only on field
+  `lead_tier` (display "lead T1" / "lead T2"). Targeting motion
+  `rule_id` stays `T1|T2|T3` on `TargetingRuleId` (a closed copy of
+  `targeting_personas.json`; `targeting_rules.py` remains the rule
+  owner) and persists only on field `targeting_rule_id`. Never store a
+  lead as bare `"tier": "T1"`. There is no lead T3.
+- Stages reuse Assess `LifecycleStage`. Commercial motions, pathways,
+  seller paths, contactability, and communication permission live in
+  `agents/leadgen/enums.py`. Seller path literals reuse
+  `PartnerDirection` plus fail-closed `path_unknown`.
+- JSON Schema export: `python -m agents.leadgen.schema_export` writes
+  `agents/leadgen/schemas/`. Persistence is a later ticket; do not
+  write lead rows into `data/state/assess_runs/`.
+- Draft mapper: `agents.leadgen.from_assess.draft_lead_rows` reads one
+  `AssessRun` (or AssessRun-shaped dict) plus an optional
+  `target_actions` projection and emits `OpportunityAssessment`
+  parents plus WATCH/HOLD `LeadRow` children. Pure and fail-closed.
+  Never aliases targeting `T1` to `LeadTier`. Never writes
+  `data/state/assess_runs/` or participates in `lila_release`.
+  Run: `python -m agents.leadgen --assess <run.json>`.
+- Press Lead Gen stub (2026-09-06): `agents.leadgen.press.run_press`
+  documents and executes Build Plan steps 1-9 as a stub. Step 1 cites
+  an optional client profile / intake dossier path. Steps 2-5 hand off
+  to the existing search / qualify / Assess / target_actions path and
+  do not reimplement discovery. Steps 6-7 call `draft_lead_rows`.
+  Steps 8-9 write a human-gate receipt at
+  `data/review/<slug>.leadgen.json` (optional
+  `data/review/<slug>.leadgen.md`) listing drafts by `LeadTier`.
+  Active `LEAD_T1` / `LEAD_T2` lists may be empty; WATCH / HOLD
+  receipts are retained; coverage and decision-trace fields are
+  placeholders. Missing assess input fails closed. Notice-only input
+  is refused. The stub never auto-promotes to lead T1 / lead T2 and
+  never participates in `lila_release`. This is not full Press Lead
+  Gen. Market Map remains the separate external deliverable.
+  Run: `python -m agents.leadgen.press --assess <run.json>`.
+- Skeptic eval harness (2026-09-07): `agents.leadgen.eval` scores
+  press/draft LeadRow JSON plus parent assessments. It does not score
+  Step 1 dossier hygiene and does not touch intake extract. Rubrics:
+  `docs/leadgen/LEADROW_RELEVANCE_RUBRIC_v0.md` (A-F + tier/pack) and
+  `docs/leadgen/OPP_PARENT_QUALITY_RUBRIC_v0.md`. T1/T2 require A-F
+  PASS; solicitation-only T1/T2 fail; UNVERIFIED email cannot PASS
+  C3; auth-only cannot PASS D3; REJECT rows are receipted and never
+  dropped; the scorer invents zero rows (no quota fill). Overlays
+  (`leadgen.eval.v0`) carry email status and auth-only facts the
+  frozen LeadRow forbids. Run:
+  `python -m agents.leadgen.eval.score --pack <receipt-or-eval.json>`.
+  Tiny fixture: `agents/leadgen/eval/fixtures/tiny_pack.json`.
+- Step 1 `CompanyDossier` remains the ontology front door (PR #1). Cite
+  it with optional string fields until that PR merges. Do not import
+  targeting or Apollo from `agents/leadgen/contracts.py`,
+  `agents/leadgen/from_assess.py`, or `agents/leadgen/press.py`.
+
 ## Vocabulary, identity and posture (2026-08-06)
 
 The assessment family kept reporting OUR failures as market facts. Four

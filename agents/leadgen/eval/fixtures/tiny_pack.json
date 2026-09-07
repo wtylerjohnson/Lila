@@ -1,0 +1,124 @@
+{
+  "schema_version": "leadgen.eval.v0",
+  "source_label": "tiny_pack",
+  "parents": [
+    {
+      "schema_version": "leadgen.contracts.v1",
+      "assessment_id": "oa:R1:live_solicitation:L1",
+      "assess_run_id": "R1",
+      "client_name": "FixtureCo",
+      "profile_version": "P1",
+      "scope": {
+        "mode": "agency",
+        "agencies": [
+          {
+            "name": "Department of Homeland Security",
+            "abbr": "DHS"
+          }
+        ]
+      },
+      "as_of": "2026-09-06T12:00:00Z",
+      "subject_kind": "live_solicitation",
+      "subject_id": "L1",
+      "title": "Network visibility",
+      "agency": "DHS",
+      "solicitation_number": "70-TEST-26",
+      "notice_id": "N1",
+      "lifecycle": "live_solicitation",
+      "live_classification": "bid_now",
+      "live_recommendation": "pursue",
+      "requirement_span": "The contractor shall provide packet capture.",
+      "dossier_schema_version": null,
+      "identity_status": null,
+      "lead_ids": [
+        "lr:oa:R1:live_solicitation:L1:M1:P1:S1"
+      ]
+    }
+  ],
+  "leads": [
+    {
+      "schema_version": "leadgen.contracts.v1",
+      "lead_id": "lr:oa:R1:live_solicitation:L1:M1:P1:S1",
+      "parent_assessment_id": "oa:R1:live_solicitation:L1",
+      "assess_run_id": "R1",
+      "buying_motion": {
+        "schema_version": "leadgen.contracts.v1",
+        "motion_id": "M1",
+        "parent_subject_id": "L1",
+        "kind": "live_bid",
+        "stage": "live_solicitation",
+        "buyer_agency": "DHS",
+        "buyer_component": "CISA",
+        "buyer_office": null,
+        "clock": "2026-10-01",
+        "window": null,
+        "targeting_rule_id": null,
+        "recorded_at": null
+      },
+      "external_pathway": {
+        "schema_version": "leadgen.contracts.v1",
+        "pathway_id": "P1",
+        "kind": "sam_notice",
+        "source_url": "https://sam.gov/opp/N1/view",
+        "evidence": [
+          {
+            "evidence_id": "E1",
+            "tier": "notice",
+            "kind": "notice",
+            "source_name": "official source",
+            "source_url": "https://sam.gov/opp/N1/view",
+            "retrieved_at": "2026-09-06T12:00:00Z",
+            "excerpt": "The contractor shall provide packet capture.",
+            "observed_date": null,
+            "effective_date": null,
+            "record_hash": null,
+            "primary_source": true,
+            "supports": ["requirement"]
+          }
+        ],
+        "notice_id": "N1",
+        "published_contacts": [],
+        "contactability": "organization_only"
+      },
+      "seller_path": {
+        "schema_version": "leadgen.contracts.v1",
+        "path_id": "S1",
+        "kind": "channel_reseller",
+        "holder": "Example Reseller",
+        "vehicle": null,
+        "dossier_cite": null,
+        "prime_posture_cite": null
+      },
+      "next_action": {
+        "schema_version": "leadgen.contracts.v1",
+        "verb": "review_requirement_span",
+        "object": "requirement excerpt on N1",
+        "due": "2026-10-01",
+        "blocked_by": "sales-ready gates do not exist; do not auto-promote",
+        "owner": "operator",
+        "communication_permission": "none"
+      },
+      "lead_tier": "WATCH",
+      "readiness": "watching",
+      "contactability": "organization_only",
+      "communication_permission": "none",
+      "decision_trace_id": "dt:R1:L1",
+      "outcome_id": null
+    }
+  ],
+  "traces": [
+    {
+      "schema_version": "leadgen.contracts.v1",
+      "trace_id": "dt:R1:L1",
+      "assess_run_id": "R1",
+      "as_of": "2026-09-06T12:00:00Z",
+      "parent_assessment_id": "oa:R1:live_solicitation:L1",
+      "lead_id": "lr:oa:R1:live_solicitation:L1:M1:P1:S1",
+      "assess_gate": null,
+      "steps": ["assess", "motion", "pathway", "path", "action", "tier"],
+      "evidence_ids": ["E1"],
+      "notes": "tiny fixture · WATCH receipt; not a lead T1"
+    }
+  ],
+  "overlays": {}
+}

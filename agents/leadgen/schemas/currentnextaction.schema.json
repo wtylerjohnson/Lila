@@ -1,0 +1,88 @@
+{
+  "$defs": {
+    "CommunicationPermission": {
+      "description": "Whether any outbound communication is allowed.\n\nDefault is ``none``. This flag never sends mail. Auto-outreach is\nout of scope. ``outreach_authorized`` means both existing operator\ndoors are open; it is not a send instruction.",
+      "enum": [
+        "none",
+        "confirm_published",
+        "target_door_locked",
+        "outreach_authorized"
+      ],
+      "title": "CommunicationPermission",
+      "type": "string"
+    },
+    "NextActionVerb": {
+      "description": "Closed next-action verbs. No invented-person outreach verbs.",
+      "enum": [
+        "review_requirement_span",
+        "finish_attachment_inventory",
+        "confirm_sam_census",
+        "refresh_stale_coverage",
+        "confirm_published_poc",
+        "watch_trigger",
+        "validate_partner_path",
+        "target_door_still_locked"
+      ],
+      "title": "NextActionVerb",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One dated (when a clock exists) next action. Owner is the operator.",
+  "properties": {
+    "blocked_by": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Blocked By"
+    },
+    "communication_permission": {
+      "$ref": "#/$defs/CommunicationPermission",
+      "default": "none"
+    },
+    "due": {
+      "anyOf": [
+        {
+          "format": "date",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Due"
+    },
+    "object": {
+      "minLength": 1,
+      "title": "Object",
+      "type": "string"
+    },
+    "owner": {
+      "default": "operator",
+      "title": "Owner",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "leadgen.contracts.v1",
+      "default": "leadgen.contracts.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "verb": {
+      "$ref": "#/$defs/NextActionVerb"
+    }
+  },
+  "required": [
+    "verb",
+    "object"
+  ],
+  "title": "CurrentNextAction",
+  "type": "object"
+}

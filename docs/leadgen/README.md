@@ -1,0 +1,168 @@
+# Lead-gen contracts (WS0)
+
+Additive schema package plus a thin Press Lead Gen orchestration stub.
+Not a UI. Not a Market Map change. Not full Press Lead Gen.
+
+## Ruling (locked)
+
+- Lead gen is primary; solicitation / opportunity identification stays.
+- **Opportunity assessment is PARENT. LeadRow is CHILD.**
+- `LeadRow = BuyingMotion x ActionableExternalPathway x
+  SellerTransactionPath x CurrentNextAction`
+- Federal Market Map stays the external deliverable / projection.
+  `lila_release` is untouched.
+- Targeting `rule_id` T1/T2 is **not** a lead tier.
+- Step 1 `CompanyDossier` remains the ontology front door (PR #1). This
+  package cites it; it does not redesign intake.
+
+## Authority for today's types
+
+[docs/spikes/ws0_today_to_leadrow_map.md](../spikes/ws0_today_to_leadrow_map.md)
+maps existing Assess, motion, targeting, and Market Map types onto these
+contracts. Implement adapters from that map. Do not guess parent vs
+child grain.
+
+## Package
+
+`agents/leadgen/` is a sibling of `agents/assess/`. Assess models are
+not deleted, moved, or given lead fields.
+
+| Type | Role |
+|---|---|
+| `OpportunityAssessment` | Parent pointer at one Assess subject (`AssessRun` identity + live / thesis / partner id). Valid with zero children. |
+| `LeadRow` | Child. Four factors plus `lead_tier` / readiness. |
+| `DecisionTrace` | Minimal why-record a child can cite. |
+| `LeadTier` | `LEAD_T1\|LEAD_T2\|WATCH\|HOLD\|REJECT` (field `lead_tier`) |
+| `TargetingRuleId` | `T1\|T2\|T3` (field `targeting_rule_id`) |
+
+JSON Schema export:
+
+```
+python -m agents.leadgen.schema_export
+```
+
+Writes `agents/leadgen/schemas/*.schema.json`.
+
+## Assess / target_actions draft mapper
+
+Pure function. No persistence, no Command Center step, no outreach.
+
+In-process:
+
+```
+from agents.leadgen import draft_lead_rows
+
+batch = draft_lead_rows(assess_run, target_actions)
+```
+
+`assess_run` is an `AssessRun` or an AssessRun-shaped dict (a golden
+pack may wrap the run under `assess_run`). `target_actions` is the
+already-built projection dict from `build_target_actions`, a list of
+its rows, or omitted.
+
+Diagnostic CLI (reads JSON, prints the draft batch, writes nothing):
+
+```
+python -m agents.leadgen \
+  --assess path/to/assess_run.json \
+  --target-actions path/to/target_actions.json
+```
+
+Rules this mapper encodes:
+
+- Every child cites `parent_assessment_id` and `assess_run_id` on an
+  existing Assess subject. Solicitation stays the parent; it is not a
+  lead.
+- Drafts are `WATCH` or `HOLD` only. Sales-ready gates do not exist
+  yet, so the shim never emits `LEAD_T1` or `LEAD_T2`.
+- Targeting `rule_id` `T1` stays on `buying_motion.targeting_rule_id`.
+  It is never stored as `lead_tier`.
+- Assess evidence refs, notice ids, and requirement spans are copied
+  as pointers. The mapper does not invent a pathway kind, a prime
+  route, or a communication permission.
+- Missing pathway, seller route, clock, or permission holds the row
+  (or the parent, when a pathway cannot be formed without invention)
+  with `next_action.blocked_by` set to the promotion condition.
+
+## Press Lead Gen stub vs full Press Lead Gen
+
+Full Press Lead Gen is the governed pipeline: load company / product
+ontology, discover, assess, mint atomic LeadRows, then keep active
+`LEAD_T1` / `LEAD_T2` lists plus WATCH / HOLD / REJECT receipts.
+
+`agents.leadgen.press` is the **stub**. It documents Build Plan steps
+1-9 and executes them without rewriting discovery or Assess:
+
+| Step | Stub behavior |
+|---|---|
+| 1 | Load client profile / optional intake dossier path. Cite only. Do not redesign Step 1. |
+| 2-5 | Hand off to the existing search, qualify, Assess, and `target_actions` path. Require an `AssessRun`. Do not reimplement discovery. |
+| 6-7 | Call `draft_lead_rows`. Parents stay `OpportunityAssessment`. Children stay WATCH / HOLD. |
+| 8-9 | Write a review receipt listing drafts by `LeadTier`. Active lead T1 / lead T2 lists may be empty. WATCH / HOLD receipts are retained. Coverage and decision-trace fields are placeholders. |
+
+In-process:
+
+```
+from agents.leadgen import run_press
+
+receipt = run_press(
+    assess=assess_run,
+    target_actions=target_actions,
+    review_dir="data/review",
+    write_markdown=True,
+)
+```
+
+CLI:
+
+```
+python -m agents.leadgen.press \
+  --assess path/to/assess_run.json \
+  --target-actions path/to/target_actions.json \
+  --dossier path/to/dossier.json \
+  --review-dir data/review \
+  --markdown
+```
+
+Artifact: `data/review/<slug>.leadgen.json` (optional
+`<slug>.leadgen.md`). Same human-gate family as
+`<slug>.qualify.json` / `<slug>.horizon.json`. Not written into
+`data/state/assess_runs/`.
+
+Failure rules the stub encodes:
+
+- Missing assess input fails closed with an explicit error.
+- Notice-only input (a notice list or a sweep without an AssessRun)
+  is refused. The stub will not invent leads from notices alone.
+- The stub never auto-promotes to `LEAD_T1` or `LEAD_T2`.
+
+Federal Market Map remains the separate external deliverable.
+`lila_release` is untouched. This stub is not a release door.
+
+## Skeptic eval (objective scoring)
+
+Dossier hygiene does not prove opportunity or lead relevance. The
+eval harness scores **LeadRows and their parents** against checked-in
+rubrics:
+
+- [LEADROW_RELEVANCE_RUBRIC_v0.md](LEADROW_RELEVANCE_RUBRIC_v0.md)
+- [OPP_PARENT_QUALITY_RUBRIC_v0.md](OPP_PARENT_QUALITY_RUBRIC_v0.md)
+
+```
+python -m agents.leadgen.eval.score --help
+python -m agents.leadgen.eval.score \
+  --pack agents/leadgen/eval/fixtures/tiny_pack.json \
+  --md /tmp/leadrow.scorecard.md \
+  --csv /tmp/leadrow.scorecard.csv
+```
+
+A frozen Arista (or any client) press receipt is the same `--pack`
+path. Optional `--overlays` adds C3 email-status and D3 auth-only
+facts. The scorer never invents rows, never auto-promotes, and never
+drops REJECT.
+
+## Out of scope here
+
+Full source-universe discovery rewrite, communication-permission /
+outreach, Command Center Market Map UI, Step 1 website-deep work
+(PR #1), auto-promotion to lead T1 / lead T2.

@@ -1,0 +1,89 @@
+{
+  "$defs": {
+    "SellerPathKind": {
+      "description": "How this seller can transact. Path is not a named person.\n\n``prime_to_sub`` through ``vehicle_access`` match ``PartnerDirection``.\n``path_unknown`` is fail-closed and cannot carry LEAD_T1/LEAD_T2.",
+      "enum": [
+        "prime_to_sub",
+        "sub_to_prime",
+        "joint_venture",
+        "channel_reseller",
+        "vehicle_access",
+        "path_unknown"
+      ],
+      "title": "SellerPathKind",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One seller transaction path. Fail-closed unknown yields HOLD, not prime.",
+  "properties": {
+    "dossier_cite": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Dossier Cite"
+    },
+    "holder": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Holder"
+    },
+    "kind": {
+      "$ref": "#/$defs/SellerPathKind"
+    },
+    "path_id": {
+      "minLength": 1,
+      "title": "Path Id",
+      "type": "string"
+    },
+    "prime_posture_cite": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Prime Posture Cite"
+    },
+    "schema_version": {
+      "const": "leadgen.contracts.v1",
+      "default": "leadgen.contracts.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "vehicle": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Vehicle"
+    }
+  },
+  "required": [
+    "path_id",
+    "kind"
+  ],
+  "title": "SellerTransactionPath",
+  "type": "object"
+}

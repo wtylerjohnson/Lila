@@ -1,0 +1,99 @@
+{
+  "$defs": {
+    "GateStatus": {
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "title": "GateStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Minimal append-oriented trace a LeadRow can cite. No I/O.",
+  "properties": {
+    "as_of": {
+      "format": "date-time",
+      "title": "As Of",
+      "type": "string"
+    },
+    "assess_gate": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/GateStatus"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "assess_run_id": {
+      "minLength": 1,
+      "title": "Assess Run Id",
+      "type": "string"
+    },
+    "evidence_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Ids",
+      "type": "array"
+    },
+    "lead_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Lead Id"
+    },
+    "notes": {
+      "default": "",
+      "title": "Notes",
+      "type": "string"
+    },
+    "parent_assessment_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Assessment Id"
+    },
+    "schema_version": {
+      "const": "leadgen.contracts.v1",
+      "default": "leadgen.contracts.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "steps": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Steps",
+      "type": "array"
+    },
+    "trace_id": {
+      "minLength": 1,
+      "title": "Trace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "trace_id",
+    "assess_run_id",
+    "as_of"
+  ],
+  "title": "DecisionTrace",
+  "type": "object"
+}
