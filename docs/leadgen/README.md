@@ -139,6 +139,28 @@ Failure rules the stub encodes:
 Federal Market Map remains the separate external deliverable.
 `lila_release` is untouched. This stub is not a release door.
 
+## Skeptic eval (objective scoring)
+
+Dossier hygiene does not prove opportunity or lead relevance. The
+eval harness scores **LeadRows and their parents** against checked-in
+rubrics:
+
+- [LEADROW_RELEVANCE_RUBRIC_v0.md](LEADROW_RELEVANCE_RUBRIC_v0.md)
+- [OPP_PARENT_QUALITY_RUBRIC_v0.md](OPP_PARENT_QUALITY_RUBRIC_v0.md)
+
+```
+python -m agents.leadgen.eval.score --help
+python -m agents.leadgen.eval.score \
+  --pack agents/leadgen/eval/fixtures/tiny_pack.json \
+  --md /tmp/leadrow.scorecard.md \
+  --csv /tmp/leadrow.scorecard.csv
+```
+
+A frozen Arista (or any client) press receipt is the same `--pack`
+path. Optional `--overlays` adds C3 email-status and D3 auth-only
+facts. The scorer never invents rows, never auto-promotes, and never
+drops REJECT.
+
 ## Out of scope here
 
 Full source-universe discovery rewrite, communication-permission /

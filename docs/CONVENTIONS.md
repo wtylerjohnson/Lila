@@ -1323,6 +1323,18 @@ coverage claims; nothing in it is a gate value.
   never participates in `lila_release`. This is not full Press Lead
   Gen. Market Map remains the separate external deliverable.
   Run: `python -m agents.leadgen.press --assess <run.json>`.
+- Skeptic eval harness (2026-09-07): `agents.leadgen.eval` scores
+  press/draft LeadRow JSON plus parent assessments. It does not score
+  Step 1 dossier hygiene and does not touch intake extract. Rubrics:
+  `docs/leadgen/LEADROW_RELEVANCE_RUBRIC_v0.md` (A-F + tier/pack) and
+  `docs/leadgen/OPP_PARENT_QUALITY_RUBRIC_v0.md`. T1/T2 require A-F
+  PASS; solicitation-only T1/T2 fail; UNVERIFIED email cannot PASS
+  C3; auth-only cannot PASS D3; REJECT rows are receipted and never
+  dropped; the scorer invents zero rows (no quota fill). Overlays
+  (`leadgen.eval.v0`) carry email status and auth-only facts the
+  frozen LeadRow forbids. Run:
+  `python -m agents.leadgen.eval.score --pack <receipt-or-eval.json>`.
+  Tiny fixture: `agents/leadgen/eval/fixtures/tiny_pack.json`.
 - Step 1 `CompanyDossier` remains the ontology front door (PR #1). Cite
   it with optional string fields until that PR merges. Do not import
   targeting or Apollo from `agents/leadgen/contracts.py`,
