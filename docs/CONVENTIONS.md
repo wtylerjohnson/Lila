@@ -235,9 +235,14 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   A darktrace host plus 10-K / HPE body is still dropped. A
   named-other-rival path (ndr-darktrace-comparison) never
   evidences Cisco or Juniper, even with a strong Unlike-Cisco
-  excerpt. Cisco and Juniper bind to a Cisco/Juniper-matching
-  compare URL or competitor-comparisons (prefer "historically
-  dominated by Cisco"). `/en/products/network-detection-and-response/competitor-comparisons`
+  excerpt. Cisco and Juniper must still be claimed when a
+  competitor-comparisons hub names them: promote from that
+  scrape page text (not the short evidence excerpt alone),
+  including when the hub is already in evidence. Do not
+  recall Cisco/Juniper from a Darktrace URL. Prefer
+  historically-dominated sentences; a generic compare hub
+  that names Cisco/Juniper is enough if the excerpt does
+  not deny them. `/en/products/network-detection-and-response/competitor-comparisons`
   is a seeded hub. A /news Broadcom VMware blurb is not
   a VMware-rival claim even when the press room also says vs
   (URL≠claim). Rival names are companies, not SKU fragments
@@ -269,9 +274,13 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   `/assets/data/pdf/CaseStudies/` slug matches `casestud`,
   so those PDFs are crawlable) so Darktrace cannot fall out
   of the 24-page budget. Compare-link discovery is capped so
-  it cannot starve named CaseStudies PDFs; Activ Financial
-  and Hardis Group stay seeded and reserve three page slots
-  near the end of the budget.
+  it cannot starve named CaseStudies PDFs. Live filenames
+  are Activ_Financial and Hardis-Group (plus Case-Study
+  variants). `_fetch` must accept application/pdf and
+  extract text (filename stub if parse is empty) so those
+  PDFs enter the 24-page budget. A customers probe with
+  no cited findings must not wipe those deterministic
+  promotions.
   Rival evidence for Cisco, Juniper, and Darktrace must be a
   compare-shaped URL with a matching claim, not /products/eos
   ISE context or a 451 whitepaper PDF. ExtraHop compare URLs

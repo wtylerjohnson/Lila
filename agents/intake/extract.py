@@ -620,6 +620,33 @@ def is_compare_url(url: str) -> bool:
     return bool(_COMPARE_URL.search(_url_path(url)))
 
 
+def is_generic_compare_hub(url: str) -> bool:
+    """competitor-comparisons /compare hubs, not a named-other-rival path."""
+    if not is_compare_url(url):
+        return False
+    return not _path_named_vendors(url)
+
+
+_HUB_SWITCH_RIVALS = frozenset({"cisco", "juniper"})
+_CASE_STUDY_ORG = (
+    (re.compile(r"activ[_-]?financial", re.I), "Activ Financial"),
+    (re.compile(r"hardis[_-]?group", re.I), "Hardis Group"),
+)
+
+
+def case_study_orgs_from_url(url: str) -> list[str]:
+    """Activ_Financial / Hardis-Group PDF filenames are customer proof."""
+    if not url or "casestud" not in (url or "").casefold():
+        return []
+    found: list[str] = []
+    seen: set[str] = set()
+    for pattern, name in _CASE_STUDY_ORG:
+        if pattern.search(url) and name.casefold() not in seen:
+            seen.add(name.casefold())
+            found.append(name)
+    return found
+
+
 def is_whitepaper_url(url: str) -> bool:
     """Analyst/whitepaper PDFs are secondary to compare pages."""
     if not url:
@@ -1277,17 +1304,25 @@ def is_competitor_name(text: str, *, client_name: str = "") -> bool:
     return True
 
 
-def excerpt_supports_rival(name: str, snippet: str) -> bool:
+def _rival_excerpt_denied(name: str, snippet: str) -> bool:
+    token = re.escape(name.split()[0]) if name.split() else ""
+    if not token:
+        return False
+    return bool(re.search(
+        rf"\bnot\s+(?:a |an |the )?(?:named )?{token}\b|"
+        rf"\b{token}\s+(?:and\s+\w+\s+)?(?:is|are)\s+not\b",
+        snippet or "", re.I))
+
+
+def excerpt_supports_rival(name: str, snippet: str, url: str = "") -> bool:
     """True when the excerpt names the rival in a compare / vs claim."""
     if not excerpt_supports_name(name, snippet):
         return False
     raw = snippet or ""
-    token = re.escape(name.split()[0]) if name.split() else ""
-    if token and re.search(
-            rf"\bnot\s+(?:a |an |the )?(?:named )?{token}\b|"
-            rf"\b{token}\s+(?:and\s+\w+\s+)?(?:is|are)\s+not\b",
-            raw, re.I):
+    if _rival_excerpt_denied(name, raw):
         return False
+    if is_generic_compare_hub(url) and name.casefold().split()[0] in _HUB_SWITCH_RIVALS:
+        return True
     return bool(_RIVAL_CUE.search(raw) or _COMPETITOR_LEAD.search(raw))
 
 
@@ -1406,7 +1441,7 @@ def _party_name(raw: str, *, client_name: str = "") -> str:
     return name
 
 
-def recall_competitors(text: str, client_name: str = "") -> list[str]:
+def recall_competitors(text: str, client_name: str = "", url: str = "") -> list[str]:
     """Named rivals from comparison / vs / alternative language on the site."""
     raw = _protect_abbrevs(text)
     found: list[str] = []
@@ -1427,15 +1462,26 @@ def recall_competitors(text: str, client_name: str = "") -> list[str]:
         found.append(piece)
 
     for match in _COMPETITOR_LEAD.finditer(raw):
+        if rival_url_names_other_vendor(url, match.group(1)):
+            continue
         chunk = match.group(1)
         for part in re.split(r"\band\b|,", chunk):
+            if _rival_excerpt_denied(part, raw):
+                continue
             _add(part)
     for vendor in _RIVAL_VENDORS:
         if not re.search(rf"\b{re.escape(vendor)}\b", raw, re.I):
             continue
+        if rival_url_names_other_vendor(url, vendor):
+            continue
+        pretty = vendor.title() if vendor.islower() else vendor
         windows = _windows(raw, vendor)
+        if any(_rival_excerpt_denied(pretty, w) for w in windows):
+            continue
         if any(_RIVAL_CUE.search(w) or _COMPETITOR_LEAD.search(w) for w in windows):
-            _add(vendor.title() if vendor.islower() else vendor)
+            _add(pretty)
+        elif is_generic_compare_hub(url) and vendor in _HUB_SWITCH_RIVALS:
+            _add(pretty)
     return found
 
 
@@ -1803,7 +1849,8 @@ def extract_surface(
                 text = page.text or ""
                 url = getattr(page, "url", "") or ""
                 if not is_news_path_citation(url):
-                    for name in recall_competitors(text, client_name or bound_name):
+                    for name in recall_competitors(
+                            text, client_name or bound_name, url=url):
                         _compete(name)
                 if is_news_path_citation(url) or customer_url_is_chrome(url):
                     continue

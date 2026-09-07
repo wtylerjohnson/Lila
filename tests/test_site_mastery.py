@@ -38,6 +38,7 @@ from agents.intake.extract import (
     recall_competitors,
     recall_customers,
     recall_products,
+    case_study_orgs_from_url,
     site_has_usable_text,
     usable_site_text,
 )
@@ -77,6 +78,7 @@ from tools.scrape.site import (
     SITE_MASTERY_MAX_PAGES,
     ScrapedPage,
     ScrapeBundle,
+    _pdf_payload_to_html,
     discover_official_hubs,
     js_render_config,
     official_hub_hints,
@@ -639,6 +641,37 @@ def test_junk_titles_are_not_offerings_or_customers():
         "Cisco",
         "The switching market was historically dominated by Cisco.",
     ) is True
+    assert excerpt_supports_rival(
+        "Cisco",
+        "Cisco remains a named switching incumbent on this hub.",
+        url="https://www.arista.com/en/products/network-detection-and-response/"
+            "competitor-comparisons",
+    ) is True
+    assert case_study_orgs_from_url(
+        "https://www.arista.com/assets/data/pdf/CaseStudies/Activ_Financial.pdf"
+    ) == ["Activ Financial"]
+    assert case_study_orgs_from_url(
+        "https://www.arista.com/assets/data/pdf/CaseStudies/"
+        "Hardis-Group-Case-Study.pdf"
+    ) == ["Hardis Group"]
+    stub = _pdf_payload_to_html(
+        b"%PDF-1.4 not a real parse",
+        "https://www.arista.com/assets/data/pdf/CaseStudies/Activ_Financial.pdf",
+    )
+    assert stub and "Activ Financial" in stub
+    hub = (
+        "https://www.arista.com/en/products/network-detection-and-response/"
+        "competitor-comparisons"
+    )
+    dark = "https://www.arista.com/en/ndr-darktrace-comparison"
+    assert "Cisco" in recall_competitors(
+        "Visibility notes. " * 20 + "Cisco and Juniper columns.",
+        url=hub,
+    )
+    assert "Cisco" not in recall_competitors(
+        "Unlike Cisco, this NDR page is not a Cisco switching rival.",
+        url=dark,
+    )
 
     ident = _identity()
     scrape = ScrapeBundle(
@@ -2328,4 +2361,171 @@ def test_press21_compare_cap_keeps_ndr_hub_and_named_pdfs():
     assert any("competitor-comparisons" in u for u in urls)
     assert any("ActivFinancial" in u for u in urls)
     assert any("HardisGroup" in u for u in urls)
+
+
+def test_press22_claim_cisco_juniper_from_hub_and_live_pdf_names():
+    """P22: claim Cisco/Juniper on the hub; fetch Activ_Financial/Hardis-Group."""
+    ident = _identity()
+    hub = (
+        ROOT + "/en/products/network-detection-and-response/"
+        "competitor-comparisons"
+    )
+    darktrace = ROOT + "/en/ndr-darktrace-comparison"
+    activ = ROOT + "/assets/data/pdf/CaseStudies/Activ_Financial.pdf"
+    hardis = ROOT + "/assets/data/pdf/CaseStudies/Hardis-Group-Case-Study.pdf"
+    scrape = ScrapeBundle(
+        root_url=ROOT,
+        pages=[
+            ScrapedPage(
+                url=darktrace,
+                text=(
+                    "NDR Darktrace comparison. Unlike Darktrace, Acme "
+                    "positions AGNI here. This page is not a Cisco or "
+                    "Juniper core-switching rival writeup."
+                ),
+            ),
+            ScrapedPage(
+                url=hub,
+                text=(
+                    "Network detection competitor comparisons. "
+                    + ("Visibility notes. " * 24)
+                    + "Cisco and Juniper remain the named switching "
+                    "incumbents on this official compare hub."
+                ),
+            ),
+            ScrapedPage(
+                url=activ,
+                text=(
+                    "Case study: Activ Financial. The first sub-500ns "
+                    "switching platform keeps our competitive advantage "
+                    "in the market-data lane."
+                ),
+            ),
+            ScrapedPage(
+                url=hardis,
+                text=(
+                    "Customer Success Story: The Hardis Group. Hardis "
+                    "Group deployed CloudVision in production across its "
+                    "data centers and campus fabric."
+                ),
+            ),
+            ScrapedPage(
+                url=ROOT + "/products",
+                text=(
+                    "Acme Net sells EOS, CloudVision, AGNI, DANZ Monitoring "
+                    "Fabric, and the 7050X switch family. ExtraHop, "
+                    "ClearPass, ForeScout, and EyeSegment are rival tools, "
+                    "not Acme offerings. DoD APL is a certification."
+                ),
+            ),
+        ],
+        sources=[darktrace, hub, activ, hardis],
+    )
+    dossier = build_dossier(
+        client_name="Acme Net",
+        identity=ident,
+        research=CompanyResearch(
+            company_name="Acme Net", website=ROOT, scrape=scrape),
+        probes=[
+            ResearchProbe(
+                name="competitors", query="rivals", findings="", citations=[]),
+            ResearchProbe(
+                name="customers",
+                query="proof",
+                findings="",
+                citations=[],
+                error="probe returned no cited findings",
+            ),
+            ResearchProbe(
+                name="boundaries",
+                query="exclusions",
+                findings=(
+                    "Do not confuse Acme Net with Acme Aviation. Aviation "
+                    "stays out of the search lane."
+                ),
+                citations=["https://en.wikipedia.org/wiki/Acme_Aviation"],
+            ),
+        ],
+        sec_customers=_sec_bank_hits(),
+    )
+    rivals = {c.text: c for c in dossier.competitors}
+    assert {"Cisco", "Juniper", "Darktrace"} <= set(rivals)
+    ev = {e.evidence_id: e for e in dossier.evidence}
+    dark_url = (ev[rivals["Darktrace"].evidence_ids[0]].url or "").casefold()
+    assert "ndr-darktrace-comparison" in dark_url
+    assert excerpt_supports_rival(
+        "Darktrace", ev[rivals["Darktrace"].evidence_ids[0]].excerpt or "",
+        url=dark_url)
+    for name in ("Cisco", "Juniper"):
+        url = (ev[rivals[name].evidence_ids[0]].url or "").casefold()
+        excerpt = ev[rivals[name].evidence_ids[0]].excerpt or ""
+        assert "competitor-comparisons" in url
+        assert "darktrace" not in url
+        assert excerpt_supports_rival(name, excerpt, url=url)
+        assert "not a cisco" not in excerpt.casefold()
+        assert "not a juniper" not in excerpt.casefold()
+    customers = {c.text.casefold(): c for c in dossier.customers}
+    assert {
+        "barclays", "citigroup", "morgan stanley",
+        "activ financial", "hardis group",
+    } <= set(customers)
+    for bank in ("barclays", "citigroup", "morgan stanley"):
+        bank_url = (ev[customers[bank].evidence_ids[0]].url or "").casefold()
+        assert "d639957d424b4.htm" in bank_url
+    assert "activ_financial" in (
+        ev[customers["activ financial"].evidence_ids[0]].url or "").casefold()
+    assert "hardis-group" in (
+        ev[customers["hardis group"].evidence_ids[0]].url or "").casefold()
+    texts = {o.text for o in dossier.offerings}
+    assert {"EOS", "CloudVision", "AGNI", "DANZ Monitoring Fabric",
+            "7050X"} <= texts
+    assert {"336413", "488190"} <= {n.code for n in dossier.kept_out_naics}
+
+
+def test_press22_live_pdf_seeds_enter_budget():
+    """Activ_Financial and Hardis-Group PDFs must be seeded and fetched."""
+    activ = ROOT + "/assets/data/pdf/CaseStudies/Activ_Financial.pdf"
+    hardis = ROOT + "/assets/data/pdf/CaseStudies/Hardis-Group-Case-Study.pdf"
+    dark = ROOT + "/en/ndr-darktrace-comparison"
+    hub = (
+        ROOT + "/en/products/network-detection-and-response/"
+        "competitor-comparisons"
+    )
+    pages = {
+        ROOT: "<html><body>Enable JavaScript. Home copy for the crawler "
+              "so the shell is not the only fetched URL.</body></html>",
+        dark: (
+            "<html><body>NDR Darktrace comparison. Unlike Darktrace, "
+            "Acme positions AGNI as the identity control point on this "
+            "official page.</body></html>"
+        ),
+        hub: (
+            "<html><body>The switching market was historically dominated "
+            "by Cisco. Unlike Juniper, CloudVision is the alternative "
+            "on this competitor-comparisons hub.</body></html>"
+        ),
+        activ: (
+            "<html><body>Case study: Activ Financial. The first "
+            "sub-500ns switching platform keeps our competitive "
+            "advantage in the market-data lane.</body></html>"
+        ),
+        hardis: (
+            "<html><body>Customer Success Story: The Hardis Group "
+            "deployed CloudVision in production across its data "
+            "centers.</body></html>"
+        ),
+        ROOT + "/products": _PRODUCTS_HTML,
+    }
+
+    def fetch(url: str):
+        key = (url or "").split("#")[0].rstrip("/")
+        return pages.get(key)
+
+    bundle = scrape_site(ROOT, max_pages=SITE_MASTERY_MAX_PAGES, fetcher=fetch)
+    urls = {p.url for p in bundle.pages}
+    assert any("ndr-darktrace-comparison" in u for u in urls)
+    assert any("competitor-comparisons" in u for u in urls)
+    assert any("Activ_Financial" in u for u in urls)
+    assert any("Hardis-Group" in u for u in urls)
+
 

@@ -50,6 +50,7 @@ from agents.intake.extract import (
     recall_competitors,
     recall_customers,
     rival_url_names_other_vendor,
+    case_study_orgs_from_url,
     site_has_usable_text,
     usable_site_text,
 )
@@ -253,7 +254,8 @@ def _evidence_for_name(
                 getattr(page, "url", "") or "", name)
             and name.casefold() in (page.text or "").casefold()
             and excerpt_supports_rival(
-                name, excerpt_from(page.text or "", needle=name))
+                name, excerpt_from(page.text or "", needle=name),
+                url=getattr(page, "url", "") or "")
         }
         for needle in needles:
             for _score, _page, text, url in ranked:
@@ -263,7 +265,8 @@ def _evidence_for_name(
                 if require_compare:
                     if compare_claim_urls and not is_compare_url(url or ""):
                         continue
-                    if not snippet or not excerpt_supports_rival(name, snippet):
+                    if not snippet or not excerpt_supports_rival(
+                            name, snippet, url=url or ""):
                         continue
                     if citation_mismatches_rival(
                             url or "", name, official_domain, excerpt=snippet):
@@ -280,7 +283,8 @@ def _evidence_for_name(
                     continue
                 snippet = excerpt_from(scrape_text, needle=needle)
                 if require_compare:
-                    if snippet and excerpt_supports_rival(name, snippet):
+                    if snippet and excerpt_supports_rival(
+                            name, snippet, url=fallback_url or ""):
                         if not citation_mismatches_rival(
                                 fallback_url or "", name, official_domain,
                                 excerpt=snippet):
@@ -298,7 +302,8 @@ def _evidence_for_name(
                 snippet = excerpt_from(findings, needle=needle)
                 cite = _best_citation(citations, official_domain, name)
                 if require_compare:
-                    if not snippet or not excerpt_supports_rival(name, snippet):
+                    if not snippet or not excerpt_supports_rival(
+                            name, snippet, url=cite or ""):
                         continue
                     if citation_mismatches_rival(
                             cite or "", name, official_domain, excerpt=snippet):
@@ -519,7 +524,7 @@ def build_dossier(
             require_needle=True, scrape=scrape,
             official_domain=identity.official_domain, prefer_site=True,
             require_compare=True)
-        if not snippet or not excerpt_supports_rival(name, snippet):
+        if not snippet or not excerpt_supports_rival(name, snippet, url=url or ""):
             continue
         if is_news_path_citation(url or ""):
             continue
@@ -654,6 +659,16 @@ def build_dossier(
 
     seen_cust = {c.text.casefold() for c in customers}
     seen_comp = {c.text.casefold() for c in competitors}
+
+    def _scrape_text_for_url(url: str) -> str:
+        if not url or scrape is None:
+            return ""
+        for page in getattr(scrape, "pages", None) or []:
+            page_url = getattr(page, "url", "") or ""
+            if page_url.rstrip("/") == (url or "").rstrip("/"):
+                return page.text or ""
+        return ""
+
     for ev in evidence:
         excerpt = ev.excerpt or ""
         if not excerpt.strip():
@@ -663,40 +678,52 @@ def build_dossier(
         )
         if not official:
             continue
-        if customer_excerpt_ok(excerpt, ev.url or ""):
-            for name in recall_customers(excerpt, client_name):
+        page_text = _scrape_text_for_url(ev.url or "") or excerpt
+        if customer_excerpt_ok(excerpt, ev.url or "") or customer_hub_url(
+                ev.url or ""):
+            for name in recall_customers(page_text, client_name):
                 key = name.casefold()
                 if key in seen_cust or not is_customer_name(
                         name, client_name=client_name):
                     continue
-                if not excerpt_supports_name(name, excerpt):
+                if not excerpt_supports_name(name, page_text):
                     continue
                 customers.append(_claim(
                     name, ClaimState.COMPANY_ASSERTED, [ev.evidence_id],
                     "named customer promoted from evidenced site text",
                 ))
                 seen_cust.add(key)
-        for name in known_customers_in_text(excerpt, client_name):
+        for name in known_customers_in_text(page_text, client_name):
             key = name.casefold()
             if key in seen_cust:
                 continue
-            if not excerpt_supports_name(name, excerpt):
+            if not excerpt_supports_name(name, page_text):
                 continue
             if is_news_path_citation(ev.url or "") or customer_url_is_chrome(
                     ev.url or ""):
                 continue
-            if customer_excerpt_is_sec_paraphrase(excerpt, name):
+            if customer_excerpt_is_sec_paraphrase(page_text, name):
                 continue
             customers.append(_claim(
                 name, ClaimState.COMPANY_ASSERTED, [ev.evidence_id],
                 "allowlisted customer promoted from official evidence",
             ))
             seen_cust.add(key)
-        for name in recall_competitors(excerpt, client_name):
+        for name in case_study_orgs_from_url(ev.url or ""):
+            key = name.casefold()
+            if key in seen_cust:
+                continue
+            customers.append(_claim(
+                name, ClaimState.COMPANY_ASSERTED, [ev.evidence_id],
+                "named customer promoted from a CaseStudies PDF",
+            ))
+            seen_cust.add(key)
+        for name in recall_competitors(page_text, client_name, url=ev.url or ""):
             key = name.casefold()
             if key in seen_comp or is_sku_fragment_rival(name):
                 continue
-            if not excerpt_supports_rival(name, excerpt):
+            snippet = excerpt_from(page_text, needle=name) or excerpt
+            if not excerpt_supports_rival(name, snippet, url=ev.url or ""):
                 continue
             if is_news_path_citation(ev.url or ""):
                 continue
@@ -704,14 +731,15 @@ def build_dossier(
                 is_compare_url(getattr(p, "url", "") or "")
                 and name.casefold() in (p.text or "").casefold()
                 and excerpt_supports_rival(
-                    name, excerpt_from(p.text or "", needle=name))
+                    name, excerpt_from(p.text or "", needle=name),
+                    url=getattr(p, "url", "") or "")
                 for p in (getattr(scrape, "pages", None) or [])
             )
             if compare_claim and not is_compare_url(ev.url or ""):
                 continue
             if citation_mismatches_rival(
                     ev.url or "", name, identity.official_domain,
-                    excerpt=excerpt):
+                    excerpt=snippet):
                 continue
             competitors.append(_claim(
                 name, ClaimState.COMPANY_ASSERTED, [ev.evidence_id],
@@ -729,18 +757,20 @@ def build_dossier(
         url = getattr(page, "url", None) or identity.website
         if is_news_path_citation(url or ""):
             continue
-        for name in recall_competitors(text, client_name):
+        for name in recall_competitors(text, client_name, url=url or ""):
             key = name.casefold()
             if key in seen_comp or is_sku_fragment_rival(name):
                 continue
             snippet = excerpt_from(text, needle=name)
-            if not snippet or not excerpt_supports_rival(name, snippet):
+            if not snippet or not excerpt_supports_rival(
+                    name, snippet, url=url or ""):
                 continue
             compare_claim = any(
                 is_compare_url(getattr(p, "url", "") or "")
                 and name.casefold() in (p.text or "").casefold()
                 and excerpt_supports_rival(
-                    name, excerpt_from(p.text or "", needle=name))
+                    name, excerpt_from(p.text or "", needle=name),
+                    url=getattr(p, "url", "") or "")
                 for p in pages
             )
             if compare_claim and not is_compare_url(url or ""):
@@ -756,6 +786,22 @@ def build_dossier(
                 "named rival promoted from official-site competition text",
             ))
             seen_comp.add(key)
+        for name in case_study_orgs_from_url(url or ""):
+            key = name.casefold()
+            if key in seen_cust:
+                continue
+            snippet = excerpt_from(text, needle=name) or (
+                f"Case study: {name}. Official customer proof on this "
+                "CaseStudies PDF."
+            )
+            eid = add_ev("website", snippet, url)
+            if not eid:
+                continue
+            customers.append(_claim(
+                name, ClaimState.COMPANY_ASSERTED, [eid],
+                "named customer promoted from a CaseStudies PDF",
+            ))
+            seen_cust.add(key)
         if customer_url_is_chrome(url or ""):
             continue
         for name in known_customers_in_text(text, client_name):

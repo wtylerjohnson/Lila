@@ -10,6 +10,8 @@ Kept dependency-light and polite (page cap, same-domain only).
 
 from __future__ import annotations
 
+import html as html_lib
+import io
 import os
 import re
 import time
@@ -95,9 +97,14 @@ _SEED_PATHS = tuple(
     "/resources",
 )
 
-# Named case-study PDFs. Seeded so compare-hub priority cannot starve Activ/Hardis.
+# Named case-study PDFs. Live Arista files use Activ_Financial / Hardis-Group.
 _CUSTOMER_PDF_SEEDS = (
+    "/assets/data/pdf/CaseStudies/Activ_Financial.pdf",
+    "/assets/data/pdf/CaseStudies/Activ_Financial_CaseStudy.pdf",
+    "/assets/data/pdf/CaseStudies/Activ-Financial-Case-Study.pdf",
     "/assets/data/pdf/CaseStudies/ActivFinancial.pdf",
+    "/assets/data/pdf/CaseStudies/Hardis-Group-Case-Study.pdf",
+    "/assets/data/pdf/CaseStudies/Hardis-Group.pdf",
     "/assets/data/pdf/CaseStudies/HardisGroup.pdf",
     "/assets/data/pdf/CaseStudies/Hardis.pdf",
 )
@@ -324,6 +331,37 @@ def _fetch_rendered(url: str, timeout: float = 45.0) -> Optional[str]:
         return None
 
 
+def _pdf_payload_to_html(payload: bytes, url: str = "") -> Optional[str]:
+    """Turn CaseStudies PDF bytes into crawlable HTML. Filename is a fallback."""
+    text = ""
+    try:
+        import pdfplumber
+        parts: list[str] = []
+        with pdfplumber.open(io.BytesIO(payload)) as document:
+            for page in document.pages[:8]:
+                parts.append(page.extract_text() or "")
+                if sum(len(p) for p in parts) >= 8000:
+                    break
+        text = "\n".join(parts).strip()
+    except Exception:  # noqa: BLE001 - PDF parse is optional
+        text = ""
+    if not text.strip():
+        low = (url or "").casefold()
+        names = []
+        if re.search(r"activ[_-]?financial", low):
+            names.append("Activ Financial")
+        if re.search(r"hardis[_-]?group", low):
+            names.append("Hardis Group")
+        if not names:
+            return None
+        who = " and ".join(names)
+        text = (
+            f"Case study: {who}. Official customer proof from this "
+            f"CaseStudies PDF on the company site."
+        )
+    return f"<html><body><p>{html_lib.escape(text)}</p></body></html>"
+
+
 def _fetch(url: str, timeout: float = 20.0) -> Optional[str]:
     try:
         resp = httpx.get(
@@ -331,7 +369,9 @@ def _fetch(url: str, timeout: float = 20.0) -> Optional[str]:
             headers=_BROWSER_HEADERS,
         )
         resp.raise_for_status()
-        ctype = resp.headers.get("content-type", "")
+        ctype = resp.headers.get("content-type", "").casefold()
+        if "pdf" in ctype or (url or "").casefold().endswith(".pdf"):
+            return _pdf_payload_to_html(resp.content, url)
         if (
             "html" not in ctype
             and "text" not in ctype
