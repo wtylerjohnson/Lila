@@ -585,7 +585,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--assess", required=True,
         help="Path to an AssessRun JSON object (or a golden pack "
-             "wrapping one under assess_run)")
+             "wrapping one under assess_run / run). Dump a current "
+             "pointer with python -m agents.leadgen.export_assess "
+             "--client \"Name\". Notice-only input is refused.")
     parser.add_argument(
         "--target-actions", default=None,
         help="Optional path to a target_actions projection JSON")
