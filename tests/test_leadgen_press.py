@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import ast
 import json
+from datetime import datetime, timezone
+from html.parser import HTMLParser
 from pathlib import Path
 
 import pytest
@@ -27,6 +29,7 @@ from agents.leadgen.press import (
     MISSING_ASSESS,
     NOTICE_ONLY,
     TRACE_PLACEHOLDER,
+    render_html,
     render_markdown,
 )
 from agents.leadgen.press import (
@@ -40,6 +43,11 @@ from tests.test_leadgen_from_assess import (
 
 ROOT = Path(__file__).resolve().parents[1]
 PRESS_PY = ROOT / "agents" / "leadgen" / "press.py"
+
+
+@pytest.fixture(autouse=True)
+def isolated_desktop(tmp_path, monkeypatch):
+    monkeypatch.setattr(Path, "home", lambda: tmp_path / "home")
 
 
 def test_build_plan_names_steps_1_through_9():
@@ -92,7 +100,18 @@ def test_stub_on_assess_and_target_actions_is_parent_plus_watch_hold(tmp_path):
     assert Path(receipt.markdown_path) == md_path
     assert json_path.is_file()
     assert md_path.is_file()
+    assert receipt.html_path
+    html_path = Path(receipt.html_path)
+    assert html_path.is_file()
+    html = html_path.read_text(encoding="utf-8")
+    assert 'class="report"' in html
+    assert 'class="topbar"' in html
+    assert 'class="hero"' in html
+    assert ':root{--red:#ee0000;' in html
+    assert "Testco" in html
+    assert "\u2014" not in html
     payload = json.loads(json_path.read_text(encoding="utf-8"))
+    assert payload["html_path"] == str(html_path)
     assert payload["assess_run_id"] == "R1"
     assert payload["active_lead_t1"] == []
     assert payload["active_lead_t2"] == []
@@ -166,7 +185,8 @@ def test_client_mismatch_fails_closed():
         run_press(assess=_run(), client_name="Otherco")
 
 
-def test_cli_writes_review_receipt(tmp_path, capsys):
+@pytest.mark.parametrize("markdown", [False, True])
+def test_cli_writes_review_receipt(tmp_path, capsys, markdown):
     run = _run(partners=[_partner()])
     assess_path = tmp_path / "assess.json"
     actions_path = tmp_path / "actions.json"
@@ -179,16 +199,17 @@ def test_cli_writes_review_receipt(tmp_path, capsys):
         "--assess", str(assess_path),
         "--target-actions", str(actions_path),
         "--review-dir", str(review_dir),
-        "--markdown",
-    ]) == 0
+    ] + (["--markdown"] if markdown else [])) == 0
     captured = capsys.readouterr()
     payload = json.loads(captured.out)
     assert payload["leads"]
     assert payload["active_lead_t1"] == []
     assert payload["active_lead_t2"] == []
     assert (review_dir / "testco.leadgen.json").is_file()
-    assert (review_dir / "testco.leadgen.md").is_file()
-    assert "[out]" in captured.err
+    assert (review_dir / "testco.leadgen.md").is_file() == markdown
+    assert bool(payload["markdown_path"]) == markdown
+    assert Path(payload["html_path"]).is_file()
+    assert captured.err.splitlines()[0] == f'[out] {payload["html_path"]}'
 
 
 def test_cli_refuses_notice_only(tmp_path, capsys):
@@ -228,6 +249,101 @@ def test_markdown_summary_has_empty_active_lists():
     assert "Active lead T2: 0" in text
     assert "lila_release is untouched" in text
     assert "—" not in text
+
+
+def test_html_default_path_and_desktop_copy(tmp_path, monkeypatch):
+    folder = Path.home() / "Desktop" / "Testco"
+    folder.mkdir(parents=True)
+    monkeypatch.chdir(tmp_path)
+    receipt = run_press(assess=_run(), review_dir="review")
+    expected = tmp_path / "review" / (
+        "testco_Press_Lead_Gen_CLIENT_DELIVERABLE_"
+        f"{datetime.now(timezone.utc).astimezone().date().isoformat()}.html")
+    assert receipt.html_path == str(expected)
+    assert expected.is_file()
+    assert (folder / expected.name).read_bytes() == expected.read_bytes()
+    assert receipt.markdown_path is None
+    assert not list((tmp_path / "review").glob("*.md"))
+
+
+def test_in_memory_press_does_not_create_artifacts(tmp_path):
+    receipt = run_press(assess=_run(), write_markdown=True)
+    assert receipt.html_path is receipt.json_path is receipt.markdown_path is None
+    assert not (Path.home() / "Desktop").exists()
+
+
+def test_desktop_copy_failure_preserves_primary(tmp_path, monkeypatch, capsys):
+    folder = Path.home() / "Desktop" / "Testco"
+    folder.mkdir(parents=True)
+    from agents.leadgen import press
+    original_write = press.atomic_write_text
+
+    def fail_desktop(path, content):
+        if str(folder) in str(path):
+            raise OSError("read-only Desktop")
+        original_write(path, content)
+
+    monkeypatch.setattr(press, "atomic_write_text", fail_desktop)
+    receipt = run_press(assess=_run(), review_dir=tmp_path / "review")
+    assert Path(receipt.html_path).is_file()
+    assert json.loads(Path(receipt.json_path).read_text())["html_path"] == receipt.html_path
+    assert "Desktop copy failed" in capsys.readouterr().err
+
+
+def test_html_receipts_links_and_copy_hygiene():
+    from agents.reports.lint import BANNED_PHRASES
+
+    receipt = run_press(assess=_run(partners=[_partner()]),
+                        target_actions=_t1_target_actions())
+    original = receipt.model_dump_json()
+    html = render_html(receipt)
+    assert html == render_html(receipt)
+    assert receipt.model_dump_json() == original
+    for parent in receipt.parents:
+        assert parent.assessment_id in html
+    for lead in receipt.leads:
+        assert lead.lead_id in html
+        assert str(lead.external_pathway.source_url) in html
+    for tier in LeadTier:
+        assert f'id="tier-{tier.value}"' in html
+    assert "0 active leads. Empty is expected" in html
+    assert "Coverage placeholder" in html
+    assert "Decision-trace placeholder" in html
+
+    class Markup(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.ids = set()
+            self.fragments = []
+            self.tags = set()
+
+        def handle_starttag(self, tag, attrs):
+            self.tags.add(tag)
+            attrs = dict(attrs)
+            if "id" in attrs:
+                self.ids.add(attrs["id"])
+            href = attrs.get("href", "")
+            if href.startswith("#"):
+                self.fragments.append(href[1:])
+
+    parsed = Markup()
+    parsed.feed(html)
+    assert set(parsed.fragments) <= parsed.ids
+    assert not {"script", "link", "img", "iframe"} & parsed.tags
+    for phrase in [*BANNED_PHRASES, "unverified", "not verified", "did not verify",
+                   "no record", "not capability-verified", "pending verification",
+                   "zero matched", "could not confirm"]:
+        dirty = receipt.model_copy(update={"coverage_placeholder": phrase.upper()})
+        rendered = render_html(dirty)
+        assert phrase.casefold() not in rendered.casefold()
+        assert "Review source detail in JSON sidecar." in rendered
+    hostile = receipt.model_copy(update={
+        "client_name": '<script>alert("x")</script> & Example &#8212; Name',
+    })
+    html = render_html(hostile)
+    assert "<script>" not in html
+    assert "&lt;script&gt;" in html
+    assert "\u2014" not in html
 
 
 def test_draft_mapper_and_stub_agree_on_children():
