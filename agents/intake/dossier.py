@@ -23,6 +23,7 @@ from agents.intake.extract import (
     citation_mismatches_rival,
     customer_excerpt_is_sec_paraphrase,
     customer_excerpt_ok,
+    customer_hub_url,
     customer_url_is_chrome,
     customer_window_is_underwriter,
     is_compare_url,
@@ -221,14 +222,32 @@ def _evidence_for_name(
             if url and require_compare and re.search(
                     r"/news|/press|/blog|/media", url, re.I):
                 score -= 2
+            if url and require_compare and re.search(
+                    r"/products/eos|/eos(?:/|$)", url, re.I):
+                score -= 5
+            if url and not require_compare and customer_hub_url(url):
+                score += 5
+            if url and not require_compare and re.search(
+                    r"sso|iam|/eos(?:/|$)", url, re.I) and not customer_hub_url(url):
+                score -= 3
             ranked.append((score, page, text, url))
         ranked.sort(key=lambda row: row[0], reverse=True)
+        compare_claim_urls = {
+            getattr(page, "url", "")
+            for page in pages
+            if is_compare_url(getattr(page, "url", "") or "")
+            and name.casefold() in (page.text or "").casefold()
+            and excerpt_supports_rival(
+                name, excerpt_from(page.text or "", needle=name))
+        }
         for needle in needles:
             for _score, _page, text, url in ranked:
                 if needle.casefold() not in text.casefold():
                     continue
                 snippet = excerpt_from(text, needle=needle)
                 if require_compare:
+                    if compare_claim_urls and not is_compare_url(url or ""):
+                        continue
                     if not snippet or not excerpt_supports_rival(name, snippet):
                         continue
                     if citation_mismatches_rival(
@@ -666,6 +685,15 @@ def build_dossier(
                 continue
             if is_news_path_citation(ev.url or ""):
                 continue
+            compare_claim = any(
+                is_compare_url(getattr(p, "url", "") or "")
+                and name.casefold() in (p.text or "").casefold()
+                and excerpt_supports_rival(
+                    name, excerpt_from(p.text or "", needle=name))
+                for p in (getattr(scrape, "pages", None) or [])
+            )
+            if compare_claim and not is_compare_url(ev.url or ""):
+                continue
             if citation_mismatches_rival(
                     ev.url or "", name, identity.official_domain,
                     excerpt=excerpt):
@@ -692,6 +720,15 @@ def build_dossier(
                 continue
             snippet = excerpt_from(text, needle=name)
             if not snippet or not excerpt_supports_rival(name, snippet):
+                continue
+            compare_claim = any(
+                is_compare_url(getattr(p, "url", "") or "")
+                and name.casefold() in (p.text or "").casefold()
+                and excerpt_supports_rival(
+                    name, excerpt_from(p.text or "", needle=name))
+                for p in pages
+            )
+            if compare_claim and not is_compare_url(url or ""):
                 continue
             if citation_mismatches_rival(
                     url or "", name, identity.official_domain, excerpt=snippet):

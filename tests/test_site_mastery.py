@@ -561,6 +561,12 @@ def test_junk_titles_are_not_offerings_or_customers():
     ) is True
     assert is_customer_name("Yahoo!") is False
     assert is_customer_name("Hardis") is True
+    assert is_customer_name("Product Testimonials") is False
+    assert is_customer_name("Lancaster Coun") is False
+    assert is_customer_name("County Government") is False
+    assert is_customer_name("Arista Extensib") is False
+    assert is_customer_name("Edge Threat Management") is False
+    assert is_truncated_org_name("Lancaster Coun") is True
     assert is_customer_name("Login Wi-Fi Cloud") is False
     assert is_customer_name("Toggle Navigation") is False
     assert is_customer_name("Series Spine") is False
@@ -1898,4 +1904,200 @@ def test_press19_named_roster_beats_category_10k_and_whitepaper():
         assert "anet-20251231" not in bank_url
     activ_url = (ev[customers["activ financial"].evidence_ids[0]].url or "").casefold()
     assert "casestudies" in activ_url or "case-stud" in activ_url
+    assert {"336413", "488190"} <= {n.code for n in dossier.kept_out_naics}
+
+
+def test_compare_hubs_survive_customer_case_study_flood():
+    """Customer PDF flood must not push Darktrace compare out of the budget."""
+    dark = ROOT + "/en/ndr-darktrace-comparison"
+    pages = {
+        ROOT: "<html><body>Enable JavaScript.</body></html>",
+        dark: (
+            "<html><body>NDR Darktrace comparison. Unlike Darktrace, "
+            "Acme positions AGNI here.</body></html>"
+        ),
+        ROOT + "/compare": _COMPARE_HTML,
+        ROOT + "/customers": _CUSTOMERS_HTML,
+        ROOT + "/products": _PRODUCTS_HTML,
+    }
+    for i in range(30):
+        url = ROOT + f"/assets/data/pdf/CaseStudies/flood-{i}.pdf"
+        pages[url] = (
+            f"<html><body>Case study card {i}. Trusted by a campus.</body></html>"
+        )
+
+    def fetch(url: str):
+        key = (url or "").split("#")[0].rstrip("/")
+        if key in pages:
+            return pages[key]
+        if "/CaseStudies/flood" in key:
+            return pages.get(key)
+        home = pages.get(ROOT, "")
+        if key == ROOT:
+            links = "".join(
+                f'<a href="{ROOT}/assets/data/pdf/CaseStudies/flood-{i}.pdf">'
+                f"cs{i}</a>"
+                for i in range(30)
+            )
+            return (
+                "<html><body>Enable JavaScript."
+                f'<a href="{dark}">Darktrace</a>{links}</body></html>'
+            )
+        return None
+
+    bundle = scrape_site(ROOT, max_pages=SITE_MASTERY_MAX_PAGES, fetcher=fetch)
+    urls = {p.url for p in bundle.pages}
+    assert any("darktrace" in u.casefold() or "/compare" in u.casefold() for u in urls)
+
+
+def test_press20_compare_rivals_not_eos_or_fragments():
+    """P20: Darktrace+Cisco+Juniper from compare URLs; banks and Activ hold."""
+    ident = _identity()
+    cisco_url = ROOT + "/en/company/competitor-comparisons"
+    darktrace = ROOT + "/en/ndr-darktrace-comparison"
+    eos = ROOT + "/en/products/eos"
+    whitepaper = ROOT + "/assets/data/pdf/451-whitepaper-switching.pdf"
+    extrahop = ROOT + "/en/company/extrahop-comparison"
+    case_pdf = ROOT + "/assets/data/pdf/CaseStudies/ActivFinancial.pdf"
+    testimonials = ROOT + "/en/products/product-testimonials"
+    sso = ROOT + "/en/products/eos/sso-iam"
+    scrape = ScrapeBundle(
+        root_url=ROOT,
+        pages=[
+            ScrapedPage(
+                url=eos,
+                text=(
+                    "EOS integrates with Cisco ISE for campus access. "
+                    "This product page is not a Cisco rival compare claim."
+                ),
+            ),
+            ScrapedPage(
+                url=whitepaper,
+                text=(
+                    "451 Research whitepaper. Competitors include Cisco "
+                    "and Juniper. No Darktrace compare claim."
+                ),
+            ),
+            ScrapedPage(
+                url=cisco_url,
+                text=(
+                    "The switching market was historically dominated by "
+                    "Cisco. Unlike Cisco, Acme ships EOS on every 7050X. "
+                    "Unlike Juniper, CloudVision is the compare alternative."
+                ),
+            ),
+            ScrapedPage(
+                url=darktrace,
+                text=(
+                    "NDR Darktrace comparison. Unlike Darktrace, Acme "
+                    "positions AGNI as the identity control point."
+                ),
+            ),
+            ScrapedPage(
+                url=extrahop,
+                text=(
+                    "ExtraHop comparison. Unlike ExtraHop, Acme positions "
+                    "DANZ Monitoring Fabric on this official writeup."
+                ),
+            ),
+            ScrapedPage(
+                url=sso,
+                text=(
+                    "EOS SSO and IAM notes mention Microsoft Entra ID as "
+                    "an identity provider, not a customer case study."
+                ),
+            ),
+            ScrapedPage(
+                url=testimonials,
+                text=(
+                    "Product Testimonials. Lancaster Coun. County "
+                    "Government. Arista Extensib. Edge Threat Management. "
+                    "Case study: Microsoft deployed CloudVision."
+                ),
+            ),
+            ScrapedPage(
+                url=case_pdf,
+                text=(
+                    "Case study: Activ Financial. The first sub-500ns "
+                    "switching platform keeps our competitive advantage. "
+                    "Hardis Group and Microsoft deployed CloudVision."
+                ),
+            ),
+            ScrapedPage(
+                url=ROOT + "/products",
+                text=(
+                    "Acme Net sells EOS, CloudVision, AGNI, DANZ Monitoring "
+                    "Fabric, and the 7050X switch family. ExtraHop, "
+                    "ClearPass, ForeScout, and EyeSegment are rival tools, "
+                    "not Acme offerings. DoD APL is a certification."
+                ),
+            ),
+        ],
+        sources=[eos, whitepaper, cisco_url, darktrace, extrahop, case_pdf],
+    )
+    probes = [
+        ResearchProbe(
+            name="competitors", query="rivals", findings="", citations=[]),
+        ResearchProbe(
+            name="boundaries",
+            query="exclusions",
+            findings=(
+                "Do not confuse Acme Net with Acme Aviation. Aviation "
+                "stays out of the search lane."
+            ),
+            citations=["https://en.wikipedia.org/wiki/Acme_Aviation"],
+        ),
+    ]
+    dossier = build_dossier(
+        client_name="Acme Net",
+        identity=ident,
+        research=CompanyResearch(
+            company_name="Acme Net", website=ROOT, scrape=scrape),
+        probes=probes,
+        sec_customers=_sec_bank_hits(),
+    )
+    rivals = {c.text: c for c in dossier.competitors}
+    assert {"Cisco", "Juniper", "Darktrace"} <= set(rivals)
+    ev = {e.evidence_id: e for e in dossier.evidence}
+    dark_url = (ev[rivals["Darktrace"].evidence_ids[0]].url or "").casefold()
+    assert "darktrace" in dark_url
+    assert "whitepaper" not in dark_url
+    assert "/eos" not in dark_url
+    assert excerpt_supports_rival(
+        "Darktrace", ev[rivals["Darktrace"].evidence_ids[0]].excerpt or "")
+    for name in ("Cisco", "Juniper"):
+        url = (ev[rivals[name].evidence_ids[0]].url or "").casefold()
+        excerpt = ev[rivals[name].evidence_ids[0]].excerpt or ""
+        assert "competitor-comparisons" in url or "darktrace" in url
+        assert "/products/eos" not in url
+        assert "whitepaper" not in url
+        assert excerpt_supports_rival(name, excerpt)
+    assert "Cisco Nexus" not in rivals
+    assert "VMware" not in rivals and "Vmware" not in rivals
+    texts = {o.text for o in dossier.offerings}
+    assert {"EOS", "CloudVision", "AGNI", "DANZ Monitoring Fabric",
+            "7050X"} <= texts
+    low_off = {t.casefold() for t in texts}
+    assert "extrahop" not in low_off
+    assert "clearpass" not in low_off
+    assert "forescout" not in low_off
+    assert "eyesegment" not in low_off
+    assert "dod" not in low_off
+    customers = {c.text.casefold(): c for c in dossier.customers}
+    assert {
+        "barclays", "citigroup", "morgan stanley",
+        "activ financial", "hardis group", "microsoft",
+    } <= set(customers)
+    for bank in ("barclays", "citigroup", "morgan stanley"):
+        bank_url = (ev[customers[bank].evidence_ids[0]].url or "").casefold()
+        assert "d639957d424b4.htm" in bank_url
+    ms_url = (ev[customers["microsoft"].evidence_ids[0]].url or "").casefold()
+    assert "sso" not in ms_url and "/eos/" not in ms_url
+    assert "casestud" in ms_url or "testimonial" in ms_url or "customer" in ms_url
+    for junk in (
+        "product testimonials", "lancaster coun", "county government",
+        "arista extensib", "edge threat management",
+        "ai neoclouds", "our customers our",
+    ):
+        assert junk not in customers
     assert {"336413", "488190"} <= {n.code for n in dossier.kept_out_naics}

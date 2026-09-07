@@ -38,7 +38,8 @@ _PRIORITY_SLUGS = (
     "usecase",
     "customer",
     "case-stud",
-    "casestudy",
+    "casestud",
+    "darktrace",
     "testimonial",
     "partner",
     "ecosystem",
@@ -75,6 +76,8 @@ _HUB_PATHS = (
     "/industries",
     "/products/eos",
     "/products/cloudvision",
+    "/company/competitor-comparisons",
+    "/ndr-darktrace-comparison",
 )
 _SEED_PATHS = tuple(
     f"{prefix}{path}"
@@ -365,7 +368,7 @@ def _customer_proof_url(url: str) -> bool:
     return any(
         slug in low
         for slug in (
-            "customer", "case-stud", "casestudy", "testimonial",
+            "customer", "case-stud", "casestud", "testimonial",
             "proof-point", "proof_point",
         )
     )
@@ -377,16 +380,25 @@ def _news_like_url(url: str) -> bool:
         r"(?:^|/)(?:news|press(?:-release)?|blog)(?:/|$|\?|#)", low))
 
 
-def _queue_tier(url: str) -> int:
-    """Customer/case-study hubs before products; news/blog last."""
-    if _customer_proof_url(url):
-        return 0
-    if _news_like_url(url):
-        return 3
+def _compare_hub_url(url: str) -> bool:
+    """Compare / vs / Darktrace NDR paths. Must not lose to case-study flood."""
     low = (url or "").casefold()
-    if any(s in low for s in ("product", "solution", "compare", "competitor")):
+    return bool(re.search(
+        r"compare|alternativ|versus|/vs|competitor|darktrace", low))
+
+
+def _queue_tier(url: str) -> int:
+    """Compare hubs first, then customers, then products; news/blog last."""
+    if _compare_hub_url(url):
+        return 0
+    if _customer_proof_url(url):
         return 1
-    return 2
+    if _news_like_url(url):
+        return 4
+    low = (url or "").casefold()
+    if any(s in low for s in ("product", "solution")):
+        return 2
+    return 3
 
 
 def _locs_from_xml(xml: str, domain: str) -> tuple[list[str], list[str]]:
@@ -567,8 +579,13 @@ def scrape_site(
                 and _same_domain(absolute, domain)
                 and _priority_url(absolute)
             ):
-                if _customer_proof_url(absolute):
+                if _compare_hub_url(absolute):
                     queue.insert(0, absolute)
+                elif _customer_proof_url(absolute):
+                    idx = 0
+                    while idx < len(queue) and _compare_hub_url(queue[idx]):
+                        idx += 1
+                    queue.insert(idx, absolute)
                 else:
                     queue.append(absolute)
 

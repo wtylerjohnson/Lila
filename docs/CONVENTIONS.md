@@ -262,8 +262,20 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   LLM probes, so a 300s customer-probe timeout cannot starve
   the roster or wipe site case-study names (Activ / Hardis /
   Microsoft). The customers probe runs last among structured
-  probes. Compare / competitor-comparisons URLs beat
-  whitepaper PDFs for rival evidence. IPO underwriter / cover tables
+  probes. Compare / competitor-comparisons / ndr-darktrace
+  URLs are queued ahead of CaseStudies PDF paths (the live
+  `/assets/data/pdf/CaseStudies/` slug matches `casestud`,
+  so those PDFs are crawlable) so Darktrace cannot fall out
+  of the 24-page budget.
+  Rival evidence for Cisco, Juniper, and Darktrace must be a
+  compare-shaped URL with a matching claim, not /products/eos
+  ISE context or a 451 whitepaper PDF. ExtraHop compare URLs
+  may stay. Rival vendors/products (ExtraHop, ClearPass,
+  ForeScout, EyeSegment) are not offerings. Fragment customers
+  (Product Testimonials, Lancaster Coun, County Government,
+  Arista Extensib, Edge Threat Management) are rejected.
+  Microsoft evidence prefers a customer/case-study URL when
+  one exists. IPO underwriter / cover tables
   (Morgan Stanley, Citigroup, Barclays as bookrunners) are not
   buyers. News conference blurbs and synthesized "Named in
   S-1/10-K" paraphrases are not bank proof.

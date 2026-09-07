@@ -159,7 +159,7 @@ _CATEGORY_TOKENS = frozenset({
     "internet", "specialty",
 })
 _COMPARE_URL = re.compile(
-    r"compare|alternativ|versus|/vs|competitor",
+    r"compar(?:e|ison)|alternativ|versus|/vs|competitor|darktrace",
     re.I,
 )
 _WHITEPAPER_URL = re.compile(
@@ -181,7 +181,7 @@ _CUSTOMER_INCLUDE = re.compile(
 )
 _TRUNCATED_TAIL = re.compile(
     r"\b(universi|compa|stu|grou|colleg|departm|solutio|networ|"
-    r"foundat|associat|internation)\s*$",
+    r"foundat|associat|internation|coun|extensib)\s*$",
     re.I,
 )
 _CUSTOMER_CHROME = frozenset({
@@ -191,6 +191,8 @@ _CUSTOMER_CHROME = frozenset({
     "quick facts", "corporate responsibility", "events calendar",
     "forrester wave", "data center network solutions",
     "a-care", "acare", "support engineering finance",
+    "product testimonials", "testimonials", "county government",
+    "edge threat management",
 })
 _ORG_RUN = re.compile(
     r"\b([A-Z][A-Za-z0-9&'!-]{1,40}"
@@ -291,10 +293,13 @@ _TOOL_META = frozenset({
 _RIVAL_PRODUCTS = frozenset({
     "velocloud", "meraki", "catalyst", "nexus", "juniper", "qfx",
     "aruba", "fortinet", "vmware", "silver peak", "cisco",
+    "extrahop", "clearpass", "forescout", "eyesegment",
+    "edge threat management",
 })
 _RIVAL_VENDORS = frozenset({
     "cisco", "juniper", "vmware", "nvidia", "hpe", "hewlett packard",
     "aruba", "fortinet", "extreme", "palo alto", "meraki",
+    "extrahop", "forescout",
     "velocloud", "silver peak", "cumulus", "darktrace",
 })
 _GENERIC_CUSTOMERS = frozenset({
@@ -302,6 +307,7 @@ _GENERIC_CUSTOMERS = frozenset({
     "organizations", "organisation", "customers", "clients",
     "partners", "companies", "agencies", "fortune", "industry",
     "the company", "this company",
+    "county government", "city government", "state government",
 })
 _COMPETITOR_LEAD = re.compile(
     r"(?:unlike|versus|\bvs\.?\b|compared to|compare(?:d)?(?: this)? to|"
@@ -1330,11 +1336,15 @@ def usable_site_text(scrape, *, max_chars: int = 24000) -> str:
     chunks: list[str] = []
     pages = getattr(scrape, "pages", None)
     if pages is not None:
+        ranked = []
         for page in pages:
             text = getattr(page, "text", "") or ""
             if not text.strip() or is_error_page(text):
                 continue
             url = getattr(page, "url", "") or ""
+            ranked.append((0 if is_compare_url(url) else 1, url, text))
+        ranked.sort(key=lambda row: row[0])
+        for _tier, url, text in ranked:
             chunks.append(f"# {url}\n{text}" if url else text)
         return "\n\n".join(chunks)[:max_chars]
     if hasattr(scrape, "combined_text"):
@@ -1371,6 +1381,11 @@ def _party_name(raw: str, *, client_name: str = "") -> str:
         return ""
     client = _clean(client_name).casefold()
     if client and (name.casefold() == client or name.casefold() in client.split()):
+        return ""
+    first = (name.casefold().split() or [""])[0]
+    brand = {t for t in client.split() if len(t) >= 4} - {
+        "inc", "llc", "ltd", "corp", "the", "and", "networks"}
+    if client and first and first in brand:
         return ""
     return name
 
@@ -1488,7 +1503,8 @@ def is_customer_chrome(text: str) -> bool:
     if re.search(
             r"\b(quick facts|corporate responsibility|events calendar|"
             r"data center network solutions|ai neoclouds|"
-            r"cloud and ai titans|our customers)\b", low):
+            r"cloud and ai titans|our customers|testimonials?|"
+            r"county government|edge threat|threat management)\b", low):
         return True
     words = low.split()
     if sum(1 for w in words if w in _DEPT_WORDS) >= 2:
