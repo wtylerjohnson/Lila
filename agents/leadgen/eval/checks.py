@@ -312,26 +312,52 @@ def pack_level_checks(
         if lead.lead_tier in _ACTIONABLE_TIERS
         and is_solicitation_only(lead, overlay_for(overlays, lead.lead_id))
     ]
-    lead_ids = {lead.lead_id for lead in pack.leads}
-    parent_ids = {lid for parent in pack.parents for lid in parent.lead_ids}
-    declared_ids = (parent_ids | {trace.lead_id for trace in pack.traces}
-                    | set(pack.declared_lead_ids) | set(pack.declared_reject_ids))
-    scored_ids = {item.subject_id for item in already if item.scope == "lead"}
+    lead_ids = _nonblank_ids(lead.lead_id for lead in pack.leads)
+    parent_ids = _nonblank_ids(
+        lid for parent in pack.parents for lid in parent.lead_ids)
+    trace_ids = _nonblank_ids(trace.lead_id for trace in pack.traces)
+    skipped_null_traces = sum(
+        1 for trace in pack.traces if not _is_declared_id(trace.lead_id))
+    declared_ids = (
+        parent_ids | trace_ids
+        | _nonblank_ids(pack.declared_lead_ids)
+        | _nonblank_ids(pack.declared_reject_ids)
+    )
+    scored_ids = _nonblank_ids(
+        item.subject_id for item in already if item.scope == "lead")
     missing_ids = sorted(declared_ids - (lead_ids & scored_ids))
-    reject_ids = {lead.lead_id for lead in pack.leads
-                  if lead.lead_tier is LeadTier.REJECT}
-    scored_rejects = {item.subject_id for item in already
-                      if item.scope == "lead" and item.lead_tier == LeadTier.REJECT.value}
-    missing_rejects = sorted((set(pack.declared_reject_ids) | reject_ids)
-                             - (reject_ids & scored_rejects))
+    reject_ids = _nonblank_ids(
+        lead.lead_id for lead in pack.leads
+        if lead.lead_tier is LeadTier.REJECT)
+    scored_rejects = _nonblank_ids(
+        item.subject_id for item in already
+        if item.scope == "lead" and item.lead_tier == LeadTier.REJECT.value)
+    missing_rejects = sorted(
+        (_nonblank_ids(pack.declared_reject_ids) | reject_ids)
+        - (reject_ids & scored_rejects))
     orphans = _orphan_lead_ids(pack)
+    if missing_ids or missing_rejects:
+        reject_receipt = (
+            "missing declared lead ids: " + _join_ids(missing_ids)
+            + "; missing REJECT rows: " + _join_ids(missing_rejects)
+        )
+    else:
+        reject_receipt = (
+            f"all {len(declared_ids)} declared lead ids retained; "
+            f"REJECT rows retained: {len(reject_ids)}"
+        )
+        if skipped_null_traces:
+            reject_receipt += (
+                f"; {skipped_null_traces} traces with no lead_id skipped "
+                "(parent traces, not declared leads)"
+            )
     rows = [
         result(
             "PACK.SOLICITATION_ONLY_T1T2", "PACK",
             "zero solicitation-only T1/T2",
             CheckVerdict.FAIL if solicitation_t1t2 else CheckVerdict.PASS,
             (
-                "solicitation-only T1/T2: " + ", ".join(solicitation_t1t2)
+                "solicitation-only T1/T2: " + _join_ids(solicitation_t1t2)
                 if solicitation_t1t2 else
                 "0 solicitation-only lead T1 / lead T2"
             ),
@@ -342,7 +368,7 @@ def pack_level_checks(
             "no quota fill",
             CheckVerdict.FAIL if pack.quota_keys else CheckVerdict.PASS,
             (
-                "quota keys are not allowed: " + ", ".join(pack.quota_keys)
+                "quota keys are not allowed: " + _join_ids(pack.quota_keys)
                 if pack.quota_keys else
                 "pack declares no fill quota"
             ),
@@ -352,29 +378,43 @@ def pack_level_checks(
             "PACK.REJECT_NOT_DROPPED", "PACK",
             "REJECT receipt without silent drop",
             CheckVerdict.FAIL if missing_ids or missing_rejects else CheckVerdict.PASS,
-            (
-                "missing declared lead ids: " + ", ".join(missing_ids)
-                + "; missing REJECT rows: " + ", ".join(missing_rejects)
-                if missing_ids or missing_rejects else
-                f"all {len(declared_ids)} declared lead ids retained; "
-                f"REJECT rows retained: {len(reject_ids)}"
-            ),
+            reject_receipt,
             scope="pack", subject_id=pack.source_label,
         ),
     ]
     rows.append(result(
         "PACK.NO_ORPHAN_LEADS", "PACK", "leads belong to parent inventory",
         CheckVerdict.FAIL if orphans else CheckVerdict.PASS,
-        "lead ids absent from parent inventories: " + ", ".join(orphans)
+        "lead ids absent from parent inventories: " + _join_ids(orphans)
         if orphans else "every lead is referenced by a parent lead_ids inventory",
         scope="pack", subject_id=pack.source_label,
     ))
     return rows
 
 
+def _is_declared_id(value: Any) -> bool:
+    """True when a value actually names a lead. Null/blank is not a declaration."""
+
+    return isinstance(value, str) and bool(value.strip())
+
+
+def _nonblank_ids(values: Iterable[Any]) -> set[str]:
+    """Collect string lead ids. Skip None, non-strings, and whitespace-only."""
+
+    return {value.strip() for value in values if _is_declared_id(value)}
+
+
+def _join_ids(ids: Iterable[Any]) -> str:
+    """Join ids for receipts. Nulls never enter the string."""
+
+    return ", ".join(
+        value.strip() for value in ids if _is_declared_id(value))
+
+
 def _orphan_lead_ids(pack: ScoreInput) -> list[str]:
-    declared = {lid for parent in pack.parents for lid in parent.lead_ids}
-    return sorted({lead.lead_id for lead in pack.leads} - declared)
+    declared = _nonblank_ids(
+        lid for parent in pack.parents for lid in parent.lead_ids)
+    return sorted(_nonblank_ids(lead.lead_id for lead in pack.leads) - declared)
 
 
 def _named(value: str | None) -> bool:

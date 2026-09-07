@@ -1347,6 +1347,10 @@ coverage claims; nothing in it is a gate value.
   frozen LeadRow forbids. Run:
   `python -m agents.leadgen.eval.score --pack <receipt-or-eval.json>`.
   Tiny fixture: `agents/leadgen/eval/fixtures/tiny_pack.json`.
+  `PACK.REJECT_NOT_DROPPED` treats only nonblank string ids as declared
+  leads. `DecisionTrace.lead_id` may be null on parent-only traces (no
+  emitted child); those traces are skipped from inventory joins and are
+  not missing leads. Real string REJECT ids that are absent still FAIL.
 - Step 1 `CompanyDossier` remains the ontology front door (PR #1). Cite
   it with optional string fields until that PR merges. Do not import
   targeting or Apollo from `agents/leadgen/contracts.py`,

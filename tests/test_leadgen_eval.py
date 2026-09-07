@@ -18,6 +18,7 @@ import pytest
 from pydantic import ValidationError
 
 from agents.leadgen import (
+    AssessmentSubjectKind,
     CommercialMotionKind,
     Contactability,
     DecisionTrace,
@@ -66,6 +67,23 @@ def _trace(lead: LeadRow, *, notes: str = "assess · motion · pathway"):
         lead_id=lead.lead_id,
         steps=("assess", "motion", "pathway", "path", "action", "tier"),
         evidence_ids=("E1",),
+        notes=notes,
+    )
+
+
+def _parent_only_trace(
+    parent, *, trace_id="dt:R1:parent-only", lead_id=None,
+    notes="parent with no emitted lead",
+):
+    """Press-shaped parent trace. lead_id may be null (not a declared lead)."""
+
+    return DecisionTrace(
+        trace_id=trace_id,
+        assess_run_id="R1",
+        as_of=NOW,
+        parent_assessment_id=parent.assessment_id,
+        lead_id=lead_id,
+        steps=("assess",),
         notes=notes,
     )
 
@@ -201,6 +219,126 @@ def test_reject_receipt_is_not_silently_dropped():
         card, "TIER.RECEIPT_JUSTIFIED", subject_id=receipted.lead_id,
     ).verdict is CheckVerdict.PASS
     assert _verdict(card, "PACK.REJECT_NOT_DROPPED").verdict is CheckVerdict.PASS
+
+
+def _press_stub_pack_with_null_traces(*, extra=None, drop_lead_id_key=False):
+    """Minimal stub receipt: HOLD child plus parent traces with null lead_id.
+
+    Mirrors gold-line press shape (stub receipt, HOLD leads, 0 REJECT,
+    parent traces with lead_id null). Invents no client market data.
+    """
+
+    hold = _lead(
+        lead_tier=LeadTier.HOLD,
+        readiness=LeadReadiness.HELD,
+        next_action=_next(blocked_by="HOLD: coverage incomplete"),
+    )
+    hold_parent = _parent(lead_ids=[hold.lead_id])
+    empty_parent = _parent(
+        assessment_id="oa:R1:partner_link:PL1",
+        subject_kind=AssessmentSubjectKind.PARTNER_LINK,
+        subject_id="PL1",
+        notice_id=None,
+        solicitation_number=None,
+        lifecycle=None,
+        live_classification=None,
+        live_recommendation=None,
+        lead_ids=[],
+    )
+    traces = [
+        _trace(hold),
+        _parent_only_trace(empty_parent, lead_id=None),
+        _parent_only_trace(
+            empty_parent, trace_id="dt:R1:parent-blank", lead_id="  ",
+            notes="whitespace lead_id is not a declared lead"),
+    ]
+    payload = _pack(
+        [hold],
+        parents=[hold_parent, empty_parent],
+        traces=traces,
+        extra={
+            "stub": True,
+            "by_lead_tier": [{
+                "lead_tier": "HOLD",
+                "lead_ids": [hold.lead_id],
+            }],
+            "reject_receipts": [],
+            **(extra or {}),
+        },
+    )
+    if drop_lead_id_key:
+        for item in payload["traces"]:
+            value = item.get("lead_id")
+            if not (isinstance(value, str) and value.strip()):
+                item.pop("lead_id", None)
+    return hold, payload
+
+
+def test_null_lead_id_traces_do_not_crash_scorer(tmp_path):
+    """Parent traces with null lead_id are not declared leads and must not TypeError."""
+
+    hold, payload = _press_stub_pack_with_null_traces()
+    # Press receipts serialize lead_id: null, not an omitted field.
+    assert any(item.get("lead_id") is None for item in payload["traces"])
+    card = score_pack(payload)
+    row = _verdict(card, "PACK.REJECT_NOT_DROPPED")
+    assert row.verdict is CheckVerdict.PASS
+    assert hold.lead_id in card.lead_ids
+    assert card.reject_lead_ids == ()
+    assert "None" not in row.receipt
+    assert "parent traces, not declared leads" in row.receipt
+    md = render_markdown(card)
+    csv_text = render_csv(card)
+    assert "LeadRow relevance scorecard" in md
+    assert hold.lead_id in md
+    assert "PACK.REJECT_NOT_DROPPED" in csv_text
+    pack_path = tmp_path / "stub.leadgen.json"
+    md_path = tmp_path / "scorecard.md"
+    csv_path = tmp_path / "scorecard.csv"
+    pack_path.write_text(json.dumps(payload), encoding="utf-8")
+    scored = subprocess.run(
+        [
+            sys.executable, "-m", "agents.leadgen.eval.score",
+            "--pack", str(pack_path),
+            "--md", str(md_path),
+            "--csv", str(csv_path),
+        ],
+        cwd=ROOT, capture_output=True, text=True, check=False,
+    )
+    assert scored.returncode == 0, scored.stderr
+    assert md_path.is_file() and csv_path.is_file()
+    assert "LeadRow relevance scorecard" in md_path.read_text(encoding="utf-8")
+    assert "PACK.REJECT_NOT_DROPPED" in csv_path.read_text(encoding="utf-8")
+
+
+def test_omitted_trace_lead_id_is_not_a_declared_lead():
+    hold, payload = _press_stub_pack_with_null_traces(drop_lead_id_key=True)
+    assert all(
+        "lead_id" not in item or item.get("lead_id")
+        for item in payload["traces"]
+    )
+    card = score_pack(payload)
+    row = _verdict(card, "PACK.REJECT_NOT_DROPPED")
+    assert row.verdict is CheckVerdict.PASS
+    assert hold.lead_id in card.lead_ids
+
+
+def test_null_trace_lead_id_does_not_mask_missing_reject_string():
+    """Real REJECT ids still fail PACK.REJECT_NOT_DROPPED next to null traces."""
+
+    missing = "lr:oa:R1:live_solicitation:L1:M-missing:P1:S1"
+    hold, payload = _press_stub_pack_with_null_traces(extra={
+        "reject_receipts": [missing],
+    })
+    card = score_pack(payload)
+    row = _verdict(card, "PACK.REJECT_NOT_DROPPED")
+    assert row.verdict is CheckVerdict.FAIL
+    assert missing in row.receipt
+    assert "None" not in row.receipt
+    assert hold.lead_id in card.lead_ids
+    assert missing not in card.lead_ids
+    assert missing in render_markdown(card)
+    assert missing in render_csv(card)
 
 
 def test_cli_help_and_tiny_fixture(tmp_path):
