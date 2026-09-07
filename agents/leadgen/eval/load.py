@@ -46,7 +46,7 @@ def overlay_for(
 def overlay_index(
     overlays: tuple[EvalOverlay, ...],
 ) -> dict[str, EvalOverlay]:
-    return {item.subject_id: item for item in overlays}
+    return {item.subject_id: item for item in _dedupe_overlays(list(overlays))}
 
 
 def load_score_input(
@@ -88,6 +88,7 @@ def load_score_input(
     if overlays_payload is not None:
         extra, _ = _read_mapping(overlays_payload, "overlays")
         overlays.extend(_parse_overlays(extra.get("overlays", extra)))
+    declared_ids, reject_ids = _declared_inventory(data)
     quota_keys = tuple(key for key in QUOTA_KEYS if key in data)
     return ScoreInput(
         parents=parents,
@@ -95,6 +96,8 @@ def load_score_input(
         traces=traces,
         overlays=tuple(_dedupe_overlays(overlays)),
         quota_keys=quota_keys,
+        declared_lead_ids=declared_ids,
+        declared_reject_ids=reject_ids,
         source_label=label,
     )
 
@@ -184,10 +187,72 @@ def _overlay_from_mapping(raw: Mapping[str, Any]) -> EvalOverlay:
         raise ScoreLoadError(f"overlay is not usable: {exc}") from exc
 
 
+def _declared_inventory(data: Mapping[str, Any]) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """Retain independent press inventories without manufacturing LeadRows."""
+
+    def ids(raw: Any) -> set[str]:
+        found: set[str] = set()
+        for item in _as_list(raw):
+            value = item.get("lead_id") if isinstance(item, Mapping) else item
+            if not isinstance(value, str) or not value.strip():
+                raise ScoreLoadError("declared inventory requires nonblank lead ids")
+            found.add(value.strip())
+        return found
+
+    declared = ids(data.get("declared_lead_ids"))
+    rejected = ids(data.get("declared_reject_ids"))
+    for key in ("reject_receipts", "hold_receipts", "watch_receipts",
+                "active_lead_t1", "active_lead_t2"):
+        found = ids(data.get(key))
+        declared.update(found)
+        if key == "reject_receipts":
+            rejected.update(found)
+    for bucket in _as_list(data.get("by_lead_tier")):
+        if not isinstance(bucket, Mapping):
+            raise ScoreLoadError("by_lead_tier requires objects with lead_ids")
+        found = ids(bucket.get("lead_ids"))
+        declared.update(found)
+        if bucket.get("lead_tier") == "REJECT":
+            rejected.update(found)
+    declared.update(rejected)
+    return tuple(sorted(declared)), tuple(sorted(rejected))
+
+
 def _dedupe_overlays(items: list[EvalOverlay]) -> list[EvalOverlay]:
-    """Last overlay for a subject_id wins. No silent drop of subjects."""
+    """Merge supplied fields; adverse facts cannot be cleared by supplements."""
 
     by_id: dict[str, EvalOverlay] = {}
     for item in items:
-        by_id[item.subject_id] = item
+        prior = by_id.get(item.subject_id)
+        if prior is None:
+            by_id[item.subject_id] = item
+            continue
+        merged = prior.model_dump()
+        for field in item.model_fields_set:
+            value = getattr(item, field)
+            if field.endswith("_cites"):
+                merged[field] = tuple(dict.fromkeys((*merged[field], *value)))
+            elif field in {"auth_only", "solicitation_only"}:
+                merged[field] = True if merged[field] is True else value
+            elif field == "email_status":
+                # Strictest status wins, even if an address was omitted.
+                rank = {EmailStatus.ABSENT: 0, EmailStatus.VERIFIED: 1,
+                        EmailStatus.UNVERIFIED: 2}
+                merged[field] = max((prior.email_status, value), key=rank.get)
+            elif field == "receipt":
+                merged[field] = " · ".join(dict.fromkeys(
+                    text for text in (prior.receipt, value) if text)) or None
+            elif field == "email":
+                if prior.email and value and prior.email != value:
+                    # A receipt for one address cannot verify a different one.
+                    merged["email_status"] = EmailStatus.UNVERIFIED
+                merged[field] = prior.email or value
+            else:
+                merged[field] = value
+        # Iterate order of model_fields_set must never change adverse precedence.
+        if (prior.email_status is EmailStatus.UNVERIFIED
+                or item.email_status is EmailStatus.UNVERIFIED
+                or (prior.email and item.email and prior.email != item.email)):
+            merged["email_status"] = EmailStatus.UNVERIFIED
+        by_id[item.subject_id] = EvalOverlay.model_validate(merged)
     return list(by_id.values())

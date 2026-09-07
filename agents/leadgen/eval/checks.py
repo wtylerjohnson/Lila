@@ -4,12 +4,21 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from typing import Any
+from unicodedata import category
+from urllib.parse import unquote, urlsplit
 
-from agents.assess.contracts import LifecycleStage
+from agents.assess.contracts import (
+    EvidenceKind,
+    EvidenceRef,
+    EvidenceTier,
+    EvidenceUse,
+    LifecycleStage,
+)
 from agents.leadgen.contracts import LeadRow, OpportunityAssessment
 from agents.leadgen.enums import (
     CommercialMotionKind,
     CommunicationPermission,
+    Contactability,
     LeadTier,
     PathwayKind,
     SellerPathKind,
@@ -26,7 +35,10 @@ from .models import (
     ScoreInput,
 )
 
-_UNKNOWN_BUYERS = frozenset({"", "unknown", "unk", "n/a", "na", "none"})
+_UNKNOWN_BUYERS = frozenset({
+    "", "unknown", "unk", "na", "none", "tbd", "x", "placeholder", "tba", "null",
+    "tobedetermined", "tobeannounced", "notavailable", "notapplicable", "notknown",
+})
 _INTENT_MOTIONS = frozenset({
     CommercialMotionKind.LIVE_BID,
     CommercialMotionKind.RENEWAL,
@@ -68,25 +80,76 @@ def family_pass(checks: Iterable[CheckResult], family: str) -> bool:
     )
 
 
+def _login_url(value: Any) -> bool:
+    url = urlsplit(str(value or ""))
+    host = (url.hostname or "").casefold()
+    path = unquote(url.path).casefold()
+    return (
+        any(host == domain or host.endswith("." + domain)
+            for domain in ("ebuy.gsa.gov", "login.gov", "piee.eb.mil"))
+        or host.startswith("auth.")
+        or any(part in path for part in ("/login", "/signin", "/sign-in"))
+        or ((host == "sam.gov" or host.endswith(".sam.gov"))
+            and path.startswith("/workspace"))
+    )
+
+
+def _login_wall(item: EvidenceRef) -> bool:
+    text = " ".join(item.excerpt.casefold().split())
+    return _login_url(item.source_url) or any(phrase in text for phrase in (
+        "sign in to access", "sign-in to access", "log in to access",
+        "login to access", "login required", "sign in required",
+        "authentication required", "please sign in", "please log in",
+        "you must log in", "you must sign in",
+    ))
+
+
+def _usable_evidence(item: EvidenceRef) -> bool:
+    return bool(item.evidence_id.strip() and item.excerpt.strip()
+                and item.source_name.strip()) and not _login_wall(item)
+
+
+def _clean_cite(value: str) -> str:
+    return "".join(char for char in value if category(char) != "Cf").strip()
+
+
+def _resolved_overlay(
+    overlay: EvalOverlay, evidence: Iterable[EvidenceRef],
+) -> EvalOverlay:
+    """Only locally resolved, readable evidence can give a cite credit."""
+
+    ids = {item.evidence_id for item in evidence if _usable_evidence(item)}
+    return overlay.model_copy(update={
+        field: tuple(_clean_cite(cite) for cite in getattr(overlay, field)
+                     if _clean_cite(cite) and _clean_cite(cite) in ids)
+        for field in EvalOverlay.model_fields if field.endswith("_cites")
+    })
+
+
+def _notice_evidence(item: EvidenceRef) -> bool:
+    host = (urlsplit(str(item.source_url)).hostname or "").casefold()
+    return (item.tier is EvidenceTier.NOTICE or item.kind is EvidenceKind.NOTICE
+            or host == "sam.gov" or host.endswith(".sam.gov"))
+
+
 def is_solicitation_only(lead: LeadRow, overlay: EvalOverlay) -> bool:
-    """True when a child is a wrapped SAM notice, not a four-factor lead."""
+    """A negative overlay or pathway relabel cannot clear notice-only facts."""
 
     if overlay.solicitation_only is True:
         return True
-    if overlay.solicitation_only is False:
-        return False
     path = lead.seller_path
-    has_route_cite = bool(
-        path.holder or path.vehicle or path.dossier_cite
-        or path.prime_posture_cite)
-    has_contacts = bool(lead.external_pathway.published_contacts)
-    has_fit = bool(overlay.product_fit_cites)
-    return (
-        lead.external_pathway.kind is PathwayKind.SAM_NOTICE
-        and not has_route_cite
-        and not has_contacts
-        and not has_fit
+    pathway = lead.external_pathway
+    has_route_cite = any(_named(value) for value in (
+        path.holder, path.vehicle, path.dossier_cite, path.prime_posture_cite))
+    has_contacts = any(_named(contact.name) for contact in pathway.published_contacts)
+    # A notice cannot supply the evidence claimed to go beyond that notice.
+    has_fit = bool(_resolved_overlay(
+        overlay, (item for item in pathway.evidence if not _notice_evidence(item)),
+    ).product_fit_cites)
+    notice_backed = pathway.kind is PathwayKind.SAM_NOTICE or any(
+        _notice_evidence(item) for item in pathway.evidence
     )
+    return notice_backed and not has_route_cite and not has_contacts and not has_fit
 
 
 def score_pack(
@@ -127,7 +190,7 @@ def score_input(pack: ScoreInput) -> Scorecard:
         checks=tuple(checks),
         lead_ids=tuple(lead.lead_id for lead in pack.leads),
         reject_lead_ids=reject_ids,
-        invented_row_count=0,
+        invented_row_count=len(_orphan_lead_ids(pack)),
     )
 
 
@@ -139,6 +202,7 @@ def score_lead(
 ) -> list[CheckResult]:
     """A-F plus per-row tier checks. REJECT is scored, never dropped."""
 
+    overlay = _resolved_overlay(overlay, lead.external_pathway.evidence)
     sid = lead.lead_id
     tier = lead.lead_tier.value
     rows = [
@@ -221,6 +285,8 @@ def score_parent(
         lead for lead in leads
         if lead.parent_assessment_id == parent.assessment_id
     )
+    overlay = _resolved_overlay(overlay, (
+        item for child in children for item in child.external_pathway.evidence))
     sid = parent.assessment_id
     return [
         _p_demand(parent, overlay, sid),
@@ -246,14 +312,19 @@ def pack_level_checks(
         if lead.lead_tier in _ACTIONABLE_TIERS
         and is_solicitation_only(lead, overlay_for(overlays, lead.lead_id))
     ]
-    reject_ids = [
-        lead.lead_id for lead in pack.leads
-        if lead.lead_tier is LeadTier.REJECT
-    ]
-    scored_rejects = {
-        item.subject_id for item in already
-        if item.scope == "lead" and item.lead_tier == LeadTier.REJECT.value
-    }
+    lead_ids = {lead.lead_id for lead in pack.leads}
+    parent_ids = {lid for parent in pack.parents for lid in parent.lead_ids}
+    declared_ids = (parent_ids | {trace.lead_id for trace in pack.traces}
+                    | set(pack.declared_lead_ids) | set(pack.declared_reject_ids))
+    scored_ids = {item.subject_id for item in already if item.scope == "lead"}
+    missing_ids = sorted(declared_ids - (lead_ids & scored_ids))
+    reject_ids = {lead.lead_id for lead in pack.leads
+                  if lead.lead_tier is LeadTier.REJECT}
+    scored_rejects = {item.subject_id for item in already
+                      if item.scope == "lead" and item.lead_tier == LeadTier.REJECT.value}
+    missing_rejects = sorted((set(pack.declared_reject_ids) | reject_ids)
+                             - (reject_ids & scored_rejects))
+    orphans = _orphan_lead_ids(pack)
     rows = [
         result(
             "PACK.SOLICITATION_ONLY_T1T2", "PACK",
@@ -273,30 +344,43 @@ def pack_level_checks(
             (
                 "quota keys are not allowed: " + ", ".join(pack.quota_keys)
                 if pack.quota_keys else
-                "scorer invented 0 rows; pack declares no fill quota"
+                "pack declares no fill quota"
             ),
             scope="pack", subject_id=pack.source_label,
         ),
         result(
             "PACK.REJECT_NOT_DROPPED", "PACK",
             "REJECT receipt without silent drop",
+            CheckVerdict.FAIL if missing_ids or missing_rejects else CheckVerdict.PASS,
             (
-                CheckVerdict.FAIL
-                if any(lead_id not in scored_rejects for lead_id in reject_ids)
-                else CheckVerdict.PASS
-            ),
-            (
-                f"REJECT rows on scorecard: {len(scored_rejects)} of "
-                f"{len(reject_ids)} input"
+                "missing declared lead ids: " + ", ".join(missing_ids)
+                + "; missing REJECT rows: " + ", ".join(missing_rejects)
+                if missing_ids or missing_rejects else
+                f"all {len(declared_ids)} declared lead ids retained; "
+                f"REJECT rows retained: {len(reject_ids)}"
             ),
             scope="pack", subject_id=pack.source_label,
         ),
     ]
+    rows.append(result(
+        "PACK.NO_ORPHAN_LEADS", "PACK", "leads belong to parent inventory",
+        CheckVerdict.FAIL if orphans else CheckVerdict.PASS,
+        "lead ids absent from parent inventories: " + ", ".join(orphans)
+        if orphans else "every lead is referenced by a parent lead_ids inventory",
+        scope="pack", subject_id=pack.source_label,
+    ))
     return rows
 
 
+def _orphan_lead_ids(pack: ScoreInput) -> list[str]:
+    declared = {lid for parent in pack.parents for lid in parent.lead_ids}
+    return sorted({lead.lead_id for lead in pack.leads} - declared)
+
+
 def _named(value: str | None) -> bool:
-    return " ".join(str(value or "").split()).casefold() not in _UNKNOWN_BUYERS
+    # Punctuation, spacing, and invisible formatting cannot disguise a sentinel.
+    token = "".join(char for char in str(value or "").casefold() if char.isalnum())
+    return token not in _UNKNOWN_BUYERS
 
 
 def _one_line(text: str) -> str:
@@ -467,13 +551,15 @@ def _b3(lead: LeadRow, parent: OpportunityAssessment | None) -> CheckResult:
 def _c1(lead: LeadRow) -> CheckResult:
     pathway = lead.external_pathway
     url = str(pathway.source_url or "")
-    ok = url.lower().startswith("https://") and bool(pathway.evidence)
+    ok = (url.lower().startswith("https://") and not _login_url(url)
+          and bool(pathway.evidence)
+          and all(_usable_evidence(item) for item in pathway.evidence))
     return result(
         "C1", "C", "published evidence-bound pathway",
         CheckVerdict.PASS if ok else CheckVerdict.FAIL,
         (
             f"kind={pathway.kind.value} evidence={len(pathway.evidence)}"
-            if ok else "pathway missing HTTPS URL or evidence"
+            if ok else "pathway missing readable evidence/HTTPS URL or contains a login wall"
         ),
         scope="lead", subject_id=lead.lead_id,
         lead_tier=lead.lead_tier.value,
@@ -511,29 +597,29 @@ def _c3(lead: LeadRow, overlay: EvalOverlay) -> CheckResult:
     """UNVERIFIED email cannot PASS C3. Absent email is NA, not a hide."""
 
     status = overlay.email_status
+    email = (overlay.email or "").strip()
+    receipt = (overlay.receipt or "").strip()
+    published = (lead.external_pathway.contactability is Contactability.PUBLISHED_POC
+                 or bool(lead.external_pathway.published_contacts))
+    verdict = CheckVerdict.FAIL
     if status is EmailStatus.UNVERIFIED:
-        addr = overlay.email or "unspecified"
-        return result(
-            "C3", "C", "contact email is not UNVERIFIED",
-            CheckVerdict.FAIL,
-            f"UNVERIFIED email cannot PASS C3 ({addr})",
-            scope="lead", subject_id=lead.lead_id,
-            lead_tier=lead.lead_tier.value,
-        )
-    if status is EmailStatus.VERIFIED:
-        return result(
-            "C3", "C", "contact email is not UNVERIFIED",
-            CheckVerdict.PASS,
-            "contact email marked VERIFIED",
-            scope="lead", subject_id=lead.lead_id,
-            lead_tier=lead.lead_tier.value,
-        )
+        reason = f"UNVERIFIED email cannot PASS C3 ({email or 'unspecified'})"
+    elif status is EmailStatus.VERIFIED:
+        if email and receipt:
+            verdict = CheckVerdict.PASS
+            reason = f"contact email marked VERIFIED ({email}); receipt: {receipt}"
+        else:
+            reason = "VERIFIED requires non-empty email and verification receipt"
+    elif overlay.email is not None:
+        reason = "email claimed without verification status"
+    elif published:
+        reason = "published POC claimed without verification status"
+    else:
+        verdict = CheckVerdict.NA
+        reason = "no email or published POC claimed; C3 does not invent a contact"
     return result(
-        "C3", "C", "contact email is not UNVERIFIED",
-        CheckVerdict.NA,
-        "no email claimed; C3 does not invent a contact",
-        scope="lead", subject_id=lead.lead_id,
-        lead_tier=lead.lead_tier.value,
+        "C3", "C", "contact email is not UNVERIFIED", verdict, reason,
+        scope="lead", subject_id=lead.lead_id, lead_tier=lead.lead_tier.value,
     )
 
 
@@ -567,7 +653,9 @@ def _d1(lead: LeadRow) -> CheckResult:
 
 def _d2(lead: LeadRow) -> CheckResult:
     path = lead.seller_path
-    cite = path.holder or path.vehicle or path.dossier_cite or path.prime_posture_cite
+    cite = next((value for value in (
+        path.holder, path.vehicle, path.dossier_cite, path.prime_posture_cite)
+        if _named(value)), None)
     if cite:
         return result(
             "D2", "D", "path cites holder/vehicle/dossier",
@@ -603,9 +691,23 @@ def _d3(lead: LeadRow, overlay: EvalOverlay) -> CheckResult:
     )
     vehicle_like = (
         lead.seller_path.kind is SellerPathKind.VEHICLE_ACCESS
-        or bool(lead.seller_path.vehicle)
+        or lead.external_pathway.kind is PathwayKind.VEHICLE_ORDERING
+        or _named(lead.seller_path.vehicle)
     )
-    if overlay.auth_only:
+    evidence = lead.external_pathway.evidence
+    supported_intent = any(
+        item.kind is not EvidenceKind.VEHICLE and _usable_evidence(item)
+        and bool({EvidenceUse.TIMING, EvidenceUse.FUNDING} & set(item.supports))
+        for item in evidence
+    )
+    if (_login_url(lead.external_pathway.source_url)
+            or any(_login_wall(item) for item in evidence)):
+        return result(
+            "D3", "D", "authorization is not buying intent", CheckVerdict.FAIL,
+            "login-wall evidence cannot establish buying intent",
+            scope="lead", subject_id=lead.lead_id, lead_tier=lead.lead_tier.value,
+        )
+    if overlay.auth_only or (vehicle_like and not supported_intent):
         return result(
             "D3", "D", "authorization is not buying intent",
             CheckVerdict.FAIL,
@@ -1028,4 +1130,3 @@ def _p_evidence(
         "parent has no notice_id, child evidence, or overlay cite",
         scope="parent", subject_id=sid,
     )
-
