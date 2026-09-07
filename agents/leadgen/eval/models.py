@@ -7,9 +7,9 @@ Overlays carry skeptic facts the frozen LeadRow / parent forbid
 from __future__ import annotations
 
 from enum import Enum
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import Field
+from pydantic import Field, StringConstraints
 
 from agents.leadgen._base import _FrozenContract
 from agents.leadgen.contracts import LeadRow, OpportunityAssessment
@@ -34,6 +34,9 @@ class EmailStatus(str, Enum):
     ABSENT = "ABSENT"
 
 
+Cite = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
+
+
 class EvalOverlay(_FrozenContract):
     """Skeptic facts keyed by lead_id or assessment_id."""
 
@@ -44,12 +47,12 @@ class EvalOverlay(_FrozenContract):
     auth_only: bool = False
     solicitation_only: bool | None = None
     receipt: str | None = None
-    product_fit_cites: tuple[str, ...] = Field(default_factory=tuple)
-    demand_cites: tuple[str, ...] = Field(default_factory=tuple)
-    need_cites: tuple[str, ...] = Field(default_factory=tuple)
-    funding_cites: tuple[str, ...] = Field(default_factory=tuple)
-    contestability_cites: tuple[str, ...] = Field(default_factory=tuple)
-    blocker_cites: tuple[str, ...] = Field(default_factory=tuple)
+    product_fit_cites: tuple[Cite, ...] = Field(default_factory=tuple)
+    demand_cites: tuple[Cite, ...] = Field(default_factory=tuple)
+    need_cites: tuple[Cite, ...] = Field(default_factory=tuple)
+    funding_cites: tuple[Cite, ...] = Field(default_factory=tuple)
+    contestability_cites: tuple[Cite, ...] = Field(default_factory=tuple)
+    blocker_cites: tuple[Cite, ...] = Field(default_factory=tuple)
     outreach_doors_open: bool = False
 
 
@@ -75,6 +78,8 @@ class ScoreInput(_FrozenContract):
     leads: tuple[LeadRow, ...] = Field(default_factory=tuple)
     traces: tuple[DecisionTrace, ...] = Field(default_factory=tuple)
     overlays: tuple[EvalOverlay, ...] = Field(default_factory=tuple)
+    declared_lead_ids: tuple[Cite, ...] = Field(default_factory=tuple)
+    declared_reject_ids: tuple[Cite, ...] = Field(default_factory=tuple)
     quota_keys: tuple[str, ...] = Field(default_factory=tuple)
     source_label: str = "pack"
 
