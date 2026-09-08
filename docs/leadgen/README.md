@@ -11,9 +11,9 @@ discovery.
 - `LeadRow = BuyingMotion x ActionableExternalPathway x
   SellerTransactionPath x CurrentNextAction`
 - Federal Market Map stays the external deliverable / projection.
-  `lila_release` is untouched.
+  `lila_release` packages the assessment-bound companion and source ledger.
 - Targeting `rule_id` T1/T2 is **not** a lead tier.
-- Step 1 `CompanyDossier` remains the ontology front door (PR #1). This
+- Step 1 `CompanyDossier` is the merged ontology front door. This
   package cites it; it does not redesign intake.
 
 ## Authority for today's types
@@ -160,7 +160,7 @@ Failure rules the real path encodes:
   approaching-decision receipt is missing.
 
 Federal Market Map remains the separate external deliverable.
-`lila_release` is untouched. Press Lead Gen is not a release door.
+`lila_release` packages the assessment-bound companion and source ledger. Press Lead Gen is not a release door.
 
 ## Skeptic eval (objective scoring)
 
