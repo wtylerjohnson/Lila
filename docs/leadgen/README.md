@@ -1,7 +1,8 @@
 # Lead-gen contracts (WS0)
 
-Additive schema package plus a thin Press Lead Gen orchestration stub.
-Not a UI. Not a Market Map change. Not full Press Lead Gen.
+Additive schema package plus a thin real Press Lead Gen path.
+Not a UI. Not a Market Map change. Not full automated universe
+discovery.
 
 ## Ruling (locked)
 
@@ -73,8 +74,8 @@ Rules this mapper encodes:
 - Every child cites `parent_assessment_id` and `assess_run_id` on an
   existing Assess subject. Solicitation stays the parent; it is not a
   lead.
-- Drafts are `WATCH` or `HOLD` only. Sales-ready gates do not exist
-  yet, so the shim never emits `LEAD_T1` or `LEAD_T2`.
+- Drafts from `draft_lead_rows` are `WATCH` or `HOLD` only. The press
+  qualifier may promote a small evidenced subset.
 - Targeting `rule_id` `T1` stays on `buying_motion.targeting_rule_id`.
   It is never stored as `lead_tier`.
 - Assess evidence refs, notice ids, and requirement spans are copied
@@ -84,21 +85,23 @@ Rules this mapper encodes:
   (or the parent, when a pathway cannot be formed without invention)
   with `next_action.blocked_by` set to the promotion condition.
 
-## Press Lead Gen stub vs full Press Lead Gen
+## Press Lead Gen thin real path vs full Press Lead Gen
 
 Full Press Lead Gen is the governed pipeline: load company / product
 ontology, discover, assess, mint atomic LeadRows, then keep active
 `LEAD_T1` / `LEAD_T2` lists plus WATCH / HOLD / REJECT receipts.
 
-`agents.leadgen.press` is the **stub**. It documents Build Plan steps
-1-9 and executes them without rewriting discovery or Assess:
+`agents.leadgen.press` is the **thin real path**. It documents Build
+Plan steps 1-9 and executes them without rewriting discovery or Assess.
+`stub` is False when the qualifier ran. HOLD remains the fail-closed
+default when four-leg receipts are missing.
 
-| Step | Stub behavior |
+| Step | Real-path behavior |
 |---|---|
 | 1 | Load client profile / optional intake dossier path. Cite only. Do not redesign Step 1. |
 | 2-5 | Hand off to the existing search, qualify, Assess, and `target_actions` path. Require an `AssessRun`. Do not reimplement discovery. |
-| 6-7 | Call `draft_lead_rows`. Parents stay `OpportunityAssessment`. Children stay WATCH / HOLD. |
-| 8-9 | Write a review receipt listing drafts by `LeadTier`. Active lead T1 / lead T2 lists may be empty. WATCH / HOLD receipts are retained. Coverage and decision-trace fields are placeholders. |
+| 6-7 | Call `draft_lead_rows`, then `qualify_drafts`. Parents stay `OpportunityAssessment`. Children stay HOLD unless all four legs plus a promotion receipt are present. |
+| 8-9 | Write branded HTML (primary when `review_dir` is set) plus a JSON sidecar listing rows by `LeadTier`. WATCH / LEAD_T2 may appear; at most one LEAD_T1. REJECT only with a real receipt. No quota fill. |
 
 In-process:
 
@@ -144,15 +147,20 @@ Artifact: `data/review/<slug>.leadgen.json` (optional
 `<slug>.qualify.json` / `<slug>.horizon.json`. Not written into
 `data/state/assess_runs/`.
 
-Failure rules the stub encodes:
+Failure rules the real path encodes:
 
 - Missing assess input fails closed with an explicit error.
 - Notice-only input (a notice list or a sweep without an AssessRun)
-  is refused. The stub will not invent leads from notices alone.
-- The stub never auto-promotes to `LEAD_T1` or `LEAD_T2`.
+  is refused. Press will not invent leads from notices alone.
+- Promotion never quota-fills. Solicitation-only rows cannot green
+  `LEAD_T1` or `LEAD_T2`.
+- Incomplete required Assess coverage blocks T1/T2. The qualifier
+  does not strip a vehicle cite or stamp `auth_only=false`.
+- HOLD remains the default when a pathway, seller route, clock, or
+  approaching-decision receipt is missing.
 
 Federal Market Map remains the separate external deliverable.
-`lila_release` is untouched. This stub is not a release door.
+`lila_release` is untouched. Press Lead Gen is not a release door.
 
 ## Skeptic eval (objective scoring)
 
@@ -201,16 +209,40 @@ python -m agents.leadgen.export_assess --client "Arista Networks" \
    If there is no sweep yet, run search through the Command Center
    (not ad hoc bash, and not Step 1 intake extract). Then activate.
 
-3. Press + skeptic eval:
+3. Press the real path (HTML is primary when `--review-dir` is set;
+   JSON and optional Markdown are sidecars):
 
 ```
 python -m agents.leadgen.press \
   --assess ~/Desktop/Arista/arista.assess_run.json \
+  --review-dir data/review \
   --markdown
+```
+
+   Open the dated
+   `data/review/arista_networks_Press_Lead_Gen_CLIENT_DELIVERABLE_*.html`
+   file. Confirm `stub` is `false` on the JSON sidecar. A small number
+   of WATCH / LEAD_T2 rows may appear when a parent already has all
+   four LeadRow legs plus a renewal-decision or prime-recompete
+   receipt. Thin parents stay HOLD.
+
+4. Skeptic-score the same pack (no TypeError; promoted rows can PASS
+   families A-F when overlays/receipts supply the required facts):
+
+```
 python -m agents.leadgen.eval.score \
   --pack data/review/arista_networks.leadgen.json \
   --md /tmp/arista.scorecard.md \
   --csv /tmp/arista.scorecard.csv
+```
+
+   Hermetic fixture for the same scorer:
+
+```
+python -m agents.leadgen.eval.score \
+  --pack agents/leadgen/eval/fixtures/promoted_pack.json \
+  --md /tmp/promoted.scorecard.md \
+  --csv /tmp/promoted.scorecard.csv
 ```
 
 `--from-file` on the exporter will refuse notice lists, Market Map /
@@ -221,4 +253,4 @@ Arista. It will not invent SAM notices.
 
 Full source-universe discovery rewrite, communication-permission /
 outreach, Command Center Market Map UI, Step 1 website-deep work
-(PR #1), auto-promotion to lead T1 / lead T2.
+(PR #1), auto-promotion quotas, rewriting skeptic rubrics.
