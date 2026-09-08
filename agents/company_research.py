@@ -9,7 +9,9 @@ Two workers run simultaneously (they answer different questions):
 
 Both results feed the profiling layer (agents/decisions/intake.py) as grounded
 context. Failures are soft: an unreachable site or an empty search never blocks
-intake — the strategy is simply built from whatever evidence was gathered.
+the legacy research helper. Step 1 mastery (agents/intake) binds identity first
+and treats website-guess confidence as a hard scrape gate so a weak hit cannot
+contaminate the dossier.
 """
 
 from __future__ import annotations
@@ -20,7 +22,8 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 from agents.decisions.engine import DecisionEngine
-from tools.scrape.site import ScrapeBundle, scrape_site
+from agents.intake import IDENTITY_BIND_MIN_CONFIDENCE
+from tools.scrape.site import SITE_MASTERY_MAX_PAGES, ScrapeBundle, scrape_site
 
 _FIND_SITE_SYSTEM = """\
 You are locating the OFFICIAL website of a specific company. Use web search. Prefer
@@ -112,17 +115,35 @@ def _site_worker(
         if not research.website:
             _log("[site] locating official website (Claude web search) ...")
             guess = find_website(research.company_name, engine)
-            if guess.url:
+            if guess.url and guess.confidence >= IDENTITY_BIND_MIN_CONFIDENCE:
                 research.website = guess.url
                 research.website_source = "web_search"
-                _log(f"[site] found {guess.url}")
+                _log(f"[site] found {guess.url} (confidence {guess.confidence:.2f})")
             else:
                 research.website_source = "not_found"
-                _log("[site] no official site found; proceeding without scrape")
+                if guess.url:
+                    research.errors.append(
+                        f"site: withheld {guess.url} below bind floor "
+                        f"({guess.confidence:.2f} < {IDENTITY_BIND_MIN_CONFIDENCE})"
+                    )
+                    _log("[site] official-site guess below confidence gate; "
+                         "not scraping (wrong-company guard)")
+                else:
+                    _log("[site] no official site found; proceeding without scrape")
                 return
         _log(f"[site] scraping {research.website} ...")
         research.scrape = scrape_site(research.website, max_pages=max_pages)
-        _log(f"[site] done: {len(research.scrape.pages)} page(s) read")
+        usable = research.scrape.usable_pages()
+        failed = list(research.scrape.render_failures or [])
+        if usable:
+            _log(f"[site] done: {len(usable)} usable page(s)")
+        else:
+            n = len(failed) or len(research.scrape.pages)
+            research.errors.append(
+                f"site: official pages failed to render ({n} fetched); "
+                "ingest is missing, not empty-success"
+            )
+            _log(f"[site] done: 0 usable pages; {n} failed to render")
     except Exception as exc:  # noqa: BLE001 — research is best-effort, never blocks intake
         research.errors.append(f"site: {exc}")
         _log(f"[site] failed (continuing): {exc}")
@@ -170,7 +191,7 @@ def research_company(
     company_name: str,
     website: Optional[str] = None,
     engine: Optional[DecisionEngine] = None,
-    max_pages: int = 5,
+    max_pages: int = SITE_MASTERY_MAX_PAGES,
     do_scrape: bool = True,
     do_web: bool = True,
 ) -> CompanyResearch:

@@ -71,6 +71,8 @@ def _receipts_appendix(receipts: dict) -> str:
     if not receipts:
         return ""
     blocks = []
+    def label_text(value):
+        return re.sub(r"\b[0-9a-f]{32}\b", "Open SAM.gov notice", str(value), flags=re.I)
     for key in sorted(receipts):
         entry = receipts[key] or {}
         title = str(entry.get("title") or key)
@@ -78,7 +80,7 @@ def _receipts_appendix(receipts: dict) -> str:
         formula = str(entry.get("formula") or "")
         links = "".join(
             f'<a class="source-link" href="{url}" target="_blank" '
-            f'rel="noopener noreferrer">{label} ↗</a> '
+            f'rel="noopener noreferrer">{label_text(label)} ↗</a> '
             for label, url in (entry.get("sources") or []) if url)
         body = (
             f'<p class="receipt-copy">{summary}</p>'
@@ -415,6 +417,19 @@ def press_market_map(
         ticker_items=ticker_items(doc),
         work_details=work_details(doc), ids=ids)
 
+    # Source inventory includes assessed records regardless of qualification.
+    # A zero-qualified study must retain the evidence behind that assessment.
+    from html import escape
+    from urllib.parse import urlsplit
+    from agents.golden_press.market_map_render import _resolving_source_url
+    receipts = work_details(doc)
+    receipts["assessment-source-inventory"] = {
+        "title": "Assessment source inventory",
+        "summary": "Source records considered in this assessment; inclusion does not assert qualification.",
+        "sources": [[escape(re.sub(r"\b[0-9a-f]{32}\b", "SAM.gov notice", row.title or "Open source record", flags=re.I)), escape(_resolving_source_url(row.url), quote=True)]
+                    for row in pack.records if row.url and urlsplit(row.url).scheme in {"http", "https"}],
+    }
+
     # TWO BUILDS, TWO RULE SETS. The STUDIO document legitimately carries
     # scripts and editable fields; validating it with the client-artifact
     # rules failed every press for having its own runtime. The CLIENT build
@@ -422,7 +437,9 @@ def press_market_map(
     # and THAT is what the client-artifact rules judge. Structure, density,
     # receipts and the banned-string lint hold for both by construction,
     # because the client build is derived from the studio by removal only.
-    client_html = _client_export(html, receipts=work_details(doc))
+    client_html = _client_export(html, receipts=receipts)
+    # Static source receipts must also survive a saved studio with JS off.
+    html = html.replace("</main>", _receipts_appendix(receipts) + "</main>", 1)
     verdict = validate_market_map(client_html)
     violations = list(verdict.get("violations") or [])
     visual = validate_client_visual_contract(client_html, client_name=display)

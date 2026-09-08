@@ -1643,6 +1643,8 @@ def _step_cmd(step: str, client: str, args: dict) -> list[str]:
         # The only external release action. It consumes approved stored
         # research and emits the complete hash-bound eight-slot bundle.
         cmd = [py, "run_lila_release.py", "--client", client, "--release"]
+        if args.get("no_desktop"):
+            cmd.append("--no-desktop")
     elif step == "report":
         kind = args.get("kind", "teaser")
         if kind == "capture_brief":
@@ -1717,7 +1719,15 @@ def _step_cmd(step: str, client: str, args: dict) -> list[str]:
         if args.get("scope_override"):
             cmd += ["--scope-override", str(args["scope_override"])]
     elif step == "intake":
-        cmd = [py, "run_intake.py", "--submission", args["submission_path"]]
+        # Name-only is first-class. A submission JSON is optional enrichment.
+        if args.get("submission_path"):
+            cmd = [py, "run_intake.py", "--submission", args["submission_path"]]
+        else:
+            cmd = [py, "run_intake.py", "--client", client]
+        if args.get("website"):
+            cmd += ["--website", str(args["website"])]
+        if args.get("no_auto_approve"):
+            cmd.append("--no-auto-approve")
     else:
         raise ValueError(f"unknown step: {step}")
     return cmd
@@ -5158,6 +5168,25 @@ def api_run():
     if any(isinstance(key, str) and key.startswith("_lila_") for key in args):
         return jsonify({"error": "args contains a reserved server field"}), 400
 
+    # Isolated Step 1 bootstrap (2026-09-06): intake is the one run step that
+    # may start from a company name before a review packet exists. Every
+    # other step still requires an exact packet. This carve-out does not
+    # weaken approval, scope, or release gates.
+    if step == "intake":
+        packet_path = os.path.join(REVIEW_DIR, f"{_slugify(client)}.review.json")
+        if not os.path.isfile(packet_path):
+            try:
+                job_id = start_job("intake", client, args)
+            except JobRunning as exc:
+                return jsonify({
+                    "error": "a job for this client is already running",
+                    "running_job_id": exc.job_id,
+                }), 409
+            except (KeyError, ValueError) as exc:
+                return jsonify({"error": str(exc)}), 400
+            return jsonify({"job_id": job_id, "slug": _slugify(client),
+                            "name_only": True})
+
     # Legacy compatibility law: the capture-brief press refuses before any
     # packet or gate work. The locked eight-slot Federal Market Map is the
     # external product; this route remains retired rather than creating a
@@ -5265,10 +5294,12 @@ def api_run():
                 "approval_status": approval_status,
                 "problems": approval_problems,
             }), 409
-    release_capable_targeting = release_capable_assess or (
-        step in ("candidate_review", "views", "agency_report", "target_report",
-                 "lila_release")
-    )
+    # Operator ruling 2026-09-08: an assessment bundle must be available
+    # before promoted targets exist. Actionable targeting reports still
+    # require their complete source-bound Targeting Review.
+    release_capable_targeting = step != "lila_release" and (
+        release_capable_assess or step in (
+            "candidate_review", "views", "agency_report", "target_report"))
     if release_capable_targeting:
         target_payload, target_status = _client_targets_payload(_slugify(client))
         readiness = ((target_payload or {}).get("targeting_readiness") or {})

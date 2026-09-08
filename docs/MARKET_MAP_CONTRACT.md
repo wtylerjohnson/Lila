@@ -49,6 +49,15 @@ The client slot identities are:
 | 7 | `future-forecasts` | Forecasts with Directional Graphs |
 | 8 | `industry-days-events` | Industry Days + Events |
 
+### Operator amendment: assessment population and lead generation (2026-09-08)
+
+Slot 5 displays the complete stored opportunity-assessment population with
+its qualification status, published notice contacts, source details and child
+lead readiness. HOLD and closed records stay visible for explicit relevance
+review. Slot 1 remains the qualified priority shortlist. The locked headings
+and order stay intact. The complete bundle includes the same-run lead press
+receipt and scorecard; evidence gaps remain visible and do not erase parents.
+
 ### Slot-filling law
 
 The eight slots are the permanent product frame. Their client-specific

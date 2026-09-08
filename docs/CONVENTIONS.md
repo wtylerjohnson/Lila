@@ -21,8 +21,11 @@ Reality in the code wins. When you extend a pattern, extend it here too.
 - `data/review/` · human-gate artifacts: `<slug>.review.json` (strategy
   approval), `<slug>.qualify.json`, `<slug>.horizon.json`,
   `<slug>.live_requirements.json` (exact SAM requirement + attachment
-  decisions), `<slug>.assess_approval.json` (activates Produce), and
-  `<slug>.flag_decisions.json` (flag adjudication).
+  decisions), `<slug>.assess_approval.json` (activates Produce),
+  `<slug>.flag_decisions.json` (flag adjudication), and Step 1 mastery
+  sidecars `<slug>.dossier.json`, `<slug>.intake_yield.json`,
+  `<slug>.intake_adversarial.json`, `<slug>.intake_readiness.json`,
+  `<slug>.intake_retrieval.json`.
 - `data/state/` · runtime: `job_logs/<job>.log` (disk-backed; server
   restarts cannot kill jobs), UI prefs, and agency-report composition cache
   `agency_report_content/<slug>.agency_<a>.content.json`. The cache stores a
@@ -133,6 +136,209 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   surfaces a code as a "Needs your judgment" candidate; a rule NEVER adds a
   code. NAICS remains a coarse boundary filter; the workshop copy and inspector
   never imply NAICS establishes capability fit.
+
+## Step 1 company mastery (2026-09-06)
+
+- Name-only entry is first-class: `run_intake.py --client "Name"` and
+  `POST /api/intake` / `POST /api/run {step: intake}` with only
+  `client_name`. The intake form is optional enrichment.
+- Identity is resolved **before** deep scrape or structured web probes
+  (`agents/intake/identity.py`). A website-guess below
+  `IDENTITY_BIND_MIN_CONFIDENCE` (0.72) is not scraped. Two official-domain
+  candidates abstain with one question rather than contaminating the dossier.
+- `run_step1` follows the existing `engine or research_engine()` convention:
+  if `do_web` and no research engine was injected, it constructs
+  `research_engine()`; if no strategy engine was injected, it constructs
+  `DecisionEngine()`. `--no-websearch` still takes the honest offline
+  identity path. Forgetting to pass engines is not a reason to abstain.
+  True two-domain ambiguity still abstains.
+- Sidecars beside the review packet (additive, legacy packets unchanged):
+  `<slug>.dossier.json`, `.intake_yield.json`, `.intake_adversarial.json`,
+  `.intake_readiness.json`, `.intake_retrieval.json`.
+- Yield at intake wraps `tools.query_terms.term_yield`. An empty or
+  unreadable notice store is named empty; it is never a list of false zeros.
+- The review gate mechanism (`request_approval`, `decide`, `approve.py`,
+  `load_approved`) is preserved. Auto-passthrough is explicit and default ON
+  via `LILA_ENABLE_INTAKE_AUTO_APPROVE` / `is_enabled("intake-auto-approve")`.
+  It only calls `decide()`. It does not invent `scope.preset` and does not
+  launch searches. `--no-auto-approve` or the env set to off restores the click.
+- Adapters (`agents/intake/adapters.py`) copy evidenced dossier fields onto
+  `IntakeStrategy` and a hybrid.frame_lanes-shaped retrieval sidecar.
+- After identity bind, website-first deep ingest drives the dossier
+  (`tools/scrape/site.py` `SITE_MASTERY_MAX_PAGES` = 24). `run_intake.py`
+  `--max-pages` and `research_company` default to that budget; a CLI 5
+  is floored back up. The crawl seeds `/en/` and bare hubs (products,
+  solutions, customers, case studies, partners, compare/alternatives,
+  about, industries, product-family paths) and follows in-domain
+  nav/footer/product-hub links. Interstitial / JS shells are
+  `render_failures`, not "pages read". E2 passes only on usable
+  rendered pages (or an honest no-site bind). Render fallback chain:
+  JS render (realistic desktop Chrome UA, stealth init, settled-content
+  wait, not networkidle-as-success) then usable static HTML, then
+  site-anchored web research that must cite official-domain URLs for
+  products/customers/competitors. Wikipedia/Crunchbase blurbs stay
+  secondary. Sitemap.xml / robots.txt Sitemap + HTML nav discover
+  product, customers, case-studies, partners, and compare/vs URLs
+  under the bound domain. Env flags (defaults in
+  `tools.scrape.site.js_render_config`): `LILA_INTAKE_JS_RENDER`
+  (on), `LILA_INTAKE_JS_STEALTH` (on), `LILA_INTAKE_JS_WAIT_MS`
+  (20000), `LILA_INTAKE_JS_MIN_CHARS` (80),
+  `LILA_INTAKE_JS_RENDER_CAP` (8). Missing browser or a WAF-empty
+  body fails closed via `render_failures`. Generic SERP blurbs must
+  not invent offerings or competitors when the official site is thin.
+- Structured probes are site-anchored after bind: products, competitors,
+  and customers start on the official domain. Probes also seek named
+  product families (CloudVision AGNI / Guardian for Network Identity,
+  DANZ Monitoring Fabric, 7050X), stated NAICS, and namesake collisions.
+  Extract cannot recall strings the site/probes never captured.
+- Competitors and customers are first-class dossier lists with
+  evidence_ids from official-site text. Retrieval copies them onto
+  `tier1_rival_names` and a customers list. They are not buried only
+  in probe prose.
+- Dossier offerings, keywords, and retrieval units are short discrete
+  product or capability names (EOS, CloudVision, AGNI, 7050X). Probe
+  essays, homepage load-errors, sentence fragments ("Also has a
+  telemetry"), nav glue (CaseStudies), third-party IdP names
+  (OneLogin), schedule/ticker/header fragments, GSA / SEWP / award
+  IDs (47QSWA18D008F, 0119Y), bare numbers, and the placeholder
+  excerpt "citation" never become offerings or ledger text.
+  Customers are buying orgs (Microsoft, US Army, Barclays,
+  Citigroup, Morgan Stanley, Hardis), not story titles
+  (Customer Success Story, Going Big), job titles (Group VP),
+  solution-brand phrases (Cognitive Campus), industry segments
+  (hedge funds, financial services), proof-page junk (proof
+  points, PDF, troubleshoot workloads, ease of deployment, bare
+  numbers), nav chrome (Login, Toggle Navigation, Series Spine,
+  Wi-Fi), or social widgets (Meta, Facebook, Yahoo). Customer
+  extract is windowed around proof language and capped
+  (`MAX_CUSTOMERS` 24): fewer correct orgs beat hundreds of
+  chrome tokens. Section labels, truncated names, geography-only
+  tokens, and all-caps role phrases (Named Customers, Revenue
+  Share, MARKET DATA FEED PROVIDER, Costa Rica, Cloud Titans,
+  Hardis Grou) are not customers. Allowlisted banks (Barclays,
+  Citigroup, Morgan Stanley) and Activ Financial / Hardis Group /
+  Microsoft promote from official evidence even without a
+  customer-hub URL. Nav/people/page titles (Management Team, Senior
+  Management, Platforms page, Detection and Response Overview)
+  and case-study customer codes (JCT600, RACSA, Intuit) are not
+  offerings. Slogan / datasheet / antithesis / numbered-header
+  titles (CloudVision Data Sheet, SolutionBrief, From network
+  security to secure networks, Secure Networks vs. Network
+  Security, 1. Operating System, `&amp;` titles) are not
+  offerings. Competitor names are rival companies (Cisco,
+  Juniper, Aruba, Darktrace), not page titles (Darktrace
+  Comparison) and not English openers (Here, This, What). Rival
+  evidence must be a compare / vs / alternative / competition
+  claim, including product-page sentences such as "Competition
+  for the Cisco Nexus 1000V". Promotion reads official scrape
+  pages even when the competitor web probe returns no findings.
+  A darktrace host plus 10-K / HPE body is still dropped. A
+  named-other-rival path (ndr-darktrace-comparison) never
+  evidences Cisco or Juniper, even with a strong Unlike-Cisco
+  excerpt. Cisco and Juniper must still be claimed when a
+  competitor-comparisons hub names them: promote from that
+  scrape page text (not the short evidence excerpt alone),
+  including when the hub is already in evidence. Do not
+  recall Cisco/Juniper from a Darktrace URL. Prefer
+  historically-dominated sentences; a generic compare hub
+  that names Cisco/Juniper is enough if the excerpt does
+  not deny them. `/en/products/network-detection-and-response/competitor-comparisons`
+  is a seeded hub. A /news Broadcom VMware blurb is not
+  a VMware-rival claim even when the press room also says vs
+  (URL≠claim). Rival names are companies, not SKU fragments
+  (Cisco Nexus / Nexus 1000V). DoD, DoDIN, and DoDIN APL are
+  certification program names, not offerings. Allowlisted banks
+  (Barclays, Citigroup, Morgan Stanley) and Activ Financial
+  promote from official proof text even in all caps. Bank
+  names that no longer appear on the live site or the latest
+  10-K come from the bound entity's own SEC roster
+  (`agents/intake/sec_customers.py`): S-1 / 424B4 / 10-K text
+  for the CIK resolved from SEC company_tickers.json, never an
+  invented CIK. Promote only from customer-roster sentences
+  ("customers include", "financial services organizations such
+  as", "end customers such as"). Evidence URL is the filing.
+  Prefer a filing that still names the roster when the latest
+  10-K dropped those names. Do not stop at the latest 10-K when
+  its customer section is category language only (AI Neoclouds,
+  Cloud and AI Titans, financial services organizations,
+  government agencies, Our Customers Our). Walk bound-CIK
+  filings (submissions, older year files, EDGAR browse atom,
+  full-text search) until a named roster is found; prefer 2014
+  424B4 / S-1. Category and segment phrases are not customers.
+  The SEC walk is deterministic and runs after scrape, before
+  LLM probes, so a 300s customer-probe timeout cannot starve
+  the roster or wipe site case-study names (Activ / Hardis /
+  Microsoft). The customers probe runs last among structured
+  probes. Compare / competitor-comparisons / ndr-darktrace
+  URLs are queued ahead of CaseStudies PDF paths (the live
+  `/assets/data/pdf/CaseStudies/` slug matches `casestud`,
+  so those PDFs are crawlable) so Darktrace cannot fall out
+  of the 24-page budget. Compare-link discovery is capped so
+  it cannot starve named CaseStudies PDFs. Live filenames
+  are Activ_Financial and Hardis-Group (plus Case-Study
+  variants). `_fetch` must accept application/pdf and
+  extract text (filename stub if parse is empty) so those
+  PDFs enter the 24-page budget. A customers probe with
+  no cited findings must not wipe those deterministic
+  promotions.
+  Rival evidence for Cisco, Juniper, and Darktrace must be a
+  compare-shaped URL with a matching claim, not /products/eos
+  ISE context or a 451 whitepaper PDF. ExtraHop compare URLs
+  may stay. Rival vendors/products (ExtraHop, ClearPass,
+  ForeScout, EyeSegment) are not offerings. Fragment customers
+  (Product Testimonials, Lancaster Coun, County Government,
+  Arista Extensib, Edge Threat Management) are rejected.
+  Microsoft evidence prefers a customer/case-study URL when
+  one exists. IPO underwriter / cover tables
+  (Morgan Stanley, Citigroup, Barclays as bookrunners) are not
+  buyers. News conference blurbs and synthesized "Named in
+  S-1/10-K" paraphrases are not bank proof.
+  `citation_is_official` stays the company domain; SEC URLs
+  bind through `is_bound_sec_filing_url` for customers only.
+  Soft-fail if SEC is unreachable. Support / careers / company
+  chrome (A-Care, Quick Facts, Corporate Responsibility,
+  Events Calendar, founder concatenations, department lists,
+  Forrester Wave, Data Center Network Solutions) is not a
+  customer. Prefer /case-study|testimonial|customers/ plus the
+  SEC roster. Case-study PDFs and official testimonials
+  (Activ, Hardis, Microsoft when evidenced) still promote.
+  Truncated case-study card titles (Walsh Universi, Noodles Compa,
+  PB/UAX Case Stu) and section chrome (Wireless FAQ,
+  Real-World Deployments) are not customers. Customer and
+  testimonial hubs are crawled before news/blog inside the
+  24-page budget. Core NAICS
+  334210 (telephone apparatus) does not fail E5/E8 just because
+  Aviation is kept_out or the composer also listed 334210 as a
+  near miss; aviation codes 336413/488190 stay parked. When official
+  customer-hub or compare evidence
+  already names an org or rival, promote that name with the
+  matching eid. Do not empty those lists to avoid a title bug.
+  Product evidence prefers official-site URLs over third-party
+  PDFs. If Aviation or Arista Aviation is in kept_out, park
+  canonical aviation NAICS 336413 and 488190 on
+  `kept_out_naics` even when the digits never appear on the
+  official site (website-first crawls do not cite them).
+  A rival platform (VeloCloud) is not an Arista offering unless the
+  source asserts Arista sells it. Tool-meta tokens (WebSearch),
+  URL/date shards, and lone acronym scraps are not products. NAICS that
+  appear in probe or page text are kept with real evidence_ids. An empty
+  NAICS list stays empty when nothing is cited; E5/E8 must not treat
+  that as a win while strategy invents NAICS (split-brain is a block).
+  Dossier **core** NAICS (`dossier.naics`) are the search/lead-gen lane.
+  Namesake industries (Aviation 336413/488190, music/records 5122xx) are
+  moved to `dossier.kept_out_naics` and `strategy.kept_out_naics`, aligned
+  with Aviation/Records `kept_out`. They are omitted from `inferred_naics`.
+  Forecast/solicitation 6-digit fragments (685031) are not NAICS.
+  Core codes that conflict with Aviation/Records excludes or strategy
+  `near_misses` fail E5/E8. `kept_out` rows (OAS, Aristan, Aviation)
+  require an excerpt that actually contains the name; no wrong-eid bind.
+  Prefer the named offering DANZ Monitoring Fabric when evidence has it.
+  Name-collision exclusions from boundary probes seed `kept_out`
+  (Records / Aviation / Aristan / OAS Aircraft Support style when
+  mentioned); NYSE, CIKs, section headers, and the bare company
+  name stay out. Workshop edits remain the operator path. A related
+  Government Sales LLC is recorded as a federal-path affiliate and does
+  not break or hard-block a correct public-domain bind.
 
 ## Pipeline shape
 
@@ -1280,8 +1486,8 @@ coverage claims; nothing in it is a gate value.
 ## Lead-gen contracts (2026-09-06)
 
 - `agents/leadgen/` is an additive sibling of `agents/assess/`. It does
-  not replace `AssessRun`, add lead fields to `LiveSolicitation`, or
-  participate in `lila_release`. Opportunity assessment is PARENT;
+  not replace `AssessRun` or add lead fields to `LiveSolicitation`.
+  The 2026-09-08 output-retention ruling below adds it to `lila_release`. Opportunity assessment is PARENT;
   LeadRow is CHILD. Type authority for the first cut is
   `docs/spikes/ws0_today_to_leadrow_map.md`. Package overview:
   `docs/leadgen/README.md`.
@@ -1306,7 +1512,7 @@ coverage claims; nothing in it is a gate value.
   `target_actions` projection and emits `OpportunityAssessment`
   parents plus WATCH/HOLD `LeadRow` children. Pure and fail-closed.
   Never aliases targeting `T1` to `LeadTier`. Never writes
-  `data/state/assess_runs/` or participates in `lila_release`.
+  `data/state/assess_runs/`. The release orchestrator may consume its child output.
   Run: `python -m agents.leadgen --assess <run.json>`.
 - Press Lead Gen thin real path (2026-09-07): `agents.leadgen.press.run_press`
   documents and executes Build Plan steps 1-9. Step 1 cites
@@ -1324,8 +1530,8 @@ coverage claims; nothing in it is a gate value.
   `data/review/<slug>.leadgen.json` (optional
   `data/review/<slug>.leadgen.md`). `stub` is False when the qualifier
   ran. Missing assess input fails closed. Notice-only input is refused.
-  Press never participates in `lila_release`. Market Map remains the
-  separate external deliverable.
+  The 2026-09-08 ruling incorporates Press as a companion in `lila_release`;
+  Market Map remains the primary external deliverable.
   Run: `python -m agents.leadgen.press --assess <run.json>`.
 - Read-only AssessRun export for press (2026-09-07):
   `agents.leadgen.export_assess.export_current_assess_run` dumps the
@@ -1460,3 +1666,34 @@ continued readability is compatibility, not release eligibility.
   vendor-qualified only ("Microsoft Purview") and measure the bare token in
   the receipt; the witnessed collisions live in the polysemy corpus as
   recorded-but-not-consumed entries, because the guard is structural.
+
+
+## Assessment output retention (operator ruling 2026-09-08)
+
+The operator ordered weekend integration and restoration of opportunity
+assessments with lead generation before any relevance cuts. This supersedes
+prior instructions that kept Press outside `lila_release`.
+
+- `product_bundle` keeps the existing eight-slot Market Map and adds the pure
+  Press receipt, HTML, original AssessRun envelope, and skeptic scorecard to
+  the same hash-bound ZIP. Missing child input is explicit and cannot hide
+  its parent assessment. Qualification and lead promotion remain evidence-bound.
+- Slot 5 retains all L1 assessment records, including HOLD, closed and
+  insufficient-evidence dispositions. Slot 1 still references only qualified
+  pursuits. A record being visible never asserts it is active or seller-ready.
+- `product_leadgen.restore_assessment_population` joins the stored AssessRun
+  population to the original evidence pack and fills missing details using the
+  existing SAM notice-store adapter. It preserves existing facts and source
+  dates; a rebuild timestamp cannot make an old source fresh.
+- A replacement may not silently remove prior source records or blank their
+  descriptions, source links, or contact fields. Such a build blocks before
+  replacing `current.json`. A later relevance-cut workflow must retain audited
+  exclusions; it is not part of this repair.
+- Proof: `tests/test_assessment_output_retention.py` and
+  `tests/test_product_bundle.py`. Command Center accepts `no_desktop` to keep
+  the sealed release in its existing release directory.
+
+- The combined `lila_release` requires current Assess and Target stage
+  authorization, but not promoted-target inventory approval. This avoids a
+  circular dependency between seeing an assessment and developing its leads.
+  Actionable target reports retain their complete Targeting Review gate.

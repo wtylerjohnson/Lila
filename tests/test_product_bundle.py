@@ -38,13 +38,15 @@ def test_release_switch_and_operator_gates_fail_closed(tmp_path):
     assert not (tmp_path / "data" / "releases").exists()
 
 
+@pytest.mark.parametrize("complete_child", [False, True])
 def test_one_release_action_writes_complete_hash_bound_zip(
-        tmp_path, monkeypatch):
+        tmp_path, monkeypatch, complete_child):
     pressed = tmp_path / "pressed.json"
     pressed.write_text('{"client_name":"Acme"}\n', encoding="utf-8")
     graph_path = tmp_path / "graph.json"
     graph_path.write_text("{}\n", encoding="utf-8")
-    pack = SimpleNamespace(client_name="Acme", generated_at="2026-08-23",
+    from agents.golden_press.records import EvidencePack
+    pack = EvidencePack(client_name="Acme", generated_at="2026-08-23",
                            records=[], lanes=[], queries=[], events=[],
                            events_screen={})
     graph = {
@@ -71,6 +73,15 @@ def test_one_release_action_writes_complete_hash_bound_zip(
     monkeypatch.setattr(market_map_projection, "build_market_map",
                         lambda *_args, **_kwargs: SimpleNamespace())
 
+    if complete_child:
+        from agents.golden_press import product_leadgen
+        from tests.test_leadgen_from_assess import _run
+        run_data = _run().model_dump(mode="json")
+        for ledger in (run_data, run_data["live"], run_data["horizon"], run_data["partners"]):
+            ledger["client_name"] = "Acme"
+        monkeypatch.setattr(product_leadgen, "export_current_assess_run",
+                            lambda *_a, **_k: {"run": run_data})
+
     result = bundle.build_complete_bundle(
         client_name="Acme", slug="acme", root=tmp_path,
         as_of="2026-08-23", release_requested=True,
@@ -81,11 +92,14 @@ def test_one_release_action_writes_complete_hash_bound_zip(
     manifest = json.loads(Path(result.manifest_path).read_text(encoding="utf-8"))
     assert manifest["release_eligible"] is True
     assert manifest["product_family"] == "lila_federal_market_map"
-    assert set(manifest["files"]) == {
+    expected = {
         "LILA_acme_2026-08-23.html", "LILA_acme_2026-08-23.studio.html",
         "product.json", "federal_pursuit_graph.json", "evidence_pack.json",
-        "captured_inputs.json", "validation.json", "README.txt",
+        "captured_inputs.json", "validation.json", "README.txt", "leadgen_status.json",
     }
+    if complete_child:
+        expected |= {"leadgen.json", "assessment.json", "leadgen.html", "leadgen_scorecard.csv"}
+    assert set(manifest["files"]) == expected
     for name, receipt in manifest["files"].items():
         assert bundle._sha_file(release_dir / name) == receipt["sha256"]
     with zipfile.ZipFile(result.bundle_path) as archive:

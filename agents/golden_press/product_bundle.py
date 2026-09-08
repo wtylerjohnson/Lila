@@ -130,6 +130,35 @@ def _load_pack(root: Path, slug: str):
         raise ProductReleaseError(f"pressed evidence pack is invalid: {exc}") from exc
 
 
+def _require_output_retention(root: Path, slug: str, pack, leadgen: Optional[dict] = None) -> None:
+    """Reject silent source/detail loss before replacing the last good release."""
+    state = product_release_state(slug, root=root)
+    if not state.get("releasable"):
+        return
+    previous = Path(state["manifest_path"]).parent / "evidence_pack.json"
+    old = json.loads(previous.read_text(encoding="utf-8"))
+    current = {row.record_id: row.model_dump(mode="json") for row in pack.records}
+    problems = []
+    prior_child_path = previous.parent / "leadgen_status.json"
+    if leadgen is not None and prior_child_path.exists():
+        prior_child = json.loads(prior_child_path.read_text(encoding="utf-8"))
+        if prior_child.get("status") == "complete" and leadgen.get("status") != "complete":
+            problems.append("previous complete lead generation became unavailable")
+    for row in old.get("records", []):
+        identity = row.get("record_id")
+        newer = current.get(identity)
+        if newer is None:
+            problems.append(f"assessment record removed: {identity}")
+            continue
+        for field in ("description", "url", "contact_name", "contact_email", "contact_phone"):
+            if row.get(field) and not newer.get(field):
+                problems.append(f"assessment detail removed: {identity} / {field}")
+    if problems:
+        raise ProductReleaseBlocked([
+            "output retention: prior complete release preserved; reconcile record/detail loss before promotion",
+            *problems])
+
+
 def _build_graph(root: Path, slug: str, client_name: str,
                  pressed_pack_path: Path) -> tuple[Path, dict]:
     from agents.golden_press.evidence_pack_v2 import build_corrected_pack
@@ -223,6 +252,22 @@ def build_complete_bundle(
 
     family = external_product_family()
     pressed_pack_path, pack = _load_pack(root, slug)
+    from agents.golden_press.product_leadgen import build_leadgen_companion
+    try:
+        leadgen = build_leadgen_companion(client_name, root)
+    except Exception as exc:  # additive child cannot erase the parent report
+        leadgen = {"status": "unavailable", "error": str(exc),
+                   "next_action": "Refresh the current assessment input and retry lead generation."}
+    from agents.golden_press.product_leadgen import restore_assessment_population
+    from tools.notice_store import connect
+    connection = connect(root / "data" / "state" / "notice_store" / "notices.db")
+    try:
+        pack = restore_assessment_population(pack, leadgen, conn=connection)
+    finally:
+        connection.close()
+    _require_output_retention(root, slug, pack, leadgen)
+    pressed_pack_path = pressed_pack_path.with_name(f"{slug}.assessment_release.evidence_pack.json")
+    _write(pressed_pack_path, _json_bytes(pack.model_dump(mode="json")))
     profile = _load_profile(root, slug)
     graph_path, graph = _build_graph(root, slug, client_name, pressed_pack_path)
     if not graph.get("graph_contract_certified"):
@@ -241,7 +286,8 @@ def build_complete_bundle(
         inputs=captured_inputs)
     product = build_external_product_document(
         market_map=market_map, graph_payload=graph, evidence_pack=pack,
-        profile=profile, client_name=client_name, slug=slug, as_of=as_of)
+        profile=profile, client_name=client_name, slug=slug, as_of=as_of,
+        leadgen=leadgen)
     studio_html, client_html = render_external_product(product)
     validation = validate_external_product_html(client_html, product)
     if not validation.get("ok"):
@@ -258,9 +304,12 @@ def build_complete_bundle(
         **validation,
         "authorization": authorization,
         "external_family": family.family_id,
+        "leadgen": {k: v for k, v in leadgen.items()
+                    if k not in {"receipt", "assessment", "html", "scorecard_csv"}},
     })
     fingerprint = _sha_bytes(
-        product_bytes + graph_bytes + evidence_bytes + validation_bytes)[:12]
+        product_bytes + graph_bytes + evidence_bytes + validation_bytes
+        + _json_bytes(leadgen))[:12]
     release_id = f"{as_of[:10]}-{fingerprint}"
     release_parent = root / "data" / "releases" / slug
     release_dir = release_parent / release_id
@@ -299,9 +348,19 @@ def build_complete_bundle(
                 "federal_pursuit_graph.json carries the certified relationships.\n"
                 "evidence_pack.json and captured_inputs.json preserve replay inputs.\n"
                 "validation.json records release and rendered checks.\n"
+                "leadgen.html and leadgen.json contain assessment-bound child leads when available.\n"
+                "assessment.json preserves the source ledger; leadgen_status.json discloses gaps.\n"
                 "manifest.json binds every file by SHA-256.\n"
             ).encode("utf-8"),
         }
+        payloads["leadgen_status.json"] = _json_bytes({
+            k: v for k, v in leadgen.items()
+            if k not in {"receipt", "assessment", "html", "scorecard_csv"}})
+        if leadgen.get("status") == "complete":
+            payloads["leadgen.json"] = _json_bytes(leadgen["receipt"])
+            payloads["assessment.json"] = _json_bytes(leadgen["assessment"])
+            payloads["leadgen.html"] = leadgen["html"].encode("utf-8")
+            payloads["leadgen_scorecard.csv"] = leadgen["scorecard_csv"].encode("utf-8")
         for name, payload in payloads.items():
             _write(staging / name, payload)
         file_receipts = {
