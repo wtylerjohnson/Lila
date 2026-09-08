@@ -2527,5 +2527,3 @@ def test_press22_live_pdf_seeds_enter_budget():
     assert any("competitor-comparisons" in u for u in urls)
     assert any("Activ_Financial" in u for u in urls)
     assert any("Hardis-Group" in u for u in urls)
-
-
