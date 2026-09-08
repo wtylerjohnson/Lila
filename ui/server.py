@@ -1643,6 +1643,8 @@ def _step_cmd(step: str, client: str, args: dict) -> list[str]:
         # The only external release action. It consumes approved stored
         # research and emits the complete hash-bound eight-slot bundle.
         cmd = [py, "run_lila_release.py", "--client", client, "--release"]
+        if args.get("no_desktop"):
+            cmd.append("--no-desktop")
     elif step == "report":
         kind = args.get("kind", "teaser")
         if kind == "capture_brief":
@@ -5292,10 +5294,12 @@ def api_run():
                 "approval_status": approval_status,
                 "problems": approval_problems,
             }), 409
-    release_capable_targeting = release_capable_assess or (
-        step in ("candidate_review", "views", "agency_report", "target_report",
-                 "lila_release")
-    )
+    # Operator ruling 2026-09-08: an assessment bundle must be available
+    # before promoted targets exist. Actionable targeting reports still
+    # require their complete source-bound Targeting Review.
+    release_capable_targeting = step != "lila_release" and (
+        release_capable_assess or step in (
+            "candidate_review", "views", "agency_report", "target_report"))
     if release_capable_targeting:
         target_payload, target_status = _client_targets_payload(_slugify(client))
         readiness = ((target_payload or {}).get("targeting_readiness") or {})

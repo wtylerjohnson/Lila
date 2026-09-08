@@ -135,6 +135,8 @@ def _fields(record: dict) -> str:
         ("location", "Location"), ("status", "Status"),
         ("method", "Method"), ("result_count", "Returned"),
         ("kept_after_screen", "Kept"),
+        ("assessment_status", "Assessment"), ("lead_status", "Lead readiness"),
+        ("source_as_of", "Evidence date"),
     )
     rows = []
     for key, label in labels:
@@ -196,8 +198,31 @@ def _record(record: dict, *, include_targets: bool = False) -> str:
         + (f'<p>{esc(summary)}</p>' if summary else "")
         + _fields(record)
         + _source_link(record)
+        + _lead_rows(record)
         + (_targets(record) if include_targets else "")
         + "</article>")
+
+
+def _lead_rows(record: dict) -> str:
+    rows = []
+    for lead in record.get("lead_rows") or []:
+        action = lead.get("next_action") or {}
+        route = lead.get("seller_path") or {}
+        pathway = lead.get("external_pathway") or {}
+        fields = {
+            "Lead readiness": lead.get("lead_tier"),
+            "Route": route.get("kind"),
+            "Pathway": pathway.get("kind"),
+            "Next action": action.get("verb"),
+            "Due": action.get("due_at") or action.get("due_date"),
+            "Evidence to complete": action.get("blocked_by"),
+        }
+        detail = "".join(f"<dt>{esc(k)}</dt><dd>{esc(_display_value(v))}</dd>"
+                         for k, v in fields.items() if v)
+        rows.append('<div class="product-target"><dl class="product-fields">'
+                    + detail + '</dl></div>')
+    return ('<div class="product-targets"><h4>Lead generation</h4>'
+            + "".join(rows) + '</div>') if rows else ""
 
 
 def _metrics(metrics: Any) -> str:
@@ -341,8 +366,8 @@ def _coverage(doc: ExternalProductDocument) -> list[dict]:
         {"label": "Priority pursuits",
          "value": len(by_id["priority-pursuits"].records),
          "note": "Ranked references", "work": "slot-1"},
-        {"label": "Qualified opportunities", "value": len(opportunities.records),
-         "note": "Current evidence and eligible route", "work": "slot-5"},
+        {"label": "Opportunity assessments", "value": len(opportunities.records),
+         "note": f"{opportunities.coverage.get('qualified', 0)} qualified; remaining candidates retained for review", "work": "slot-5"},
         {"label": "Opportunity targets", "value": targets,
          "note": "Bound beneath their opportunity", "work": "slot-5"},
     ]

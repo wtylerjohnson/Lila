@@ -666,3 +666,15 @@ It reports identity only. It does not express approval or release eligibility,
 does not call or alter `release_state`, and does not change that function's
 frozen return shape. Changing the signature, return-key vocabulary, digest
 meaning, or fail-`None` behavior is a joint contract-surface change.
+
+
+## 2026-09-08 operator amendment: assessments with lead generation
+
+`agents/golden_press/product_bundle.py` consumes the read-only Assess exporter
+and pure lead Press through `product_leadgen.py`, producing one complete ZIP.
+Slot 5 retains all stored L1 assessments with their dispositions; qualification
+continues to govern priority ranking and lead-tier promotion. Source detail
+recovery uses `l1_store._to_record`, preserves known values and original dates,
+and leaves strict ledger evidence gates untouched. Replacement releases block
+on source-record or detail loss. See the matching CONVENTIONS and Market Map
+contract amendments and `tests/test_assessment_output_retention.py`.

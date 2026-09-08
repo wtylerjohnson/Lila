@@ -2444,3 +2444,23 @@ def test_dedicated_keys_page_serves_the_form(monkeypatch):
     assert "/api/keys/sam" in page
     html = open(os.path.join(os.path.dirname(srv.__file__), "index.html")).read()
     assert ">API keys</b></button>" in html.replace("<b", ">API keys</b>" and "<b") or "API keys" in html
+
+
+def test_assessment_bundle_can_run_before_targets_exist_but_target_report_cannot(monkeypatch):
+    _bind_run_workstation(monkeypatch)
+    monkeypatch.setattr(srv, "load_packet", lambda *_a, **_k: SimpleNamespace(
+        status=srv.ReviewStatus.APPROVED, search_scope=None))
+    monkeypatch.setattr(srv, "_assess_release_gate", lambda *_a: (None, "approved", []))
+    monkeypatch.setattr(srv, "_client_targets_payload", lambda *_a: (
+        {"targeting_readiness": {"ready": False, "problems": ["no promoted targets"]}}, 200))
+    import agents.review
+    monkeypatch.setattr(agents.review, "target_gate_status", lambda *_a, **_k: (True, []))
+    calls = []
+    monkeypatch.setattr(srv, "start_job", lambda step, *_a: calls.append(step) or "job-1")
+    client = srv.app.test_client()
+    assessment = client.post("/api/run", json={"client_name": "Testco", "step": "lila_release", "args": {"no_desktop": True}})
+    assert assessment.status_code == 200
+    targeting = client.post("/api/run", json={"client_name": "Testco", "step": "target_report", "args": {}})
+    assert targeting.status_code == 409
+    assert calls == ["lila_release"]
+    assert srv._step_cmd("lila_release", "Testco", {"no_desktop": True})[-1] == "--no-desktop"

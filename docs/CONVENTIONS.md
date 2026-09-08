@@ -1486,8 +1486,8 @@ coverage claims; nothing in it is a gate value.
 ## Lead-gen contracts (2026-09-06)
 
 - `agents/leadgen/` is an additive sibling of `agents/assess/`. It does
-  not replace `AssessRun`, add lead fields to `LiveSolicitation`, or
-  participate in `lila_release`. Opportunity assessment is PARENT;
+  not replace `AssessRun` or add lead fields to `LiveSolicitation`.
+  The 2026-09-08 output-retention ruling below adds it to `lila_release`. Opportunity assessment is PARENT;
   LeadRow is CHILD. Type authority for the first cut is
   `docs/spikes/ws0_today_to_leadrow_map.md`. Package overview:
   `docs/leadgen/README.md`.
@@ -1512,7 +1512,7 @@ coverage claims; nothing in it is a gate value.
   `target_actions` projection and emits `OpportunityAssessment`
   parents plus WATCH/HOLD `LeadRow` children. Pure and fail-closed.
   Never aliases targeting `T1` to `LeadTier`. Never writes
-  `data/state/assess_runs/` or participates in `lila_release`.
+  `data/state/assess_runs/`. The release orchestrator may consume its child output.
   Run: `python -m agents.leadgen --assess <run.json>`.
 - Press Lead Gen thin real path (2026-09-07): `agents.leadgen.press.run_press`
   documents and executes Build Plan steps 1-9. Step 1 cites
@@ -1530,8 +1530,8 @@ coverage claims; nothing in it is a gate value.
   `data/review/<slug>.leadgen.json` (optional
   `data/review/<slug>.leadgen.md`). `stub` is False when the qualifier
   ran. Missing assess input fails closed. Notice-only input is refused.
-  Press never participates in `lila_release`. Market Map remains the
-  separate external deliverable.
+  The 2026-09-08 ruling incorporates Press as a companion in `lila_release`;
+  Market Map remains the primary external deliverable.
   Run: `python -m agents.leadgen.press --assess <run.json>`.
 - Read-only AssessRun export for press (2026-09-07):
   `agents.leadgen.export_assess.export_current_assess_run` dumps the
@@ -1666,3 +1666,34 @@ continued readability is compatibility, not release eligibility.
   vendor-qualified only ("Microsoft Purview") and measure the bare token in
   the receipt; the witnessed collisions live in the polysemy corpus as
   recorded-but-not-consumed entries, because the guard is structural.
+
+
+## Assessment output retention (operator ruling 2026-09-08)
+
+The operator ordered weekend integration and restoration of opportunity
+assessments with lead generation before any relevance cuts. This supersedes
+prior instructions that kept Press outside `lila_release`.
+
+- `product_bundle` keeps the existing eight-slot Market Map and adds the pure
+  Press receipt, HTML, original AssessRun envelope, and skeptic scorecard to
+  the same hash-bound ZIP. Missing child input is explicit and cannot hide
+  its parent assessment. Qualification and lead promotion remain evidence-bound.
+- Slot 5 retains all L1 assessment records, including HOLD, closed and
+  insufficient-evidence dispositions. Slot 1 still references only qualified
+  pursuits. A record being visible never asserts it is active or seller-ready.
+- `product_leadgen.restore_assessment_population` joins the stored AssessRun
+  population to the original evidence pack and fills missing details using the
+  existing SAM notice-store adapter. It preserves existing facts and source
+  dates; a rebuild timestamp cannot make an old source fresh.
+- A replacement may not silently remove prior source records or blank their
+  descriptions, source links, or contact fields. Such a build blocks before
+  replacing `current.json`. A later relevance-cut workflow must retain audited
+  exclusions; it is not part of this repair.
+- Proof: `tests/test_assessment_output_retention.py` and
+  `tests/test_product_bundle.py`. Command Center accepts `no_desktop` to keep
+  the sealed release in its existing release directory.
+
+- The combined `lila_release` requires current Assess and Target stage
+  authorization, but not promoted-target inventory approval. This avoids a
+  circular dependency between seeing an assessment and developing its leads.
+  Actionable target reports retain their complete Targeting Review gate.

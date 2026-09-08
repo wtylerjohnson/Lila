@@ -74,7 +74,8 @@ def _serial(value: Any) -> Any:
 
 
 def _http_url(value: Any) -> str:
-    url = _text(value)
+    from agents.golden_press.market_map_render import _resolving_source_url
+    url = _resolving_source_url(_text(value))
     try:
         parsed = urlsplit(url)
     except ValueError:
@@ -317,6 +318,7 @@ def build_external_product_document(
     client_name: str,
     slug: str,
     as_of: str,
+    leadgen: Optional[dict] = None,
 ) -> ExternalProductDocument:
     """Assign the certified graph and preserved research to eight slots."""
 
@@ -345,6 +347,7 @@ def build_external_product_document(
         family = _text(raw.get("requirement_family"))
         targets = list(raw.get("linked_targets") or target_groups.get(family) or [])
         row.update({
+            "assessment_status": "Qualified opportunity",
             "requirement_family": family,
             "targets": _serial(targets),
             "next_action": _text((raw.get("next_route") or {}).get("route_basis")
@@ -353,6 +356,72 @@ def build_external_product_document(
         })
         if claim(row):
             opportunity_rows.append(row)
+
+    # Operator ruling 2026-09-08: assessment visibility precedes lead readiness.
+    # Keep the qualified shortlist separate from the complete review population.
+    qualified_rows = list(opportunity_rows)
+    held = {str(r.get("record_id")): r
+            for r in graph_payload.get("held_opportunities") or []}
+    original = {str(_get(r, "record_id")): r
+                for r in _get(evidence_pack, "records", ()) or ()}
+    for raw in graph_rows:
+        if raw.get("lane") != "L1_notice":
+            continue
+        row = _graph_record(raw, kind="notice")
+        if not claim(row):
+            continue
+        source = original.get(str(raw.get("record_id")), {})
+        disposition = held.get(str(raw.get("record_id")), {})
+        fields = _get(source, "source_fields", {}) or {}
+        row.update({
+            "kind": "Opportunity assessment",
+            "assessment_status": _text(disposition.get("qualification_state")
+                                       or fields.get("classification")
+                                       or raw.get("evidence_class")),
+            "summary": _text(_get(source, "description")),
+            "next_action": _text(disposition.get("qualification_reason")
+                                 or fields.get("recommendation")
+                                 or "Review requirement, fit, timing, and purchase route."),
+            "requirement_family": _text(raw.get("requirement_family")),
+            "source_as_of": _text(_get(source, "retrieved_at")
+                                  or _get(evidence_pack, "generated_at")),
+            "targets": [],
+        })
+        opportunity_rows.append(row)
+
+    leadgen = leadgen or {}
+    child_receipt = leadgen.get("receipt") or {}
+    if child_receipt and _text(child_receipt.get("client_name")).casefold() != _text(client_name).casefold():
+        raise ValueError("lead generation receipt belongs to a different client")
+    parents = {p.get("assessment_id"): p for p in child_receipt.get("parents", [])}
+    children: dict[str, list[dict]] = {}
+    for child in child_receipt.get("leads", []):
+        parent = parents.get(child.get("parent_assessment_id"), {})
+        if parent.get("notice_id"):
+            children.setdefault(parent["notice_id"], []).append(child)
+    for row in opportunity_rows:
+        source = original.get(row["source_id"], {})
+        row["summary"] = row.get("summary") or _text(_get(source, "description"))
+        row["source_as_of"] = row.get("source_as_of") or _text(_get(source, "retrieved_at"))
+        if not row.get("targets") and any(_get(source, k) for k in ("contact_name", "contact_email", "contact_phone")):
+            row["targets"] = [{
+                "name": _get(source, "contact_name") or "Published notice contact",
+                "organization": _get(source, "office") or _get(source, "agency"),
+                "email": _get(source, "contact_email"), "phone": _get(source, "contact_phone"),
+                "source_kind": "Published notice contact; follow official communication instructions",
+                "source_url": row.get("source_url"),
+            }]
+        if re.fullmatch(r"[0-9a-f]{32}", row["source_id"]):
+            from agents.reports.links import build_sam_notice_link
+            row["source_url"] = build_sam_notice_link(row["source_id"]).url
+        evidence_date = (leadgen.get("evidence_dates") or {}).get(row["source_id"])
+        if evidence_date:
+            row["source_as_of"] = min(d for d in (row.get("source_as_of"), evidence_date) if d)
+        row["lead_rows"] = children.get(row["source_id"], [])
+        row["lead_status"] = ", ".join(sorted({
+            child["lead_tier"] for child in row["lead_rows"]
+        })) or ("No child lead" if leadgen.get("status") == "complete"
+                else "Lead generation input needs refresh")
 
     # Slot 7: graph-classified forecasts, separate from live opportunities.
     forecast_rows: list[dict] = []
@@ -492,7 +561,7 @@ def build_external_product_document(
         if claim(row):
             event_rows.append(row)
 
-    priorities = _priority_records(opportunity_rows, forecast_rows)
+    priorities = _priority_records(qualified_rows, forecast_rows)
     priority_metrics = [
         _metric("Ranked pursuits", len(priorities),
                 "References the owned opportunity or forecast record below."),
@@ -538,12 +607,14 @@ def build_external_product_document(
         "federal-opportunities": ProductSlot(
             5, "federal-opportunities", contract_slots[4].heading,
             _slot_status(opportunity_rows, ()),
-            "Qualified current federal opportunities with published contacts first and governed enrichment beneath each record.",
+            "Opportunity assessments with qualification status and lead generation. Candidates remain visible for relevance review; a HOLD lead does not remove its assessment.",
             (), tuple(opportunity_rows), (),
             (() if opportunity_rows else (
                 "No current opportunity cleared evidence, fit, window, and route eligibility together; held records remain in the graph receipt.",)),
-            {"qualified": len(opportunity_rows),
-             "held": len(graph_payload.get("held_opportunities") or [])}),
+            {"assessed": len(opportunity_rows), "qualified": len(qualified_rows),
+             "held": len(graph_payload.get("held_opportunities") or []),
+             "leadgen_status": leadgen.get("status", "not_run"),
+             "lead_tiers": leadgen.get("tiers", {})}),
         "teaming-opportunities": ProductSlot(
             6, "teaming-opportunities", contract_slots[5].heading,
             _slot_status(teaming_rows, ()),
