@@ -1717,7 +1717,15 @@ def _step_cmd(step: str, client: str, args: dict) -> list[str]:
         if args.get("scope_override"):
             cmd += ["--scope-override", str(args["scope_override"])]
     elif step == "intake":
-        cmd = [py, "run_intake.py", "--submission", args["submission_path"]]
+        # Name-only is first-class. A submission JSON is optional enrichment.
+        if args.get("submission_path"):
+            cmd = [py, "run_intake.py", "--submission", args["submission_path"]]
+        else:
+            cmd = [py, "run_intake.py", "--client", client]
+        if args.get("website"):
+            cmd += ["--website", str(args["website"])]
+        if args.get("no_auto_approve"):
+            cmd.append("--no-auto-approve")
     else:
         raise ValueError(f"unknown step: {step}")
     return cmd
@@ -5157,6 +5165,25 @@ def api_run():
     args = dict(raw_args)
     if any(isinstance(key, str) and key.startswith("_lila_") for key in args):
         return jsonify({"error": "args contains a reserved server field"}), 400
+
+    # Isolated Step 1 bootstrap (2026-09-06): intake is the one run step that
+    # may start from a company name before a review packet exists. Every
+    # other step still requires an exact packet. This carve-out does not
+    # weaken approval, scope, or release gates.
+    if step == "intake":
+        packet_path = os.path.join(REVIEW_DIR, f"{_slugify(client)}.review.json")
+        if not os.path.isfile(packet_path):
+            try:
+                job_id = start_job("intake", client, args)
+            except JobRunning as exc:
+                return jsonify({
+                    "error": "a job for this client is already running",
+                    "running_job_id": exc.job_id,
+                }), 409
+            except (KeyError, ValueError) as exc:
+                return jsonify({"error": str(exc)}), 400
+            return jsonify({"job_id": job_id, "slug": _slugify(client),
+                            "name_only": True})
 
     # Legacy compatibility law: the capture-brief press refuses before any
     # packet or gate work. The locked eight-slot Federal Market Map is the

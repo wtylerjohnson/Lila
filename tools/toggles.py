@@ -8,6 +8,8 @@ the registered name uppercased, with . and - replaced by _:
     LILA_ENABLE_WEB=off                # data source 'web'
     LILA_ENABLE_APOLLO_HANDOFF=off     # contact finder 'apollo-handoff'
     LILA_ENABLE_ARBITER_OPENAI=on      # report arbiter 'arbiter-openai'
+    LILA_ENABLE_INTAKE_AUTO_APPROVE=off  # restore the Step 1 human click
+                                         # (default ON when unset)
 
 Unset means the component's own default (sources/finders default on; the OpenAI
 arbiter defaults OFF until you activate it). Real environment wins over .env, as

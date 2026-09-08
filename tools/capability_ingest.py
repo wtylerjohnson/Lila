@@ -40,7 +40,11 @@ CAPABILITY_INGEST_VERSION = "capability_ingest.v1.2026-08-07"
 
 # Where a product surface actually lives on a vendor site.
 PRODUCT_SLUGS = ("/solutions", "/products", "/platform", "/capabilities",
-                 "/services", "/what-we-do", "/use-cases")
+                 "/services", "/what-we-do", "/use-cases",
+                 "/eos", "/cloudvision", "/switching", "/hardware", "/series",
+                 "/about", "/company", "/industries",
+                 "/customers", "/case-studies", "/partners", "/ecosystem",
+                 "/compare", "/alternatives", "/resources")
 
 # A capability name is a short noun phrase. These are the shapes that are
 # navigation furniture rather than a product.
