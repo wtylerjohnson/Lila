@@ -26,6 +26,8 @@ class PublishedContact(_FrozenContract):
     name: str = Field(min_length=1)
     title: str | None = None
     source_url: HttpUrl | None = None
+    email: str | None = None
+    phone: str | None = None
 
 
 class ActionableExternalPathway(_FrozenContract):

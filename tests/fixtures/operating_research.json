@@ -1,0 +1,574 @@
+{
+  "schema_version": "reviewed_cases.v1",
+  "client_name": "Testco",
+  "scope_designator": "all",
+  "cases": [
+    {
+      "record": {
+        "record_id": "00000000000000000000000000000001",
+        "notice_id": "00000000000000000000000000000001",
+        "solicitation_number": "TEST-1",
+        "title": "Synthetic research case 1",
+        "agency": "TEST AGENCY",
+        "component": "Test Component",
+        "office": "Test Office",
+        "classification": "market_research",
+        "response_deadline": "2026-09-09",
+        "authoritative_evidence": [
+          {
+            "evidence_id": "notice-0",
+            "tier": "notice",
+            "kind": "notice",
+            "source_name": "Synthetic notice fixture",
+            "source_url": "https://sam.gov/opp/00000000000000000000000000000001/view",
+            "retrieved_at": "2026-09-08T00:00:00Z",
+            "excerpt": "Synthetic supplier risk and payment validation requirement.",
+            "observed_date": null,
+            "effective_date": null,
+            "record_hash": null,
+            "primary_source": true,
+            "supports": []
+          }
+        ],
+        "requirement_excerpt": "Synthetic supplier risk and payment validation requirement.",
+        "requirement_review_evidence_id": null,
+        "requirement_reviewed_by": null,
+        "requirement_reviewed_at": null,
+        "attachments": [],
+        "attachment_inventory_count": null,
+        "attachment_inventory_hash": null,
+        "attachment_inventory_valid": false,
+        "attachments_checked": false,
+        "attachment_reviewed_by": null,
+        "attachment_reviewed_at": null,
+        "attachment_gap": "Reviewed documents support research; full canonical attachment inventory and bid qualification remain unapproved.",
+        "fit_trace": [],
+        "recommendation": "research",
+        "exclusion_reason": null,
+        "verified_at": "2026-09-08T00:00:00Z"
+      },
+      "research": {
+        "status": "technical_qualification",
+        "priority": true,
+        "rationale": "Synthetic rationale for case 1",
+        "buyer_requirement": "Synthetic buyer requirement for case 1",
+        "fit_hypothesis": "Synthetic fit hypothesis for case 1",
+        "route": "Synthetic route for case 1",
+        "why_now": "Synthetic why now for case 1",
+        "next_ask": "Synthetic next ask for case 1",
+        "open_questions": [
+          "Confirm technical fit.",
+          "Confirm current buying route."
+        ],
+        "reviewed_by": "fixture",
+        "reviewed_at": "2026-09-08T20:47:14Z",
+        "evidence": [
+          {
+            "evidence_id": "notice-0",
+            "tier": "notice",
+            "kind": "notice",
+            "source_name": "Synthetic notice fixture",
+            "source_url": "https://sam.gov/opp/00000000000000000000000000000001/view",
+            "retrieved_at": "2026-09-08T00:00:00Z",
+            "excerpt": "Synthetic supplier risk and payment validation requirement.",
+            "observed_date": null,
+            "effective_date": null,
+            "record_hash": null,
+            "primary_source": true,
+            "supports": []
+          }
+        ]
+      },
+      "targets": [
+        {
+          "name": "Test Person 1-1",
+          "role": "Procurement contact",
+          "organization": "Test Organization",
+          "source_kind": "government_published",
+          "source_url": "https://sam.gov/opp/00000000000000000000000000000001/view",
+          "email": "test11@example.gov",
+          "phone": "+12025550101",
+          "contact_status": "Synthetic data",
+          "route": "Confirm the published route",
+          "reason_to_contact": "Identify the relevant owner",
+          "next_ask": "Who owns this requirement?",
+          "authority_boundary": "Unconfirmed authority",
+          "evidence": [
+            {
+              "evidence_id": "notice-0",
+              "tier": "notice",
+              "kind": "notice",
+              "source_name": "Synthetic notice fixture",
+              "source_url": "https://sam.gov/opp/00000000000000000000000000000001/view",
+              "retrieved_at": "2026-09-08T00:00:00Z",
+              "excerpt": "Synthetic supplier risk and payment validation requirement.",
+              "observed_date": null,
+              "effective_date": null,
+              "record_hash": null,
+              "primary_source": true,
+              "supports": []
+            }
+          ]
+        },
+        {
+          "name": "Test Person 1-2",
+          "role": "Procurement contact",
+          "organization": "Test Organization",
+          "source_kind": "government_published",
+          "source_url": "https://sam.gov/opp/00000000000000000000000000000001/view",
+          "email": "test12@example.gov",
+          "phone": "+12025550101",
+          "contact_status": "Synthetic data",
+          "route": "Confirm the published route",
+          "reason_to_contact": "Identify the relevant owner",
+          "next_ask": "Who owns this requirement?",
+          "authority_boundary": "Unconfirmed authority",
+          "evidence": [
+            {
+              "evidence_id": "notice-0",
+              "tier": "notice",
+              "kind": "notice",
+              "source_name": "Synthetic notice fixture",
+              "source_url": "https://sam.gov/opp/00000000000000000000000000000001/view",
+              "retrieved_at": "2026-09-08T00:00:00Z",
+              "excerpt": "Synthetic supplier risk and payment validation requirement.",
+              "observed_date": null,
+              "effective_date": null,
+              "record_hash": null,
+              "primary_source": true,
+              "supports": []
+            }
+          ]
+        },
+        {
+          "name": "Test Person 1-3",
+          "role": "Research routing contact",
+          "organization": "Test Organization",
+          "source_kind": "apollo",
+          "source_url": "https://example.com/people",
+          "email": "test13@example.gov",
+          "phone": "+12025550101",
+          "contact_status": "Synthetic data",
+          "route": "Confirm the published route",
+          "reason_to_contact": "Identify the relevant owner",
+          "next_ask": "Who owns this requirement?",
+          "authority_boundary": "Unconfirmed authority",
+          "evidence": [
+            {
+              "evidence_id": "notice-0",
+              "tier": "notice",
+              "kind": "notice",
+              "source_name": "Synthetic notice fixture",
+              "source_url": "https://sam.gov/opp/00000000000000000000000000000001/view",
+              "retrieved_at": "2026-09-08T00:00:00Z",
+              "excerpt": "Synthetic supplier risk and payment validation requirement.",
+              "observed_date": null,
+              "effective_date": null,
+              "record_hash": null,
+              "primary_source": true,
+              "supports": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "record": {
+        "record_id": "00000000000000000000000000000002",
+        "notice_id": "00000000000000000000000000000002",
+        "solicitation_number": "TEST-2",
+        "title": "Synthetic research case 2",
+        "agency": "TEST AGENCY",
+        "component": "Test Component",
+        "office": "Test Office",
+        "classification": "awarded_or_closed",
+        "response_deadline": "2026-06-15",
+        "authoritative_evidence": [
+          {
+            "evidence_id": "notice-1",
+            "tier": "notice",
+            "kind": "notice",
+            "source_name": "Synthetic notice fixture",
+            "source_url": "https://sam.gov/opp/00000000000000000000000000000002/view",
+            "retrieved_at": "2026-09-08T00:00:00Z",
+            "excerpt": "Synthetic supplier risk and payment validation requirement.",
+            "observed_date": null,
+            "effective_date": null,
+            "record_hash": null,
+            "primary_source": true,
+            "supports": []
+          }
+        ],
+        "requirement_excerpt": "Synthetic supplier risk and payment validation requirement.",
+        "requirement_review_evidence_id": null,
+        "requirement_reviewed_by": null,
+        "requirement_reviewed_at": null,
+        "attachments": [],
+        "attachment_inventory_count": null,
+        "attachment_inventory_hash": null,
+        "attachment_inventory_valid": false,
+        "attachments_checked": false,
+        "attachment_reviewed_by": null,
+        "attachment_reviewed_at": null,
+        "attachment_gap": "Reviewed documents support research; full canonical attachment inventory and bid qualification remain unapproved.",
+        "fit_trace": [],
+        "recommendation": "none",
+        "exclusion_reason": null,
+        "verified_at": "2026-09-08T00:00:00Z"
+      },
+      "research": {
+        "status": "known_opportunity",
+        "priority": true,
+        "rationale": "Synthetic rationale for case 2",
+        "buyer_requirement": "Synthetic buyer requirement for case 2",
+        "fit_hypothesis": "Synthetic fit hypothesis for case 2",
+        "route": "Synthetic route for case 2",
+        "why_now": "Synthetic why now for case 2",
+        "next_ask": "Synthetic next ask for case 2",
+        "open_questions": [
+          "Confirm technical fit.",
+          "Confirm current buying route."
+        ],
+        "reviewed_by": "fixture",
+        "reviewed_at": "2026-09-08T20:47:14Z",
+        "evidence": [
+          {
+            "evidence_id": "notice-1",
+            "tier": "notice",
+            "kind": "notice",
+            "source_name": "Synthetic notice fixture",
+            "source_url": "https://sam.gov/opp/00000000000000000000000000000002/view",
+            "retrieved_at": "2026-09-08T00:00:00Z",
+            "excerpt": "Synthetic supplier risk and payment validation requirement.",
+            "observed_date": null,
+            "effective_date": null,
+            "record_hash": null,
+            "primary_source": true,
+            "supports": []
+          }
+        ]
+      },
+      "targets": [
+        {
+          "name": "Test Person 2-1",
+          "role": "Procurement contact",
+          "organization": "Test Organization",
+          "source_kind": "government_published",
+          "source_url": "https://sam.gov/opp/00000000000000000000000000000002/view",
+          "email": "test21@example.gov",
+          "phone": "+12025550101",
+          "contact_status": "Synthetic data",
+          "route": "Confirm the published route",
+          "reason_to_contact": "Identify the relevant owner",
+          "next_ask": "Who owns this requirement?",
+          "authority_boundary": "Unconfirmed authority",
+          "evidence": [
+            {
+              "evidence_id": "notice-1",
+              "tier": "notice",
+              "kind": "notice",
+              "source_name": "Synthetic notice fixture",
+              "source_url": "https://sam.gov/opp/00000000000000000000000000000002/view",
+              "retrieved_at": "2026-09-08T00:00:00Z",
+              "excerpt": "Synthetic supplier risk and payment validation requirement.",
+              "observed_date": null,
+              "effective_date": null,
+              "record_hash": null,
+              "primary_source": true,
+              "supports": []
+            }
+          ]
+        },
+        {
+          "name": "Test Person 2-2",
+          "role": "Procurement contact",
+          "organization": "Test Organization",
+          "source_kind": "government_published",
+          "source_url": "https://sam.gov/opp/00000000000000000000000000000002/view",
+          "email": "test22@example.gov",
+          "phone": "+12025550101",
+          "contact_status": "Synthetic data",
+          "route": "Confirm the published route",
+          "reason_to_contact": "Identify the relevant owner",
+          "next_ask": "Who owns this requirement?",
+          "authority_boundary": "Unconfirmed authority",
+          "evidence": [
+            {
+              "evidence_id": "notice-1",
+              "tier": "notice",
+              "kind": "notice",
+              "source_name": "Synthetic notice fixture",
+              "source_url": "https://sam.gov/opp/00000000000000000000000000000002/view",
+              "retrieved_at": "2026-09-08T00:00:00Z",
+              "excerpt": "Synthetic supplier risk and payment validation requirement.",
+              "observed_date": null,
+              "effective_date": null,
+              "record_hash": null,
+              "primary_source": true,
+              "supports": []
+            }
+          ]
+        },
+        {
+          "name": "Test Person 2-3",
+          "role": "Research routing contact",
+          "organization": "Test Organization",
+          "source_kind": "apollo",
+          "source_url": "https://example.com/people",
+          "email": "test23@example.gov",
+          "phone": "+12025550101",
+          "contact_status": "Synthetic data",
+          "route": "Confirm the published route",
+          "reason_to_contact": "Identify the relevant owner",
+          "next_ask": "Who owns this requirement?",
+          "authority_boundary": "Unconfirmed authority",
+          "evidence": [
+            {
+              "evidence_id": "notice-1",
+              "tier": "notice",
+              "kind": "notice",
+              "source_name": "Synthetic notice fixture",
+              "source_url": "https://sam.gov/opp/00000000000000000000000000000002/view",
+              "retrieved_at": "2026-09-08T00:00:00Z",
+              "excerpt": "Synthetic supplier risk and payment validation requirement.",
+              "observed_date": null,
+              "effective_date": null,
+              "record_hash": null,
+              "primary_source": true,
+              "supports": []
+            }
+          ]
+        },
+        {
+          "name": "Test Person 2-4",
+          "role": "Research routing contact",
+          "organization": "Test Organization",
+          "source_kind": "apollo",
+          "source_url": "https://example.com/people",
+          "email": "test24@example.gov",
+          "phone": "+12025550101",
+          "contact_status": "Synthetic data",
+          "route": "Confirm the published route",
+          "reason_to_contact": "Identify the relevant owner",
+          "next_ask": "Who owns this requirement?",
+          "authority_boundary": "Unconfirmed authority",
+          "evidence": [
+            {
+              "evidence_id": "notice-1",
+              "tier": "notice",
+              "kind": "notice",
+              "source_name": "Synthetic notice fixture",
+              "source_url": "https://sam.gov/opp/00000000000000000000000000000002/view",
+              "retrieved_at": "2026-09-08T00:00:00Z",
+              "excerpt": "Synthetic supplier risk and payment validation requirement.",
+              "observed_date": null,
+              "effective_date": null,
+              "record_hash": null,
+              "primary_source": true,
+              "supports": []
+            }
+          ]
+        },
+        {
+          "name": "Test Person 2-5",
+          "role": "Research routing contact",
+          "organization": "Test Organization",
+          "source_kind": "apollo",
+          "source_url": "https://example.com/people",
+          "email": "test25@example.gov",
+          "phone": "+12025550101",
+          "contact_status": "Synthetic data",
+          "route": "Confirm the published route",
+          "reason_to_contact": "Identify the relevant owner",
+          "next_ask": "Who owns this requirement?",
+          "authority_boundary": "Unconfirmed authority",
+          "evidence": [
+            {
+              "evidence_id": "notice-1",
+              "tier": "notice",
+              "kind": "notice",
+              "source_name": "Synthetic notice fixture",
+              "source_url": "https://sam.gov/opp/00000000000000000000000000000002/view",
+              "retrieved_at": "2026-09-08T00:00:00Z",
+              "excerpt": "Synthetic supplier risk and payment validation requirement.",
+              "observed_date": null,
+              "effective_date": null,
+              "record_hash": null,
+              "primary_source": true,
+              "supports": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "record": {
+        "record_id": "00000000000000000000000000000003",
+        "notice_id": "00000000000000000000000000000003",
+        "solicitation_number": "TEST-3",
+        "title": "Synthetic research case 3",
+        "agency": "TEST AGENCY",
+        "component": "Test Component",
+        "office": "Test Office",
+        "classification": "awarded_or_closed",
+        "response_deadline": "2026-04-30",
+        "authoritative_evidence": [
+          {
+            "evidence_id": "notice-2",
+            "tier": "notice",
+            "kind": "notice",
+            "source_name": "Synthetic notice fixture",
+            "source_url": "https://sam.gov/opp/00000000000000000000000000000003/view",
+            "retrieved_at": "2026-09-08T00:00:00Z",
+            "excerpt": "Synthetic supplier risk and payment validation requirement.",
+            "observed_date": null,
+            "effective_date": null,
+            "record_hash": null,
+            "primary_source": true,
+            "supports": []
+          }
+        ],
+        "requirement_excerpt": "Synthetic supplier risk and payment validation requirement.",
+        "requirement_review_evidence_id": null,
+        "requirement_reviewed_by": null,
+        "requirement_reviewed_at": null,
+        "attachments": [],
+        "attachment_inventory_count": null,
+        "attachment_inventory_hash": null,
+        "attachment_inventory_valid": false,
+        "attachments_checked": false,
+        "attachment_reviewed_by": null,
+        "attachment_reviewed_at": null,
+        "attachment_gap": "Reviewed documents support research; full canonical attachment inventory and bid qualification remain unapproved.",
+        "fit_trace": [],
+        "recommendation": "none",
+        "exclusion_reason": null,
+        "verified_at": "2026-09-08T00:00:00Z"
+      },
+      "research": {
+        "status": "investigation",
+        "priority": true,
+        "rationale": "Synthetic rationale for case 3",
+        "buyer_requirement": "Synthetic buyer requirement for case 3",
+        "fit_hypothesis": "Synthetic fit hypothesis for case 3",
+        "route": "Synthetic route for case 3",
+        "why_now": "Synthetic why now for case 3",
+        "next_ask": "Synthetic next ask for case 3",
+        "open_questions": [
+          "Confirm technical fit.",
+          "Confirm current buying route."
+        ],
+        "reviewed_by": "fixture",
+        "reviewed_at": "2026-09-08T20:47:14Z",
+        "evidence": [
+          {
+            "evidence_id": "notice-2",
+            "tier": "notice",
+            "kind": "notice",
+            "source_name": "Synthetic notice fixture",
+            "source_url": "https://sam.gov/opp/00000000000000000000000000000003/view",
+            "retrieved_at": "2026-09-08T00:00:00Z",
+            "excerpt": "Synthetic supplier risk and payment validation requirement.",
+            "observed_date": null,
+            "effective_date": null,
+            "record_hash": null,
+            "primary_source": true,
+            "supports": []
+          }
+        ]
+      },
+      "targets": [
+        {
+          "name": "Test Person 3-1",
+          "role": "Procurement contact",
+          "organization": "Test Organization",
+          "source_kind": "government_published",
+          "source_url": "https://sam.gov/opp/00000000000000000000000000000003/view",
+          "email": "test31@example.gov",
+          "phone": "+12025550101",
+          "contact_status": "Synthetic data",
+          "route": "Confirm the published route",
+          "reason_to_contact": "Identify the relevant owner",
+          "next_ask": "Who owns this requirement?",
+          "authority_boundary": "Unconfirmed authority",
+          "evidence": [
+            {
+              "evidence_id": "notice-2",
+              "tier": "notice",
+              "kind": "notice",
+              "source_name": "Synthetic notice fixture",
+              "source_url": "https://sam.gov/opp/00000000000000000000000000000003/view",
+              "retrieved_at": "2026-09-08T00:00:00Z",
+              "excerpt": "Synthetic supplier risk and payment validation requirement.",
+              "observed_date": null,
+              "effective_date": null,
+              "record_hash": null,
+              "primary_source": true,
+              "supports": []
+            }
+          ]
+        },
+        {
+          "name": "Test Person 3-2",
+          "role": "Procurement contact",
+          "organization": "Test Organization",
+          "source_kind": "government_published",
+          "source_url": "https://sam.gov/opp/00000000000000000000000000000003/view",
+          "email": "test32@example.gov",
+          "phone": "+12025550101",
+          "contact_status": "Synthetic data",
+          "route": "Confirm the published route",
+          "reason_to_contact": "Identify the relevant owner",
+          "next_ask": "Who owns this requirement?",
+          "authority_boundary": "Unconfirmed authority",
+          "evidence": [
+            {
+              "evidence_id": "notice-2",
+              "tier": "notice",
+              "kind": "notice",
+              "source_name": "Synthetic notice fixture",
+              "source_url": "https://sam.gov/opp/00000000000000000000000000000003/view",
+              "retrieved_at": "2026-09-08T00:00:00Z",
+              "excerpt": "Synthetic supplier risk and payment validation requirement.",
+              "observed_date": null,
+              "effective_date": null,
+              "record_hash": null,
+              "primary_source": true,
+              "supports": []
+            }
+          ]
+        },
+        {
+          "name": "Test Person 3-3",
+          "role": "Research routing contact",
+          "organization": "Test Organization",
+          "source_kind": "company_published",
+          "source_url": "https://example.com/people",
+          "email": "test33@example.gov",
+          "phone": "+12025550101",
+          "contact_status": "Synthetic data",
+          "route": "Confirm the published route",
+          "reason_to_contact": "Identify the relevant owner",
+          "next_ask": "Who owns this requirement?",
+          "authority_boundary": "Unconfirmed authority",
+          "evidence": [
+            {
+              "evidence_id": "notice-2",
+              "tier": "notice",
+              "kind": "notice",
+              "source_name": "Synthetic notice fixture",
+              "source_url": "https://sam.gov/opp/00000000000000000000000000000003/view",
+              "retrieved_at": "2026-09-08T00:00:00Z",
+              "excerpt": "Synthetic supplier risk and payment validation requirement.",
+              "observed_date": null,
+              "effective_date": null,
+              "record_hash": null,
+              "primary_source": true,
+              "supports": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

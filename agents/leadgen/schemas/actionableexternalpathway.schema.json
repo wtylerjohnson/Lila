@@ -169,10 +169,34 @@
       "additionalProperties": false,
       "description": "A government-published POC. Not an Apollo or invented person.",
       "properties": {
+        "email": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Email"
+        },
         "name": {
           "minLength": 1,
           "title": "Name",
           "type": "string"
+        },
+        "phone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Phone"
         },
         "source_url": {
           "anyOf": [

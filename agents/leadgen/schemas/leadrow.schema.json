@@ -425,6 +425,207 @@
       "title": "LeadReadiness",
       "type": "string"
     },
+    "LeadResearch": {
+      "additionalProperties": false,
+      "description": "Research priority is independent of qualification and outreach permission.",
+      "properties": {
+        "buyer_requirement": {
+          "minLength": 1,
+          "title": "Buyer Requirement",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        },
+        "fit_hypothesis": {
+          "minLength": 1,
+          "title": "Fit Hypothesis",
+          "type": "string"
+        },
+        "next_ask": {
+          "minLength": 1,
+          "title": "Next Ask",
+          "type": "string"
+        },
+        "open_questions": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Open Questions",
+          "type": "array"
+        },
+        "priority": {
+          "default": false,
+          "title": "Priority",
+          "type": "boolean"
+        },
+        "rationale": {
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "reviewed_at": {
+          "format": "date-time",
+          "title": "Reviewed At",
+          "type": "string"
+        },
+        "reviewed_by": {
+          "minLength": 1,
+          "title": "Reviewed By",
+          "type": "string"
+        },
+        "route": {
+          "minLength": 1,
+          "title": "Route",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "technical_qualification",
+            "known_opportunity",
+            "investigation",
+            "deprioritized",
+            "rejected"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "why_now": {
+          "minLength": 1,
+          "title": "Why Now",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "rationale",
+        "buyer_requirement",
+        "fit_hypothesis",
+        "route",
+        "why_now",
+        "next_ask",
+        "open_questions",
+        "reviewed_by",
+        "reviewed_at",
+        "evidence"
+      ],
+      "title": "LeadResearch",
+      "type": "object"
+    },
+    "LeadTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "authority_boundary": {
+          "minLength": 1,
+          "title": "Authority Boundary",
+          "type": "string"
+        },
+        "contact_status": {
+          "minLength": 1,
+          "title": "Contact Status",
+          "type": "string"
+        },
+        "email": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Email"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "next_ask": {
+          "minLength": 1,
+          "title": "Next Ask",
+          "type": "string"
+        },
+        "organization": {
+          "minLength": 1,
+          "title": "Organization",
+          "type": "string"
+        },
+        "phone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Phone"
+        },
+        "reason_to_contact": {
+          "minLength": 1,
+          "title": "Reason To Contact",
+          "type": "string"
+        },
+        "role": {
+          "minLength": 1,
+          "title": "Role",
+          "type": "string"
+        },
+        "route": {
+          "minLength": 1,
+          "title": "Route",
+          "type": "string"
+        },
+        "source_kind": {
+          "enum": [
+            "government_published",
+            "company_published",
+            "apollo"
+          ],
+          "title": "Source Kind",
+          "type": "string"
+        },
+        "source_url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Source Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "role",
+        "organization",
+        "source_kind",
+        "source_url",
+        "contact_status",
+        "route",
+        "reason_to_contact",
+        "next_ask",
+        "authority_boundary",
+        "evidence"
+      ],
+      "title": "LeadTarget",
+      "type": "object"
+    },
     "LeadTier": {
       "description": "Lead disposition. Not a targeting rule, persona tier, or Assess gate.\n\nPersist under the field name ``lead_tier``. Display as \"lead T1\" /\n\"lead T2\", never as a bare \"T1\".",
       "enum": [
@@ -523,10 +724,34 @@
       "additionalProperties": false,
       "description": "A government-published POC. Not an Apollo or invented person.",
       "properties": {
+        "email": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Email"
+        },
         "name": {
           "minLength": 1,
           "title": "Name",
           "type": "string"
+        },
+        "phone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Phone"
         },
         "source_url": {
           "anyOf": [
@@ -674,6 +899,13 @@
     "communication_permission": {
       "$ref": "#/$defs/CommunicationPermission"
     },
+    "company_evidence_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Company Evidence Ids",
+      "type": "array"
+    },
     "contactability": {
       "$ref": "#/$defs/Contactability"
     },
@@ -716,6 +948,17 @@
     "readiness": {
       "$ref": "#/$defs/LeadReadiness"
     },
+    "research": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LeadResearch"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "schema_version": {
       "const": "leadgen.contracts.v1",
       "default": "leadgen.contracts.v1",
@@ -724,6 +967,13 @@
     },
     "seller_path": {
       "$ref": "#/$defs/SellerTransactionPath"
+    },
+    "targets": {
+      "items": {
+        "$ref": "#/$defs/LeadTarget"
+      },
+      "title": "Targets",
+      "type": "array"
     }
   },
   "required": [
