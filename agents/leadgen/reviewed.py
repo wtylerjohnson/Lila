@@ -23,12 +23,17 @@ def case_projection(run, book: ReviewedCases, projection):
 
 
 def attach_research(batch, book: ReviewedCases):
+    from agents.leadgen.enums import NextActionVerb
     parents = {p.assessment_id: p for p in batch.parents}
     cases = {c.record.notice_id: c for c in book.cases}
     leads = []
     for lead in batch.leads:
         case = cases.get(parents[lead.parent_assessment_id].notice_id)
         if case:
-            lead = lead.model_copy(update={"targets": case.targets, "research": case.research})
+            action = lead.next_action.model_copy(update={
+                "verb": NextActionVerb.REVIEW_REQUIREMENT_SPAN,
+                "object": case.research.next_ask})
+            lead = lead.model_copy(update={"targets": case.targets, "research": case.research,
+                                           "next_action": action})
         leads.append(lead)
     return batch.model_copy(update={"leads": tuple(leads)})

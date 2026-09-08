@@ -52,6 +52,8 @@ def test_reviewed_cases_keep_official_and_enriched_target_actions():
     assert len(receipt.leads) == 3
     assert sum(len(l.targets) for l in receipt.leads) == 11
     assert {l.lead_tier.value for l in receipt.leads} == {'HOLD'}
+    assert all(l.next_action.object == l.research.next_ask for l in receipt.leads)
+    assert all(l.next_action.blocked_by for l in receipt.leads)
     html = render_html(receipt)
     for case in book.cases:
         for target in case.targets:
