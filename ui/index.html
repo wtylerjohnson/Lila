@@ -5432,7 +5432,7 @@ async function checkBuild() {
     if (b.stale) {
       el2.innerHTML = '<span style="color:#e06060;font-weight:700">CODE UPDATED — RESTART SERVER (Desktop icon)</span>';
     } else {
-      el2.textContent = 'SRV ' + t;
+      el2.textContent = 'LILA ' + (b.revision || '') + ' · ' + (b.operating_root || '') + ' · SRV ' + t;
     }
   } catch {}
 }

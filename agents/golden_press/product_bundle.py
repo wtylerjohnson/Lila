@@ -144,6 +144,23 @@ def _require_output_retention(root: Path, slug: str, pack, leadgen: Optional[dic
         prior_child = json.loads(prior_child_path.read_text(encoding="utf-8"))
         if prior_child.get("status") == "complete" and leadgen.get("status") != "complete":
             problems.append("previous complete lead generation became unavailable")
+    prior_quality = previous.parent / "quality_baseline.json"
+    if prior_quality.exists() and leadgen is not None:
+        baseline = json.loads(prior_quality.read_text())
+        current_cases = {c["record"]["notice_id"]: c
+                         for c in (leadgen.get("reviewed_cases") or {}).get("cases", [])}
+        for case in (baseline.get("reviewed_cases") or {}).get("cases", []):
+            rid = case["record"]["notice_id"]
+            newer = current_cases.get(rid)
+            if newer is None:
+                problems.append(f"reviewed assessment history removed: {rid}")
+                continue
+            by_name = {t["name"]: t for t in newer.get("targets", [])}
+            for target in case.get("targets", []):
+                retained = by_name.get(target["name"], {})
+                for field in ("role", "email", "phone", "route", "reason_to_contact", "next_ask", "evidence"):
+                    if target.get(field) and not retained.get(field):
+                        problems.append(f"reviewed target detail removed: {rid} / {target['name']} / {field}")
     for row in old.get("records", []):
         identity = row.get("record_id")
         newer = current.get(identity)
@@ -254,8 +271,11 @@ def build_complete_bundle(
     pressed_pack_path, pack = _load_pack(root, slug)
     from agents.golden_press.product_leadgen import build_leadgen_companion
     try:
-        leadgen = build_leadgen_companion(client_name, root)
+        leadgen = build_leadgen_companion(client_name, root, evidence_pack=pack)
     except Exception as exc:  # additive child cannot erase the parent report
+        if (root / "data" / "review" / f"{slug}.dossier.json").exists() or (
+                root / "data" / "review" / f"{slug}.reviewed_cases.json").exists():
+            raise ProductReleaseBlocked([f"lead workflow: {exc}; prior release preserved"]) from exc
         leadgen = {"status": "unavailable", "error": str(exc),
                    "next_action": "Refresh the current assessment input and retry lead generation."}
     from agents.golden_press.product_leadgen import restore_assessment_population
@@ -361,6 +381,15 @@ def build_complete_bundle(
             payloads["assessment.json"] = _json_bytes(leadgen["assessment"])
             payloads["leadgen.html"] = leadgen["html"].encode("utf-8")
             payloads["leadgen_scorecard.csv"] = leadgen["scorecard_csv"].encode("utf-8")
+            if leadgen["receipt"].get("company_dossier"):
+                dossier_bytes = Path(leadgen["receipt"]["dossier_path"]).read_bytes()
+                if _sha_bytes(dossier_bytes) != leadgen["receipt"]["dossier_sha256"]:
+                    raise ProductReleaseBlocked(["company dossier changed during release; retry with a stable input"])
+                payloads["company_dossier.json"] = dossier_bytes
+            if leadgen.get("reviewed_cases"):
+                payloads["reviewed_cases.json"] = _json_bytes(leadgen["reviewed_cases"])
+            if leadgen.get("quality_baseline"):
+                payloads["quality_baseline.json"] = _json_bytes(leadgen["quality_baseline"])
         for name, payload in payloads.items():
             _write(staging / name, payload)
         file_receipts = {

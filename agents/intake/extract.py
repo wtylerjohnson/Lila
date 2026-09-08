@@ -635,7 +635,7 @@ _CASE_STUDY_ORG = (
 
 
 def case_study_orgs_from_url(url: str) -> list[str]:
-    """Activ_Financial / Hardis-Group PDF filenames are customer proof."""
+    """Known PDF filenames are discovery hints; page text must prove the customer."""
     if not url or "casestud" not in (url or "").casefold():
         return []
     found: list[str] = []

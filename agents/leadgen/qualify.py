@@ -89,6 +89,7 @@ def qualify_drafts(
     batch: AssessLeadDrafts,
     run: AssessRun,
     target_actions: Mapping[str, Any] | Sequence[Any] | None = None,
+    *, company_dossier=None,
 ) -> AssessLeadDrafts:
     """Promote a small evidenced subset. Everyone else stays fail-closed.
 
@@ -121,6 +122,27 @@ def qualify_drafts(
             traces_by_lead.get(lead.lead_id),
             t1_used=t1_used,
         )
+        if company_dossier is not None:
+            if company_dossier.client_name.casefold() != run.client_name.casefold():
+                raise ValueError("qualifier dossier belongs to a different client")
+            text = _clean(getattr(subject, "requirement_excerpt", "")).casefold()
+            import re
+            words = set(re.findall(r"[a-z0-9]+", text))
+            claims = (*company_dossier.offerings, *company_dossier.keywords)
+            cites = tuple(sorted({eid for claim in claims
+                                  if getattr(claim, "state", "") != "disputed"
+                                  and (tokens := set(re.findall(r"[a-z0-9]+", _clean(
+                                      getattr(claim, "text", None) or getattr(claim, "term", "")).casefold())))
+                                  and len(words & tokens) >= min(2, len(tokens))
+                                  for eid in claim.evidence_ids}))
+            next_lead = next_lead.model_copy(update={"company_evidence_ids": cites})
+            if not cites and next_lead.lead_tier in (LeadTier.LEAD_T1, LeadTier.LEAD_T2):
+                next_lead, next_trace, took_t1 = _keep_hold(
+                    next_lead, next_lead.seller_path, next_trace,
+                    "Company dossier fit evidence is not established for this requirement")
+            if next_trace is not None:
+                next_trace = next_trace.model_copy(update={"notes": next_trace.notes
+                    + "; company dossier considered; matched evidence: " + (", ".join(cites) or "none; fit remains open")})
         if took_t1:
             t1_used = True
         promoted.append(next_lead)

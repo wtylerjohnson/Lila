@@ -160,6 +160,8 @@ class PressLeadGenReceipt(_FrozenContract):
     dossier_path: str | None = None
     dossier_schema_version: str | None = None
     identity_status: str | None = None
+    dossier_sha256: str | None = None
+    company_dossier: dict[str, Any] | None = None
     steps: tuple[PressStepReceipt, ...]
     parents: tuple[OpportunityAssessment, ...]
     leads: tuple[LeadRow, ...]
@@ -358,6 +360,7 @@ def run_press(
     target_actions: Any = None,
     client_name: str | None = None,
     dossier_path: str | Path | None = None,
+    reviewed_cases: Any = None,
     review_dir: str | Path | None = None,
     write_markdown: bool = False,
     as_of: datetime | None = None,
@@ -385,7 +388,7 @@ def run_press(
 
     profile = cite_profile(identity)
     try:
-        dossier = cite_dossier(dossier_path)
+        dossier = cite_dossier(dossier_path, client_name=identity)
     except IntakeCiteError as exc:
         raise PressLeadGenError(str(exc)) from exc
     step1_notes = []
@@ -404,9 +407,18 @@ def run_press(
             "intake dossier path omitted; Step 1 remains optional")
 
     projection = _load_target_actions(target_actions)
+    if reviewed_cases is not None:
+        from agents.leadgen.reviewed import case_projection
+        projection = case_projection(run, reviewed_cases, projection)
     action_rows = list(projection.get("rows") or [])
     batch = draft_lead_rows(run, projection)
-    batch = qualify_drafts(batch, run, projection)
+    from agents.intake.dossier import CompanyDossier
+    company_dossier = (CompanyDossier.model_validate_json(Path(dossier_path).read_bytes())
+                       if dossier_path else None)
+    batch = qualify_drafts(batch, run, projection, company_dossier=company_dossier)
+    if reviewed_cases is not None:
+        from agents.leadgen.reviewed import attach_research
+        batch = attach_research(batch, reviewed_cases)
     parents = _bind_dossier_cites(
         batch.parents,
         dossier_schema_version=dossier["dossier_schema_version"],
@@ -494,6 +506,9 @@ def run_press(
         dossier_schema_version=dossier["dossier_schema_version"],
         identity_status=dossier["identity_status"],
         steps=steps,
+        dossier_sha256=(__import__("hashlib").sha256(Path(dossier_path).read_bytes()).hexdigest()
+                        if dossier_path else None),
+        company_dossier=(json.loads(Path(dossier_path).read_text()) if dossier_path else None),
         parents=parents,
         leads=leads,
         traces=batch.traces,

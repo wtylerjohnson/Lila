@@ -153,8 +153,10 @@ def test_optional_dossier_is_cited_on_parents(tmp_path):
     run = _run(partners=[_partner()])
     dossier = tmp_path / "dossier.json"
     dossier.write_text(json.dumps({
-        "schema_version": "intake.dossier.v1",
-        "identity": {"status": "bound"},
+        "schema_version": "intake_dossier.v1", "client_name": run.client_name,
+        "identity": {"query_name": run.client_name, "status": "bound", "official_domain": "acme.example"},
+        "evidence": [{"evidence_id": "E1", "source_kind": "website", "excerpt": "Network monitoring"}],
+        "offerings": [{"text": "Network monitoring", "evidence_ids": ["E1"]}],
     }), encoding="utf-8")
     receipt = run_press(
         assess=run,
@@ -162,11 +164,11 @@ def test_optional_dossier_is_cited_on_parents(tmp_path):
         dossier_path=dossier,
     )
     assert receipt.dossier_path == str(dossier)
-    assert receipt.dossier_schema_version == "intake.dossier.v1"
+    assert receipt.dossier_schema_version == "intake_dossier.v1"
     assert receipt.identity_status == "bound"
     assert receipt.steps[0].status.value == "complete"
     assert all(
-        parent.dossier_schema_version == "intake.dossier.v1"
+        parent.dossier_schema_version == "intake_dossier.v1"
         for parent in receipt.parents
     )
     assert all(parent.identity_status == "bound" for parent in receipt.parents)

@@ -98,7 +98,8 @@ def test_one_release_action_writes_complete_hash_bound_zip(
         "captured_inputs.json", "validation.json", "README.txt", "leadgen_status.json",
     }
     if complete_child:
-        expected |= {"leadgen.json", "assessment.json", "leadgen.html", "leadgen_scorecard.csv"}
+        expected |= {"leadgen.json", "assessment.json", "leadgen.html", "leadgen_scorecard.csv",
+                     "quality_baseline.json", "reviewed_cases.json"}
     assert set(manifest["files"]) == expected
     for name, receipt in manifest["files"].items():
         assert bundle._sha_file(release_dir / name) == receipt["sha256"]

@@ -27,6 +27,7 @@ _PRODUCT_CSS = r"""
 .product-metric strong{display:block;margin-top:7px;font-family:var(--mono);font-size:19px;overflow-wrap:anywhere}
 .product-metric small{display:block;margin-top:6px;color:var(--muted);line-height:1.45}
 .product-records{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.product-slot[data-slot-id="priority-pursuits"] .product-records,.product-slot[data-slot-id="federal-opportunities"] .product-records{grid-template-columns:minmax(0,1fr)}
 .product-record{border:1px solid var(--line);background:var(--paper);padding:17px;min-width:0;break-inside:avoid}
 .product-record-kind{display:block;color:var(--accent);font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px}
 .product-record h3{font-size:17px;line-height:1.3;margin:0 0 8px;overflow-wrap:anywhere}
@@ -36,6 +37,7 @@ _PRODUCT_CSS = r"""
 .product-fields dd{margin:0;font-size:12px;overflow-wrap:anywhere}
 .product-source{display:inline-block;margin-top:12px;color:var(--link);font-family:var(--mono);font-size:11px;overflow-wrap:anywhere}
 .product-priority{display:grid;grid-template-columns:42px minmax(0,1fr);gap:13px}
+.research-action{margin:16px 0;padding:14px;border-left:3px solid var(--accent);background:var(--paper);overflow-wrap:anywhere}
 .product-priority-rank{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border:1px solid var(--accent);color:var(--accent);font-family:var(--mono);font-weight:700}
 .product-targets{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
 .product-targets h4{margin:0 0 9px;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
@@ -89,7 +91,8 @@ def esc(value: Any) -> str:
 
 
 def _http(value: Any) -> str:
-    url = " ".join(str(value or "").split())
+    from agents.golden_press.market_map_render import _resolving_source_url
+    url = _resolving_source_url(value)
     try:
         parsed = urlsplit(url)
     except ValueError:
@@ -149,6 +152,9 @@ def _fields(record: dict) -> str:
 
 
 def _targets(record: dict) -> str:
+    from agents.leadgen.target_html import render_targets, render_research
+    if record.get("research") or any(t.get("next_ask") for t in record.get("targets") or []):
+        return render_research(record.get("research")) + render_targets(record.get("targets") or [])
     rows = []
     for target in record.get("targets") or []:
         name = target.get("name") or target.get("role_needed") or target.get("role")
@@ -178,11 +184,12 @@ def _priority(record: dict) -> str:
     return (
         '<article class="product-record product-priority">'
         f'<div class="product-priority-rank">{int(record.get("priority") or 0):02d}</div>'
-        '<div><span class="product-record-kind">Ranked pursuit</span>'
+        f'<div><span class="product-record-kind">{esc(record.get("priority_kind") or "Ranked pursuit")}</span>'
         f'<h3>{esc(record.get("title"))}</h3>'
         f'<p>{esc(record.get("why"))}</p>'
         + ('<dl class="product-fields">' + "".join(fields) + "</dl>" if fields else "")
-        + f'<div class="product-reference">Owned in slot {esc(record.get("reference_slot_id"))} · {esc(record.get("reference_key"))}</div>'
+        + f'<div class="product-reference"><a href="#{esc(record.get("reference_key"))}">Open assessment, contacts and evidence</a></div>'
+        + (_source_link(record) if record.get("source_url") else "")
         + "</div></article>")
 
 
@@ -192,7 +199,7 @@ def _record(record: dict, *, include_targets: bool = False) -> str:
     summary = record.get("summary") or record.get("next_action") or ""
     return (
         '<article class="product-record" '
-        f'data-record-key="{esc(record.get("record_key"))}">'
+        f'id="{esc(record.get("record_key"))}" data-record-key="{esc(record.get("record_key"))}">'
         f'<span class="product-record-kind">{esc(record.get("kind"))}</span>'
         f'<h3>{esc(record.get("title"))}</h3>'
         + (f'<p>{esc(summary)}</p>' if summary else "")
@@ -328,7 +335,6 @@ def render_slot(slot: Any) -> str:
         f'<span class="plain-number">{slot.number}</span><div>'
         f'<h2>{esc(slot.heading)}</h2><p>{esc(slot.summary)}</p></div>'
         f'<span class="plain-state product-status">{esc(slot.status)}</span></div>'
-        f'<p class="product-slot-summary">{esc(slot.summary)}</p>'
         + _metrics(slot.metrics)
         + '</div>'
         + ('<div class="product-records">' + records + "</div>" if records else "")
@@ -391,8 +397,7 @@ def render_external_product(doc: ExternalProductDocument) -> tuple[str, str]:
     studio = build_document(
         client_name=doc.client_name, slug=doc.slug, stamp=doc.as_of,
         title="LILA Federal Market Map",
-        standfirst=("Eight permanent product slots filled from the governed "
-                    "research mesh and Federal Pursuit Graph."),
+        standfirst="Federal opportunities and the evidence behind your next action.",
         edition=f"{doc.client_name} · Complete LILA edition",
         edition_note=(f"Research pressed {doc.as_of}. Every record remains "
                       "bound to its owning slot and source evidence."),

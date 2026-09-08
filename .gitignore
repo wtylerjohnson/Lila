@@ -63,3 +63,7 @@ data/archive/
 docs/plans/screenshots/
 ui/server.log
 ui/server.pid
+
+# Client release bundles and reviewed research are operating data, not source.
+data/releases/
+data/research_inputs/

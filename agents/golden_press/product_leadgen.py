@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from collections import Counter
 from pathlib import Path
+from tools.slug import client_slug
 
 from agents.leadgen.eval.checks import score_pack
 from agents.leadgen.eval.render import render_csv
@@ -15,12 +16,40 @@ from agents.leadgen.press import run_press
 from agents.leadgen.press_html import render_html
 
 
-def build_leadgen_companion(client_name: str, root: Path) -> dict:
+def build_leadgen_companion(client_name: str, root: Path, *, evidence_pack=None) -> dict:
     envelope = export_current_assess_run(
         client_name, state_dir=root / "data" / "state" / "assess_runs",
         review_dir=root / "data" / "review")
-    receipt = run_press(assess=envelope, client_name=client_name)
+    from agents.assess.reviewed_cases import load_cases
+    review = root / "data" / "review"
+    slug = client_slug(client_name)
+    dossier_path = review / f"{slug}.dossier.json"
+    target_path = review / f"{slug}.target_actions.json"
+    book = load_cases(client_name, review)
+    target_actions = target_path if target_path.exists() else None
+    if target_actions is None and evidence_pack is not None:
+        from agents.golden_press.target_actions import build_target_actions
+        targeting = evidence_pack.targeting or {}
+        target_actions = build_target_actions(
+            targeting.get("motions") or [], targeting.get("contacts") or [],
+            client=client_name, as_of=envelope["run"]["as_of"])
+    if book.cases and not dossier_path.exists():
+        raise ValueError("reviewed lead release requires the matching company dossier")
+    if book.cases and envelope.get("source_path"):
+        import hashlib
+        import json
+        source = json.loads(Path(envelope["source_path"]).read_text())
+        expected = (source.get("projection_inputs") or {}).get("reviewed_cases_sha256")
+        actual = hashlib.sha256((review / f"{slug}.reviewed_cases.json").read_bytes()).hexdigest()
+        if expected != actual:
+            raise ValueError("reviewed research changed after Assess; refresh the immutable run before release")
+    receipt = run_press(assess=envelope, client_name=client_name,
+                        dossier_path=dossier_path if dossier_path.exists() else None,
+                        target_actions=target_actions,
+                        reviewed_cases=book)
     payload = receipt.model_dump(mode="json")
+    from agents.leadgen.quality_baseline import check_reviewed_quality
+    quality = check_reviewed_quality(receipt, book)
     run = envelope["run"]
     evidence_dates = {
         row["notice_id"]: min(dates) if dates else None
@@ -39,6 +68,8 @@ def build_leadgen_companion(client_name: str, root: Path) -> dict:
         "evidence_dates": evidence_dates,
         "assessment": envelope,
         "receipt": payload,
+        "reviewed_cases": book.model_dump(mode="json"),
+        "quality_baseline": quality,
         "html": render_html(receipt),
         "scorecard_csv": render_csv(card) if card else "",
     }
