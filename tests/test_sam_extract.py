@@ -217,6 +217,8 @@ N-OBSOLETE-OLD,Unified network performance RFI,SOL-5,NATIONAL AERONAUTICS AND SP
 N-OBSOLETE-NEW,Unified network performance RFI,SOL-5,NATIONAL AERONAUTICS AND SPACE ADMINISTRATION,NASA,2026-07-20,Presolicitation,2026-07-20,517810,Yes,https://sam.gov/opp/N-OBSOLETE-NEW/view,unified network performance requirement
 N-SAME-OLD,Unified network performance RFI,SOL-6,NATIONAL AERONAUTICS AND SPACE ADMINISTRATION,NASA,2026-07-18 09:00:00-04,Presolicitation,2026-08-20,517810,Yes,https://sam.gov/opp/N-SAME-OLD/view,unified network performance requirement
 N-SAME-NEW,Unified network performance RFI,SOL-6,NATIONAL AERONAUTICS AND SPACE ADMINISTRATION,NASA,2026-07-18 17:00:00-04,Presolicitation,2026-08-20,517810,Yes,https://sam.gov/opp/N-SAME-NEW/view,unified network performance requirement
+N-CFS,Call for Solutions - unified network performance,SOL-7,NATIONAL AERONAUTICS AND SPACE ADMINISTRATION,NASA,2026-07-18,Special Notice,2026-08-20,517810,Yes,https://sam.gov/opp/N-CFS/view,unified network performance requirement
+N-CFS-OLD,Call for Solution - unified network performance,SOL-8,NATIONAL AERONAUTICS AND SPACE ADMINISTRATION,NASA,2026-07-01,Special Notice,2026-07-10,517810,Yes,https://sam.gov/opp/N-CFS-OLD/view,unified network performance requirement
 """
     path = tmp_path / "opportunities_2026-07-21.csv"
     path.write_text(text)
@@ -231,7 +233,7 @@ N-SAME-NEW,Unified network performance RFI,SOL-6,NATIONAL AERONAUTICS AND SPACE 
         SourceQuery(deadline_from=date(2026, 7, 21), agencies=["NASA"]), taxonomy,
         EngagementScope(preset="civilian"), limit=8)
     candidate_ids = [candidate.source_id for candidate in candidates]
-    assert set(candidate_ids) == {"N-NEW", "N-SAME-NEW"}
+    assert set(candidate_ids) == {"N-NEW", "N-SAME-NEW", "N-CFS"}
     assert "N-OBSOLETE-OLD" not in candidate_ids
     selected = next(row for row in candidates if row.source_id == "N-NEW")
     assert selected.raw_payload["attachment_candidate_basis"][

@@ -8,7 +8,7 @@ from typing import Optional
 
 _SPECIAL_ACTIONABLE_TITLE = re.compile(
     r"\b(?:RFI|request for information|draft\s+(?:RFP|solicitation)|"
-    r"industry day)\b",
+    r"industry day|calls?\s+for\s+solutions?)\b",
     re.IGNORECASE,
 )
 
