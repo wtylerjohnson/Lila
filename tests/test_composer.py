@@ -366,13 +366,15 @@ def test_best_fit_is_actionable_sam_notice_family_first(world):
                "computer-aided dispatch records management system"),
         notice("rfi", "Special Notice", "RFI for dispatch modernization",
                "computer-aided dispatch records management system"),
+        notice("cfs", "Special Notice", "Call for Solutions - dispatch modernization",
+               "computer-aided dispatch records management system"),
         notice("solicitation", "Solicitation", "Dispatch solicitation",
                "computer-aided dispatch"),
     ]}}
     picks = composer.select_best_fit(
         sweep, inputs["taxonomy"], inputs["scope"], n=5)
     assert [pick.source_id for pick in picks] == [
-        "solicitation", "source", "rfi"]
+        "solicitation", "source", "cfs", "rfi"]
 
 
 def test_best_fit_scores_official_sam_attachment_text(world):
