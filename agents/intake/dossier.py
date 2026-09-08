@@ -302,6 +302,11 @@ def _evidence_for_name(
                 snippet = excerpt_from(findings, needle=needle)
                 cite = _best_citation(citations, official_domain, name)
                 if require_compare:
+                    # A probe summary cannot masquerade as the cited page.
+                    actual = next((p.text or "" for p in (getattr(scrape, "pages", None) or [])
+                                   if (getattr(p, "url", "") or "").rstrip("/") == (cite or "").rstrip("/")), "")
+                    if not actual or " ".join(snippet.split()) not in " ".join(actual.split()):
+                        continue
                     if not snippet or not excerpt_supports_rival(
                             name, snippet, url=cite or ""):
                         continue
@@ -710,6 +715,8 @@ def build_dossier(
             ))
             seen_cust.add(key)
         for name in case_study_orgs_from_url(ev.url or ""):
+            if not excerpt_supports_name(name, page_text):
+                continue
             key = name.casefold()
             if key in seen_cust:
                 continue
@@ -719,6 +726,8 @@ def build_dossier(
             ))
             seen_cust.add(key)
         for name in recall_competitors(page_text, client_name, url=ev.url or ""):
+            if not _scrape_text_for_url(ev.url or ""):
+                continue
             key = name.casefold()
             if key in seen_comp or is_sku_fragment_rival(name):
                 continue
@@ -790,10 +799,11 @@ def build_dossier(
             key = name.casefold()
             if key in seen_cust:
                 continue
-            snippet = excerpt_from(text, needle=name) or (
-                f"Case study: {name}. Official customer proof on this "
-                "CaseStudies PDF."
-            )
+            if not excerpt_supports_name(name, text):
+                continue
+            snippet = excerpt_from(text, needle=name)
+            if not snippet:
+                continue
             eid = add_ev("website", snippet, url)
             if not eid:
                 continue
@@ -997,7 +1007,8 @@ def build_dossier(
     if unknowns:
         summary_bits.append(f"Open unknowns: {len(unknowns)}.")
 
-    return CompanyDossier(
+    from agents.intake.evidence_quality import review_claim_evidence
+    return review_claim_evidence(CompanyDossier(
         client_name=client_name,
         identity=identity,
         evidence=evidence,
@@ -1015,4 +1026,4 @@ def build_dossier(
         competitors=competitors,
         customers=customers,
         summary=" ".join(summary_bits),
-    )
+    ))

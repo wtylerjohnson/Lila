@@ -109,8 +109,15 @@ def api_build():
         p = os.path.join(ROOT, rel)
         if os.path.exists(p):
             newest = max(newest, os.path.getmtime(p))
+    import subprocess
+    try:
+        revision = subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, text=True).strip()
+    except (OSError, subprocess.CalledProcessError):
+        revision = "unknown"
     return jsonify({"boot": BOOT_TIME, "code_mtime": newest,
-                    "stale": newest > BOOT_TIME + 1})
+                    "stale": newest > BOOT_TIME + 1,
+                    "operating_root": ROOT, "revision": revision})
 
 
 # ----------------------------------------------------------------------------- #

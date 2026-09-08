@@ -1995,6 +1995,7 @@ def build_assess_run(
     approval_status: str = "missing",
     document: Any = None,
     requirement_reviews_payload: Optional[dict] = None,
+    reviewed_cases=None,
     projection_inputs: Optional[dict[str, str]] = None,
     extra_diagnostics: tuple[str, ...] = (),
     as_of: Optional[datetime] = None,
@@ -2073,6 +2074,10 @@ def build_assess_run(
             horizon_payload, binding, run_id=provisional_run_id,
             client_name=client_name, scope=scope,
             profile_version=profile_version, as_of=effective_as_of)
+        if reviewed_cases is not None:
+            from agents.assess.reviewed_cases import supplement_live
+            adapted_live = supplement_live(adapted_live, reviewed_cases,
+                                           _scope_designator(scope))
         return (adapted_live, adapted_index, accepted, list(live_gaps),
                 adapted_horizon, list(horizon_gaps))
 
@@ -2240,6 +2245,8 @@ def assess_projection_input_manifest(
         "horizon_sha256": _file_hash(root / f"{slug}.horizon.json"),
         "live_requirements_sha256": _file_hash(
             root / f"{slug}.live_requirements.json"),
+        "reviewed_cases_sha256": _file_hash(
+            root / f"{slug}.reviewed_cases.json"),
         "qualify_sha256": _file_hash(root / f"{slug}.qualify.json"),
         "assess_approval_sha256": _file_hash(
             root / f"{slug}.assess_approval.json"),
@@ -2664,11 +2671,14 @@ def materialize_current_assess_run(
         document_problem = (
             f"Partner projection document unavailable: {type(exc).__name__}: "
             f"{str(exc)[:240]}")
+    from agents.assess.reviewed_cases import load_cases
+    reviewed_cases = load_cases(client_name, q_root)
     run, diagnostics, posting_index = build_assess_run(
         client_name, searches, profile, binding,
         horizon_payload=horizon, approval_payload=approval,
         approval_status=gate_status, document=document,
         requirement_reviews_payload=requirement_reviews,
+        reviewed_cases=reviewed_cases,
         projection_inputs=projection_inputs, as_of=as_of,
         extra_diagnostics=(tuple(approval_problems)
                            + ((document_problem,) if document_problem else ())

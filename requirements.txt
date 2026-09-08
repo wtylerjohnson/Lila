@@ -17,3 +17,6 @@ flask>=3.0
 pytest>=8.0
 ruff>=0.3
 openpyxl
+
+# Offline dense/hybrid retrieval and its contract tests
+numpy>=1.26

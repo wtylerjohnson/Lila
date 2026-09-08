@@ -411,10 +411,49 @@ def _drafts_for_parent(
             contactability=pathway.contactability,
             communication_permission=next_action.communication_permission,
             decision_trace_id=compose_trace_id(run.run_id, lead_id),
+            targets=_targets_for_rows([
+                r for r in rows
+                if (_clean(r.get("motion_id")) or _clean(r.get("spec_id"))
+                    or "motion-unspecified") == unit.get("motion_id")
+            ], pathway),
         )
         drafts.append(lead)
         traces.append(_lead_trace(run, parent, lead, subject))
     return drafts, traces
+
+
+def _targets_for_rows(rows, pathway):
+    """Complete existing per-spec actions without inferring person authority."""
+    from .targets import LeadTarget
+    targets = {}
+    for row in rows:
+        if isinstance(row.get("target"), Mapping):
+            target = LeadTarget.model_validate(row["target"])
+        else:
+            source = _clean(row.get("contact_source_class")).casefold()
+            kind = {"government published": "government_published",
+                    "commercial enrichment": "apollo",
+                    "company published": "company_published"}.get(source)
+            required = [row.get("name"), row.get("title"), row.get("target_organisation"),
+                        row.get("source_url"), row.get("why_this_person"),
+                        row.get("recommended_action"), row.get("route_role")]
+            if not kind or not all(required):
+                continue  # Incomplete legacy target is a research gap, not invented data.
+            phones = row.get("phones") or []
+            phone = row.get("phone") or next((p.get("number") for p in phones
+                                              if isinstance(p, Mapping) and p.get("number")), None)
+            target = LeadTarget(
+                name=row["name"], role=row["title"], organization=row["target_organisation"],
+                source_kind=kind, source_url=row["source_url"], email=row.get("email"), phone=phone,
+                contact_status=_clean(row.get("email_status")) or "Contact status needs confirmation",
+                route=row["route_role"], reason_to_contact=row["why_this_person"],
+                next_ask=row["recommended_action"],
+                authority_boundary="; ".join(row.get("cautions") or []) or (
+                    "Published POC; follow current notice communication instructions" if kind == "government_published"
+                    else "Role match does not establish account ownership, buying authority or outreach permission"),
+                evidence=pathway.evidence)
+        targets[(target.name, str(target.source_url))] = target
+    return tuple(targets.values())
 
 
 def _should_mint_assess_child(
@@ -661,6 +700,8 @@ def _published_contacts(row: Mapping[str, Any]) -> list[PublishedContact]:
             name=name,
             title=_clean(row.get("title")) or None,
             source_url=url or None,
+            email=_clean(row.get("email")) or None,
+            phone=_clean(row.get("phone")) or None,
         )]
     except ValidationError:
         return [PublishedContact(name=name, title=_clean(row.get("title")) or None)]

@@ -1697,3 +1697,23 @@ prior instructions that kept Press outside `lila_release`.
   authorization, but not promoted-target inventory approval. This avoids a
   circular dependency between seeing an assessment and developing its leads.
   Actionable target reports retain their complete Targeting Review gate.
+
+### Operating research and quality baseline (2026-09-08)
+
+`data/review/<slug>.reviewed_cases.json` is a typed source-bound research input.
+Import with `.venv/bin/python -m tools.reviewed_cases --client <name> --input <file>`.
+The importer preserves immutable revisions under `data/review/research_history/`
+and refreshes an already-active Assess pointer; it does not activate a client or
+approve a requirement. Use `--notice-id`, `--disposition` and `--reason` together
+to remove a weak case from priority while retaining its evidence and history.
+
+Each normal release binds the matching `<slug>.dossier.json` and optional
+`<slug>.target_actions.json`, then joins reviewed actions to exact Assess parents.
+The release includes `company_dossier.json`, `reviewed_cases.json` and
+`quality_baseline.json` when these inputs exist. Digest verification and the
+existing eight-slot validators run before promotion. The default run location is
+`/Users/wtjohnson/Lila`; `LILA.command` prints its revision and starts Command Center.
+
+Run the full test gate with `LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 .venv/bin/python
+-m pytest tests/ -q`. The fresh runtime requires all packages in requirements.txt,
+including NumPy for the offline dense/hybrid retrieval contract checks.

@@ -678,3 +678,36 @@ recovery uses `l1_store._to_record`, preserves known values and original dates,
 and leaves strict ledger evidence gates untouched. Replacement releases block
 on source-record or detail loss. See the matching CONVENTIONS and Market Map
 contract amendments and `tests/test_assessment_output_retention.py`.
+
+## September 8 operating-repair amendment (explicit operator request)
+
+The operator authorized repairing dossier delivery, importing the three reviewed
+Apex research cases, completing targets, and narrowing priority while preserving
+assessment history. This additive change retains the eight assessment slots,
+operator approval/scope semantics, and independent lead qualification tiers.
+
+- PublishedContact adds optional email and phone. LeadRow adds typed targets,
+  reviewed research context and company evidence IDs. Contact source, status,
+  authority boundary, route, reason and next ask travel together.
+- A bound CompanyDossier is validated against the release client, considered by
+  the qualifier, embedded in the receipt, and packaged with its original digest.
+  A mismatched or changed supplied dossier blocks replacement.
+- ReviewedCases is a versioned, scope-bound input to the immutable Assess ledger.
+  It cannot approve bid_now or overwrite a discovered notice. Its hash is an
+  Assess projection input; a changed casebook must be refreshed before release.
+- Research priority never implies LEAD_T1/T2 or permission to contact. Closed RFI
+  sources may support explicitly conditional follow-on investigation. Source
+  deadlines remain historical, and unanswered questions stay visible.
+- Disposition changes archive the previous casebook. Priority selection shows at
+  most three reviewed cases; all parents, targets, reasons and evidence remain in
+  the assessment and immutable releases. A stored quality baseline blocks
+  silently dropping previously reviewed cases or their target details.
+
+Client dossiers, research inputs, enrichment and generated releases are operating
+data, not versioned source. Synthetic regression fixtures exercise the contracts;
+real Arista/Apex acceptance is recorded separately through Command Center.
+
+When the lead companion is complete, automatic priority requires LEAD_T1 or
+LEAD_T2 and is capped at three. Reviewed investigation/qualification cases may
+form the separate explicit priority selection. An assessment classified as a
+qualified opportunity alone cannot silently become seller-ready priority.

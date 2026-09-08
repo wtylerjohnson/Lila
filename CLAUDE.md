@@ -1,9 +1,10 @@
 # CLAUDE.md · LILA session contract
 
 LILA reconstructs client-specific federal markets across its governed source
-mesh. Its sole external product is the operator-locked Federal Market Map in
-`docs/MARKET_MAP_CONTRACT.md`; every older report family is internal feedstock
-or a compatibility surface. Read this file, then
+mesh. The `lila_release` package contains the operator-locked eight-slot
+Federal Market Map (`docs/MARKET_MAP_CONTRACT.md`) and its assessment-bound
+lead report, source ledger and evidence receipts. Other report families are
+internal feedstock or compatibility surfaces. Read this file, then
 [docs/CONVENTIONS.md](docs/CONVENTIONS.md) and
 [docs/CONTRACT_SURFACES.md](docs/CONTRACT_SURFACES.md), before writing code.
 Deep background: [README.md](README.md), [pipeline/LEARNINGS.md](pipeline/LEARNINGS.md),
@@ -79,15 +80,14 @@ All LLM calls ride the Claude Max plan via the CLI
 Zero API tokens in use; the API route is the scale roadmap. Never flip the
 route or add API keys agent-side.
 
-## Session git rule (hard rule, 2026-08-05)
+## Current operating checkout (operator-authorized, 2026-09-08)
 
-No session commits to the primary checkout (`~/federal-sales-os`), on any
-branch, for any reason. Absorbing work found on the base mid-flight counts;
-stop and report instead. Every session works in its own worktree on a named
-branch cut for the task:
-`git -C ~/federal-sales-os worktree add ~/lila-<task> -b <lane>/<task> <base>`
-then clone the gitignored inputs:
-`cp -Rc ~/federal-sales-os/data/. ~/lila-<task>/data/`
-Tyler performs every merge into `fable/decision-engine` and
-`gold/merged-base`; sessions never merge or fast-forward another branch.
-Never run `git worktree prune`; it severs the registered worktrees.
+`/Users/wtjohnson/Lila` is the single operating checkout. GitHub `main` is the
+integration base. Implement changes on a named development branch, preserve
+other worktrees and uncommitted work, and verify before updating operating
+main. The September 8 operator instruction authorizes this cutover and the
+additive dossier, reviewed-case, target and priority-history workflow repair.
+Older FSOS branches are separate historical lanes, not LILA run locations.
+Never run `git worktree prune`.
+
+See `docs/OPERATING_RUNBOOK.md` for the run path and verification commands.

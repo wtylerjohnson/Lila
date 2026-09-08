@@ -1,9 +1,7 @@
 """Cite Step 1 CompanyDossier / IdentityResolution without redesigning intake.
 
-Do not import ``agents.intake`` until PR #1 merges. Until then parents
-carry optional ``dossier_schema_version`` and ``identity_status`` strings.
-A missing dossier path is valid. A provided path that is unreadable
-fails closed.
+The merged intake model validates dossier identity and evidence references when
+binding a client release. Legacy cite-only calls remain read compatible.
 """
 
 from __future__ import annotations
@@ -41,10 +39,10 @@ def cite_profile(client_name: str) -> dict[str, str | None]:
     }
 
 
-def cite_dossier(path: str | Path | None) -> dict[str, str | None]:
+def cite_dossier(path: str | Path | None, *, client_name: str | None = None) -> dict:
     """Load optional string cites from a dossier JSON if present.
 
-    Does not import ``agents.intake``. Does not validate CompanyDossier.
+    Supplying client_name validates the merged CompanyDossier contract.
     """
 
     empty = {
@@ -66,6 +64,24 @@ def cite_dossier(path: str | Path | None) -> dict[str, str | None]:
     if not isinstance(payload, Mapping):
         raise IntakeCiteError(
             "intake dossier must be a JSON object so it can be cited")
+    if client_name is not None:
+        from agents.intake.dossier import CompanyDossier
+        try:
+            model = CompanyDossier.model_validate(payload)
+            if model.client_name.casefold() != client_name.casefold():
+                raise ValueError("dossier belongs to a different client")
+            if model.schema_version != "intake_dossier.v1" or not model.identity.is_bound:
+                raise ValueError("dossier identity must be bound under intake_dossier.v1")
+            ids = {e.evidence_id for e in model.evidence}
+            if not ids or not model.offerings:
+                raise ValueError("dossier requires evidence and offerings")
+            for collection in (model.offerings, model.customers, model.competitors,
+                               model.channels, model.capability_statements):
+                for claim in collection:
+                    if not set(claim.evidence_ids).issubset(ids):
+                        raise ValueError("dossier claim has an unresolved evidence reference")
+        except ValueError as exc:
+            raise IntakeCiteError(f"invalid company dossier: {exc}") from exc
     return {
         "dossier_path": str(dossier),
         "dossier_schema_version": _first_string(payload, (

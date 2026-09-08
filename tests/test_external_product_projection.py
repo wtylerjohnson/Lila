@@ -214,7 +214,7 @@ def test_print_media_uses_paginated_layout_and_static_receipts(monkeypatch, tmp_
             recordColumns: style('[data-slot-id="research-mesh"] .product-records').gridTemplateColumns.split(' ').length,
             visualBreak: style('.product-visual').breakInside,
             introBreak: style('.product-slot-intro').breakInside,
-            duplicateSummary: style('.product-slot-summary').display,
+            duplicateSummary: document.querySelector('.product-slot-summary') ? style('.product-slot-summary').display : 'absent',
             interactiveReceipt: style('.receipts-appendix .inline-work').display,
             printReceipt: style('.receipts-appendix .receipt-print').display,
           };
@@ -226,7 +226,7 @@ def test_print_media_uses_paginated_layout_and_static_receipts(monkeypatch, tmp_
         "recordColumns": 2,
         "visualBreak": "avoid",
         "introBreak": "avoid",
-        "duplicateSummary": "none",
+        "duplicateSummary": "absent",
         "interactiveReceipt": "none",
         "printReceipt": "block",
     }

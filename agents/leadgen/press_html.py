@@ -186,6 +186,17 @@ def render_html(receipt: PressLeadGenReceipt) -> str:
                         f"{len(receipt.parents)} parents · {len(receipt.leads)} draft leads. "
                         "An opportunity assessment remains valid with zero children.",
                         parent_body)]
+    from agents.leadgen.target_html import render_research, render_targets
+    priority_rows = []
+    for lead in receipt.leads:
+        if lead.research and lead.research.priority:
+            parent = parents[lead.parent_assessment_id]
+            priority_rows.append('<article class="product-record"><h3>' + _text(parent.title)
+                                 + '</h3>' + render_research(lead.research)
+                                 + render_targets(lead.targets) + '</article>')
+    if priority_rows:
+        sections.insert(0, _section(0, "priority", f"Priority opportunities · {receipt.as_of.date()}",
+                                   "", ''.join(priority_rows[:3])))
     for index, bucket in enumerate(receipt.by_lead_tier, 2):
         rows = []
         for lead in receipt.leads:
@@ -216,11 +227,13 @@ def render_html(receipt: PressLeadGenReceipt) -> str:
                 f'<li>{_link(item.source_url, item.evidence_id)} · '
                 f'{_text(item.excerpt)}</li>' for item in pathway.evidence
             )
-            contacts = "; ".join(c.name for c in pathway.published_contacts)
+            contacts = "; ".join(" · ".join(filter(None, (c.name, c.title, c.email, c.phone)))
+                                 for c in pathway.published_contacts)
             rows.append(
                 '<tr><td>' + parent_link + detail + '</td>'
                 f'<td>{_text(motion.buyer_agency)}<small>{_text(contacts)}</small></td>'
-                f'<td>{_text(action.object)}<small>{_text(action.blocked_by)}</small></td>'
+                f'<td>{_text(action.object)}<small>{_text(action.blocked_by)}</small>'
+                + render_research(lead.research) + render_targets(lead.targets) + '</td>'
                 f'<td>{_link(pathway.source_url, "Open published pathway")}'
                 f'<details class="receipt"><summary>Source evidence</summary>'
                 f'<div class="receipt-body"><ul>{evidence}</ul></div></details></td></tr>')
@@ -282,6 +295,6 @@ def render_html(receipt: PressLeadGenReceipt) -> str:
 {"".join(sections)}
 <footer class="footer"><strong>LILA · {_text(receipt.client_name)}</strong>
 <br>Primary press artifact: branded HTML with Market Map chrome. MD/JSON are sidecars.
-<br>Federal Market Map remains a separate deliverable. lila_release is untouched.</footer>
+<br>The complete release includes the assessment, lead report, dossier and source receipts.</footer>
 </main></body></html>
 """

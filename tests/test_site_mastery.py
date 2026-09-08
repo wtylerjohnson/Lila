@@ -10,6 +10,8 @@ from __future__ import annotations
 import os
 import sys
 
+import pytest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from agents.company_research import CompanyResearch
@@ -982,8 +984,9 @@ def test_press12_slogans_junk_customers_and_empty_rivals_are_balanced():
     assert "336413" not in {n.code for n in dossier.naics}
 
 
-def test_press12_promotes_orgs_and_rivals_already_in_evidence():
-    """Surface extract may miss; evidence ledger still promotes real names."""
+@pytest.mark.parametrize("retrieved", [True, False])
+def test_comparison_probes_require_the_cited_page(retrieved):
+    """A probe URL is a discovery hint; retrieved page evidence proves a rival."""
     ident = _identity()
     scrape = ScrapeBundle(
         root_url=ROOT,
@@ -1009,6 +1012,8 @@ def test_press12_promotes_orgs_and_rivals_already_in_evidence():
             citations=[ROOT + "/customers"],
         ),
     ]
+    if retrieved:
+        scrape.pages.append(ScrapedPage(url=ROOT + "/customers", text=probes[0].findings))
     dossier = build_dossier(
         client_name="Acme Net",
         identity=ident,
@@ -1022,7 +1027,10 @@ def test_press12_promotes_orgs_and_rivals_already_in_evidence():
     assert "barclays" in customers
     assert "citigroup" in customers
     rivals = {c.text: c for c in dossier.competitors}
-    assert rivals, "compare-claim rivals in evidence must not leave competitors empty"
+    if not retrieved:
+        assert not rivals
+        return
+    assert rivals, "Retrieved comparison evidence must retain the rival"
     assert "Cisco" in rivals or "Juniper" in rivals
     ev = {e.evidence_id: e for e in dossier.evidence}
     for name, claim in rivals.items():

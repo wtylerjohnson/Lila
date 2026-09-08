@@ -418,12 +418,24 @@ def build_external_product_document(
         if evidence_date:
             row["source_as_of"] = min(d for d in (row.get("source_as_of"), evidence_date) if d)
         row["lead_rows"] = children.get(row["source_id"], [])
+        reviewed = next((c for c in row["lead_rows"] if c.get("research")), None)
+        if reviewed:
+            row["research"] = reviewed["research"]
+            row["targets"] = reviewed.get("targets", [])
+            row["next_action"] = reviewed["research"]["next_ask"]
+            row["assessment_status"] = reviewed["research"]["status"].replace("_", " ")
+            row["service_fit"] = "Requirement-specific fit remains to be established"
+            row["commercial_route"] = reviewed["research"]["route"]
+            parent = parents.get(reviewed.get("parent_assessment_id"), {})
+            if parent.get("live_classification") == "awarded_or_closed":
+                row["window_state"] = "Historical notice closed; follow-on status needs confirmation"
         row["lead_status"] = ", ".join(sorted({
             child["lead_tier"] for child in row["lead_rows"]
         })) or ("No child lead" if leadgen.get("status") == "complete"
                 else "Lead generation input needs refresh")
 
     # Slot 7: graph-classified forecasts, separate from live opportunities.
+    qualified_rows = [r for r in qualified_rows if not r.get("research")]
     forecast_rows: list[dict] = []
     for raw in graph_rows:
         if raw.get("evidence_class") != "forecast":
@@ -562,6 +574,24 @@ def build_external_product_document(
             event_rows.append(row)
 
     priorities = _priority_records(qualified_rows, forecast_rows)
+    if leadgen.get("status") == "complete":
+        priorities = _priority_records([
+            r for r in opportunity_rows
+            if any(c.get("lead_tier") in {"LEAD_T1", "LEAD_T2"}
+                   for c in r.get("lead_rows", []))
+        ][:3], [])
+    reviewed_rows = [r for r in opportunity_rows if r.get("research")]
+    if reviewed_rows:
+        # Deliberate current research selection; all candidates remain in slot 5.
+        priorities = [{
+            "reference_key": row["record_key"], "reference_slot_id": "federal-opportunities",
+            "priority": index, "title": row["title"], "source_url": row.get("source_url"),
+            "priority_kind": row["research"]["status"].replace("_", " "),
+            "why": row["research"]["rationale"], "route": row["research"]["route"],
+            "timing": row["research"]["why_now"], "next_action": row["research"]["next_ask"],
+            "target_count": len(row.get("targets") or []),
+        } for index, row in enumerate(
+            [r for r in reviewed_rows if r["research"]["priority"]][:3], 1)]
     priority_metrics = [
         _metric("Ranked pursuits", len(priorities),
                 "References the owned opportunity or forecast record below."),

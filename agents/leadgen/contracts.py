@@ -42,6 +42,7 @@ from .motion import BuyingMotion
 from .next_action import CurrentNextAction
 from .pathway import ActionableExternalPathway
 from .seller_path import SellerTransactionPath
+from .targets import LeadResearch, LeadTarget
 
 
 class OpportunityAssessment(_FrozenContract):
@@ -102,6 +103,9 @@ class LeadRow(_FrozenContract):
     communication_permission: CommunicationPermission
     decision_trace_id: str = Field(min_length=1)
     outcome_id: str | None = None
+    targets: tuple[LeadTarget, ...] = Field(default_factory=tuple)
+    research: LeadResearch | None = None
+    company_evidence_ids: tuple[str, ...] = Field(default_factory=tuple)
 
     @model_validator(mode="after")
     def _four_factors_and_disposition_agree(self) -> LeadRow:
