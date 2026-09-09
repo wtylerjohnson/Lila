@@ -1,6 +1,10 @@
 """Deadline-aware depth: notice deep-fetch + pursuit dossiers."""
 
+import copy
+import hashlib
 import json
+
+import pytest
 
 import tools.api.sam_notice_detail as nd
 import tools.api.sam_quota as sq
@@ -175,3 +179,294 @@ def test_compose_passes_depth_text_and_render_covers_sections():
                    "Incumbent signals", "Win themes", "Red flags",
                    "Next action", "GSA MAS"):
         assert needle in md, needle
+
+
+def _attachment_fingerprint(text, files):
+    """Mirror the stored discovery producer, not the new context consumer."""
+    basis = {
+        "files": sorted(
+            [{"resource_id": str(item.get("resource_id") or ""),
+              "sha256": str(item.get("sha256") or "")}
+             for item in files],
+            key=lambda item: (item["resource_id"], item["sha256"])),
+        "text_sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+    }
+    return hashlib.sha256(json.dumps(
+        basis, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+
+
+def _attachment_research_inputs(text=None):
+    text = text or (
+        "The contractor shall provide enterprise packet capture for network operations.")
+    resource_id = "b" * 32
+    file_row = {
+        "resource_id": resource_id,
+        "name": "SOW.txt",
+        "sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+        "retrieved_at": "2026-07-10T10:00:00+00:00",
+        "source_url": nd.RESOURCE_DOWNLOAD_URL_TPL.format(resource_id=resource_id),
+    }
+    attachments = [{"name": file_row["name"], "resource_id": resource_id,
+                    "source_url": file_row["source_url"]}]
+    inventory_hash = nd._manifest_hash(attachments)
+    notice = {
+        "source": "sam.gov", "source_id": "a" * 32,
+        "title": "Network modernization", "agency": "DHS / CISA",
+        "api_url": f"https://sam.gov/opp/{'a' * 32}/view",
+        "raw_payload": {
+            "text": text,
+            "attachment_evidence": [file_row],
+            "attachment_evidence_sha256": _attachment_fingerprint(text, [file_row]),
+            "attachment_inventory_hash": inventory_hash,
+            "attachment_relevance_excerpt": text,
+        },
+    }
+    depth = {
+        "id": notice["source_id"],
+        "description": "See attached statement of work for the requirement.",
+        "description_checked": True,
+        "attachments": attachments,
+        "resources_checked": True,
+        "resources_schema": "recognized_v1",
+        "attachment_inventory_hash": inventory_hash,
+        "attachment_inventory_count": len(attachments),
+        "retrieved_at": "2026-07-10T11:00:00+00:00",
+        "errors": [],
+    }
+    return notice, depth
+
+
+def _compose_research_context(notice, depth):
+    engine = FakeEngine()
+    compose_dossier("Testco", "Packet capture software", notice, depth, engine=engine)
+    return engine.ctx
+
+
+def test_attachment_research_reaches_dossier_with_original_provenance_without_mutation():
+    # 2026-09-09: discovery research is analysis context, never reviewed depth.
+    notice, depth = _attachment_research_inputs()
+    original = copy.deepcopy((notice, depth))
+    context = _compose_research_context(notice, depth)
+    research = context["attachment_research"]
+    raw = notice["raw_payload"]
+    assert research["status"] == "discovery_only"
+    assert research["notice_id"] == notice["source_id"]
+    assert research["files"] == raw["attachment_evidence"]
+    assert research["evidence_sha256"] == raw["attachment_evidence_sha256"]
+    assert research["attachment_inventory_hash"] == raw["attachment_inventory_hash"]
+    assert research["inventory_binding"] == "matched"
+    assert research["text"] == raw["text"]
+    assert research["relevance_excerpt"] == raw["attachment_relevance_excerpt"]
+    assert research["captured_characters"] == research["included_characters"] == len(raw["text"])
+    assert research["truncated"] is False
+    assert context["full_description"] == depth["description"]
+    assert context["attachments"] == depth["attachments"]
+    assert (notice, depth) == original
+
+
+def test_attachment_research_absence_preserves_legacy_context():
+    notice, depth = _attachment_research_inputs()
+    notice["raw_payload"] = {"description_snippet": "An ordinary notice."}
+    context = _compose_research_context(notice, depth)
+    assert "attachment_research" not in context
+    assert set(context) == {
+        "client_name", "client_pursuit_strategy", "as_of", "notice",
+        "full_description", "attachments", "depth_fetch_errors",
+    }
+    assert context["full_description"] == depth["description"]
+
+
+def test_attachment_research_uses_sorted_fingerprint_without_relabeling_files():
+    notice, depth = _attachment_research_inputs()
+    raw = notice["raw_payload"]
+    extra_text = "Additional technical background."
+    extra = {
+        "resource_id": "c" * 32,
+        "name": "Appendix.txt",
+        "sha256": hashlib.sha256(extra_text.encode("utf-8")).hexdigest(),
+        "retrieved_at": "2026-07-10T10:05:00+00:00",
+        "source_url": nd.RESOURCE_DOWNLOAD_URL_TPL.format(resource_id="c" * 32),
+    }
+    # Deliberately reverse resource-ID order; the producer sorts hash inputs.
+    raw["attachment_evidence"].insert(0, extra)
+    raw["text"] = extra_text + "\n\n" + raw["text"]
+    raw["attachment_evidence_sha256"] = _attachment_fingerprint(
+        raw["text"], raw["attachment_evidence"])
+    depth["attachments"].append({
+        "name": extra["name"], "resource_id": extra["resource_id"],
+        "source_url": extra["source_url"],
+    })
+    depth["attachment_inventory_count"] = 2
+    raw["attachment_inventory_hash"] = depth["attachment_inventory_hash"] = (
+        nd._manifest_hash(depth["attachments"]))
+    research = _compose_research_context(notice, depth)["attachment_research"]
+    assert research["status"] == "discovery_only"
+    assert research["text"] == raw["text"]
+    assert research["files"] == raw["attachment_evidence"]
+    assert research["evidence_sha256"] == raw["attachment_evidence_sha256"]
+
+
+@pytest.mark.parametrize("field", ["text", "attachment_evidence_sha256", "file_sha256"])
+def test_attachment_research_rejects_tampered_fingerprint_inputs(field):
+    notice, depth = _attachment_research_inputs()
+    raw = notice["raw_payload"]
+    if field == "text":
+        raw["text"] += " A fabricated requirement."
+    elif field == "file_sha256":
+        raw["attachment_evidence"][0]["sha256"] = "f" * 64
+    else:
+        raw[field] = "f" * 64
+    research = _compose_research_context(notice, depth)["attachment_research"]
+    assert research["status"] == "unavailable"
+    assert research["notice_id"] == notice["source_id"]
+    assert research["reason"]
+    assert "text" not in research
+
+
+@pytest.mark.parametrize("mismatch", ["notice", "inventory"])
+def test_attachment_research_rejects_mismatched_depth_identity(mismatch):
+    notice, depth = _attachment_research_inputs()
+    if mismatch == "notice":
+        depth["id"] = "c" * 32
+    else:
+        depth["attachment_inventory_hash"] = "f" * 64
+    research = _compose_research_context(notice, depth)["attachment_research"]
+    assert research["status"] == "unavailable"
+    assert research["reason"]
+    assert "text" not in research
+
+
+def test_attachment_research_without_current_inventory_is_not_reconfirmed():
+    notice, depth = _attachment_research_inputs()
+    depth.pop("attachment_inventory_hash")
+    depth["resources_checked"] = False
+    depth["attachments"] = None
+    research = _compose_research_context(notice, depth)["attachment_research"]
+    assert research["status"] == "discovery_only"
+    assert research["inventory_binding"] == "not_reconfirmed"
+    assert research["attachment_inventory_hash"] == notice["raw_payload"]["attachment_inventory_hash"]
+    assert research["files"][0]["retrieved_at"] == "2026-07-10T10:00:00+00:00"
+
+
+@pytest.mark.parametrize("field", [
+    "text", "attachment_evidence", "attachment_evidence_sha256",
+    "attachment_inventory_hash",
+])
+def test_attachment_research_rejects_missing_capture_metadata(field):
+    notice, depth = _attachment_research_inputs()
+    notice["raw_payload"].pop(field)
+    research = _compose_research_context(notice, depth)["attachment_research"]
+    assert research["status"] == "unavailable"
+    assert research["reason"]
+    assert "text" not in research
+
+
+@pytest.mark.parametrize("field", [
+    "resource_id", "name", "sha256", "retrieved_at", "source_url",
+])
+def test_attachment_research_rejects_missing_file_metadata(field):
+    notice, depth = _attachment_research_inputs()
+    raw = notice["raw_payload"]
+    raw["attachment_evidence"][0].pop(field)
+    raw["attachment_evidence_sha256"] = _attachment_fingerprint(
+        raw["text"], raw["attachment_evidence"])
+    research = _compose_research_context(notice, depth)["attachment_research"]
+    assert research["status"] == "unavailable"
+    assert research["reason"]
+    assert "text" not in research
+
+
+@pytest.mark.parametrize(("field", "value"), [
+    ("resource_id", "../file"),
+    ("name", {"invalid": "shape"}),
+    ("sha256", "not-a-content-hash"),
+    ("retrieved_at", "not-a-date"),
+    ("retrieved_at", "2026-07-10T10:00:00"),
+    ("source_url", "https://example.com/SOW.txt"),
+])
+def test_attachment_research_rejects_malformed_file_metadata(field, value):
+    notice, depth = _attachment_research_inputs()
+    raw = notice["raw_payload"]
+    raw["attachment_evidence"][0][field] = value
+    raw["attachment_evidence_sha256"] = _attachment_fingerprint(
+        raw["text"], raw["attachment_evidence"])
+    research = _compose_research_context(notice, depth)["attachment_research"]
+    assert research["status"] == "unavailable"
+    assert research["reason"]
+    assert "text" not in research
+
+
+def test_attachment_research_bounds_text_but_retains_full_hash_and_late_excerpt():
+    passage = "The contractor shall provide enterprise packet capture."
+    original_text = "Background acquisition context. " * 600 + passage
+    notice, depth = _attachment_research_inputs(original_text)
+    notice["raw_payload"]["attachment_relevance_excerpt"] = passage
+    research = _compose_research_context(notice, depth)["attachment_research"]
+    assert research["text"] == original_text[:14000]
+    assert passage not in research["text"]
+    assert research["captured_characters"] == len(original_text)
+    assert research["included_characters"] == 14000
+    assert research["truncated"] is True
+    assert research["evidence_sha256"] == notice["raw_payload"]["attachment_evidence_sha256"]
+    assert research["relevance_excerpt"] == passage
+
+
+@pytest.mark.parametrize("tampered", [False, True])
+def test_attachment_research_excerpt_requires_every_original_segment(tampered):
+    first = "The contractor shall provide packet capture."
+    last = "Submission shall include a technical approach."
+    notice, depth = _attachment_research_inputs(first + "\nBackground.\n" + last)
+    excerpt = first + "\n…\n" + ("Invented requirement." if tampered else last)
+    notice["raw_payload"]["attachment_relevance_excerpt"] = excerpt
+    research = _compose_research_context(notice, depth)["attachment_research"]
+    assert research["status"] == "discovery_only"
+    if tampered:
+        assert "relevance_excerpt" not in research
+    else:
+        assert research["relevance_excerpt"] == excerpt
+
+
+def test_attachment_research_analysis_does_not_promote_assess_or_lead():
+    # 2026-09-09: dossier visibility cannot invent reviewed NOTICE evidence.
+    from agents.assess.contracts import LiveClassification
+    from agents.leadgen.enums import LeadTier
+    from agents.leadgen.from_assess import draft_lead_rows
+    from tests.test_assess_ledger import _build, _depth_record, _sweep
+
+    researched_notice, depth = _attachment_research_inputs()
+    notice_id = researched_notice["source_id"]
+    sweep = _sweep()
+    notice = sweep["results"]["sam.gov"][0]
+    notice.update({"source_id": notice_id, "title": researched_notice["title"],
+                   "api_url": researched_notice["api_url"]})
+    notice["raw_payload"].update(researched_notice["raw_payload"])
+    notice["raw_payload"]["notice_id"] = notice_id
+    sweep["results"]["sam.gov"] = [notice]
+    sweep["results"]["sam_census"]["matched"] = 1
+    sweep["results"]["triage"] = {
+        notice_id: {"verdict": "pursue", "reason": "Public SOW requirement"}}
+    depth_record = _depth_record(notice_id, attachments=depth["attachments"])
+    depth_record["source_depth"]["description"] = depth["description"]
+    sweep["results"]["dossiers"] = {"records": [depth_record]}
+    before, _, _ = _build(sweep)
+
+    engine = FakeEngine()
+    composed = compose_dossier("Testco", "Packet capture software", notice, depth,
+                               engine=engine)
+    assert engine.ctx["attachment_research"]["status"] == "discovery_only"
+    assert composed.fit_verdict == "strong_fit"
+    sweep["results"]["dossiers"]["records"] = [{
+        **composed.model_dump(mode="json"), "id": notice_id,
+        "source_depth": depth_record["source_depth"],
+    }]
+    after, _, _ = _build(sweep)
+    assert after.model_dump(mode="json") == before.model_dump(mode="json")
+    record = after.live.records[0]
+    assert record.classification == LiveClassification.UNSCREENED
+    assert record.requirement_excerpt is None
+    assert record.requirement_reviewed_by is None
+    assert record.attachments_checked is False
+    assert record.attachment_reviewed_by is None
+    drafts = draft_lead_rows(after)
+    assert drafts.parents[0].requirement_span is None
+    assert drafts.leads[0].lead_tier == LeadTier.HOLD

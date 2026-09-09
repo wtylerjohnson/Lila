@@ -329,3 +329,129 @@ def test_triage_fingerprint_binds_exact_extracted_evidence(monkeypatch):
         [], Source(), object(), taxonomy, None, limit=8)
     assert second[0]["raw_payload"][
         "attachment_evidence_sha256"] != first_fingerprint
+
+
+@pytest.fixture
+def attachment_inventory_probe(monkeypatch):
+    """Exercise the discovery handoff without downloading files or using quota."""
+    import run_searches as searches
+    from agents.schemas import RawOpportunity
+
+    candidate = RawOpportunity(
+        source="sam.gov", source_id="8" * 32,
+        title="Requirement with public files", agency="NASA",
+        raw_payload={"type": "Solicitation"},
+    )
+
+    class Source:
+        def __init__(self):
+            self.last_attachment_census = {
+                "eligible": 1, "threads": 1, "selected": 1}
+
+        def attachment_candidates(self, *args, **kwargs):
+            return [candidate]
+
+    extracted = []
+
+    def unexpected_extraction(attachment, **kwargs):
+        extracted.append(attachment)
+        raise AssertionError("unverified inventory reached file extraction")
+
+    monkeypatch.setattr(sat, "extract_public_attachment_text", unexpected_extraction)
+    original = [{"source_id": "kept", "title": "Existing description match"}]
+
+    def probe():
+        rows, stats = searches._enrich_sam_public_attachments(
+            original, Source(), object(), object(), None, limit=8)
+        assert rows == original
+        assert extracted == []
+        assert stats["description_matched"] == stats["matched"] == 1
+        assert stats["attachment_enriched"] == stats["attachment_added"] == 0
+        assert stats["attachment_sam_calls"] == 0
+        # Attachment-depth gaps do not redefine exhaustive notice screening.
+        census = {"complete": True, "source": "sam_extract", **stats}
+        assert searches._sam_census_receipt(census)["complete"] is True
+        assert json.loads(json.dumps(census))["attachment_errors"] == stats[
+            "attachment_errors"]
+        return stats
+
+    return probe
+
+
+@pytest.mark.parametrize("failure", ["http", "schema"])
+def test_resource_adapter_failure_survives_discovery_handoff(
+        monkeypatch, attachment_inventory_probe, failure):
+    def fake_get(*args, **kwargs):
+        if failure == "http":
+            raise RuntimeError("fixture resource HTTP 429")
+        return {"unexpected_schema": "not an empty attachment inventory"}
+
+    monkeypatch.setattr(detail, "get_json", fake_get)
+    stats = attachment_inventory_probe()
+    reason = ("fixture resource HTTP 429" if failure == "http"
+              else "unrecognized resources schema")
+    assert stats["attachment_errors"] == [
+        f"{'8' * 32}: resources fetch failed: {reason}"]
+
+
+def test_confirmed_empty_inventory_remains_distinct_from_failed_lookup(
+        monkeypatch, attachment_inventory_probe):
+    monkeypatch.setattr(detail, "get_json", lambda *args, **kwargs: {
+        "attachments": []})
+    stats = attachment_inventory_probe()
+    assert stats["attachment_errors"] == []
+
+
+@pytest.mark.parametrize("resources", [
+    {"resources_checked": False, "attachments": None},
+    {"resources_checked": False, "attachments": []},
+    {"resources_checked": False, "attachments": [
+        {"name": "SOW.txt", "resource_id": "9" * 32}]},
+    {"attachments": None},
+])
+def test_unverified_inventory_without_adapter_error_records_named_gap(
+        monkeypatch, attachment_inventory_probe, resources):
+    monkeypatch.setattr(detail, "fetch_notice_resources", lambda *args, **kwargs:
+                        resources)
+    stats = attachment_inventory_probe()
+    assert stats["attachment_errors"] == [
+        (f"{'8' * 32}: attachment inventory was not verified; "
+         "no attachment search performed")]
+
+
+def test_stale_inventory_retains_refresh_failure_and_relevance_refusal(
+        monkeypatch, attachment_inventory_probe):
+    from datetime import datetime, timedelta, timezone
+
+    cache_dir = detail._cache_dir()
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    (cache_dir / f"{'8' * 32}.resources.json").write_text(json.dumps({
+        "id": "8" * 32,
+        "attachments": [{"name": "SOW.txt", "resource_id": "9" * 32}],
+        "retrieved_at": (datetime.now(timezone.utc) - timedelta(
+            seconds=detail.RESOURCE_CACHE_TTL_SECONDS + 1)).isoformat(),
+        "resources_checked": True,
+        "resources_schema": "recognized_v1",
+        "errors": [],
+    }))
+
+    def failed_refresh(*args, **kwargs):
+        raise RuntimeError("fixture refresh unavailable")
+
+    monkeypatch.setattr(detail, "get_json", failed_refresh)
+    stats = attachment_inventory_probe()
+    assert stats["attachment_errors"] == [
+        (f"{'8' * 32}: resources refresh failed; using stale inventory: "
+         "fixture refresh unavailable"),
+        f"{'8' * 32}: stale attachment inventory was not used for relevance",
+    ]
+
+
+def test_resource_errors_are_bounded_and_notice_attributed(
+        monkeypatch, attachment_inventory_probe):
+    monkeypatch.setattr(detail, "fetch_notice_resources", lambda *args, **kwargs: {
+        "resources_checked": False, "attachments": None,
+        "errors": ["x" * 2000] * 20,
+    })
+    stats = attachment_inventory_probe()
+    assert stats["attachment_errors"] == [f"{'8' * 32}: {'x' * 240}"] * 10

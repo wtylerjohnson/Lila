@@ -197,10 +197,24 @@ def _enrich_sam_public_attachments(sam: list[dict], source, query,
             resources = fetch_notice_resources(
                 candidate.source_id,
                 timeout_seconds=max(0.25, stop_at - time.monotonic()))
+            # An unavailable inventory is not a verified zero-file result.
+            # Preserve the adapter's receipt before either early return so
+            # the saved sweep explains why file requirements were not inspected.
+            resource_errors = resources.get("errors") or []
+            errors.extend(
+                f"{candidate.source_id}: {str(error)[:240]}"
+                for error in resource_errors[:10])
             if resources.get("stale_cache") is True:
                 errors.append(
                     f"{candidate.source_id}: stale attachment inventory "
                     "was not used for relevance")
+                continue
+            if (resources.get("resources_checked") is False
+                    or resources.get("attachments") is None):
+                if not resource_errors:
+                    errors.append(
+                        f"{candidate.source_id}: attachment inventory was not "
+                        "verified; no attachment search performed")
                 continue
             attachments = sorted(
                 resources.get("attachments") or [], key=attachment_priority)

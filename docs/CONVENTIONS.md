@@ -37,6 +37,25 @@ Reality in the code wins. When you extend a pattern, extend it here too.
 - Delivery: gate-clean artifacts copy to `~/Desktop/<Client>/` with pretty
   names (`<Client>_<Agency>_Focus_<date>.html`).
 
+## Pursuit dossier attachment research (2026-09-09)
+
+- `agents/decisions/dossier.py` carries the existing sweep's captured attachment
+  text and file provenance in a separate `attachment_research` analysis context.
+  It verifies the discovery producer's full-text/file-ID/file-hash fingerprint
+  before including text. Original URL and retrieval metadata travel unchanged;
+  a checksum does not attest their freshness or authenticity.
+- The prompt includes at most 14,000 captured characters, original length and
+  truncation status, plus a bounded relevance excerpt only when every segment
+  occurs in the captured text. Text is associated with the file bundle, not
+  falsely attributed to an individual file. Known notice/inventory mismatch
+  yields a named diagnostic without usable text. An unreconfirmed inventory
+  is explicitly labeled, never silently treated as current.
+- This is unreviewed research. `full_description`, persisted `source_depth`,
+  strict Assess evidence, human requirement/inventory reviews, and lead tiers
+  remain owned by their existing paths. The dossier's model verdict cannot
+  approve a requirement or clear a hold. The existing sweep retains the source
+  research; no new persistence or approval surface is introduced.
+
 ## Search-plan derivation (keyword doctrine, 2026-07-12)
 
 - The operator's approved capability, technology, and explicit search terms
