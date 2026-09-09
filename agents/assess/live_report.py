@@ -42,6 +42,7 @@ from agents.assess.ledger import (
     load_current_assess_run,
     scope_from_sweep,
 )
+from agents.assess.reviewed_cases import ReviewedCase, ReviewedCases, load_cases
 
 
 class LiveReportState(str, Enum):
@@ -77,6 +78,9 @@ class LiveReportProjection:
     can_release: Optional[bool] = None
     live_coverage_complete: Optional[bool] = None
     problem: Optional[str] = None
+    # Supplemental research retains its own source binding. It is not a raw
+    # sweep posting and cannot contribute to discovery or posting totals.
+    reviewed_research: tuple[ReviewedCase, ...] = ()
 
     @property
     def actionable(self) -> tuple[LiveReportNotice, ...]:
@@ -171,6 +175,7 @@ def project_live_ledger(
     *,
     can_release: Optional[bool] = None,
     live_coverage_complete: Optional[bool] = None,
+    reviewed_cases: Optional[ReviewedCases] = None,
 ) -> LiveReportProjection:
     """Re-join a validated ledger to raw SAM display metadata.
 
@@ -210,7 +215,19 @@ def project_live_ledger(
                 f"Assess posting {posting_id} is absent from the exact report sweep")
         grouped.setdefault(record_id, []).append(row)
 
+    reviewed_by_id: dict[str, ReviewedCase] = {}
+    if reviewed_cases is not None:
+        # Revalidate even an unvalidated model_copy; a supplied casebook can
+        # never introduce BID_NOW or silently change the bound record.
+        book = ReviewedCases.model_validate(reviewed_cases.model_dump(mode="python"))
+        if book.client_name.casefold() != ledger.client_name.casefold():
+            raise AssessLedgerError("reviewed cases belong to a different client")
+        if book.cases and book.scope_designator != _scope_designator(ledger.scope):
+            raise AssessLedgerError("reviewed cases do not match the report scope")
+        reviewed_by_id = {case.record.notice_id: case for case in book.cases}
+
     notices: list[LiveReportNotice] = []
+    reviewed_research: list[ReviewedCase] = []
     counts: dict[str, int] = {}
     ledger_ids = {record.record_id for record in ledger.records}
     unknown_families = set(grouped) - ledger_ids
@@ -220,6 +237,12 @@ def project_live_ledger(
     for record in ledger.records:
         postings = sorted(grouped.get(record.record_id, []), key=_posting_order)
         current = by_id.get(record.notice_id)
+        if (current is None and record.notice_id not in posting_index
+                and not postings):
+            reviewed = reviewed_by_id.get(record.notice_id)
+            if reviewed is not None and reviewed.record == record:
+                reviewed_research.append(reviewed)
+                continue
         if current is None or posting_index.get(record.notice_id) != record.record_id:
             raise AssessLedgerError(
                 f"Assess current posting {record.notice_id} is not bound to its family")
@@ -247,6 +270,8 @@ def project_live_ledger(
         verdict_totals=tuple(sorted(counts.items())),
         can_release=can_release,
         live_coverage_complete=live_coverage_complete,
+        reviewed_research=tuple(sorted(
+            reviewed_research, key=lambda case: case.record.record_id)),
     )
 
 
@@ -314,6 +339,11 @@ def resolve_current_live_report(
         ), None)
         if sam_coverage is None:
             raise AssessLedgerError("current strict ledger has no SAM coverage row")
+        from agents.review import REVIEW_DIR
+        reviewed_cases = load_cases(
+            client_name, Path(review_dir or REVIEW_DIR),
+            expected_sha256=expected_inputs["reviewed_cases_sha256"],
+        )
         projection = project_live_ledger(
             run.live,
             payload.get("posting_index") or {},
@@ -321,6 +351,7 @@ def resolve_current_live_report(
             can_release=run.can_release(),
             live_coverage_complete=(
                 sam_coverage.status == CoverageStatus.COMPLETE),
+            reviewed_cases=reviewed_cases,
         )
         expired = [
             notice.record.notice_id for notice in projection.actionable
@@ -332,7 +363,7 @@ def resolve_current_live_report(
                 "current strict ledger has BID_NOW deadline(s) no longer "
                 "future: " + ", ".join(expired[:8]))
         return projection
-    except (AssessLedgerError, TypeError, ValueError) as exc:
+    except (AssessLedgerError, TypeError, ValueError, OSError) as exc:
         return _result(
             LiveReportState.INVALID, client_name, designator, problem=str(exc))
 
