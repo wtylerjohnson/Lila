@@ -1114,6 +1114,28 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   header-only stub is not a copy of anything. Remove poison members on
   sight, mirroring download_extract's own discard-below-floor doctrine.
 
+## Native SAM consumed-source receipts (2026-09-10)
+
+- `SamExtractSource` resets its primary/attachment census before each call.
+  `extract_selection` records UTC and host-local calendar bounds around the
+  unchanged daily downloader. Each actual CSV pass adds an `extract_receipts`
+  row (`primary`, or `attachment_latest` and `attachment_candidates`).
+- Receipt `cache_date` is parsed from the local filename and explicitly is NOT
+  upstream publication time. The absolute path, exact raw bytes read, SHA-256,
+  UTC read interval, and descriptor/path metadata bind what the CSV decoder
+  consumed. `status=verified`, `complete=true`, `integrity=stable` require EOF,
+  exact byte count and unchanged file identity/metadata. Both attachment passes
+  must consume the same file/digest. Failed reads retain an honest partial hash
+  and failure state; a failed download has selection evidence but no read row.
+- Midnight is not silently normalized: a later attachment download can select
+  the next local day's file, and each pass carries its own selection bounds.
+  No snapshot option, query filter, search limit, ranking or fallback changes.
+- Native sweep `results.sam_census` preserves these internal receipts. An
+  attachment-stage failure retains its failed census; native live-API fallback
+  retains `failed_extract_census` separately from the successful API census.
+  The public-safe `_sam_census_receipt` projection remains unchanged; local
+  filesystem paths do not become public coverage copy or release authority.
+
 ## Testing
 
 - Offline doctrine: temp data dirs, Flask test client, no subprocesses, no

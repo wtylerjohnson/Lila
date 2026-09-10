@@ -317,7 +317,8 @@ def _safe_enrich_sam_public_attachments(
         return sam, {
             "matched": len(sam),
             "description_matched": len(sam),
-            "attachment_candidates": {},
+            "attachment_candidates": dict(
+                getattr(source, "last_attachment_census", None) or {}),
             "attachment_enriched": 0,
             "attachment_relevant": 0,
             "attachment_added": 0,
@@ -1275,6 +1276,7 @@ def main() -> int:
         # PRIMARY: the daily extract — zero quota, and it screens EVERY keyword
         # AND every NAICS lane against every active notice in one local pass
         # (the live API rations one NAICS or one title substring per call).
+        ex = None
         try:
             from tools.api.sam_extract import SamExtractSource
             ex = SamExtractSource()
@@ -1323,6 +1325,8 @@ def main() -> int:
                          f"{attachment_enriched} attachment-enriched / "
                          f"{attachment_relevant} newly relevant")
         except Exception as e:  # noqa: BLE001 — extract down: fall back to live API
+            if ex is not None and ex.last_census:
+                sam_census_box["failed_extract_census"] = dict(ex.last_census)
             print(f"[sam.gov] extract path failed ({e}) — falling back to live API",
                   file=sys.stderr)
         q.limit = 1000  # page size at the API max; pagination reaches totalRecords
