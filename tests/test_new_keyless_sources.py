@@ -841,7 +841,7 @@ def test_distiller_and_provenance_cover_new_lanes():
     prov = render_provenance(sweep)
     for needle in ("1 SAM.gov notices", "1 pursue-grade", "1 grant programs",
                    "1 SBIR/STTR topics", "1 global news articles",
-                   "7 exploited vulns", "plain web search"):  # white-label wording
+                   "7 exploited vulns", "not verified opportunities"):  # bounded provenance wording
         assert needle in prov, needle
 
 

@@ -1769,3 +1769,54 @@ existing eight-slot validators run before promotion. The default run location is
 Run the full test gate with `LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 .venv/bin/python
 -m pytest tests/ -q`. The fresh runtime requires all packages in requirements.txt,
 including NumPy for the offline dense/hybrid retrieval contract checks.
+
+
+## Research Picture evidence validation (2026-09-11)
+
+The internal Research Picture extends its existing Pydantic models with typed
+`ResearchClaim` references. `agents/decisions/research_evidence.py` retains canonical
+source IDs (or explicitly generated registry IDs when no source ID exists), exact
+field locators, bounded passages, original URLs and identity, supplied timestamps,
+retrieval state and a SHA-256 of each original record. Web evidence is discovery
+only even when a search result links to SAM. The registry admits selected native
+pursue/monitor rows and bounded contextual lanes in native order, at most80 records
+and120000 serialized characters; truncation and source failures remain visible.
+
+`compose_research_picture` supplies the registry separately from `source_sweep`,
+then validates every generated reference against it. Source facts render cited
+excerpts rather than treating a cited paraphrase as proved. Offering-fit and
+cross-source suggestions may be labeled inference; procurement state, value,
+incumbent and route cannot be invented by inference. Unknown opportunity IDs are
+rejected without title matching, while canonical web signals remain verification
+tasks. Old unsourced narratives fail closed when rendered. No evidence checks
+establish semantic entailment of an inference or qualify a lead.
+
+The current-original-notice classification requires recorded government notice
+text, explicit active/type metadata, a same-day supplied retrieval timestamp,
+a future timezone-bearing response deadline, and references to its own text for
+state, requirements and action. It is not BID_NOW or seller readiness and cannot
+replace existing human-reviewed requirement or access checks. Unknown freshness
+or deadline precision stays research. Awards stay historical and channel records
+cannot establish access to a particular opportunity.
+
+The existing client-compose quarantine stays unchanged: Research Picture and
+web_leads are excluded by default. Evidence registry fields never appear as a new
+web-bearing sibling in source_sweep. Assess, Market Map, qualification, release,
+source collectors, retrieval vocabulary and operator gates are untouched.
+
+Targeted offline verification: `LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 python -m
+pytest tests/test_research_picture.py tests/test_research_picture_evidence.py
+tests/test_truth_purges.py -q`. Use the configured project Python environment.
+
+
+Saved Research Picture JSON and generated Markdown use the same observational
+revalidation path. Native `ui/server.py::_research_picture` calls
+`project_saved_picture`; `buildPicture` preserves linked research tasks and
+separate current-notice, historical and channel sections, using the existing
+safe Markdown sanitizer. Opening the view never recomposes a model, writes a
+sweep or changes a gate. A persisted version marker cannot bless raw prose.
+Explicit failed, unreadable, discovery-only, stale and unknown retrieval states
+survive normalization and cannot become documented current notices merely
+because a description field is present. The additive native projection change
+is isolated with `tests/test_research_picture_ui.py`; its browser test uses
+actual UI functions in a temporary Chrome page with all requests blocked.
