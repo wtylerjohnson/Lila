@@ -57,7 +57,7 @@ def test_title_url_only_cannot_become_active_or_exact_fit():
     assert item.classification == 'research_signal'
     assert item.deadline is None and item.title == 'VA PIVOT'
     assert item.validation_status == 'VERIFICATION_REQUIRED'
-    assert 'Verify original notice' in render_markdown(out)
+    assert 'Verify original notice' in render_markdown(out, results=data)
     for unsupported in ['Exact functional match', 'Two live solicitations', 'Bid now', 'recompete tomorrow']:
         assert unsupported not in out.model_dump_json()
 
@@ -156,7 +156,7 @@ def test_source_failure_and_noncomprehensive_coverage_survive_to_markdown():
              'lanes': [{'source': 'congress', 'required': True, 'state': 'failed'}]},
             '_attempts': [{'source': 'congress', 'ok': False}],
             'contract_awards': {'error': 'missing credentials'}}
-    md = render_markdown(validate(picture(), data))
+    md = render_markdown(validate(picture(), data), results=data)
     assert 'not comprehensive' in md and 'Required source congress: failed' in md
     assert 'Source contract_awards: retrieval failed' in md
 
@@ -215,7 +215,7 @@ def test_saved_case005_va_claims_are_research_tasks_with_all_required_gaps():
     assert len([x for x in out.validation_issues if 'unknown source ID' in x]) == 2
     assert all(any(f'Required source {lane}:' in g for g in out.gaps)
                for lane in fixture['results']['source_coverage_verdict']['blocking_sources'])
-    md = render_markdown(out)
+    md = render_markdown(out, results=fixture['results'])
     assert 'exact functional match' not in md.lower()
     assert 'Verify original notice identity' in md
 

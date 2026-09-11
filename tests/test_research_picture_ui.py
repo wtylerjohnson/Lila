@@ -40,7 +40,7 @@ def test_persisted_evidence_cards_and_historical_classification_survive_projecti
             'contract_awards': {'recompetes': [{'source_id': 'A', 'title': 'Old award', 'completion': '2026-09-13'}]}}
     draft = picture(top_opportunities=[TopOpportunity(id='A', title='Recompete', why_now='Bid now')])
     checked = validate(draft, data)
-    out = project({'results': {'research_picture': checked.model_dump()}})
+    out = project({'results': {**data, 'research_picture': checked.model_dump()}})
     assert out['top'][0]['classification'] == 'historical_market_evidence'
     assert out['research_cards'][0]['title'] == 'VA PIVOT'
     assert out['research_cards'][0]['source_url'] == 'https://sam.gov/x'

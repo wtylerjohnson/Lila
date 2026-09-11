@@ -1820,3 +1820,28 @@ survive normalization and cannot become documented current notices merely
 because a description field is present. The additive native projection change
 is isolated with `tests/test_research_picture_ui.py`; its browser test uses
 actual UI functions in a temporary Chrome page with all requests blocked.
+
+
+## Research Picture source rebind hardening (2026-09-11, work046)
+
+Saved `validation_version`, `evidence_registry` and hashes are audit material,
+never independent authority for the same saved picture. Native projection and
+Markdown must rebuild from their owning original `results`; absence fails closed
+with a named gap and no opportunity/source-fact cards. `render_markdown` accepts
+those results explicitly; `run_searches` and `run_picture` supply them. This changes only the
+internal Research Picture rendering boundary, not a client release contract.
+Display-time currentness uses current UTC rather than a model/saved as-of clock.
+
+Whitespace and punctuation-only quotations cannot bind claims. An opportunity's
+source-specific factual claims cite only that source; cross-source reasoning
+remains explicitly labeled inference or narrative context. Conflicting primary
+notice identities or response deadlines produce binding issues and prevent
+current-notice confirmation. Equivalent aware deadline representations normalize
+to UTC for conflict comparison; ambiguous deadlines are withheld, not selected
+optimistically. This does not amend strict Assess, profile, scope or release gates.
+
+Focused offline validation: `python -m pytest tests/test_research_picture.py
+tests/test_research_picture_evidence.py tests/test_research_picture_hardening.py
+tests/test_truth_purges.py -q`. Full regression uses the existing offline strict
+suite command. Use the configured project runtime; browser checks use temporary
+profiles. The synthetic probes are source-binding tests, not qualified-lead proof.

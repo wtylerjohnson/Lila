@@ -4,7 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Literal
 from urllib.parse import urlsplit
 
@@ -45,6 +45,7 @@ class EvidenceSource(BaseModel):
     passages: dict[str, str] = Field(default_factory=dict)
     content_sha256: str
     truncated: bool = False
+    binding_issues: list[str] = Field(default_factory=list)
 
 
 # Only recorded scalar fields: no attachment research or model-generated triage.
@@ -100,6 +101,31 @@ def source_record(lane: str, locator: str, row: dict) -> EvidenceSource:
     url_identity = re.search(r'/opp/([^/]+)/', urlsplit(url).path + '/') if url else None
     primary = (lane == 'sam.gov' and host in {'sam.gov', 'www.sam.gov'}
                and url_identity is not None and url_identity.group(1) == notice_id)
+    binding_issues = []
+    if lane == 'sam.gov':
+        identities = {str(d[k]).strip() for d in (row, raw)
+                      for k in ('source_id', 'notice_id', 'id') if d.get(k)}
+        if len(identities) > 1:
+            binding_issues.append('Conflicting primary notice identities.')
+            primary = False
+    deadlines = set()
+    for data in (row, raw):
+        for key in ('response_deadline', 'deadline'):
+            value = data.get(key)
+            if value is None or not str(value).strip():
+                continue
+            value = str(value).strip()
+            try:
+                parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
+                if parsed.tzinfo:
+                    value = parsed.astimezone(timezone.utc).isoformat()
+            except ValueError:
+                pass
+            deadlines.add(value)
+    deadline = _scalar(row, raw, 'response_deadline', 'deadline')
+    if len(deadlines) > 1:
+        binding_issues.append('Conflicting response deadlines; verify the original notice.')
+        deadline = None
     has_text = any(k.split('.')[-1] in _TEXT_FIELDS for k in passages)
     supplied = [str(d[k]).casefold().strip() for d in (row, raw)
                 for k in ('retrieval_status', 'evidence_status') if d.get(k)]
@@ -119,10 +145,10 @@ def source_record(lane: str, locator: str, row: dict) -> EvidenceSource:
         solicitation_id=_scalar(row, raw, 'solicitation', 'solicitation_number'),
         retrieved_at=_scalar(row, raw, 'retrieved_at', 'fetched_at', 'observed_at'),
         posted_at=_scalar(row, raw, 'posted_date', 'posted', 'published'),
-        deadline=_scalar(row, raw, 'response_deadline', 'deadline'),
+        deadline=deadline,
         retrieval_status=status, primary_notice=primary, passages=passages,
         supplied_retrieval_statuses=supplied,
-        content_sha256=digest, truncated=truncated)
+        content_sha256=digest, truncated=truncated, binding_issues=binding_issues)
 
 
 def coverage_gaps(results: dict) -> list[str]:
@@ -198,6 +224,7 @@ def build_registry(results: dict, sweep: dict) -> tuple[dict[str, EvidenceSource
                 gaps.append(f'{lane}: evidence registry budget reached; further source evidence omitted.')
                 break
             registry[sid] = source
+            gaps.extend(f'{sid}: {issue}' for issue in source.binding_issues)
             remaining_chars -= size
             if source.retrieval_status not in {'stored_source_text', 'metadata_only', 'discovery_only'}:
                 gaps.append(f'{sid}: retrieval state {source.retrieval_status}.')
@@ -212,6 +239,8 @@ def checked_claim(claim: ResearchClaim, registry: dict[str, EvidenceSource]):
         return None, 'missing evidence references'
     excerpts = []
     for ref in claim.evidence:
+        if not any(character.isalnum() for character in ref.quote):
+            return None, 'empty or non-substantive evidence quote'
         source = registry.get(ref.source_id)
         if source is None:
             return None, f'unknown source ID {ref.source_id}'
@@ -237,7 +266,8 @@ def _timestamp(value: str | None):
 
 def current_notice(source: EvidenceSource, claims: list[ResearchClaim], as_of: datetime) -> bool:
     """A documented notice is still subject to existing qualification/requirement review."""
-    if not source.primary_notice or source.retrieval_status != 'stored_source_text':
+    if (not source.primary_notice or source.binding_issues
+            or source.retrieval_status != 'stored_source_text'):
         return False
     fetched, deadline = _timestamp(source.retrieved_at), _timestamp(source.deadline)
     if not fetched or fetched > as_of or fetched.date() != as_of.date() or not deadline or deadline <= as_of:

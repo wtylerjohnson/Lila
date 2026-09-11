@@ -2427,7 +2427,8 @@ def main() -> int:
             md_path = os.path.join(
                 review_dir, f"{slug}{packet_suffix}.research_picture.md")
             with open(md_path, "w") as f:
-                f.write(render_markdown(picture, sweep=distill(out["results"])))
+                f.write(render_markdown(picture, sweep=distill(out["results"]),
+                                        results=out["results"]))
             print(f"[picture] {len(picture.top_opportunities)} top opportunities · "
                   f"{len(picture.demand_signals)} demand signals · "
                   f"{len(picture.watchlist)} on watchlist", file=sys.stderr)

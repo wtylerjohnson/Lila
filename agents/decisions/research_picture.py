@@ -88,7 +88,7 @@ class ResearchPicture(BaseModel):
     operator_focus_names: list[str] = Field(default_factory=list)
 
 
-_VALIDATION_VERSION = "research-picture.evidence.v1"
+_VALIDATION_VERSION = "research-picture.evidence.v2"
 _VERIFY_ACTION = "Verify original notice identity, current procurement state, requirements and available action."
 
 
@@ -96,10 +96,14 @@ def validate_picture(p: ResearchPicture, registry: dict[str, EvidenceSource],
                      gaps: list[str], as_of: datetime) -> ResearchPicture:
     """Ignore model-supplied status/registry; rebuild visible prose from checked claims."""
     issues = list(p.validation_issues) if p.validation_version == _VALIDATION_VERSION else []
-    def check(claims):
+    def check(claims, source_id=None):
         accepted = []
         for claim in claims:
             verified, reason = checked_claim(claim, registry)
+            if (not reason and source_id and claim.basis == 'source_fact'
+                    and claim.kind != 'context'
+                    and any(ref.source_id != source_id for ref in claim.evidence)):
+                reason = f'source-specific {claim.kind} cites a different source than {source_id}'
             if reason:
                 issues.append(f"{claim.kind}: {reason}")
             else:
@@ -117,7 +121,7 @@ def validate_picture(p: ResearchPicture, registry: dict[str, EvidenceSource],
             issues.append(f"Repeated source ID {item.id} omitted.")
             continue
         seen.add(item.id)
-        claims = check(item.claims)
+        claims = check(item.claims, item.id)
         # An opportunity's cited facts must include its own source, not a
         # different notice whose text happens to look attractive.
         if not any(ref.source_id == item.id for c in claims for ref in c.evidence):
@@ -172,20 +176,16 @@ def validate_picture(p: ResearchPicture, registry: dict[str, EvidenceSource],
 
 def revalidate_picture(p: ResearchPicture, results: Optional[dict] = None) -> ResearchPicture:
     """One observational projection for saved JSON, Markdown and native UI."""
-    if results and any(key not in {'research_picture', 'triage'} for key in results):
+    if isinstance(results, dict):
         registry, gaps = build_registry(results, distill(results))
-    elif p.validation_version == _VALIDATION_VERSION:
-        registry, gaps = p.evidence_registry, p.evidence_gaps
     else:
-        registry, gaps = {}, ['Legacy picture has no validated evidence registry.']
+        registry, gaps = {}, []
+    if not registry:
+        gaps.append('Original source results unavailable; a saved evidence registry cannot validate itself.')
+        if not p.validation_version:
+            gaps.append('Legacy picture has no validated evidence registry.')
+    # Display-time currentness cannot be pinned by a saved/model timestamp.
     as_of = datetime.now(timezone.utc)
-    if p.evidence_as_of:
-        try:
-            recorded = datetime.fromisoformat(p.evidence_as_of)
-            if recorded.tzinfo and recorded <= as_of:
-                as_of = recorded
-        except ValueError:
-            pass
     verified = validate_picture(p, registry, gaps, as_of)
     if p.operator_focus_names:
         names = ', '.join(clean_text(name) for name in p.operator_focus_names)
@@ -496,9 +496,10 @@ def render_provenance(sweep: dict) -> str:
     return "\n".join(lines)
 
 
-def render_markdown(p: ResearchPicture, sweep: Optional[dict] = None) -> str:
+def render_markdown(p: ResearchPicture, sweep: Optional[dict] = None,
+                    *, results: Optional[dict] = None) -> str:
     # Rebuild every visible claim even if the persisted version marker exists.
-    p = revalidate_picture(p)
+    p = revalidate_picture(p, results)
     lines = [
         f"# Research Picture · {clean_text(p.client_name)}",
         f"*GTM Group research synthesis; evidence checked at {p.evidence_as_of}*",

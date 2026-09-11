@@ -1,0 +1,137 @@
+{
+  "work_id": "REPAIR-STEP1-PUBLISH-AND-HARDEN-046",
+  "at_utc": "2026-09-11T19:34:17.144241+00:00",
+  "status": "LOCAL_VERIFIED_AWAITING_PUBLICATION_AND_FABLE",
+  "tested_parent": "c15dd5e14568debf12740af8787e8eb467754f1b",
+  "candidate_files_sha256": {
+    "agents/decisions/research_evidence.py": "c22f50fef94d662881202c6d632774e0342107d35c5c75bf7b7cbaa667ac368d",
+    "agents/decisions/research_picture.py": "e83a3f65fcb2ac6af2a12318992595db321647e13ea98e6c331e74a64d227bb2",
+    "docs/CONVENTIONS.md": "2902f423b2d1cb705e0bd38e478c8bd54092d0571bff8143b10972aad56fb54c",
+    "run_picture.py": "59b3ae3d22cf036e48db08fa15fa7b4f8dd55a6904258853eed26100e9b4cfba",
+    "run_searches.py": "8420f5eecddfd06b92f03e9020c1ccd6b110ef5d2d3ad79396deb24de7088380",
+    "tests/test_research_picture_evidence.py": "3718d7dfe821f158e94cf26316eba8d6bbe6c0d549ea50ecd51c3bc9c3be1ff9",
+    "tests/test_research_picture_ui.py": "afbecf2e0211348a3c13c279e86ff104f762e2befdfa71dbb79bb13223fe71a0",
+    "tests/test_research_picture_hardening.py": "c0f14419739ba3b2379072758f18add5977aeb7ccdfc8355760202273142c67d"
+  },
+  "full_suite": {
+    "passed": 5413,
+    "skipped": 40,
+    "warnings": 18,
+    "exit_code": 0,
+    "seconds": 120.39,
+    "command": "LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 python -m pytest tests/ -q -rs",
+    "explicit_skips": [
+      "SKIPPED [1] tests/test_apex_search_benchmark.py:115: PIVOT not positively identified in this store slice; collection job, not a screen defect",
+      "SKIPPED [1] tests/test_apex_search_benchmark.py:115: DIA RMIC not positively identified in this store slice; collection job, not a screen defect",
+      "SKIPPED [1] tests/test_apex_search_benchmark.py:115: HHS VMO not positively identified in this store slice; collection job, not a screen defect",
+      "SKIPPED [1] tests/test_apex_search_benchmark.py:115: DHA TCRS not positively identified in this store slice; collection job, not a screen defect",
+      "SKIPPED [1] tests/test_apex_search_benchmark.py:127: PIVOT not positively identified in this store slice",
+      "SKIPPED [1] tests/test_apex_search_benchmark.py:127: DIA RMIC not positively identified in this store slice",
+      "SKIPPED [1] tests/test_apex_search_benchmark.py:127: HHS VMO not positively identified in this store slice",
+      "SKIPPED [1] tests/test_apex_search_benchmark.py:127: DHA TCRS not positively identified in this store slice",
+      "SKIPPED [1] tests/test_apex_search_benchmark.py:172: VHA award not in this machine's store slice",
+      "SKIPPED [1] tests/test_cross_client_leakage.py:73: fewer than two pressed clients on this checkout",
+      "SKIPPED [1] tests/test_hhs_sbcx_forecast.py:240: set LILA_RUN_LIVE_SOURCE_TESTS=1 for the bounded official probe",
+      "SKIPPED [1] tests/test_motion_title_strategy.py:86: red_hat pack not on this machine",
+      "SKIPPED [1] tests/test_operating_repair.py:135: real Arista operating input is not versioned; run local acceptance separately",
+      "SKIPPED [6] tests/test_source_accepted_wave2.py:282: live smoke is opt-in: set LILA_LIVE_SMOKE=1",
+      "SKIPPED [6] tests/test_source_connector_wave3.py:181: set LILA_LIVE_SOURCE_HEALTH=1 for opt-in official endpoint probes",
+      "SKIPPED [1] tests/test_source_ed_forecast.py:396: live smoke is opt-in: set LILA_LIVE_SMOKE=1",
+      "SKIPPED [1] tests/test_source_fpds_atom.py:360: live smoke only when LILA_LIVE_SMOKE is set",
+      "SKIPPED [1] tests/test_source_gsa_elibrary.py:278: live smoke is opt-in: set LILA_LIVE_SMOKE=1",
+      "SKIPPED [1] tests/test_source_navy_nawcad_lraf.py:81: live smoke is opt-in: set LILA_LIVE_SMOKE=1",
+      "SKIPPED [1] tests/test_source_navy_nawcwd_lraf.py:94: live smoke is opt-in: set LILA_LIVE_SMOKE=1",
+      "SKIPPED [1] tests/test_source_nih_reporter.py:284: live smoke is opt-in: LILA_LIVE_SMOKE=1",
+      "SKIPPED [1] tests/test_source_oasis_plus_holders.py:296: live smoke is opt-in: LILA_LIVE_SMOKE=1",
+      "SKIPPED [1] tests/test_source_omb_apportionment.py:294: live smoke is opt-in: set LILA_LIVE_SMOKE=1",
+      "SKIPPED [1] tests/test_source_sba_mentor_protege.py:293: live smoke is opt-in: set LILA_LIVE_SMOKE=1",
+      "SKIPPED [1] tests/test_source_sba_sbs.py:242: live smoke is opt-in: set LILA_LIVE_SMOKE=1",
+      "SKIPPED [1] tests/test_source_sec_procurement_forecast.py:85: live smoke is opt-in: set LILA_LIVE_SMOKE=1",
+      "SKIPPED [1] tests/test_source_state_forecast.py:402: live smoke is opt-in: set LILA_LIVE_SMOKE=1",
+      "SKIPPED [1] tests/test_targeting_hardening.py:150: riverbed pack not on this machine",
+      "SKIPPED [1] tests/test_targeting_hardening.py:150: thinklogical pack not on this machine",
+      "SKIPPED [1] tests/test_targeting_hardening.py:150: varonis pack not on this machine"
+    ]
+  },
+  "focused_passed": 76,
+  "previous_pre_final_suite": {
+    "passed": 5411,
+    "failed": 1,
+    "skipped": 40,
+    "failure": "Unchanged workstation UI selector timeout; two-parameter retry passed and final full suite passed."
+  },
+  "log_hashes": {
+    "full-suite.log": "90ba6384aaf535f9b2e5dfa09108a5a9628e4da22b0f4a2b027328cb58ac7770",
+    "targeted.log": "43b7b3dd82dbd59bfd703212e277ddd86818e485caacd23f94e3d73fe0a5bfde",
+    "full-suite-before-cli-fix.log": "71e8d48f3c7a7f69d90af1e600da50c55c5d8007a04a298a12adbec296ef85cf",
+    "workstation-timeout-recheck.log": "aaf18100c4ec77c75d4eb2edc2dcf4c1fbe8048c121295045ad22a12ad9ae792"
+  },
+  "operator_H1_H5": "resolved_with_bounded_receipts",
+  "operator_receipt_sha256": "04727421c50951661f4d1aa52667b738114723ea1425c48ad00fb55644768585",
+  "ignored_baseline_fixtures_verified": 31,
+  "protected_inputs_unchanged": {
+    "cases/apex-discovery-calibration-004/capture_lock.FINAL.json": "658bbbff0e994d757c411787bfb7671621a8e53759dbc3dcf5ec92fa4ae6e3b0",
+    "cases/apex-discovery-calibration-005/capture_lock.FINAL.json": "137cb5e2b994ed372db1528a8b31862e81555792a44c9edf2c90e5c6ec3f55a5",
+    "cases/apex-discovery-calibration-005/lila/capture/CAPTURE-LILA-005/new_native_sweep.json": "6ce0ca8907f38f544aa59a3530ee614ac345c61fdacf7ef007284d570b0c6e73",
+    "handoffs/STEP1-041/VERIFICATION.json": "94d0632c249a54c63cbf3d1bcd99334c1bf5c9492eaf4a85720a6bac6b5b8b14"
+  },
+  "saved_calibration_replay": {
+    "status": "PASS_OFFLINE_REPLAY_NOT_LIVE_PRODUCT_RERUN",
+    "source": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/cases/apex-discovery-calibration-005/lila/capture/CAPTURE-LILA-005/new_native_sweep.json",
+    "source_sha256": "6ce0ca8907f38f544aa59a3530ee614ac345c61fdacf7ef007284d570b0c6e73",
+    "reference_time": "2026-09-11T13:58:31.643626+00:00",
+    "original_top_entries": 5,
+    "rejected_unknown_ids": 5,
+    "unverified_web_signals_retained": 10,
+    "confirmed_opportunities": 0,
+    "required_gaps_preserved": [
+      "contract_awards",
+      "congress",
+      "regulations",
+      "govinfo",
+      "sbir",
+      "calc",
+      "forecasts",
+      "source_mesh",
+      "funded_demand"
+    ],
+    "registry_records": 80,
+    "registry_serialized_characters": 57957,
+    "lints": {
+      "language": {
+        "ok": true,
+        "violations": []
+      },
+      "white_label": {
+        "ok": true,
+        "violations": []
+      },
+      "em_dash": {
+        "ok": true,
+        "violations": []
+      }
+    },
+    "quarantine_removed": [
+      "research_picture",
+      "source_sweep.web_leads"
+    ],
+    "trace_manifest_files_verified": 27,
+    "trace_manifest_sha256": "2740c278b88dca9aeb456e6c0e01bb2f9e4431b5711da0764da41e27689b5e8f",
+    "limits": [
+      "Saved calibration replay is not independent holdout proof.",
+      "No live LLM composition was run.",
+      "Traceability does not prove inference or seller readiness.",
+      "Original PIVOT/PCT attachments and underlying current RFQ status remain unverified."
+    ],
+    "replayed_picture.json_sha256": "f92584bb4294c67020958b75aa807a8233efcf0f8707fb42d42f26a34d03cd01",
+    "replayed_picture.md_sha256": "f4a590817185d6dec7e0a33c1358626caaffcc775ea25bd52de0b64b253edaed"
+  },
+  "fable_acceptance": false,
+  "production_integration": false,
+  "step2": "SUSPENDED",
+  "limitations": [
+    "Local producer receipts are not independent Fable acceptance.",
+    "No live model or product rerun; no independent holdout.",
+    "Complete local regression used31 preexisting ignored fixture files, not included in this branch."
+  ]
+}

@@ -88,7 +88,8 @@ def main() -> int:
         os.makedirs(review_dir, exist_ok=True)
         md_path = os.path.join(review_dir, f"{slug}.research_picture.md")
         with open(md_path, "w") as f:
-            f.write(render_markdown(picture, sweep=distill(out["results"])))
+            f.write(render_markdown(picture, sweep=distill(out["results"]),
+                                    results=out["results"]))
         print(f"[picture] HEADLINE: {picture.headline}", file=sys.stderr)
         print(f"[picture] artifact -> {md_path}", file=sys.stderr)
 
