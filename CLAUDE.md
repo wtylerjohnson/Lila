@@ -1,5 +1,17 @@
 # CLAUDE.md · LILA session contract
 
+## Current build direction: September 11-13, 2026
+
+Before every LILA build, read
+[the weekend build plan](docs/plans/WEEKEND_BUILD_PLAN_2026-09-11.md) and record
+its plan ID/hash, work ID, checkout and code revision. It reconciles Wayne's
+requirements with the coordinator's approved repair sequence 1-7. Preserve that
+order, existing owners, full assessment/Market Map output and frozen benchmark
+evidence. The latest user scope is core LILA lead quality; Salesforce/CRM
+delivery, rep activity and territory-management dashboards are deferred.
+Implementation and acceptance proof remain separate from this plan commit.
+This direction remains until superseded.
+
 LILA reconstructs client-specific federal markets across its governed source
 mesh. The `lila_release` package contains the operator-locked eight-slot
 Federal Market Map (`docs/MARKET_MAP_CONTRACT.md`) and its assessment-bound

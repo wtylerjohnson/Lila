@@ -1,5 +1,14 @@
 # LILA Lead Gen roadmap
 
+## Current direction: weekend September 11-13, 2026
+
+[The weekend build plan](plans/WEEKEND_BUILD_PLAN_2026-09-11.md) is the current
+execution and acceptance reference, reconciled with the benchmark coordinator.
+Follow its approved repair sequence 1-7, then the evidence-backed seller workflow
+from the Wayne meeting. Earlier checkpoints below remain historical evidence.
+The plan commit changes build direction and startup instructions, not product
+behavior; implementation completion must cite actual build and acceptance receipts.
+
 ## Operating checkpoint: September 8, 2026
 
 The product is client-specific federal lead generation: understand the company,

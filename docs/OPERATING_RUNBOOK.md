@@ -1,5 +1,12 @@
 # LILA operating version
 
+Before a build or release, read
+[the current weekend build plan](plans/WEEKEND_BUILD_PLAN_2026-09-11.md).
+Record its plan ID/hash, work ID, checkout and exact code revision with the
+existing run evidence. Check assigned ownership and required acceptance before
+starting work. The plan preserves the separate frozen benchmark and its repair
+sequence; it does not claim that a development repair has shipped on main.
+
 The operating checkout is `/Users/wtjohnson/Lila`. Other named worktrees are
 preserved development or historical lanes; do not start the operating UI there.
 
