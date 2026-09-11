@@ -908,20 +908,8 @@ def _research_picture(slug: str, *, searches: Optional[dict] = None,
     data = searches if searches is not None else (
         _load_json(os.path.join(CLEANED_DIR, _sweep_name(
             slug, workstation_id=workstation_id))) or {})
-    pic = (data.get("results") or {}).get("research_picture")
-    if not isinstance(pic, dict) or pic.get("error") or not pic.get("headline"):
-        return None
-    return {
-        "headline": pic.get("headline"),
-        "next_action": pic.get("next_action"),
-        "top": [{"id": t.get("id"), "title": t.get("title"),
-                 "why_now": t.get("why_now"), "deadline": t.get("deadline")}
-                for t in (pic.get("top_opportunities") or [])],
-        "signals": pic.get("demand_signals") or [],
-        "watchlist": pic.get("watchlist") or [],
-        "market": pic.get("market_structure"),
-        "gaps": pic.get("gaps") or [],
-    }
+    from agents.decisions.research_picture import project_saved_picture
+    return project_saved_picture(data)
 
 
 def _search_opportunities(slug: str, *, searches: Optional[dict] = None,

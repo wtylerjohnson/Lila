@@ -4704,20 +4704,20 @@ function buildRequirementSpanReview(ledger, card) {
 function buildPicture(pic, card) {
   const wrap = el(`<div style="border:1px solid var(--rule-dk);background:var(--panel);margin-top:10px">
     <div style="display:flex;align-items:baseline;gap:10px;padding:10px 14px;border-bottom:1px solid var(--rule)">
-      <span style="font-family:var(--sans);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--blue-dk)">Research Picture · full-sweep synthesis</span>
+      <span style="font-family:var(--sans);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--blue-dk)">Research Picture · evidence and research</span>
       <span class="spacer" style="flex:1"></span>
       <button class="btn sm ghost">Full picture</button>
     </div>
     <div style="padding:12px 14px">
-      <div style="font-family:var(--serif);font-size:16px;line-height:1.45;color:var(--ink)">${esc(pic.headline)}</div>
+      <div style="font-family:var(--serif);font-size:16px;line-height:1.45;color:var(--ink)">${safeMarkdownHtml(pic.headline)}</div>
       ${pic.next_action ? `<div style="margin-top:8px;font-family:var(--sans);font-size:12px">
-        <span style="font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:10px;color:var(--muted)">Next action&nbsp;·&nbsp;</span>${esc(pic.next_action)}</div>` : ''}
+        <span style="font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:10px;color:var(--muted)">Next action&nbsp;·&nbsp;</span>${safeMarkdownHtml(pic.next_action)}</div>` : ''}
     </div>
     <div class="picfull" style="display:none;padding:0 14px 14px"></div>
   </div>`);
   const btn = wrap.querySelector('button');
   const box = wrap.querySelector('.picfull');
-  const li = xs => xs.map(x => `<li style="margin:3px 0">${esc(x)}</li>`).join('');
+  const li = xs => xs.map(x => `<li style="margin:3px 0">${safeMarkdownHtml(x)}</li>`).join('');
   const sec = (label, inner) => inner ? `
     <div style="margin-top:12px">
       <div style="font-family:var(--sans);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule);padding-bottom:4px;margin-bottom:6px">${label}</div>
@@ -4725,15 +4725,32 @@ function buildPicture(pic, card) {
   let built = false;
   btn.onclick = () => {
     if (!built) {
-      const tops = (pic.top || []).map((t, i) =>
-        `<li style="margin:5px 0"><b>${esc(t.title || t.id)}</b>${t.deadline ? ` <span style="color:var(--muted)">· due ${esc(String(t.deadline).slice(0,10))}</span>` : ''}
-         <div style="color:var(--muted);font-size:12px">${esc(t.why_now || '')}</div></li>`).join('');
+      const groups = [
+        ['confirmed_opportunity', 'Documented current notices; qualification required'],
+        ['research_signal', 'Research signals; verification required'],
+        ['historical_market_evidence', 'Historical market evidence'],
+        ['channel_fact', 'Channel facts; opportunity access unverified'],
+      ];
+      const cards = [...(pic.top || []), ...(pic.research_cards || [])];
+      const groupsHtml = groups.map(([kind, label]) => {
+        const rows = cards.filter(t => t.classification === kind).map(t => {
+          let href = '';
+          try { const u = new URL(t.source_url); if (['https:', 'http:'].includes(u.protocol)) href = u.href; } catch {}
+          const title = esc(t.title || t.id);
+          const linked = href ? `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer">${title}</a>` : title;
+          return `<li style="margin:5px 0"><b>${linked}</b>
+            <span style="color:var(--muted)">${t.deadline ? ` · recorded deadline ${esc(t.deadline)}` : ' · deadline unknown'}</span>
+            <div style="color:var(--muted);font-size:12px">${safeMarkdownHtml(t.why_now || '')}</div></li>`;
+        }).join('');
+        return sec(label, rows ? `<ol style="margin:0;padding-left:18px">${rows}</ol>` : '');
+      }).join('');
       box.innerHTML =
-        sec('Top opportunities', tops ? `<ol style="margin:0;padding-left:18px">${tops}</ol>` : '') +
+        (pic.evidence_as_of ? `<p>Evidence checked at ${esc(pic.evidence_as_of)}; existing qualification still applies.</p>` : '') +
+        groupsHtml +
         sec('Demand signals', pic.signals && pic.signals.length ? `<ul style="margin:0;padding-left:18px">${li(pic.signals)}</ul>` : '') +
-        sec('Market structure', pic.market ? esc(pic.market) : '') +
+        sec('Market structure', pic.market ? safeMarkdownHtml(pic.market) : '') +
         sec('Watchlist', pic.watchlist && pic.watchlist.length ? `<ul style="margin:0;padding-left:18px">${li(pic.watchlist)}</ul>` : '') +
-        sec('Gaps — what this sweep could not answer', pic.gaps && pic.gaps.length ? `<ul style="margin:0;padding-left:18px">${li(pic.gaps)}</ul>` : '');
+        sec('Gaps; what this sweep could not answer', pic.gaps && pic.gaps.length ? `<ul style="margin:0;padding-left:18px">${li(pic.gaps)}</ul>` : '');
       built = true;
     }
     const open = box.style.display !== 'none';
