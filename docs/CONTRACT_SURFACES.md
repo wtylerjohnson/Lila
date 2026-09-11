@@ -136,6 +136,14 @@ line-clamped: the complete capture directive remains visible. Machine
 the structured evidence and section framing carry those distinctions without
 weakening the client-facing action.
 
+Step2 amendment (2026-09-11): a canonical CORE term may bind an explicitly
+evidenced buyer-language alias in the current taxonomy version. Alias support
+must reproduce from the retained quote and current stored source, including its
+bounded context guard. Alias quotes use the matcher's separate guard context;
+unchanged canonical matches and shared-core routes retain their original quote
+format. Unmapped phrases and stale taxonomy versions cannot use this path.
+The closed basis schema, strict Assess and release gates are unchanged.
+
 ### Federal Opportunity Pre-Assessment source-coverage projection
 
 Every Signal Board press projects a public **Research source coverage** band

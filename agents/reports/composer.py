@@ -2846,8 +2846,20 @@ def _validate_client_relevance_basis(basis: dict) -> None:
                 "client relevance matched text is absent from its quote")
         if _client_relevance_tokens(term) != \
                 _client_relevance_tokens(matched):
-            raise ValueError(
-                "client relevance term does not match its bound evidence")
+            # Step2 contract extension: only a current, evidenced taxonomy
+            # alias may differ from the canonical CORE spelling. The stored
+            # source rebind below still reproduces its full context guard.
+            from tools.relevance.taxonomy import load_taxonomy
+            taxonomy = (load_taxonomy(str(basis["profile_client"]))
+                        if surface == "capability_taxonomy.core" else None)
+            alias_supported = bool(
+                taxonomy is not None and taxonomy.version == version
+                and any(span.tier == "core" and span.term == term
+                        and span.matched_text == matched
+                        for span in score_text(quote, taxonomy, field=field_name)[0]))
+            if not alias_supported:
+                raise ValueError(
+                    "client relevance term does not match its bound evidence")
         roles.append(role)
     if kind == "shared-core-route" and set(roles) != {
             "selected-play", "subaward-route"}:
@@ -3007,7 +3019,7 @@ def _verdict_client_relevance_basis(
             "source_identity": source_identity,
             "field": span.field,
             "matched_text": span.matched_text,
-            "quote": span.context,
+            "quote": span.guard_context or span.context,
         }],
         "public_context": public_context,
     }
@@ -3188,22 +3200,22 @@ def _client_relevance_support_is_stored(
             if source_field != field:
                 continue
             if kind == "shared-core-route":
-                spans = [match.span() for match in term_regex(term).finditer(
-                    source_text)]
+                spans = [(match.start(), match.end(), source_text[
+                    max(0, match.start() - 60):min(len(source_text), match.end() + 60)])
+                    for match in term_regex(term).finditer(source_text)]
             else:
                 scored, _killed = score_text(
                     source_text, taxonomy, field=source_field)
                 spans = [
-                    (span.start, span.start + len(span.matched_text))
+                    (span.start, span.start + len(span.matched_text),
+                     span.guard_context or span.context)
                     for span in scored
                     if span.tier == "core"
                     and span.term.casefold() == term.casefold()
                 ]
-            for start, end in spans:
+            for start, end, expected_quote in spans:
                 if source_text[start:end] != matched:
                     continue
-                expected_quote = source_text[
-                    max(0, start - 60):min(len(source_text), end + 60)]
                 if expected_quote == quote:
                     row_matches = True
                     break
