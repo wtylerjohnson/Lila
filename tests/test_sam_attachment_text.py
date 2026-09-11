@@ -218,6 +218,7 @@ def test_irrelevant_attachment_near_match_does_not_change_sam_census(
             return [candidate]
 
     monkeypatch.setattr(detail, "fetch_notice_resources", lambda notice_id, **kwargs: {
+        "resources_checked": True,
         "attachments": [{"name": "SOW.txt", "resource_id": "b" * 32}],
         "attachment_inventory_hash": "hash",
     })
@@ -295,6 +296,7 @@ def test_triage_fingerprint_binds_exact_extracted_evidence(monkeypatch):
 
     monkeypatch.setattr(detail, "fetch_notice_resources", lambda *args, **kwargs: {
         "stale_cache": False,
+        "resources_checked": True,
         "attachments": [{"name": "SOW.txt", "resource_id": "7" * 32}],
         "attachment_inventory_hash": "same-inventory",
     })

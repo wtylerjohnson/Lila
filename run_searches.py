@@ -182,7 +182,10 @@ def _enrich_sam_public_attachments(sam: list[dict], source, query,
     supported = {".pdf", ".docx", ".txt", ".csv", ".md"}
     enriched = relevant = added = 0
     errors: list[str] = []
+    record_receipts = {str(c.source_id): {"status": "NOT_ATTEMPTED", "errors": []}
+                       for c in candidates}
     for candidate in candidates:
+        record_receipt = record_receipts[str(candidate.source_id)]
         spent = sam_quota.calls_today() - calls_at_start
         if spent >= call_cap:
             errors.append(
@@ -201,21 +204,26 @@ def _enrich_sam_public_attachments(sam: list[dict], source, query,
             # Preserve the adapter's receipt before either early return so
             # the saved sweep explains why file requirements were not inspected.
             resource_errors = resources.get("errors") or []
+            record_receipt["errors"] = [str(e)[:240] for e in resource_errors[:10]]
             errors.extend(
                 f"{candidate.source_id}: {str(error)[:240]}"
                 for error in resource_errors[:10])
             if resources.get("stale_cache") is True:
+                record_receipt["status"] = "STALE_INVENTORY"
                 errors.append(
                     f"{candidate.source_id}: stale attachment inventory "
                     "was not used for relevance")
                 continue
-            if (resources.get("resources_checked") is False
+            if (resources.get("resources_checked") is not True
                     or resources.get("attachments") is None):
+                record_receipt["status"] = "INVENTORY_UNAVAILABLE"
                 if not resource_errors:
                     errors.append(
                         f"{candidate.source_id}: attachment inventory was not "
                         "verified; no attachment search performed")
                 continue
+            record_receipt.update(
+                status="INVENTORY_CHECKED", inventory_count=len(resources.get("attachments") or []))
             attachments = sorted(
                 resources.get("attachments") or [], key=attachment_priority)
             attachments = [
@@ -240,11 +248,16 @@ def _enrich_sam_public_attachments(sam: list[dict], source, query,
                                     "retrieved_at", "source_url")
                     })
                 elif extracted.get("error"):
+                    record_receipt["errors"].append(str(extracted["error"])[:240])
                     errors.append(
                         f"{candidate.source_id}/{attachment.get('name')}: "
                         f"{extracted['error']}")
             if not texts:
+                record_receipt["status"] = (
+                    "VERIFIED_EMPTY_INVENTORY" if record_receipt["inventory_count"] == 0
+                    else "TEXT_UNAVAILABLE")
                 continue
+            record_receipt["status"] = "DISCOVERY_TEXT_CAPTURED"
             row = json.loads(candidate.model_dump_json())
             raw = row.setdefault("raw_payload", {})
             combined_text = "\n\n".join(texts)[:150000]
@@ -268,6 +281,22 @@ def _enrich_sam_public_attachments(sam: list[dict], source, query,
             ).hexdigest()
             verdict = score_record(
                 row, taxonomy, engagement_scope=engagement_scope)
+            # Keep a bounded audit trail even when this file supplies no match
+            # and the original census row is intentionally left unchanged.
+            record_receipt["discovery_evidence"] = {
+                "files": evidence,
+                "evidence_sha256": raw["attachment_evidence_sha256"],
+                "inventory_hash": raw["attachment_inventory_hash"],
+                "text_sha256": fingerprint_basis["text_sha256"],
+                "text_excerpt": combined_text[:2000],
+                "captured_characters": len(combined_text),
+                "excerpt_truncated": len(combined_text) > 2000,
+                "retained_in_candidate": verdict.relevant,
+                "screen_score": verdict.score,
+                "core_terms": verdict.core_terms,
+                "adjacent_terms": verdict.adjacent_terms,
+                "disposition": "DISCOVERY_ONLY_NOT_REQUIREMENT_APPROVAL",
+            }
             raw["attachment_relevance_excerpt"] = "\n…\n".join(dict.fromkeys(
                 span.context.strip()
                 for span in verdict.spans
@@ -290,6 +319,7 @@ def _enrich_sam_public_attachments(sam: list[dict], source, query,
                 if relevant >= 3:
                     break
         except Exception as exc:  # noqa: BLE001 - one file never sinks breadth
+            record_receipt.update(status="FAILED", errors=[str(exc)[:240]])
             errors.append(f"{candidate.source_id}: {str(exc)[:240]}")
     rows = sorted(by_id.values(), key=lambda row: (
         str(row.get("source_id") or "")))
@@ -303,6 +333,7 @@ def _enrich_sam_public_attachments(sam: list[dict], source, query,
         "attachment_sam_calls": sam_quota.calls_today() - calls_at_start,
         "attachment_call_cap": call_cap,
         "attachment_errors": errors[:10],
+        "attachment_record_receipts": record_receipts,
     }
 
 
@@ -1160,7 +1191,8 @@ def main() -> int:
         file=sys.stderr,
     )
     from tools.relevance.scope import load_engagement_scope
-    from tools.relevance.taxonomy import derived_taxonomy, load_taxonomy
+    from tools.relevance.taxonomy import (
+        derived_taxonomy, load_taxonomy, retrieval_vocabulary, vocabulary_receipt)
     curated_taxonomy = load_taxonomy(args.client)
     sam_taxonomy = curated_taxonomy or derived_taxonomy(args.client)
     # A curated taxonomy carries explicit evidence and false-positive rules,
@@ -1198,6 +1230,7 @@ def main() -> int:
         [term.term for term in [*sam_taxonomy.core, *sam_taxonomy.adjacent]]
         if sam_taxonomy is not None else []
     )
+    sam_retrieval_terms = retrieval_vocabulary(sam_taxonomy) if sam_taxonomy is not None else []
 
     def _dedupe_terms(values):
         seen = set()
@@ -1249,7 +1282,7 @@ def main() -> int:
             # agency, set-aside, or NAICS phrases into the text screen.
             keywords=_dedupe_terms([
                 *effective_query_terms(strategy, spec, source="sam.gov"),
-                *taxonomy_terms,
+                *sam_retrieval_terms,
             ]),
             set_asides=spec.set_asides if spec else strategy.set_aside_angles,
             agencies=[a["name"] for a in scope_agencies],
@@ -1257,6 +1290,9 @@ def main() -> int:
             deadline_from=today, deadline_to=today + timedelta(days=364),
             limit=1000,
         )
+        if sam_taxonomy is not None:
+            out["results"]["capability_vocabulary"] = vocabulary_receipt(
+                sam_taxonomy, list(q.keywords or []))
         # THE VOCABULARY RECEIPT (2026-07-31): what each wire term actually
         # finds in the durable store, titles included, computed before the
         # extract path so the receipt exists even on a broken-upstream
@@ -2183,6 +2219,13 @@ def main() -> int:
         out["results"]["sam_census"] = dict(sam_census_box)
     if term_yield_box:
         out["results"]["term_yield"] = list(term_yield_box)
+        out["results"]["term_yield_population"] = {
+            "source": "accumulated_notice_store",
+            "fields": ["title", "description_prefix"],
+            "filters": "none",
+            "stage": "before_daily_extract",
+            "comparable_to_final_sam_count": False,
+        }
         try:
             from tools.query_terms import append_term_yield_log
             append_term_yield_log({
@@ -2301,6 +2344,7 @@ def main() -> int:
                     sam_res,
                     sam_taxonomy,
                     engagement_scope=sam_engagement_scope,
+                    attachment_receipts=sam_census_box.get("attachment_record_receipts"),
                 )
             )
             out["results"]["triage_prefilter"] = prefilter_receipt

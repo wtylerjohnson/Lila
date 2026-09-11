@@ -474,6 +474,7 @@ def deterministic_prefilter(
     taxonomy: Any,
     *,
     engagement_scope: Any = None,
+    attachment_receipts: dict | None = None,
 ) -> tuple[list[dict], dict[str, dict], dict[str, Any]]:
     """Separate evidence-bearing notices from NAICS-only inventory.
 
@@ -486,18 +487,21 @@ def deterministic_prefilter(
     full-description match contexts and public attachment text).  Evidence-
     bearing records reach model judgment even when the code boundary alone
     would keep them out of a client-facing opportunity board.  Everything
-    with no capability evidence receives an explicit discard verdict and
-    remains reconciled in the triage map.
+    with no capability evidence stays reconciled in the triage map. Missing
+    requirement text or failed attachments remain unscreened research gaps,
+    without sending every incomplete record to a model.
 
     This does not narrow source coverage.  It records how the complete
     candidate census was reduced before LLM judgment.
     """
     from tools.relevance.engine import score_record
+    from tools.relevance.screening import no_match_state, screening_evidence
 
     candidates: list[dict] = []
     ruled: dict[str, dict] = {}
     reasons: dict[str, int] = {}
     candidate_reasons: dict[str, int] = {}
+    screening_records: dict[str, dict] = {}
     for index, notice in enumerate(notices):
         source_id = str(
             notice.get("source_id") or notice.get("id") or f"idx-{index}"
@@ -507,7 +511,12 @@ def deterministic_prefilter(
             taxonomy,
             engagement_scope=engagement_scope,
         )
-        if not verdict.off_scope and (
+        evidence = screening_evidence(
+            notice, verdict, (attachment_receipts or {}).get(source_id))
+        evidence["source_id"] = source_id
+        screening_records[source_id] = evidence
+        historical = evidence["notice_type"].casefold() in {"award notice", "award", "a"}
+        if not historical and not verdict.off_scope and (
                 verdict.core_terms or verdict.adjacent_terms):
             candidates.append(notice)
             reason_key = (
@@ -516,30 +525,48 @@ def deterministic_prefilter(
             candidate_reasons[reason_key] = (
                 candidate_reasons.get(reason_key, 0) + 1
             )
+            evidence.update(screen_state="SUPPORTED_CAPABILITY_AWAITING_JUDGMENT", stage="model_review")
             continue
 
-        if verdict.killed:
+        if historical:
+            reason = "award notice retained as historical market evidence; no current buying action established"
+            reason_key = "historical-award"
+            evidence.update(screen_state="HISTORICAL_MARKET_EVIDENCE", stage="historical_research")
+        elif verdict.killed:
             reason = "excluded by a client-specific false-positive rule"
             reason_key = "false-positive-rule"
+            functional = any(
+                rule.category == "functional" and any(
+                    (rule.reason or rule.term) in message for message in verdict.killed)
+                for rule in taxonomy.exclude)
+            evidence["screen_state"] = (
+                "EXPLICIT_FUNCTIONAL_MISMATCH" if functional else "VERIFIED_EXCLUSION")
         elif verdict.off_scope:
             reason = "outside the approved engagement scope"
             reason_key = "outside-scope"
+            evidence["screen_state"] = "VERIFIED_SCOPE_EXCLUSION"
         elif verdict.excluded_by_code:
             reason = "outside the approved code boundary without strong capability evidence"
             reason_key = "outside-code"
+            evidence["screen_state"] = "CODE_BOUNDARY_EXCLUSION"
         elif verdict.adjacent_terms:
-            reason = "adjacent signal without core Arista capability evidence"
+            reason = "adjacent signal without core client capability evidence"
             reason_key = "adjacent-only"
+            evidence["screen_state"] = "ADJACENT_ONLY"
         else:
-            reason = "NAICS or retrieval-term match without core capability evidence"
+            evidence["screen_state"], reason = no_match_state(evidence)
             reason_key = "no-core-evidence"
         ruled[source_id] = {
-            "verdict": "discard",
+            "verdict": "unscreened" if evidence["screen_state"] in {
+                "TEXT_INCOMPLETE", "ATTACHMENT_UNAVAILABLE"} else "discard",
             "reason": reason,
-            "screen": "deterministic-capability-v2",
+            "screen": "deterministic-capability-v3",
             "relevance_score": verdict.score,
+            "screen_state": evidence["screen_state"],
+            "evidence_ref": source_id,
         }
-        reasons[reason_key] = reasons.get(reason_key, 0) + 1
+        if ruled[source_id]["verdict"] == "discard":
+            reasons[reason_key] = reasons.get(reason_key, 0) + 1
 
     pre_thread_candidates = len(candidates)
     candidates, superseded, superseded_count = _latest_notice_threads(
@@ -549,8 +576,12 @@ def deterministic_prefilter(
     candidates, cross_posts, cross_post_count = _canonical_cross_posts(
         candidates)
     ruled.update(cross_posts)
+    for source_id, disposition in {**superseded, **cross_posts}.items():
+        screening_records[source_id].update(
+            screen_state="CONSOLIDATED_POSTING", stage="thread_consolidation",
+            consolidation=disposition)
     receipt = {
-        "mode": "deterministic-capability-v2",
+        "mode": "deterministic-capability-v3",
         "taxonomy_client": taxonomy.client_name,
         "taxonomy_version": taxonomy.version,
         "candidate_census": len(notices),
@@ -562,9 +593,12 @@ def deterministic_prefilter(
         "superseded_revisions": superseded_count,
         "cross_post_duplicates": cross_post_count,
         "model_candidate_reasons": dict(sorted(candidate_reasons.items())),
-        "deterministic_discards": len(ruled),
+        "deterministic_discards": sum(v["verdict"] == "discard" for v in ruled.values()),
+        "research_gaps": sum(v["verdict"] == "unscreened" for v in ruled.values()),
+        "deterministic_dispositions": len(ruled),
         "discard_reasons": dict(sorted(reasons.items())),
         "complete": len(candidates) + len(ruled) == len(notices),
+        "screening_records": screening_records,
     }
     return candidates, ruled, receipt
 

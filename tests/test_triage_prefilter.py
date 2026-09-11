@@ -48,7 +48,9 @@ def test_capability_evidence_reaches_model_and_every_row_reconciles():
         "adjacent-evidence": 1,
         "core-evidence": 2,
     }
-    assert receipt["deterministic_discards"] == 2
+    assert receipt["deterministic_discards"] == 1
+    assert receipt["research_gaps"] == 1
+    assert ruled["naics"]["verdict"] == "unscreened"
     assert receipt["complete"] is True
 
 

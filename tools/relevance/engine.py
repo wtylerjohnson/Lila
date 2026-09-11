@@ -63,6 +63,9 @@ class MatchedSpan(BaseModel):
     matched_text: str = Field(description="the exact matched record text")
     context: str = Field(description="verbatim record text around the match")
     start: int
+    matched_phrase: str = ""
+    evidence_ids: list[str] = Field(default_factory=list)
+    guard_context: str = ""
 
 
 class RelevanceVerdict(BaseModel):
@@ -145,13 +148,41 @@ def _spans_for(text: str, term: TaxonomyTerm) -> list[tuple[int, int]]:
     return _stemmed_spans(text, term.term)
 
 
+def _concept_spans(text: str, term: TaxonomyTerm):
+    """Explicit aliases share canonical identity; context cannot cross sentences."""
+    seen = set()
+    for start, end in _spans_for(text, term):
+        seen.add((start, end))
+        yield start, end, term.term
+    for alias in term.aliases:
+        for start, end in _stemmed_spans(text, alias.phrase):
+            if (start, end) in seen:
+                continue
+            if re.search(r"[.!?;\n]", text[start:end]):
+                continue
+            # Keep the subject anchor within 160 characters in the same sentence.
+            lo = max(text.rfind(c, 0, start) for c in ".!?;\n") + 1
+            ends = [text.find(c, end) for c in ".!?;\n"]
+            hi = min([n for n in ends if n >= 0] or [len(text)])
+            context = text[max(lo, start - 160):min(hi, end + 160)]
+            if alias.context_any and not any(
+                    _phrase_spans(context, anchor) for anchor in alias.context_any):
+                continue
+            seen.add((start, end))
+            yield start, end, alias.phrase
+
+
 def _mk_span(text: str, field: str, term: TaxonomyTerm, tier: str,
-             start: int, end: int) -> MatchedSpan:
+             start: int, end: int, phrase: str = "") -> MatchedSpan:
+    # The report press contracts on this 60-character quote. Keep the alias
+    # guard's wider source context separately instead of changing that contract.
     lo = max(0, start - SPAN_CONTEXT)
     hi = min(len(text), end + SPAN_CONTEXT)
+    guard = text[max(0, start - 160):min(len(text), end + 160)] if phrase and phrase != term.term else ""
     return MatchedSpan(term=term.term, tier=tier, mode=term.mode, field=field,
                        matched_text=text[start:end], context=text[lo:hi],
-                       start=start)
+                       start=start, matched_phrase=phrase or term.term,
+                       evidence_ids=list(term.evidence_ids), guard_context=guard)
 
 
 def score_text(text: str, taxonomy: CapabilityTaxonomy,
@@ -176,7 +207,7 @@ def score_text(text: str, taxonomy: CapabilityTaxonomy,
     for tier, terms in (("core", taxonomy.core),
                         ("adjacent", taxonomy.adjacent)):
         for term in terms:
-            for start, end in _spans_for(text, term):
+            for start, end, phrase in _concept_spans(text, term):
                 near = next(
                     (r for ks, ke, scope, r in kills
                      if scope == "span"
@@ -187,7 +218,7 @@ def score_text(text: str, taxonomy: CapabilityTaxonomy,
                     continue
                 # a kill-rule phrase that CONTAINS the match is the same
                 # false-positive shape even without window overlap
-                spans.append(_mk_span(text, field, term, tier, start, end))
+                spans.append(_mk_span(text, field, term, tier, start, end, phrase))
     return spans, killed
 
 

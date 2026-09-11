@@ -1,48 +1,149 @@
 {
   "client_name": "apexanalytix",
-  "version": "1",
-  "updated": "2026-07-28",
-  "generated_from": "approved review packet",
+  "version": 2,
+  "updated": "2026-09-11",
+  "generated_from": "Existing reviewed vocabulary plus source-backed Step2 capability mapping, pending Fable acceptance before integration",
   "core": [
     {
       "term": "supplier onboarding",
       "mode": "stemmed",
-      "note": "multi-word procurement phrase; stemmed so plural and participle forms match"
+      "note": "multi-word procurement phrase; stemmed so plural and participle forms match",
+      "evidence_ids": [
+        "APEX-SERVICES-2024",
+        "APEX-GOVERNMENT-2026"
+      ],
+      "aliases": [
+        {
+          "phrase": "vendor onboarding"
+        },
+        {
+          "phrase": "supplier enrollment"
+        }
+      ]
     },
     {
       "term": "supplier risk management",
       "mode": "stemmed",
-      "note": "multi-word procurement phrase; stemmed so plural and participle forms match"
+      "note": "multi-word procurement phrase; stemmed so plural and participle forms match",
+      "evidence_ids": [
+        "APEX-SERVICES-2024",
+        "APEX-GOVERNMENT-2026"
+      ],
+      "aliases": [
+        {
+          "phrase": "vendor risk management"
+        }
+      ]
     },
     {
       "term": "bank account validation",
       "mode": "stemmed",
-      "note": "multi-word procurement phrase; stemmed so plural and participle forms match"
+      "note": "multi-word procurement phrase; stemmed so plural and participle forms match",
+      "evidence_ids": [
+        "APEX-SERVICES-2024",
+        "APEX-GOVERNMENT-2026"
+      ],
+      "aliases": [
+        {
+          "phrase": "bank account ownership validation"
+        },
+        {
+          "phrase": "bank account verification"
+        }
+      ]
     },
     {
       "term": "improper payment prevention",
       "mode": "stemmed",
-      "note": "multi-word procurement phrase; stemmed so plural and participle forms match"
+      "note": "multi-word procurement phrase; stemmed so plural and participle forms match",
+      "evidence_ids": [
+        "APEX-SERVICES-2024",
+        "APEX-GOVERNMENT-2026"
+      ],
+      "aliases": []
     },
     {
       "term": "AP recovery audit",
       "mode": "stemmed",
-      "note": "multi-word procurement phrase; stemmed so plural and participle forms match"
+      "note": "multi-word procurement phrase; stemmed so plural and participle forms match",
+      "evidence_ids": [
+        "APEX-AP-AUDIT-2020",
+        "APEX-GOVERNMENT-2026"
+      ],
+      "aliases": [
+        {
+          "phrase": "accounts payable recovery audit"
+        },
+        {
+          "phrase": "recovery audit services",
+          "context_any": [
+            "accounts payable",
+            "supplier payments",
+            "vendor payments",
+            "supplier invoices",
+            "vendor invoices"
+          ],
+          "note": "Requires explicit supplier/AP subject in the same bounded sentence. Generic recovery or patient claims does not establish fit."
+        }
+      ]
     },
     {
       "term": "payment fraud prevention",
       "mode": "stemmed",
-      "note": "multi-word procurement phrase; stemmed so plural and participle forms match"
+      "note": "multi-word procurement phrase; stemmed so plural and participle forms match",
+      "evidence_ids": [
+        "APEX-SERVICES-2024",
+        "APEX-GOVERNMENT-2026"
+      ],
+      "aliases": []
     },
     {
       "term": "third-party risk management",
       "mode": "stemmed",
-      "note": "multi-word procurement phrase; stemmed so plural and participle forms match"
+      "note": "multi-word procurement phrase; stemmed so plural and participle forms match",
+      "evidence_ids": [
+        "APEX-SERVICES-2024",
+        "APEX-GOVERNMENT-2026"
+      ],
+      "aliases": [
+        {
+          "phrase": "third party risk management"
+        }
+      ]
     },
     {
       "term": "ERP procure-to-pay integration",
       "mode": "stemmed",
-      "note": "multi-word procurement phrase; stemmed so plural and participle forms match"
+      "note": "multi-word procurement phrase; stemmed so plural and participle forms match",
+      "evidence_ids": [
+        "APEX-SERVICES-2024",
+        "APEX-GOVERNMENT-2026"
+      ],
+      "aliases": [
+        {
+          "phrase": "enterprise resource planning procure to pay integration"
+        }
+      ]
+    },
+    {
+      "term": "vendor master data validation",
+      "mode": "stemmed",
+      "note": "Supplier identity/master controls only; no inferred patient or insurance eligibility offering.",
+      "evidence_ids": [
+        "APEX-SERVICES-2024",
+        "APEX-GOVERNMENT-2026"
+      ],
+      "aliases": [
+        {
+          "phrase": "supplier master data validation"
+        },
+        {
+          "phrase": "vendor master validation"
+        },
+        {
+          "phrase": "supplier master validation"
+        }
+      ]
     }
   ],
   "adjacent": [],
@@ -74,5 +175,112 @@
     ],
     "psc": []
   },
-  "_mode_basis": "All eight core terms are multi-word procurement phrases, so all are stemmed. exact_phrase is for brand tokens that must not match loosely; none of these are brands (brands routed to entity)."
+  "_mode_basis": "Canonical multi-word capabilities retain stemmed matching. Explicit buyer aliases share their canonical score and any alias context guard; broad exploratory phrases are retrieval-only.",
+  "evidence": [
+    {
+      "evidence_id": "APEX-SERVICES-2024",
+      "url": "https://apexanalytix.pactsafe.io/versions/66cdd3086afa84de842489e4.pdf",
+      "reviewed_at": "2026-09-11",
+      "basis": "Published company service description, pages 1-3: supplier registration and validation, bank ownership, invoice overpayment and fraud controls, business partner risk, ERP interfaces. Company asserted; no requirement-specific certification."
+    },
+    {
+      "evidence_id": "APEX-AP-AUDIT-2020",
+      "url": "https://go.apexanalytix.com/hubfs/apex%20Legacy%20Website%20Files/APEX_Brochure_AR_AP_Audit_2020.pdf",
+      "reviewed_at": "2026-09-11",
+      "basis": "Company AP recovery audit brochure, pages 1-3: supplier invoices, payables errors and duplicate payments. Historical service description; current availability and buyer-specific functionality require judgment."
+    },
+    {
+      "evidence_id": "APEX-GOVERNMENT-2026",
+      "url": "https://www.carahsoft.com/apexanalytix",
+      "reviewed_at": "2026-09-11",
+      "basis": "Published channel offering, supplier portal and recovery paragraphs: supplier data validation, prohibited-party checks, ongoing vendor monitoring, ERP integration and AP recovery audit. Does not prove any opportunity-specific access or implementation fit."
+    }
+  ],
+  "retrieval_mappings": [
+    {
+      "term": "supplier onboarding",
+      "disposition": "supported",
+      "capability": "supplier onboarding",
+      "reason": "Retrieval coverage for evidenced capability; only explicit canonical/alias text and its context can supply screening evidence."
+    },
+    {
+      "term": "supplier risk management",
+      "disposition": "supported",
+      "capability": "supplier risk management",
+      "reason": "Retrieval coverage for evidenced capability; only explicit canonical/alias text and its context can supply screening evidence."
+    },
+    {
+      "term": "bank account validation",
+      "disposition": "supported",
+      "capability": "bank account validation",
+      "reason": "Retrieval coverage for evidenced capability; only explicit canonical/alias text and its context can supply screening evidence."
+    },
+    {
+      "term": "improper payment prevention",
+      "disposition": "supported",
+      "capability": "improper payment prevention",
+      "reason": "Retrieval coverage for evidenced capability; only explicit canonical/alias text and its context can supply screening evidence."
+    },
+    {
+      "term": "AP recovery audit",
+      "disposition": "supported",
+      "capability": "AP recovery audit",
+      "reason": "Retrieval coverage for evidenced capability; only explicit canonical/alias text and its context can supply screening evidence."
+    },
+    {
+      "term": "vendor master data validation",
+      "disposition": "supported",
+      "capability": "vendor master data validation",
+      "reason": "Retrieval coverage for evidenced capability; only explicit canonical/alias text and its context can supply screening evidence."
+    },
+    {
+      "term": "payment fraud prevention",
+      "disposition": "supported",
+      "capability": "payment fraud prevention",
+      "reason": "Retrieval coverage for evidenced capability; only explicit canonical/alias text and its context can supply screening evidence."
+    },
+    {
+      "term": "third-party risk management",
+      "disposition": "supported",
+      "capability": "third-party risk management",
+      "reason": "Retrieval coverage for evidenced capability; only explicit canonical/alias text and its context can supply screening evidence."
+    },
+    {
+      "term": "sanctions and PEP screening",
+      "disposition": "exploratory",
+      "capability": null,
+      "reason": "Prohibited-party controls are evidenced, but this broad phrase does not establish supplier context or complete PEP functionality."
+    },
+    {
+      "term": "supplier management SaaS platform",
+      "disposition": "exploratory",
+      "capability": null,
+      "reason": "Broad platform phrase; require explicit supported supplier function."
+    },
+    {
+      "term": "data validation and enrichment API",
+      "disposition": "exploratory",
+      "capability": null,
+      "reason": "API validation applies to supplier records; generic APIs and patient validation are not evidence of this offering."
+    },
+    {
+      "term": "ERP procure-to-pay integration",
+      "disposition": "supported",
+      "capability": "ERP procure-to-pay integration",
+      "reason": "Retrieval coverage for evidenced capability; only explicit canonical/alias text and its context can supply screening evidence."
+    },
+    {
+      "term": "supplier data cleansing government",
+      "disposition": "exploratory",
+      "capability": "vendor master data validation",
+      "reason": "Supplier validation is evidenced; cleansing can require correction and remediation not established by validation alone. Retrieve for review without adding a strict match."
+    },
+    {
+      "term": "recovery audit services",
+      "disposition": "supported",
+      "capability": "AP recovery audit",
+      "reason": "Retrieval coverage for evidenced capability; only explicit canonical/alias text and its context can supply screening evidence."
+    }
+  ],
+  "_change_authority": "LILA-WEEKEND-2026-09-11-v1 / REPAIR-STEP2-IMPLEMENT-045; isolated repair, no production gate change."
 }

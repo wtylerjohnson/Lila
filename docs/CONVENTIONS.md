@@ -1845,3 +1845,53 @@ tests/test_research_picture_evidence.py tests/test_research_picture_hardening.py
 tests/test_truth_purges.py -q`. Full regression uses the existing offline strict
 suite command. Use the configured project runtime; browser checks use temporary
 profiles. The synthetic probes are source-binding tests, not qualified-lead proof.
+
+## Capability vocabulary and screening evidence (Step2, 2026-09-11)
+
+`tools/relevance/taxonomy.py` owns optional, versioned capability evidence,
+explicit buyer-language aliases and retrieval mappings. An alias scores its
+canonical CORE concept once, even when several equivalent phrases occur.
+Aliases require a referenced company evidence record. Conditional aliases
+require a bounded same-sentence subject; the separate `guard_context` receipt includes
+that context. Canonical report quotes retain their existing 60-character format;
+reviewed alias supports carry the wider guard context under the separately
+documented C1 contract extension. No global synonym expansion or threshold reduction is applied.
+
+`retrieval_vocabulary()` derives SAM additions from the same definition. Existing
+operator query terms remain unchanged and are receipted even when unmapped.
+Exploratory retrieval entries do not themselves add screening evidence. Non-SAM
+lanes retain the existing canonical capability vocabulary. The sweep's
+`capability_vocabulary` records actual wire terms and the normalized definition
+hash. `term_yield` retains its count/title-only shape; separate
+`term_yield_population` identifies the accumulated, unfiltered notice store,
+which is not the filtered daily-extract population.
+
+`deterministic_prefilter()` keeps its three-part return interface and adds
+`screening_records`, keyed by source identity, with record hash, field spans,
+canonical score, source coverage, and stage/reason. Declared awards are historical
+research regardless of a future deadline or capability text. They do not enter
+open-opportunity model triage. Missing text and failed attachment lookups yield
+`unscreened` without a model call; existing decision coverage therefore remains
+incomplete. A decisive existing scope/code/false-positive exclusion may still
+reject a row with a nonessential source gap. Functional kill-rules can label an
+explicit functional mismatch; weak supplied-text matches are not such proof.
+No new Apex functional kill-rule is inferred from a generic healthcare word.
+
+The attachment producer records per-notice lookup results under
+`attachment_record_receipts`: unattempted, failed/stale inventory, checked empty,
+text unavailable, or unreviewed captured text. Absent receipt is unknown. This is
+an internal discovery receipt; strict Assess evidence, attachment inventory
+approval, source depth and lead qualification are unchanged. A supported alias
+reaches review, not automatic qualification. Full requirement-versus-boilerplate
+adjudication remains the subsequent repair step.
+
+Verify offline with `LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 python -m pytest
+tests/test_capability_alignment.py tests/test_relevance_engine.py
+tests/test_relevance_taxonomy.py tests/test_triage_prefilter.py
+tests/test_sam_attachment_text.py tests/test_term_yield.py
+tests/test_sam_extract_source_receipt.py tests/test_client_relevance_alias_contract.py -q`, using the configured runtime.
+The strict full suite is `LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 python -m pytest
+tests/ -q -rs`. `python -m tools.relevance.audit_saved_screen --help` documents
+an offline, hash-bound replay against a declared baseline, writing only an
+explicit output directory. Frozen captures are read-only development inputs;
+replay and synthetic tests make no independent holdout or recovered-lead claim.
