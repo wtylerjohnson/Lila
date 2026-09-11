@@ -1,0 +1,25 @@
+{
+  "retrieved_at_utc": "2026-09-11T19:17:07.499501+00:00",
+  "status": "PUBLIC_SOURCE_COPIES_FOR_OFFLINE_REVIEW",
+  "note": "Downloaded after pre-patch web review; file hashes identify these copies, not historical snapshots or requirement-specific certification.",
+  "sources": [
+    {
+      "path": "service-descriptions.pdf",
+      "url": "https://apexanalytix.pactsafe.io/versions/66cdd3086afa84de842489e4.pdf",
+      "sha256": "360fdcc441ec2c06b839d2201df8580f5a283af5c176ae445fd98630e3853aa5",
+      "bytes": 28575
+    },
+    {
+      "path": "ap-recovery-audit.pdf",
+      "url": "https://go.apexanalytix.com/hubfs/apex%20Legacy%20Website%20Files/APEX_Brochure_AR_AP_Audit_2020.pdf",
+      "sha256": "120ef296e8ef243d800c5fa847416bae680befa244e810f2c632ef3cd99a0fa7",
+      "bytes": 1603660
+    },
+    {
+      "path": "carahsoft-apex.html",
+      "url": "https://www.carahsoft.com/apexanalytix",
+      "sha256": "90cb62cd5c88ef417341184024523eafdb4223eb95c2a3e946419fee7d40004b",
+      "bytes": 715878
+    }
+  ]
+}
