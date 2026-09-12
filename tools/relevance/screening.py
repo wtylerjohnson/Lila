@@ -5,6 +5,7 @@ import hashlib
 import json
 
 from tools.relevance.engine import record_text_fields
+from tools.relevance.notice_type import notice_type_evidence
 
 
 def screening_evidence(notice: dict, verdict, attachment: dict | None = None) -> dict:
@@ -21,12 +22,13 @@ def screening_evidence(notice: dict, verdict, attachment: dict | None = None) ->
     text_coverage = "SUPPLIED_TEXT_COMPLETENESS_UNVERIFIED" if narrative else "TITLE_OR_LABEL_ONLY"
     if any(d.get("description_truncated") is True for d in (notice, raw)):
         text_coverage = "EXPLICITLY_TRUNCATED"
+    lifecycle = notice_type_evidence(notice)
     return {
         "source_id": str(notice.get("source_id") or notice.get("id") or ""),
         "record_sha256": hashlib.sha256(json.dumps(
             notice, sort_keys=True, separators=(",", ":"), default=str).encode()).hexdigest(),
-        "notice_type": str(notice.get("notice_type") or notice.get("type") or raw.get("type")
-                           or raw.get("base_type") or "").strip(),
+        "notice_type": str(lifecycle["selected_raw"] or "").strip(),
+        "notice_type_evidence": lifecycle,
         "text_coverage": text_coverage,
         "text_fields": [{"field": f, "characters": len(t)} for f, t in fields],
         "attachment_status": attachment_status,

@@ -515,8 +515,9 @@ def deterministic_prefilter(
             notice, verdict, (attachment_receipts or {}).get(source_id))
         evidence["source_id"] = source_id
         screening_records[source_id] = evidence
-        historical = evidence["notice_type"].casefold() in {"award notice", "award", "a"}
-        if not historical and not verdict.off_scope and (
+        historical = evidence["notice_type_evidence"]["historical"]
+        type_conflict = evidence["notice_type_evidence"]["conflict"]
+        if not historical and not type_conflict and not verdict.off_scope and (
                 verdict.core_terms or verdict.adjacent_terms):
             candidates.append(notice)
             reason_key = (
@@ -532,6 +533,10 @@ def deterministic_prefilter(
             reason = "award notice retained as historical market evidence; no current buying action established"
             reason_key = "historical-award"
             evidence.update(screen_state="HISTORICAL_MARKET_EVIDENCE", stage="historical_research")
+        elif type_conflict:
+            reason = "conflicting notice type projections; current buying state unresolved"
+            reason_key = "notice-type-conflict"
+            evidence.update(screen_state="NOTICE_TYPE_CONFLICT", stage="source_research")
         elif verdict.killed:
             reason = "excluded by a client-specific false-positive rule"
             reason_key = "false-positive-rule"
@@ -558,7 +563,7 @@ def deterministic_prefilter(
             reason_key = "no-core-evidence"
         ruled[source_id] = {
             "verdict": "unscreened" if evidence["screen_state"] in {
-                "TEXT_INCOMPLETE", "ATTACHMENT_UNAVAILABLE"} else "discard",
+                "TEXT_INCOMPLETE", "ATTACHMENT_UNAVAILABLE", "NOTICE_TYPE_CONFLICT"} else "discard",
             "reason": reason,
             "screen": "deterministic-capability-v3",
             "relevance_score": verdict.score,

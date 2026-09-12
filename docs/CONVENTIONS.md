@@ -1895,3 +1895,14 @@ tests/ -q -rs`. `python -m tools.relevance.audit_saved_screen --help` documents
 an offline, hash-bound replay against a declared baseline, writing only an
 explicit output directory. Frozen captures are read-only development inputs;
 replay and synthetic tests make no independent holdout or recovered-lead claim.
+
+### Step3 entry: attributed historical notice types (S2-HISTORY-001)
+
+`tools/relevance/notice_type.py` preserves raw labels and selected-field provenance.
+The six explicit award labels normalize case and whitespace; substring matching
+and narrative text never classify lifecycle. Native `raw_payload.type` is current;
+top-level types are compatibility projections; `base_type`/`baseType` are original
+lifecycle fallbacks only when current types are absent. Disagreement between
+current projections blocks current buying, while a differing original base type
+is retained without overriding a current type. The screening receipt is additive.
+Verify with `python -m pytest tests/test_notice_type_evidence.py -q` offline.
