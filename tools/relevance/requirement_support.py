@@ -105,7 +105,7 @@ def _origin(record: dict, field: str, text: str, start: int, matched: str) -> di
              and isinstance(row.get('start'), int) and isinstance(row.get('end'), int)
              and row['start'] >= offset and row['end'] <= offset + len(text)
              and text[row['start']-offset:row['end']-offset] == row.get('matched_text'))
-    if row.get('source_id') and row['source_id'] != str(record.get('source_id') or record.get('id') or ''):
+    if row.get('source_id') != str(record.get('source_id') or record.get('id') or '') or row.get('field') not in {'title', 'description'}:
         valid = False
     result.update(provenance_state='retained_extract_context' if valid else 'invalid_context_receipt')
     if valid:
@@ -119,6 +119,8 @@ def _origin(record: dict, field: str, text: str, start: int, matched: str) -> di
             snippet = raw.get('description_snippet') or ''
             if offset < len(snippet):
                 valid = valid and snippet[offset:min(len(snippet), offset + len(text))] == text[:max(0, len(snippet)-offset)]
+        else:
+            valid = False
         result['provenance_state'] = 'retained_extract_context' if valid else 'invalid_context_receipt'
     if valid:
         result.update(original_start=offset + start, field_sha256=row['field_sha256'],
@@ -132,6 +134,8 @@ def requirement_support(record: dict, taxonomy, *, verdict=None) -> dict:
     verdict = verdict or score_record(record, taxonomy)
     fields = dict(record_text_fields(record))
     raw = record.get('raw_payload') if isinstance(record.get('raw_payload'), dict) else {}
+    identities = {str(d[k]).strip() for d in (record, raw)
+                  for k in ('source_id', 'notice_id', 'noticeId') if d.get(k)}
     spans = []
     for span in verdict.spans[:64]:
         if span.tier not in {'core', 'adjacent'}:
@@ -164,7 +168,7 @@ def requirement_support(record: dict, taxonomy, *, verdict=None) -> dict:
     unscanned = bool(record.get('description_truncated')) or (bool(raw.get('description_truncated')) and not complete_capture)
     if lifecycle['historical']:
         support, state = False, 'historical_award'
-    elif lifecycle['conflict'] or contradictory or overflow or unscanned or any(s['role'] == 'source_origin_unresolved' for s in spans):
+    elif len(identities) > 1 or not identities or lifecycle['conflict'] or contradictory or overflow or unscanned or any(s['role'] == 'source_origin_unresolved' for s in spans):
         support, state = None, 'contradictory_context' if contradictory else 'evidence_incomplete'
     elif positive:
         support, state = True, 'requested_deliverable'

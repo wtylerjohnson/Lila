@@ -719,6 +719,8 @@ class SamExtractSource(DataSource):
                 )
                 opp.raw_payload["screen_evidence_coverage"] = evidence_coverage
                 if evidence:
+                    for context in evidence:
+                        context['source_id'] = opp.source_id
                     opp.raw_payload["screen_evidence_matches"] = evidence
                 results.append(opp)
         census.update({

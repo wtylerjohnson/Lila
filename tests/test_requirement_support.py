@@ -22,6 +22,8 @@ def notice(text, **extra):
 def extract(text, title='Platform procurement'):
     row = json.loads(_to_opportunity({'notice_id': 'N', 'title': title, 'description': text, 'naics': '541512'}).model_dump_json())
     evidence, coverage = _screen_evidence_with_coverage(title, text, ['supplier risk management', 'vendor risk management'])
+    for context in evidence:
+        context['source_id'] = 'N'
     row['raw_payload'].update(screen_evidence_matches=evidence, screen_evidence_coverage=coverage)
     return row
 
@@ -81,13 +83,15 @@ def test_late_clause_survives_first_boilerplate_title_and_api_projection(reverse
     assert any(positive in s['quote'] for s in ev['spans'])
 
 
-@pytest.mark.parametrize('mutation', ['source_id','hash','offset','role','truncated','url'])
+@pytest.mark.parametrize('mutation', ['source_id','hash','offset','role','truncated','url','field','raw_identity'])
 def test_receipts_and_labels_do_not_authenticate_themselves(mutation):
     text='The contractor shall provide supplier risk management software.'
     row=extract(text)
     if mutation=='source_id': row['raw_payload']['screen_evidence_matches'][0]['source_id']='OTHER'
     if mutation=='hash': row['raw_payload']['screen_evidence_matches'][0]['field_sha256']='0'*64
     if mutation=='offset': row['raw_payload']['screen_evidence_matches'][0]['context_start']=1
+    if mutation=='field': row['raw_payload']['screen_evidence_matches'][0]['field']='invented'
+    if mutation=='raw_identity': row['raw_payload']['notice_id']='OTHER'
     if mutation=='truncated': row['description_truncated']=True
     if mutation=='role': row=notice('Evaluation uses SPRS supplier risk management data.', semantic_role='requested_deliverable', requested_support=True)
     if mutation=='url': row=notice('https://example.test/supplier-risk-management', semantic_role='requested_deliverable')
