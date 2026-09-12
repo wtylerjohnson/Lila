@@ -264,6 +264,43 @@ def _timestamp(value: str | None):
         return None
 
 
+def _current_response_instruction(quote: str, as_of: datetime, cited_quote: str | None = None) -> bool:
+    """Conservative action clause, excluding negation/history/past stated dates."""
+    if cited_quote is not None and quote.count(cited_quote) != 1:
+        return False
+    cited_start = quote.index(cited_quote) if cited_quote is not None else 0
+    cited_end = cited_start + len(cited_quote) if cited_quote is not None else len(quote)
+    for match in re.finditer(r'\b(?:submit|respond|send|provide)\b[^.!?;\n]{0,70}\b(?:response|responses|questions|proposal|proposals|capability statement)\b', quote, re.I):
+        if match.start() < cited_start or match.end() > cited_end:
+            continue
+        left = list(re.finditer(r'[.!?;\n]\s*', quote[:match.start()]))
+        lo = left[-1].end() if left else 0
+        tail = re.search(r'[.!?;\n]', quote[match.end():])
+        hi = match.end() + tail.start() if tail else len(quote)
+        clause = quote[lo:hi]
+        prior = quote[max(0, lo-220):lo]
+        if re.search(r'(?:historical|previous|prior)[^.!?]*[.:\n]\s*$', prior, re.I) and not re.match(r'\s*(?:current|new|amended) instructions?\s*:', clause, re.I):
+            continue
+        if re.search(r'\b(?:not|no|never|historical|previous|prior|expired|closed)\b', clause, re.I):
+            continue
+        dates = re.findall(r'\b\d{4}-\d{2}-\d{2}\b|\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:,?\s+\d{4})?', clause, re.I)
+        invalid = False
+        for value in dates:
+            parsed = None
+            for fmt in ('%Y-%m-%d', '%B %d, %Y', '%B %d %Y', '%B %d'):
+                try:
+                    parsed = datetime.strptime(value + f' {as_of.year}', '%B %d %Y').date() if fmt == '%B %d' else datetime.strptime(value, fmt).date()
+                    break
+                except ValueError:
+                    pass
+            invalid |= parsed is None or parsed < as_of.date()
+        # A standalone historical year is also incompatible with current action.
+        invalid |= any(int(y) < as_of.year for y in re.findall(r'\b(?:19\d{2}|20\d{2})\b', clause))
+        if not invalid:
+            return True
+    return False
+
+
 def current_notice(source: EvidenceSource, claims: list[ResearchClaim], as_of: datetime, taxonomy=None) -> bool:
     """A documented notice is still subject to existing qualification/requirement review."""
     if (not source.primary_notice or source.binding_issues or source.truncated
@@ -316,10 +353,7 @@ def current_notice(source: EvidenceSource, claims: list[ResearchClaim], as_of: d
             if claim.kind == 'next_action':
                 # A deadline is not an instruction to respond, and a CORE
                 # quote cannot fill this typed claim solely by being relabeled.
-                for match in re.finditer(r'\b(?:submit|respond|send|provide)\b[^.!?;\n]{0,70}\b(?:response|responses|questions|proposal|proposals|capability statement)\b', ref.quote, re.I):
-                    prefix = ref.quote[max(0, match.start()-35):match.start()].casefold()
-                    if not re.search(r'\b(?:not|no|never)\b', prefix + match.group().casefold()):
-                        action = True
+                action |= _current_response_instruction(source.passages.get(ref.passage_id, ''), as_of, ref.quote)
     return offering and action
 
 

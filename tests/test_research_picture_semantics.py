@@ -18,6 +18,9 @@ def render_case(text, quote=None, **change):
     'The contractor shall provide supplier risk management software.',
     'The contractor shall provide supplier risk management software. Do not submit a response.',
     'The contractor shall provide supplier risk management software. Correction: No supplier risk management is required. Submit a response.',
+    'The contractor shall provide supplier risk management software. Historical instructions: Submit proposals by September 14, 2020.',
+    'The contractor shall provide supplier risk management software. Submit proposals by September 1, 2026.',
+    'The contractor shall provide supplier risk management software. Historical instructions:\nSubmit proposals by September 14, 2026.',
 ])
 def test_relabeling_quotes_does_not_supply_missing_predicates(text):
     assert render_case(text).classification=='research_signal'
@@ -35,3 +38,12 @@ def test_unavailable_current_taxonomy_cannot_confirm(monkeypatch):
     monkeypatch.setattr(module,'load_taxonomy',lambda _:None)
     monkeypatch.setattr(module,'derived_taxonomy',lambda _:None)
     assert render_case('The contractor shall provide supplier risk management software. Submit a response.').classification=='research_signal'
+
+
+def test_action_quote_cannot_strip_historical_context_or_borrow_uncited_current_action():
+    from agents.decisions.research_evidence import _current_response_instruction
+    text='Historical instructions:\nSubmit proposals by September 14, 2026.'
+    assert not _current_response_instruction(text,AS_OF,'Submit proposals by September 14, 2026.')
+    text+='\nCurrent instruction: Submit questions by September 14, 2026.'
+    assert not _current_response_instruction(text,AS_OF,'Submit proposals by September 14, 2026.')
+    assert _current_response_instruction(text,AS_OF,'Submit questions by September 14, 2026.')
