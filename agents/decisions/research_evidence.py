@@ -264,9 +264,9 @@ def _timestamp(value: str | None):
         return None
 
 
-def current_notice(source: EvidenceSource, claims: list[ResearchClaim], as_of: datetime) -> bool:
+def current_notice(source: EvidenceSource, claims: list[ResearchClaim], as_of: datetime, taxonomy=None) -> bool:
     """A documented notice is still subject to existing qualification/requirement review."""
-    if (not source.primary_notice or source.binding_issues
+    if (not source.primary_notice or source.binding_issues or source.truncated
             or source.retrieval_status != 'stored_source_text'):
         return False
     fetched, deadline = _timestamp(source.retrieved_at), _timestamp(source.deadline)
@@ -288,11 +288,43 @@ def current_notice(source: EvidenceSource, claims: list[ResearchClaim], as_of: d
         if any(ref.source_id == source.source_id and
                ref.passage_id.split('.')[-1] in _TEXT_FIELDS for ref in claim.evidence):
             kinds.add(claim.kind)
-    return {'procurement_state', 'offering_fit', 'next_action'} <= kinds
+    if not {'procurement_state', 'offering_fit', 'next_action'} <= kinds or taxonomy is None:
+        return False
+    from tools.relevance.requirement_support import requirement_support
+    # Rebuild from source passages, never from a supplied role or a saved
+    # screening receipt. Passage IDs retain their exact original source field.
+    row = {'source_id': source.source_id, 'raw_payload': {}}
+    for field, text in source.passages.items():
+        if field.startswith('raw_payload.'):
+            row['raw_payload'][field.removeprefix('raw_payload.')] = text
+        else:
+            row[field] = text
+    support = requirement_support(row, taxonomy)
+    if support['requested_support'] is not True:
+        return False
+    offering = action = False
+    for claim in claims:
+        if claim.basis != 'source_fact':
+            continue
+        for ref in claim.evidence:
+            if ref.source_id != source.source_id:
+                continue
+            if claim.kind == 'offering_fit':
+                offering |= any(s['field'] == ref.passage_id and s['tier'] == 'core'
+                                and s['role'] == 'requested_deliverable' and s['quote'] in ref.quote
+                                for s in support['spans'])
+            if claim.kind == 'next_action':
+                # A deadline is not an instruction to respond, and a CORE
+                # quote cannot fill this typed claim solely by being relabeled.
+                for match in re.finditer(r'\b(?:submit|respond|send|provide)\b[^.!?;\n]{0,70}\b(?:response|responses|questions|proposal|proposals|capability statement)\b', ref.quote, re.I):
+                    prefix = ref.quote[max(0, match.start()-35):match.start()].casefold()
+                    if not re.search(r'\b(?:not|no|never)\b', prefix + match.group().casefold()):
+                        action = True
+    return offering and action
 
 
-def classification(source: EvidenceSource, claims: list[ResearchClaim], as_of: datetime) -> str:
-    if current_notice(source, claims, as_of):
+def classification(source: EvidenceSource, claims: list[ResearchClaim], as_of: datetime, taxonomy=None) -> str:
+    if current_notice(source, claims, as_of, taxonomy):
         return 'confirmed_opportunity'
     if source.lane in {'contract_awards', 'usaspending.gov', 'dod_contracts'}:
         return 'historical_market_evidence'

@@ -88,7 +88,7 @@ class ResearchPicture(BaseModel):
     operator_focus_names: list[str] = Field(default_factory=list)
 
 
-_VALIDATION_VERSION = "research-picture.evidence.v2"
+_VALIDATION_VERSION = "research-picture.evidence.v3"
 _VERIFY_ACTION = "Verify original notice identity, current procurement state, requirements and available action."
 
 
@@ -96,6 +96,13 @@ def validate_picture(p: ResearchPicture, registry: dict[str, EvidenceSource],
                      gaps: list[str], as_of: datetime) -> ResearchPicture:
     """Ignore model-supplied status/registry; rebuild visible prose from checked claims."""
     issues = list(p.validation_issues) if p.validation_version == _VALIDATION_VERSION else []
+    from tools.relevance.taxonomy import load_taxonomy, derived_taxonomy
+    try:
+        taxonomy = load_taxonomy(p.client_name) or derived_taxonomy(p.client_name)
+    except (OSError, ValueError):
+        taxonomy = None
+    if taxonomy is None:
+        gaps = [*gaps, 'Client capability vocabulary unavailable; requested offering support cannot be confirmed.']
     def check(claims, source_id=None):
         accepted = []
         for claim in claims:
@@ -127,7 +134,9 @@ def validate_picture(p: ResearchPicture, registry: dict[str, EvidenceSource],
         if not any(ref.source_id == item.id for c in claims for ref in c.evidence):
             claims = []
             issues.append(f"{item.id}: no evidence bound to this source; verify before promotion.")
-        kind = classification(source, claims, as_of)
+        kind = classification(source, claims, as_of, taxonomy)
+        if kind != 'confirmed_opportunity' and any(c.kind == 'offering_fit' for c in claims):
+            issues.append(f'{item.id}: current requested offering and response action require source-bound support.')
         why = " ".join(claim_text(c, registry) for c in claims)
         if kind != "confirmed_opportunity":
             why = (why + " " + _VERIFY_ACTION).strip()

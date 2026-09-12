@@ -14,7 +14,7 @@ from agents.decisions.research_picture import (
 from agents.reports.capture_brief import quarantine_web_assertions
 
 AS_OF = datetime(2026, 9, 11, 15, tzinfo=timezone.utc)
-BODY = 'The agency seeks supplier bank account validation. Submit a response by September 14.'
+BODY = 'The agency seeks supplier risk management software. Submit a response by September 14.'
 NOTICE = {
     'source_id': 'N1', 'title': 'Supplier validation research',
     'api_url': 'https://sam.gov/opp/N1/view',
@@ -35,7 +35,7 @@ def claim(kind='offering_fit', sid='N1', passage='description', quote=BODY, **kw
 
 
 def picture(**kwargs):
-    data = dict(client_name='Apex', headline='Two live solicitations are exact matches.',
+    data = dict(client_name='apexanalytix', headline='Two live solicitations are exact matches.',
                 top_opportunities=[], demand_signals=['Guaranteed live demand'],
                 market_structure='Incumbent must recompete tomorrow', watchlist=[],
                 next_action='Bid now with guaranteed access.', gaps=[])

@@ -1941,3 +1941,24 @@ tests/test_capability_alignment.py tests/test_triage_prefilter.py
 tests/test_triage.py tests/test_sam_extract.py -q` using the configured runtime.
 The prespecified25 fixtures and operator-discovered counterexamples are synthetic
 software checks; authentic source success and recovered leads remain unproved.
+
+### Research Picture Step3 semantic extension
+
+Evidence validation v3 retains Step1's original-source registry rebuild, exact
+passage binding, retrieval/current-clock checks and source-specific claims. A
+`confirmed_opportunity` additionally requires available current client vocabulary,
+a CORE requested-work clause reproduced from that source's passages and contained
+in the offering-fit quote, and an own-source response instruction contained in the
+next-action quote. Unknown vocabulary, incidental/negated/thin quotes, truncated
+passages and missing response instructions stay research signals. These are
+conservative predicates for a documented notice, not general entailment of model
+prose or strict qualification. Generated factual prose remains replaced by the
+actual excerpts; labeled inference remains a disclosed Step1 residual.
+
+Focused check: `python -m pytest tests/test_research_picture_semantics.py
+tests/test_research_picture.py tests/test_research_picture_evidence.py
+tests/test_research_picture_hardening.py tests/test_research_picture_ui.py
+tests/test_truth_purges.py -q` offline. The browser test uses a temporary profile
+and blocks page network requests. The positive Step1 test fixture now names the
+actual current Apex taxonomy and a canonical supplier-risk request, making its
+additional Step3 vocabulary predicate explicit while preserving identity tests.
