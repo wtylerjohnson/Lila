@@ -1,0 +1,1372 @@
+{
+  "work_id": "REPAIR-STEP3-CLOSURE-047",
+  "status": "SUPPORTING_CLOSURE_PASS_FOR_ASSIGNED_REPRODUCTIONS",
+  "at_utc": "2026-09-12T23:40:26.445183+00:00",
+  "head": "4df7f8881722c9457eb432a79a1643fe689a888b",
+  "branch": "codex/step3-requirement-evidence",
+  "hashes_before": {
+    "tools/relevance/requirement_support.py": "866b98a87a1a1bf5c973ae9f27e45bbabb3a26ccd6d8f0689b925ad98b5d64ff",
+    "tools/api/sam_extract.py": "52d8320e633a329a568d08887c0fd03ef87104758eca1fe2dce82e90c9878d2c",
+    "agents/decisions/triage.py": "27d8bc33a484968d48e12f26c591e38656cd707566a947424b1421f5389ed736",
+    "agents/decisions/research_evidence.py": "3009537b13ba7cda2452608572ed1c1bd2b3077fdab3d5315619c31e405cc23f",
+    "agents/decisions/research_picture.py": "24e4c672f50866c90b2e66e02b70193580ea9cad6642f157568360c2f119a7c2",
+    "clients/apexanalytix/capability_taxonomy.json": "b6c1b9fb5d90cf9f974b6772e1552bc6723c4f71bca969f0fc27068d6e46c2b6"
+  },
+  "hashes_after": {
+    "tools/relevance/requirement_support.py": "866b98a87a1a1bf5c973ae9f27e45bbabb3a26ccd6d8f0689b925ad98b5d64ff",
+    "tools/api/sam_extract.py": "52d8320e633a329a568d08887c0fd03ef87104758eca1fe2dce82e90c9878d2c",
+    "agents/decisions/triage.py": "27d8bc33a484968d48e12f26c591e38656cd707566a947424b1421f5389ed736",
+    "agents/decisions/research_evidence.py": "3009537b13ba7cda2452608572ed1c1bd2b3077fdab3d5315619c31e405cc23f",
+    "agents/decisions/research_picture.py": "24e4c672f50866c90b2e66e02b70193580ea9cad6642f157568360c2f119a7c2",
+    "clients/apexanalytix/capability_taxonomy.json": "b6c1b9fb5d90cf9f974b6772e1552bc6723c4f71bca969f0fc27068d6e46c2b6"
+  },
+  "prior_verification_sha256": "fc769e8e1832b61bb2709f53c7d84588a45c15fc4a712b746c3f6c6138c85f32",
+  "checks": [
+    {
+      "name": "helper:missing_material_scope",
+      "input": {
+        "source": "sam.gov",
+        "source_id": "missing_material_scope",
+        "title": "Platform requirement",
+        "description": "The agency requires a response about supplier risk management; the actual scope is only in an unavailable SOW.",
+        "type": "Solicitation",
+        "naics_code": "541512"
+      },
+      "expected_support_true": false,
+      "support": {
+        "version": "requirement-support-v1",
+        "source_id": "missing_material_scope",
+        "record_sha256": "573a8b641fd8d50063780722573db76e8f29558bb73c1b7e963a2902daa8cc8a",
+        "taxonomy_client": "apexanalytix",
+        "taxonomy_version": 2,
+        "requested_support": null,
+        "state": "evidence_incomplete",
+        "spans": [
+          {
+            "role": "response_context_only",
+            "quote": "The agency requires a response about supplier risk management;",
+            "context_start": 0,
+            "context_end": 62,
+            "context_truncated": false,
+            "method": "requirement-support-v1",
+            "original_field": "description",
+            "original_start": 37,
+            "field_sha256": "3795679b839125e8a66b3642a643be7dd8c2448cde946c46dc72ab770580f822",
+            "provenance_state": "stored_field",
+            "field": "description",
+            "start": 37,
+            "matched_text": "supplier risk management",
+            "term": "supplier risk management",
+            "tier": "core",
+            "source_id": "missing_material_scope",
+            "stored_field_sha256": "3795679b839125e8a66b3642a643be7dd8c2448cde946c46dc72ab770580f822"
+          }
+        ],
+        "attachment_context": {
+          "files": [],
+          "bundle_sha256": null,
+          "inventory_hash": null,
+          "per_file_text_offsets": "NOT_RECORDED",
+          "authority": "DISCOVERY_ONLY_NOT_REQUIREMENT_APPROVAL"
+        },
+        "overflow": false,
+        "qualification": "NOT_ESTABLISHED",
+        "limitations": [
+          "Conservative clause rules, not semantic entailment.",
+          "Stored-source attribution is not independent source authentication."
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "adapter:missing_material_scope",
+      "input": {
+        "source": "sam.gov",
+        "source_id": "missing_material_scope",
+        "title": "Platform requirement",
+        "agency": null,
+        "naics_code": "541512",
+        "psc_code": null,
+        "set_aside": null,
+        "posted_date": null,
+        "response_deadline": null,
+        "estimated_value": null,
+        "api_url": null,
+        "contacts": [],
+        "raw_payload": {
+          "notice_id": "missing_material_scope",
+          "title": "Platform requirement",
+          "type": "Solicitation",
+          "naics": "541512",
+          "description_snippet": "The agency requires a response about supplier risk management; the actual scope is only in an unavailable SOW.",
+          "description_characters": 110,
+          "description_sha256": "3795679b839125e8a66b3642a643be7dd8c2448cde946c46dc72ab770580f822",
+          "description_truncated": false,
+          "via": "daily-extract",
+          "screen_evidence_matches": [
+            {
+              "version": "extract-context-v2",
+              "term": "supplier risk management",
+              "field": "description",
+              "matched_text": "supplier risk management",
+              "context": "The agency requires a response about supplier risk management;",
+              "start": 37,
+              "end": 61,
+              "context_start": 0,
+              "context_end": 62,
+              "field_characters": 110,
+              "field_sha256": "3795679b839125e8a66b3642a643be7dd8c2448cde946c46dc72ab770580f822",
+              "context_sha256": "1b4b8ca75b45368990559bafd44e29bafc85da6efd7583331139317641b33d84",
+              "context_truncated": false,
+              "source_id": "missing_material_scope"
+            }
+          ],
+          "screen_evidence_coverage": {
+            "version": "extract-context-v2",
+            "occurrences": 1,
+            "retained": 1,
+            "overflow": false,
+            "all_keyword_occurrences_scanned": true
+          }
+        }
+      },
+      "expected_candidate": false,
+      "candidate_ids": [],
+      "ruled": {
+        "missing_material_scope": {
+          "verdict": "unscreened",
+          "reason": "Capability mentioned but requested work remains unresolved; retain source research gap",
+          "screen": "deterministic-capability-v3",
+          "relevance_score": 3,
+          "screen_state": "REQUIREMENT_CONTEXT_UNRESOLVED",
+          "evidence_ref": "missing_material_scope"
+        }
+      },
+      "receipt": {
+        "mode": "deterministic-capability-v3",
+        "taxonomy_client": "apexanalytix",
+        "taxonomy_version": 2,
+        "candidate_census": 1,
+        "model_candidates_before_thread_consolidation": 0,
+        "model_candidates_after_solicitation_consolidation": 0,
+        "model_candidates": 0,
+        "superseded_revisions": 0,
+        "cross_post_duplicates": 0,
+        "model_candidate_reasons": {},
+        "deterministic_discards": 0,
+        "research_gaps": 1,
+        "deterministic_dispositions": 1,
+        "discard_reasons": {},
+        "complete": true,
+        "screening_records": {
+          "missing_material_scope": {
+            "source_id": "missing_material_scope",
+            "record_sha256": "f72386a6fc543684de93676d7fffcac1ffb9b1c857cc7116d0757f157965f39b",
+            "notice_type": "Solicitation",
+            "notice_type_evidence": {
+              "version": "sam-lifecycle-v1",
+              "fields": [
+                {
+                  "field": "raw_payload.type",
+                  "raw": "Solicitation",
+                  "normalized": "solicitation",
+                  "is_base_type": false,
+                  "classification": "solicitation"
+                }
+              ],
+              "selected_field": "raw_payload.type",
+              "selected_raw": "Solicitation",
+              "classification": "solicitation",
+              "conflict": false,
+              "missing": false,
+              "historical": false,
+              "policy": "native-current-type_then-projection_then-base-fallback"
+            },
+            "text_coverage": "SUPPLIED_TEXT_COMPLETENESS_UNVERIFIED",
+            "text_fields": [
+              {
+                "field": "title",
+                "characters": 20
+              },
+              {
+                "field": "raw_payload.title",
+                "characters": 20
+              },
+              {
+                "field": "raw_payload.description_snippet",
+                "characters": 110
+              },
+              {
+                "field": "raw_payload.screen_evidence_matches[0].context",
+                "characters": 62
+              }
+            ],
+            "attachment_status": "NOT_RECORDED_UNKNOWN",
+            "attachment_errors": [],
+            "attachment_discovery_evidence": null,
+            "relevance": {
+              "score": 3,
+              "relevant": true,
+              "core_terms": [
+                "supplier risk management"
+              ],
+              "adjacent_terms": [],
+              "spans": [
+                {
+                  "term": "supplier risk management",
+                  "tier": "core",
+                  "mode": "stemmed",
+                  "field": "raw_payload.description_snippet",
+                  "matched_text": "supplier risk management",
+                  "context": "The agency requires a response about supplier risk management; the actual scope is only in an unavailable SOW.",
+                  "start": 37,
+                  "matched_phrase": "supplier risk management",
+                  "evidence_ids": [
+                    "APEX-SERVICES-2024",
+                    "APEX-GOVERNMENT-2026"
+                  ],
+                  "guard_context": ""
+                },
+                {
+                  "term": "supplier risk management",
+                  "tier": "core",
+                  "mode": "stemmed",
+                  "field": "raw_payload.screen_evidence_matches[0].context",
+                  "matched_text": "supplier risk management",
+                  "context": "The agency requires a response about supplier risk management;",
+                  "start": 37,
+                  "matched_phrase": "supplier risk management",
+                  "evidence_ids": [
+                    "APEX-SERVICES-2024",
+                    "APEX-GOVERNMENT-2026"
+                  ],
+                  "guard_context": ""
+                }
+              ],
+              "killed": [],
+              "off_code": false,
+              "off_scope": false,
+              "off_scope_signal": false,
+              "scope_basis": "UNSCOPED",
+              "excluded_by_code": false,
+              "taxonomy_client": "apexanalytix",
+              "taxonomy_version": 2
+            },
+            "screen_state": "REQUIREMENT_CONTEXT_UNRESOLVED",
+            "stage": "source_research",
+            "qualification": "NOT_ESTABLISHED_BY_CAPABILITY_SCREEN",
+            "requirement_support": {
+              "version": "requirement-support-v1",
+              "source_id": "missing_material_scope",
+              "record_sha256": "f72386a6fc543684de93676d7fffcac1ffb9b1c857cc7116d0757f157965f39b",
+              "taxonomy_client": "apexanalytix",
+              "taxonomy_version": 2,
+              "requested_support": null,
+              "state": "evidence_incomplete",
+              "spans": [
+                {
+                  "role": "response_context_only",
+                  "quote": "The agency requires a response about supplier risk management;",
+                  "context_start": 0,
+                  "context_end": 62,
+                  "context_truncated": false,
+                  "method": "requirement-support-v1",
+                  "original_field": "description",
+                  "original_start": 37,
+                  "field_sha256": "3795679b839125e8a66b3642a643be7dd8c2448cde946c46dc72ab770580f822",
+                  "provenance_state": "stored_field",
+                  "field": "raw_payload.description_snippet",
+                  "start": 37,
+                  "matched_text": "supplier risk management",
+                  "term": "supplier risk management",
+                  "tier": "core",
+                  "source_id": "missing_material_scope",
+                  "stored_field_sha256": "3795679b839125e8a66b3642a643be7dd8c2448cde946c46dc72ab770580f822"
+                },
+                {
+                  "role": "response_context_only",
+                  "quote": "The agency requires a response about supplier risk management;",
+                  "context_start": 0,
+                  "context_end": 62,
+                  "context_truncated": false,
+                  "method": "requirement-support-v1",
+                  "original_field": "description",
+                  "original_start": 37,
+                  "field_sha256": "3795679b839125e8a66b3642a643be7dd8c2448cde946c46dc72ab770580f822",
+                  "provenance_state": "retained_extract_context",
+                  "field_characters": 110,
+                  "source_field_truncated": false,
+                  "field": "raw_payload.screen_evidence_matches[0].context",
+                  "start": 37,
+                  "matched_text": "supplier risk management",
+                  "term": "supplier risk management",
+                  "tier": "core",
+                  "source_id": "missing_material_scope",
+                  "stored_field_sha256": "1b4b8ca75b45368990559bafd44e29bafc85da6efd7583331139317641b33d84"
+                }
+              ],
+              "attachment_context": {
+                "files": [],
+                "bundle_sha256": null,
+                "inventory_hash": null,
+                "per_file_text_offsets": "NOT_RECORDED",
+                "authority": "DISCOVERY_ONLY_NOT_REQUIREMENT_APPROVAL"
+              },
+              "overflow": false,
+              "qualification": "NOT_ESTABLISHED",
+              "limitations": [
+                "Conservative clause rules, not semantic entailment.",
+                "Stored-source attribution is not independent source authentication."
+              ]
+            }
+          }
+        },
+        "requirement_family_diagnostic": {
+          "version": "requirement-support-v1",
+          "population": "supplied_notice_census",
+          "families_by_term_field": [
+            {
+              "term": "supplier risk management",
+              "field": "description",
+              "family": [
+                "sam.gov",
+                "notice",
+                "missing_material_scope"
+              ],
+              "grouping": "notice_fallback",
+              "notice_ids": [
+                "missing_material_scope"
+              ],
+              "evidence": [
+                {
+                  "source_id": "missing_material_scope",
+                  "field": "raw_payload.description_snippet",
+                  "start": 37,
+                  "currentness": "selected_or_unresolved",
+                  "original_start": 37,
+                  "role": "response_context_only"
+                },
+                {
+                  "source_id": "missing_material_scope",
+                  "field": "raw_payload.screen_evidence_matches[0].context",
+                  "start": 37,
+                  "currentness": "selected_or_unresolved",
+                  "original_start": 37,
+                  "role": "response_context_only"
+                }
+              ],
+              "buckets": [
+                "unresolved"
+              ]
+            }
+          ],
+          "term_field_counts": [
+            {
+              "term": "supplier risk management",
+              "field": "description",
+              "lexical_families": 1,
+              "requested_families": 0,
+              "incidental_families": 0,
+              "historical_families": 0,
+              "unresolved_families": 1,
+              "superseded_families": 0
+            }
+          ],
+          "unique_lexical_families": 1,
+          "limitation": "Overlapping field buckets are not additive totals; historical spans are retained."
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "helper:adjacent_sentence_negation",
+      "input": {
+        "source": "sam.gov",
+        "source_id": "adjacent_sentence_negation",
+        "title": "Platform requirement",
+        "description": "The following work is not required. Provide supplier risk management software.",
+        "type": "Solicitation",
+        "naics_code": "541512"
+      },
+      "expected_support_true": false,
+      "support": {
+        "version": "requirement-support-v1",
+        "source_id": "adjacent_sentence_negation",
+        "record_sha256": "41f170c08e98114d5b7d08a9d97b210ef5d1beab12746423607368d9ed987530",
+        "taxonomy_client": "apexanalytix",
+        "taxonomy_version": 2,
+        "requested_support": false,
+        "state": "incidental_or_excluded",
+        "spans": [
+          {
+            "role": "quoted_prior_work",
+            "quote": "Provide supplier risk management software.",
+            "context_start": 36,
+            "context_end": 78,
+            "context_truncated": false,
+            "method": "requirement-support-v1",
+            "original_field": "description",
+            "original_start": 44,
+            "field_sha256": "4161ec751a9b603350c56bb63b584a2b9636311aacccd47e6b9c0f6573300c2b",
+            "provenance_state": "stored_field",
+            "field": "description",
+            "start": 44,
+            "matched_text": "supplier risk management",
+            "term": "supplier risk management",
+            "tier": "core",
+            "source_id": "adjacent_sentence_negation",
+            "stored_field_sha256": "4161ec751a9b603350c56bb63b584a2b9636311aacccd47e6b9c0f6573300c2b"
+          }
+        ],
+        "attachment_context": {
+          "files": [],
+          "bundle_sha256": null,
+          "inventory_hash": null,
+          "per_file_text_offsets": "NOT_RECORDED",
+          "authority": "DISCOVERY_ONLY_NOT_REQUIREMENT_APPROVAL"
+        },
+        "overflow": false,
+        "qualification": "NOT_ESTABLISHED",
+        "limitations": [
+          "Conservative clause rules, not semantic entailment.",
+          "Stored-source attribution is not independent source authentication."
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "adapter:adjacent_sentence_negation",
+      "input": {
+        "source": "sam.gov",
+        "source_id": "adjacent_sentence_negation",
+        "title": "Platform requirement",
+        "agency": null,
+        "naics_code": "541512",
+        "psc_code": null,
+        "set_aside": null,
+        "posted_date": null,
+        "response_deadline": null,
+        "estimated_value": null,
+        "api_url": null,
+        "contacts": [],
+        "raw_payload": {
+          "notice_id": "adjacent_sentence_negation",
+          "title": "Platform requirement",
+          "type": "Solicitation",
+          "naics": "541512",
+          "description_snippet": "The following work is not required. Provide supplier risk management software.",
+          "description_characters": 78,
+          "description_sha256": "4161ec751a9b603350c56bb63b584a2b9636311aacccd47e6b9c0f6573300c2b",
+          "description_truncated": false,
+          "via": "daily-extract",
+          "screen_evidence_matches": [
+            {
+              "version": "extract-context-v2",
+              "term": "supplier risk management",
+              "field": "description",
+              "matched_text": "supplier risk management",
+              "context": "The following work is not required. Provide supplier risk management software.",
+              "start": 44,
+              "end": 68,
+              "context_start": 0,
+              "context_end": 78,
+              "field_characters": 78,
+              "field_sha256": "4161ec751a9b603350c56bb63b584a2b9636311aacccd47e6b9c0f6573300c2b",
+              "context_sha256": "4161ec751a9b603350c56bb63b584a2b9636311aacccd47e6b9c0f6573300c2b",
+              "context_truncated": false,
+              "source_id": "adjacent_sentence_negation"
+            }
+          ],
+          "screen_evidence_coverage": {
+            "version": "extract-context-v2",
+            "occurrences": 1,
+            "retained": 1,
+            "overflow": false,
+            "all_keyword_occurrences_scanned": true
+          }
+        }
+      },
+      "expected_candidate": false,
+      "candidate_ids": [],
+      "ruled": {
+        "adjacent_sentence_negation": {
+          "verdict": "discard",
+          "reason": "Capability appears only in incidental or excluded context; no requested work established",
+          "screen": "deterministic-capability-v3",
+          "relevance_score": 3,
+          "screen_state": "INCIDENTAL_CAPABILITY_ONLY",
+          "evidence_ref": "adjacent_sentence_negation"
+        }
+      },
+      "receipt": {
+        "mode": "deterministic-capability-v3",
+        "taxonomy_client": "apexanalytix",
+        "taxonomy_version": 2,
+        "candidate_census": 1,
+        "model_candidates_before_thread_consolidation": 0,
+        "model_candidates_after_solicitation_consolidation": 0,
+        "model_candidates": 0,
+        "superseded_revisions": 0,
+        "cross_post_duplicates": 0,
+        "model_candidate_reasons": {},
+        "deterministic_discards": 1,
+        "research_gaps": 0,
+        "deterministic_dispositions": 1,
+        "discard_reasons": {
+          "incidental-capability": 1
+        },
+        "complete": true,
+        "screening_records": {
+          "adjacent_sentence_negation": {
+            "source_id": "adjacent_sentence_negation",
+            "record_sha256": "3cb70603205189e5f84bef8afa36b9cf9d4087dd29a4d1c89076e3b47e2b6d1d",
+            "notice_type": "Solicitation",
+            "notice_type_evidence": {
+              "version": "sam-lifecycle-v1",
+              "fields": [
+                {
+                  "field": "raw_payload.type",
+                  "raw": "Solicitation",
+                  "normalized": "solicitation",
+                  "is_base_type": false,
+                  "classification": "solicitation"
+                }
+              ],
+              "selected_field": "raw_payload.type",
+              "selected_raw": "Solicitation",
+              "classification": "solicitation",
+              "conflict": false,
+              "missing": false,
+              "historical": false,
+              "policy": "native-current-type_then-projection_then-base-fallback"
+            },
+            "text_coverage": "SUPPLIED_TEXT_COMPLETENESS_UNVERIFIED",
+            "text_fields": [
+              {
+                "field": "title",
+                "characters": 20
+              },
+              {
+                "field": "raw_payload.title",
+                "characters": 20
+              },
+              {
+                "field": "raw_payload.description_snippet",
+                "characters": 78
+              },
+              {
+                "field": "raw_payload.screen_evidence_matches[0].context",
+                "characters": 78
+              }
+            ],
+            "attachment_status": "NOT_RECORDED_UNKNOWN",
+            "attachment_errors": [],
+            "attachment_discovery_evidence": null,
+            "relevance": {
+              "score": 3,
+              "relevant": true,
+              "core_terms": [
+                "supplier risk management"
+              ],
+              "adjacent_terms": [],
+              "spans": [
+                {
+                  "term": "supplier risk management",
+                  "tier": "core",
+                  "mode": "stemmed",
+                  "field": "raw_payload.description_snippet",
+                  "matched_text": "supplier risk management",
+                  "context": "The following work is not required. Provide supplier risk management software.",
+                  "start": 44,
+                  "matched_phrase": "supplier risk management",
+                  "evidence_ids": [
+                    "APEX-SERVICES-2024",
+                    "APEX-GOVERNMENT-2026"
+                  ],
+                  "guard_context": ""
+                },
+                {
+                  "term": "supplier risk management",
+                  "tier": "core",
+                  "mode": "stemmed",
+                  "field": "raw_payload.screen_evidence_matches[0].context",
+                  "matched_text": "supplier risk management",
+                  "context": "The following work is not required. Provide supplier risk management software.",
+                  "start": 44,
+                  "matched_phrase": "supplier risk management",
+                  "evidence_ids": [
+                    "APEX-SERVICES-2024",
+                    "APEX-GOVERNMENT-2026"
+                  ],
+                  "guard_context": ""
+                }
+              ],
+              "killed": [],
+              "off_code": false,
+              "off_scope": false,
+              "off_scope_signal": false,
+              "scope_basis": "UNSCOPED",
+              "excluded_by_code": false,
+              "taxonomy_client": "apexanalytix",
+              "taxonomy_version": 2
+            },
+            "screen_state": "INCIDENTAL_CAPABILITY_ONLY",
+            "stage": "deterministic_screen",
+            "qualification": "NOT_ESTABLISHED_BY_CAPABILITY_SCREEN",
+            "requirement_support": {
+              "version": "requirement-support-v1",
+              "source_id": "adjacent_sentence_negation",
+              "record_sha256": "3cb70603205189e5f84bef8afa36b9cf9d4087dd29a4d1c89076e3b47e2b6d1d",
+              "taxonomy_client": "apexanalytix",
+              "taxonomy_version": 2,
+              "requested_support": false,
+              "state": "incidental_or_excluded",
+              "spans": [
+                {
+                  "role": "quoted_prior_work",
+                  "quote": "Provide supplier risk management software.",
+                  "context_start": 36,
+                  "context_end": 78,
+                  "context_truncated": false,
+                  "method": "requirement-support-v1",
+                  "original_field": "description",
+                  "original_start": 44,
+                  "field_sha256": "4161ec751a9b603350c56bb63b584a2b9636311aacccd47e6b9c0f6573300c2b",
+                  "provenance_state": "stored_field",
+                  "field": "raw_payload.description_snippet",
+                  "start": 44,
+                  "matched_text": "supplier risk management",
+                  "term": "supplier risk management",
+                  "tier": "core",
+                  "source_id": "adjacent_sentence_negation",
+                  "stored_field_sha256": "4161ec751a9b603350c56bb63b584a2b9636311aacccd47e6b9c0f6573300c2b"
+                },
+                {
+                  "role": "quoted_prior_work",
+                  "quote": "Provide supplier risk management software.",
+                  "context_start": 0,
+                  "context_end": 78,
+                  "context_truncated": false,
+                  "method": "requirement-support-v1",
+                  "original_field": "description",
+                  "original_start": 44,
+                  "field_sha256": "4161ec751a9b603350c56bb63b584a2b9636311aacccd47e6b9c0f6573300c2b",
+                  "provenance_state": "retained_extract_context",
+                  "field_characters": 78,
+                  "source_field_truncated": false,
+                  "field": "raw_payload.screen_evidence_matches[0].context",
+                  "start": 44,
+                  "matched_text": "supplier risk management",
+                  "term": "supplier risk management",
+                  "tier": "core",
+                  "source_id": "adjacent_sentence_negation",
+                  "stored_field_sha256": "4161ec751a9b603350c56bb63b584a2b9636311aacccd47e6b9c0f6573300c2b"
+                }
+              ],
+              "attachment_context": {
+                "files": [],
+                "bundle_sha256": null,
+                "inventory_hash": null,
+                "per_file_text_offsets": "NOT_RECORDED",
+                "authority": "DISCOVERY_ONLY_NOT_REQUIREMENT_APPROVAL"
+              },
+              "overflow": false,
+              "qualification": "NOT_ESTABLISHED",
+              "limitations": [
+                "Conservative clause rules, not semantic entailment.",
+                "Stored-source attribution is not independent source authentication."
+              ]
+            }
+          }
+        },
+        "requirement_family_diagnostic": {
+          "version": "requirement-support-v1",
+          "population": "supplied_notice_census",
+          "families_by_term_field": [
+            {
+              "term": "supplier risk management",
+              "field": "description",
+              "family": [
+                "sam.gov",
+                "notice",
+                "adjacent_sentence_negation"
+              ],
+              "grouping": "notice_fallback",
+              "notice_ids": [
+                "adjacent_sentence_negation"
+              ],
+              "evidence": [
+                {
+                  "source_id": "adjacent_sentence_negation",
+                  "field": "raw_payload.description_snippet",
+                  "start": 44,
+                  "currentness": "selected_or_unresolved",
+                  "original_start": 44,
+                  "role": "quoted_prior_work"
+                },
+                {
+                  "source_id": "adjacent_sentence_negation",
+                  "field": "raw_payload.screen_evidence_matches[0].context",
+                  "start": 44,
+                  "currentness": "selected_or_unresolved",
+                  "original_start": 44,
+                  "role": "quoted_prior_work"
+                }
+              ],
+              "buckets": [
+                "incidental"
+              ]
+            }
+          ],
+          "term_field_counts": [
+            {
+              "term": "supplier risk management",
+              "field": "description",
+              "lexical_families": 1,
+              "requested_families": 0,
+              "incidental_families": 1,
+              "historical_families": 0,
+              "unresolved_families": 0,
+              "superseded_families": 0
+            }
+          ],
+          "unique_lexical_families": 1,
+          "limitation": "Overlapping field buckets are not additive totals; historical spans are retained."
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "helper:genuine_request_positive",
+      "input": {
+        "source": "sam.gov",
+        "source_id": "positive",
+        "title": "Platform requirement",
+        "description": "The contractor shall provide supplier risk management software and monthly reports.",
+        "type": "Solicitation",
+        "naics_code": "541512"
+      },
+      "expected_support_true": true,
+      "support": {
+        "version": "requirement-support-v1",
+        "source_id": "positive",
+        "record_sha256": "e018dd089e67ea22ba32710405fa248089373f5772f0a6ac5c6c113b4ecfddc1",
+        "taxonomy_client": "apexanalytix",
+        "taxonomy_version": 2,
+        "requested_support": true,
+        "state": "requested_deliverable",
+        "spans": [
+          {
+            "role": "requested_deliverable",
+            "quote": "The contractor shall provide supplier risk management software and monthly reports.",
+            "context_start": 0,
+            "context_end": 83,
+            "context_truncated": false,
+            "method": "requirement-support-v1",
+            "original_field": "description",
+            "original_start": 29,
+            "field_sha256": "c90c70e3ae35face17844496fd7bbb5c7c09e5f63dfdcb53e21541136fc9e8a8",
+            "provenance_state": "stored_field",
+            "field": "description",
+            "start": 29,
+            "matched_text": "supplier risk management",
+            "term": "supplier risk management",
+            "tier": "core",
+            "source_id": "positive",
+            "stored_field_sha256": "c90c70e3ae35face17844496fd7bbb5c7c09e5f63dfdcb53e21541136fc9e8a8"
+          }
+        ],
+        "attachment_context": {
+          "files": [],
+          "bundle_sha256": null,
+          "inventory_hash": null,
+          "per_file_text_offsets": "NOT_RECORDED",
+          "authority": "DISCOVERY_ONLY_NOT_REQUIREMENT_APPROVAL"
+        },
+        "overflow": false,
+        "qualification": "NOT_ESTABLISHED",
+        "limitations": [
+          "Conservative clause rules, not semantic entailment.",
+          "Stored-source attribution is not independent source authentication."
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "adapter:genuine_request_positive",
+      "input": {
+        "source": "sam.gov",
+        "source_id": "positive",
+        "title": "Platform requirement",
+        "agency": null,
+        "naics_code": "541512",
+        "psc_code": null,
+        "set_aside": null,
+        "posted_date": null,
+        "response_deadline": null,
+        "estimated_value": null,
+        "api_url": null,
+        "contacts": [],
+        "raw_payload": {
+          "notice_id": "positive",
+          "title": "Platform requirement",
+          "type": "Solicitation",
+          "naics": "541512",
+          "description_snippet": "The contractor shall provide supplier risk management software and monthly reports.",
+          "description_characters": 83,
+          "description_sha256": "c90c70e3ae35face17844496fd7bbb5c7c09e5f63dfdcb53e21541136fc9e8a8",
+          "description_truncated": false,
+          "via": "daily-extract",
+          "screen_evidence_matches": [
+            {
+              "version": "extract-context-v2",
+              "term": "supplier risk management",
+              "field": "description",
+              "matched_text": "supplier risk management",
+              "context": "The contractor shall provide supplier risk management software and monthly reports.",
+              "start": 29,
+              "end": 53,
+              "context_start": 0,
+              "context_end": 83,
+              "field_characters": 83,
+              "field_sha256": "c90c70e3ae35face17844496fd7bbb5c7c09e5f63dfdcb53e21541136fc9e8a8",
+              "context_sha256": "c90c70e3ae35face17844496fd7bbb5c7c09e5f63dfdcb53e21541136fc9e8a8",
+              "context_truncated": false,
+              "source_id": "positive"
+            }
+          ],
+          "screen_evidence_coverage": {
+            "version": "extract-context-v2",
+            "occurrences": 1,
+            "retained": 1,
+            "overflow": false,
+            "all_keyword_occurrences_scanned": true
+          }
+        }
+      },
+      "expected_candidate": true,
+      "candidate_ids": [
+        "positive"
+      ],
+      "ruled": {},
+      "receipt": {
+        "mode": "deterministic-capability-v3",
+        "taxonomy_client": "apexanalytix",
+        "taxonomy_version": 2,
+        "candidate_census": 1,
+        "model_candidates_before_thread_consolidation": 1,
+        "model_candidates_after_solicitation_consolidation": 1,
+        "model_candidates": 1,
+        "superseded_revisions": 0,
+        "cross_post_duplicates": 0,
+        "model_candidate_reasons": {
+          "core-evidence": 1
+        },
+        "deterministic_discards": 0,
+        "research_gaps": 0,
+        "deterministic_dispositions": 0,
+        "discard_reasons": {},
+        "complete": true,
+        "screening_records": {
+          "positive": {
+            "source_id": "positive",
+            "record_sha256": "904f96a6775c45253b9eaf4df095a829c1bc0b049dce548699908b627085316b",
+            "notice_type": "Solicitation",
+            "notice_type_evidence": {
+              "version": "sam-lifecycle-v1",
+              "fields": [
+                {
+                  "field": "raw_payload.type",
+                  "raw": "Solicitation",
+                  "normalized": "solicitation",
+                  "is_base_type": false,
+                  "classification": "solicitation"
+                }
+              ],
+              "selected_field": "raw_payload.type",
+              "selected_raw": "Solicitation",
+              "classification": "solicitation",
+              "conflict": false,
+              "missing": false,
+              "historical": false,
+              "policy": "native-current-type_then-projection_then-base-fallback"
+            },
+            "text_coverage": "SUPPLIED_TEXT_COMPLETENESS_UNVERIFIED",
+            "text_fields": [
+              {
+                "field": "title",
+                "characters": 20
+              },
+              {
+                "field": "raw_payload.title",
+                "characters": 20
+              },
+              {
+                "field": "raw_payload.description_snippet",
+                "characters": 83
+              },
+              {
+                "field": "raw_payload.screen_evidence_matches[0].context",
+                "characters": 83
+              }
+            ],
+            "attachment_status": "NOT_RECORDED_UNKNOWN",
+            "attachment_errors": [],
+            "attachment_discovery_evidence": null,
+            "relevance": {
+              "score": 3,
+              "relevant": true,
+              "core_terms": [
+                "supplier risk management"
+              ],
+              "adjacent_terms": [],
+              "spans": [
+                {
+                  "term": "supplier risk management",
+                  "tier": "core",
+                  "mode": "stemmed",
+                  "field": "raw_payload.description_snippet",
+                  "matched_text": "supplier risk management",
+                  "context": "The contractor shall provide supplier risk management software and monthly reports.",
+                  "start": 29,
+                  "matched_phrase": "supplier risk management",
+                  "evidence_ids": [
+                    "APEX-SERVICES-2024",
+                    "APEX-GOVERNMENT-2026"
+                  ],
+                  "guard_context": ""
+                },
+                {
+                  "term": "supplier risk management",
+                  "tier": "core",
+                  "mode": "stemmed",
+                  "field": "raw_payload.screen_evidence_matches[0].context",
+                  "matched_text": "supplier risk management",
+                  "context": "The contractor shall provide supplier risk management software and monthly reports.",
+                  "start": 29,
+                  "matched_phrase": "supplier risk management",
+                  "evidence_ids": [
+                    "APEX-SERVICES-2024",
+                    "APEX-GOVERNMENT-2026"
+                  ],
+                  "guard_context": ""
+                }
+              ],
+              "killed": [],
+              "off_code": false,
+              "off_scope": false,
+              "off_scope_signal": false,
+              "scope_basis": "UNSCOPED",
+              "excluded_by_code": false,
+              "taxonomy_client": "apexanalytix",
+              "taxonomy_version": 2
+            },
+            "screen_state": "SUPPORTED_CAPABILITY_AWAITING_JUDGMENT",
+            "stage": "model_review",
+            "qualification": "NOT_ESTABLISHED_BY_CAPABILITY_SCREEN",
+            "requirement_support": {
+              "version": "requirement-support-v1",
+              "source_id": "positive",
+              "record_sha256": "904f96a6775c45253b9eaf4df095a829c1bc0b049dce548699908b627085316b",
+              "taxonomy_client": "apexanalytix",
+              "taxonomy_version": 2,
+              "requested_support": true,
+              "state": "requested_deliverable",
+              "spans": [
+                {
+                  "role": "requested_deliverable",
+                  "quote": "The contractor shall provide supplier risk management software and monthly reports.",
+                  "context_start": 0,
+                  "context_end": 83,
+                  "context_truncated": false,
+                  "method": "requirement-support-v1",
+                  "original_field": "description",
+                  "original_start": 29,
+                  "field_sha256": "c90c70e3ae35face17844496fd7bbb5c7c09e5f63dfdcb53e21541136fc9e8a8",
+                  "provenance_state": "stored_field",
+                  "field": "raw_payload.description_snippet",
+                  "start": 29,
+                  "matched_text": "supplier risk management",
+                  "term": "supplier risk management",
+                  "tier": "core",
+                  "source_id": "positive",
+                  "stored_field_sha256": "c90c70e3ae35face17844496fd7bbb5c7c09e5f63dfdcb53e21541136fc9e8a8"
+                },
+                {
+                  "role": "requested_deliverable",
+                  "quote": "The contractor shall provide supplier risk management software and monthly reports.",
+                  "context_start": 0,
+                  "context_end": 83,
+                  "context_truncated": false,
+                  "method": "requirement-support-v1",
+                  "original_field": "description",
+                  "original_start": 29,
+                  "field_sha256": "c90c70e3ae35face17844496fd7bbb5c7c09e5f63dfdcb53e21541136fc9e8a8",
+                  "provenance_state": "retained_extract_context",
+                  "field_characters": 83,
+                  "source_field_truncated": false,
+                  "field": "raw_payload.screen_evidence_matches[0].context",
+                  "start": 29,
+                  "matched_text": "supplier risk management",
+                  "term": "supplier risk management",
+                  "tier": "core",
+                  "source_id": "positive",
+                  "stored_field_sha256": "c90c70e3ae35face17844496fd7bbb5c7c09e5f63dfdcb53e21541136fc9e8a8"
+                }
+              ],
+              "attachment_context": {
+                "files": [],
+                "bundle_sha256": null,
+                "inventory_hash": null,
+                "per_file_text_offsets": "NOT_RECORDED",
+                "authority": "DISCOVERY_ONLY_NOT_REQUIREMENT_APPROVAL"
+              },
+              "overflow": false,
+              "qualification": "NOT_ESTABLISHED",
+              "limitations": [
+                "Conservative clause rules, not semantic entailment.",
+                "Stored-source attribution is not independent source authentication."
+              ]
+            }
+          }
+        },
+        "requirement_family_diagnostic": {
+          "version": "requirement-support-v1",
+          "population": "supplied_notice_census",
+          "families_by_term_field": [
+            {
+              "term": "supplier risk management",
+              "field": "description",
+              "family": [
+                "sam.gov",
+                "notice",
+                "positive"
+              ],
+              "grouping": "notice_fallback",
+              "notice_ids": [
+                "positive"
+              ],
+              "evidence": [
+                {
+                  "source_id": "positive",
+                  "field": "raw_payload.description_snippet",
+                  "start": 29,
+                  "currentness": "selected_or_unresolved",
+                  "original_start": 29,
+                  "role": "requested_deliverable"
+                },
+                {
+                  "source_id": "positive",
+                  "field": "raw_payload.screen_evidence_matches[0].context",
+                  "start": 29,
+                  "currentness": "selected_or_unresolved",
+                  "original_start": 29,
+                  "role": "requested_deliverable"
+                }
+              ],
+              "buckets": [
+                "requested"
+              ]
+            }
+          ],
+          "term_field_counts": [
+            {
+              "term": "supplier risk management",
+              "field": "description",
+              "lexical_families": 1,
+              "requested_families": 1,
+              "incidental_families": 0,
+              "historical_families": 0,
+              "unresolved_families": 0,
+              "superseded_families": 0
+            }
+          ],
+          "unique_lexical_families": 1,
+          "limitation": "Overlapping field buckets are not additive totals; historical spans are retained."
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "research_picture:positive:full_quote",
+      "input": {
+        "source_id": "N",
+        "title": "Synthetic procurement",
+        "description": "The contractor shall provide supplier risk management software. Submit proposals by September 14.",
+        "notice_type": "Solicitation",
+        "active": "Yes",
+        "api_url": "https://sam.gov/opp/N/view",
+        "retrieved_at": "2026-09-12T14:00:00+00:00",
+        "response_deadline": "2026-09-14T17:00:00+00:00"
+      },
+      "claims": [
+        {
+          "kind": "procurement_state",
+          "statement": "placeholder",
+          "basis": "source_fact",
+          "evidence": [
+            {
+              "source_id": "N",
+              "passage_id": "description",
+              "quote": "The contractor shall provide supplier risk management software. Submit proposals by September 14."
+            }
+          ],
+          "section": "headline"
+        },
+        {
+          "kind": "offering_fit",
+          "statement": "placeholder",
+          "basis": "source_fact",
+          "evidence": [
+            {
+              "source_id": "N",
+              "passage_id": "description",
+              "quote": "The contractor shall provide supplier risk management software. Submit proposals by September 14."
+            }
+          ],
+          "section": "headline"
+        },
+        {
+          "kind": "next_action",
+          "statement": "placeholder",
+          "basis": "source_fact",
+          "evidence": [
+            {
+              "source_id": "N",
+              "passage_id": "description",
+              "quote": "The contractor shall provide supplier risk management software. Submit proposals by September 14."
+            }
+          ],
+          "section": "headline"
+        }
+      ],
+      "as_of": "2026-09-12T15:00:00+00:00",
+      "expected_confirmed": true,
+      "classification": "confirmed_opportunity",
+      "issues": [
+        "Unreferenced narrative withheld; source-backed claims are required."
+      ],
+      "passed": true
+    },
+    {
+      "name": "research_picture:positive:short_action_quote",
+      "input": {
+        "source_id": "N",
+        "title": "Synthetic procurement",
+        "description": "The contractor shall provide supplier risk management software. Submit proposals by September 14.",
+        "notice_type": "Solicitation",
+        "active": "Yes",
+        "api_url": "https://sam.gov/opp/N/view",
+        "retrieved_at": "2026-09-12T14:00:00+00:00",
+        "response_deadline": "2026-09-14T17:00:00+00:00"
+      },
+      "claims": [
+        {
+          "kind": "procurement_state",
+          "statement": "placeholder",
+          "basis": "source_fact",
+          "evidence": [
+            {
+              "source_id": "N",
+              "passage_id": "description",
+              "quote": "The contractor shall provide supplier risk management software. Submit proposals by September 14."
+            }
+          ],
+          "section": "headline"
+        },
+        {
+          "kind": "offering_fit",
+          "statement": "placeholder",
+          "basis": "source_fact",
+          "evidence": [
+            {
+              "source_id": "N",
+              "passage_id": "description",
+              "quote": "The contractor shall provide supplier risk management software. Submit proposals by September 14."
+            }
+          ],
+          "section": "headline"
+        },
+        {
+          "kind": "next_action",
+          "statement": "placeholder",
+          "basis": "source_fact",
+          "evidence": [
+            {
+              "source_id": "N",
+              "passage_id": "description",
+              "quote": "Submit proposals"
+            }
+          ],
+          "section": "headline"
+        }
+      ],
+      "as_of": "2026-09-12T15:00:00+00:00",
+      "expected_confirmed": true,
+      "classification": "confirmed_opportunity",
+      "issues": [
+        "Unreferenced narrative withheld; source-backed claims are required."
+      ],
+      "passed": true
+    },
+    {
+      "name": "research_picture:historical_response_instruction:full_quote",
+      "input": {
+        "source_id": "N",
+        "title": "Synthetic procurement",
+        "description": "The contractor shall provide supplier risk management software. Historical instructions: Submit proposals by September 14, 2020.",
+        "notice_type": "Solicitation",
+        "active": "Yes",
+        "api_url": "https://sam.gov/opp/N/view",
+        "retrieved_at": "2026-09-12T14:00:00+00:00",
+        "response_deadline": "2026-09-14T17:00:00+00:00"
+      },
+      "claims": [
+        {
+          "kind": "procurement_state",
+          "statement": "placeholder",
+          "basis": "source_fact",
+          "evidence": [
+            {
+              "source_id": "N",
+              "passage_id": "description",
+              "quote": "The contractor shall provide supplier risk management software. Historical instructions: Submit proposals by September 14, 2020."
+            }
+          ],
+          "section": "headline"
+        },
+        {
+          "kind": "offering_fit",
+          "statement": "placeholder",
+          "basis": "source_fact",
+          "evidence": [
+            {
+              "source_id": "N",
+              "passage_id": "description",
+              "quote": "The contractor shall provide supplier risk management software. Historical instructions: Submit proposals by September 14, 2020."
+            }
+          ],
+          "section": "headline"
+        },
+        {
+          "kind": "next_action",
+          "statement": "placeholder",
+          "basis": "source_fact",
+          "evidence": [
+            {
+              "source_id": "N",
+              "passage_id": "description",
+              "quote": "The contractor shall provide supplier risk management software. Historical instructions: Submit proposals by September 14, 2020."
+            }
+          ],
+          "section": "headline"
+        }
+      ],
+      "as_of": "2026-09-12T15:00:00+00:00",
+      "expected_confirmed": false,
+      "classification": "research_signal",
+      "issues": [
+        "N: current requested offering and response action require source-bound support.",
+        "Unreferenced narrative withheld; source-backed claims are required."
+      ],
+      "passed": true
+    },
+    {
+      "name": "research_picture:historical_response_instruction:short_action_quote",
+      "input": {
+        "source_id": "N",
+        "title": "Synthetic procurement",
+        "description": "The contractor shall provide supplier risk management software. Historical instructions: Submit proposals by September 14, 2020.",
+        "notice_type": "Solicitation",
+        "active": "Yes",
+        "api_url": "https://sam.gov/opp/N/view",
+        "retrieved_at": "2026-09-12T14:00:00+00:00",
+        "response_deadline": "2026-09-14T17:00:00+00:00"
+      },
+      "claims": [
+        {
+          "kind": "procurement_state",
+          "statement": "placeholder",
+          "basis": "source_fact",
+          "evidence": [
+            {
+              "source_id": "N",
+              "passage_id": "description",
+              "quote": "The contractor shall provide supplier risk management software. Historical instructions: Submit proposals by September 14, 2020."
+            }
+          ],
+          "section": "headline"
+        },
+        {
+          "kind": "offering_fit",
+          "statement": "placeholder",
+          "basis": "source_fact",
+          "evidence": [
+            {
+              "source_id": "N",
+              "passage_id": "description",
+              "quote": "The contractor shall provide supplier risk management software. Historical instructions: Submit proposals by September 14, 2020."
+            }
+          ],
+          "section": "headline"
+        },
+        {
+          "kind": "next_action",
+          "statement": "placeholder",
+          "basis": "source_fact",
+          "evidence": [
+            {
+              "source_id": "N",
+              "passage_id": "description",
+              "quote": "Submit proposals"
+            }
+          ],
+          "section": "headline"
+        }
+      ],
+      "as_of": "2026-09-12T15:00:00+00:00",
+      "expected_confirmed": false,
+      "classification": "research_signal",
+      "issues": [
+        "N: current requested offering and response action require source-bound support.",
+        "Unreferenced narrative withheld; source-backed claims are required."
+      ],
+      "passed": true
+    }
+  ],
+  "passed": 10,
+  "failed": 0,
+  "code_edits": false,
+  "live_queries": 0,
+  "model_calls": 0,
+  "fullsuite": false,
+  "source_portability_check": false,
+  "production_or_frozen_access": false,
+  "new_agents": 0,
+  "fable_acceptance": false,
+  "candidate_changed_during_checks": false,
+  "completed_at_utc": "2026-09-12T23:40:52.913832+00:00",
+  "report_sha256": "fd802fcc3cdc1a889236b269e273793b30ad4616c409d76914623d4a34150521",
+  "dispositions": {
+    "S3-SUP-004:missing_material_scope": "CLOSED_FOR_DEMONSTRATED_HELPER_AND_ADAPTER_CASE",
+    "S3-SUP-004:adjacent_sentence_negation": "CLOSED_FOR_DEMONSTRATED_HELPER_AND_ADAPTER_CASE",
+    "S3-RP-ACTION-001": "CLOSED_FOR_FULL_AND_NARROWED_CITATION_CASE",
+    "genuine_request_current_submit_controls": "PASS"
+  },
+  "proof_limits": [
+    "Synthetic, bounded cases only; no authentic-source or lead-yield claim.",
+    "No full suite or Fable acceptance.",
+    "No judgment of unrelated findings or later commits."
+  ],
+  "completion_checkpoint": true,
+  "next_action": "Coordinator final regression and independent acceptance; operator stops.",
+  "hashes_final": {
+    "tools/relevance/requirement_support.py": "866b98a87a1a1bf5c973ae9f27e45bbabb3a26ccd6d8f0689b925ad98b5d64ff",
+    "tools/api/sam_extract.py": "52d8320e633a329a568d08887c0fd03ef87104758eca1fe2dce82e90c9878d2c",
+    "agents/decisions/triage.py": "27d8bc33a484968d48e12f26c591e38656cd707566a947424b1421f5389ed736",
+    "agents/decisions/research_evidence.py": "3009537b13ba7cda2452608572ed1c1bd2b3077fdab3d5315619c31e405cc23f",
+    "agents/decisions/research_picture.py": "24e4c672f50866c90b2e66e02b70193580ea9cad6642f157568360c2f119a7c2",
+    "clients/apexanalytix/capability_taxonomy.json": "b6c1b9fb5d90cf9f974b6772e1552bc6723c4f71bca969f0fc27068d6e46c2b6"
+  },
+  "git_status_final": ""
+}

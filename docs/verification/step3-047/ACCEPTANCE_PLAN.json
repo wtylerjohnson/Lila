@@ -1,0 +1,316 @@
+{
+  "work_id": "REPAIR-STEP3-BASELINE-047",
+  "created_at_utc": "2026-09-12T23:21:20.803829+00:00",
+  "state": "PRESPECIFIED_FOR_COORDINATOR_IMPLEMENTATION",
+  "base_sha": "e8ef4e0f15173905fd28ad2c2d242e6572f52c31",
+  "fixture_labels_created_before_baseline_execution": "2026-09-12T23:19:02.830578+00:00",
+  "role_fixture_sha256": "a4cba6e6874ad8c5d249545cb7766ec96903adf5a156df525af9703fc49dfb93",
+  "cases": [
+    {
+      "id": "sow-canonical",
+      "description": "Statement of work: The contractor shall provide supplier risk management software, integrate supplier records, and deliver monthly risk assessments and alerts.",
+      "expected_role": "requested_deliverable",
+      "expected_requested_support": true,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "sow-alias",
+      "description": "Statement of work: The contractor shall provide vendor risk management software with continuous supplier monitoring and monthly exception reports.",
+      "expected_role": "requested_deliverable",
+      "expected_requested_support": true,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "projector-sprs",
+      "description": "Deliver six projectors. Evaluation: The Government will use Supplier Performance Risk System (SPRS) supplier risk management information to evaluate vendor performance.",
+      "expected_role": "evaluation_boilerplate",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "guidance",
+      "description": "Reference guidance: The manufacturing readiness handbook discusses supplier risk management. The contractor shall fabricate metal brackets.",
+      "expected_role": "reference_guidance",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "guidance-purchased",
+      "description": "The contractor shall implement supplier risk management controls from the referenced handbook, configure monitoring software, and deliver monthly supplier risk dashboards.",
+      "expected_role": "requested_deliverable",
+      "expected_requested_support": true,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "past-work",
+      "description": "In 2019 the agency purchased supplier risk management software. This solicitation purchases only conference tables.",
+      "expected_role": "historical_mention",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "past-and-current",
+      "description": "In 2019 the agency purchased supplier risk management software. This statement of work requires a replacement supplier risk management platform with daily monitoring and migration deliverables.",
+      "expected_role": "mixed_current_and_historical",
+      "expected_requested_support": true,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "negated",
+      "description": "The contractor is not required to provide supplier risk management software. Only projector installation is required.",
+      "expected_role": "negated_requirement",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "negated-scope",
+      "description": "Supplier risk management is out of scope. Deliver projectors and mounts only.",
+      "expected_role": "negated_requirement",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "not-only",
+      "description": "The contractor shall provide not only supplier risk management software but also onboarding workflows, weekly alerts and monthly risk reports.",
+      "expected_role": "requested_deliverable",
+      "expected_requested_support": true,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "quoted-prior",
+      "description": "Quoted prior work, excluded from this purchase: \"Provide supplier risk management services.\" The current requirement is to deliver office chairs.",
+      "expected_role": "quoted_prior_work",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "name-collision",
+      "description": "Awardee name for office chairs: Supplier Risk Management LLC. The only deliverable is office chairs.",
+      "expected_role": "company_name_collision",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "known-identity-collision",
+      "description": "APEX Gamma Service provides supplier risk management software.",
+      "expected_role": "known_excluded_identity",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "mixed-positive",
+      "description": "Evaluation uses SPRS supplier risk management data. Separately, SOW task 2 requires supplier risk management software, daily supplier monitoring and monthly risk reports.",
+      "expected_role": "mixed_requested_and_boilerplate",
+      "expected_requested_support": true,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "mixed-negative",
+      "description": "Evaluation uses SPRS supplier risk management data. The SOW excludes supplier risk management services and requires only projectors.",
+      "expected_role": "mixed_boilerplate_and_negation",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "thin-context",
+      "description": "supplier risk management",
+      "expected_role": "context_missing",
+      "expected_requested_support": "unresolved",
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "missing-sow",
+      "description": "The supplier risk management scope is specified in the unavailable SOW attachment.",
+      "expected_role": "material_source_missing",
+      "expected_requested_support": "unresolved",
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout.",
+      "attachment_status": "INVENTORY_UNAVAILABLE"
+    },
+    {
+      "id": "contradictory",
+      "description": "SOW task 1: Provide supplier risk management software. SOW task 1 correction: No supplier risk management software is required.",
+      "expected_role": "contradictory_context",
+      "expected_requested_support": "unresolved",
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "no-capability",
+      "description": "Deliver six projectors and mounting brackets.",
+      "expected_role": "unrelated_requirement",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "split-fields",
+      "description": "risk management software must be provided.",
+      "expected_role": "incomplete_cross_field_phrase",
+      "expected_requested_support": "unresolved",
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout.",
+      "title": "supplier"
+    },
+    {
+      "id": "title-only",
+      "description": "",
+      "expected_role": "title_only",
+      "expected_requested_support": "unresolved",
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout.",
+      "title": "Supplier risk management"
+    },
+    {
+      "id": "historical-label",
+      "description": "The contractor shall provide supplier risk management software with monthly reports.",
+      "expected_role": "historical_award",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout.",
+      "notice_type": "Awarded"
+    },
+    {
+      "id": "canonical-award",
+      "description": "The contractor shall provide supplier risk management software with monthly reports.",
+      "expected_role": "historical_award",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout.",
+      "notice_type": "Award Notice"
+    },
+    {
+      "id": "preaward",
+      "description": "The contractor shall provide supplier risk management software with monthly reports.",
+      "expected_role": "requested_deliverable",
+      "expected_requested_support": true,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout.",
+      "notice_type": "Preaward"
+    },
+    {
+      "id": "pre-award",
+      "description": "The contractor shall provide supplier risk management software with monthly reports.",
+      "expected_role": "requested_deliverable",
+      "expected_requested_support": true,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout.",
+      "notice_type": "pre-award"
+    }
+  ],
+  "groups": [
+    {
+      "id": "HISTORY-ADAPTERS",
+      "scope": "S2-HISTORY-001 isolated entry correction",
+      "inputs": "Actual map_notice and iter_rows/_to_opportunity, serialized identically to run_searches; retained historical_probe_results.json",
+      "assertions": [
+        "All six explicit labels Award Notice, award, a, awards, Award Notification, Awarded map to historical capability research and no current model candidate.",
+        "Case and outer/internal whitespace variants behave consistently; future deadlines never promote historical type.",
+        "Preaward, pre-award, Solicitation, Combined Synopsis/Solicitation, contract, unknown/blank/null remain nonhistorical unless separate explicit evidence establishes otherwise.",
+        "Narrative prior-award mention alone has no type effect.",
+        "Preserve original label fields, source path, normalized comparison, selected-field provenance, missing/conflict state and exact capability offsets.",
+        "Test raw.type, CSV raw.base_type, retained API baseType and top-level compatibility fields separately; do not assume baseType semantics or precedence without an explicit adapter policy.",
+        "Whitespace-only projections cannot shadow a native value; contradictory type/projection values remain explicit and cannot silently substantiate current buying."
+      ]
+    },
+    {
+      "id": "ROLES-PAIRED",
+      "scope": "25 prespecified_cases.json cases",
+      "assertions": [
+        "Concrete original SOW canonical and alias requests retain requested support and reach appropriate review, without declaring qualification.",
+        "Boilerplate-only, guidance-only, quoted historical work, explicit negation and name-only collisions cannot establish requested support or a recommendation.",
+        "Mixed positive clause survives even beside SPRS/evaluation text; mixed negative/contradictory clauses remain scoped to their evidence.",
+        "Guidance incorporated as an actual deliverable and not-only wording remain positive controls.",
+        "Thin/title-only/missing material context remains unresolved; no automatic functional mismatch or blanket escalation."
+      ]
+    },
+    {
+      "id": "CONTEXT-RETENTION",
+      "scope": "extract/API/triage",
+      "assertions": [
+        "A later positive after 2000 characters and after a first boilerplate hit remains discoverable; title hit does not suppress decisive description context.",
+        "Repeat with reversed clause order, canonical and alias phrases, field boundaries, section headers and truncated context.",
+        "Under bounded overflow, retain honest unresolved evidence coverage.",
+        "Original absolute offsets and context-relative offsets remain distinguishable and reconstructable; field/record hash and source identity survive.",
+        "Actual API raw.description and CSV raw.description_snippet reach the model context stub with no network/model call; a URL-only description is not full text.",
+        "Attachment text retains discovery-only bundle/file provenance, truncation and missing/unreadable distinctions."
+      ]
+    },
+    {
+      "id": "SOURCE-REBIND",
+      "scope": "consumer trust boundary",
+      "assertions": [
+        "Wrong source identity, field, quote, original offset, hash, current taxonomy or altered role support is rejected/recomputed at the consuming boundary.",
+        "A user-supplied semantic_role or source-verified flag cannot authenticate itself.",
+        "Cross-notice context remains attributed and cannot supply own-notice requested support, deadline, route or current action.",
+        "Changed/later amendment negation cannot inherit the prior positive as current; original history remains readable."
+      ]
+    },
+    {
+      "id": "C1-ABSENT-INPUTS",
+      "scope": "S2-C1-003 separately labeled boundary tests",
+      "assertions": [
+        "Standalone all-inputs-omitted validation is explicitly shape/projection-only; reviewed alias taxonomy lookup is not stored-source proof.",
+        "Partial current inputs refuse. Missing both loaded and derived taxonomy refuses before native machine press.",
+        "Present taxonomy with missing/wrong source refuses; complete authentic source/support succeeds.",
+        "Any API/schema change distinguishing validation modes is isolated with legacy/operator-card controls."
+      ]
+    },
+    {
+      "id": "CLAIM-PREDICATES",
+      "scope": "S2-CLAIM-004 separately labeled C1 contract change",
+      "assertions": [
+        "Past expired award or absent time evidence cannot substantiate currently funds.",
+        "Negated/boilerplate capability quote cannot substantiate purchased deliverable or displacement target.",
+        "Require source-bound current funding and incumbent/buying-action predicates for stronger claims; qualify inference separately.",
+        "Preserve historical market context and next research action without current-demand promotion.",
+        "Explicit current authoritative evidence should retain appropriately bounded supported claims."
+      ]
+    },
+    {
+      "id": "RESEARCH-PICTURE-SEMANTICS",
+      "scope": "Step3 extension, accepted Step1 closures remain baseline",
+      "assertions": [
+        "Three typed labels attached to the same SPRS/negation quote do not establish own-notice offering_fit or next_action.",
+        "Genuine own-source requested work with valid metadata supports the documented-notice class while strict qualification remains separate.",
+        "Retain accepted source rebuild, blank-quote refusal, unknown-ID refusal, conflicting metadata and cross-notice route protections."
+      ]
+    },
+    {
+      "id": "FAMILY-DENOMINATORS",
+      "scope": "additive internal diagnostic only",
+      "assertions": [
+        "Measure unique families per canonical term and original source field, preserving contributing notice IDs/spans/role and amendment lineage.",
+        "Same solicitation plus agency plus issuing office counts once; incomplete identity falls back to notice ID with unresolved grouping rather than guessed merge.",
+        "Separate calls, source lanes and distinct issuing offices remain distinct; do not union different notices by title/prefix.",
+        "Two amendments or repeated mentions never inflate supported-family counts.",
+        "Keep historical, boilerplate-only and unresolved buckets separate; do not add field counts into a purported total without family deduplication.",
+        "Synthetic fixture expects 4 lexical families and 3 prespecified requested families in description; product role count remains to be implemented."
+      ]
+    },
+    {
+      "id": "BOUNDARIES",
+      "scope": "regression guardrails",
+      "assertions": [
+        "No global keyword blacklist, new AND NAICS gate, blanket threshold reduction or source filtering.",
+        "No promotion of discovery-only attachments, human requirement approval bypass, release/Market Map slot or counts() contract drift.",
+        "No frozen-case scoring or real-data performance claim from fixture success.",
+        "S2-SOURCE-002 remains root-owned and outside this assignment."
+      ]
+    },
+    {
+      "id": "REAL-SOURCE-ACCEPTANCE",
+      "scope": "required before authentic real-data success claim",
+      "assertions": [
+        "Use a separately authorized immutable original government supplier-risk SOW with concrete deliverables and original projector/SPRS or guidance negative, reviewed against original source passages.",
+        "Record original notice/family identity, file/field/page/offset, raw type, status, evidence vintage and raw-byte hash.",
+        "Synthetic fixtures are not substitutes for this authentic-source validation or independent unused-company holdout."
+      ]
+    }
+  ],
+  "implementation_owner": "Existing coordinator",
+  "contract_extensions": [
+    "C1 claim-support basis/public projection and validation mode if changed",
+    "Research Picture role-aware typed-claim promotion",
+    "Additive internal family diagnostic; existing counts and term_yield unchanged"
+  ],
+  "verification_order": [
+    "Targeted pure historical adapter tests",
+    "Role/retention/rebind negative and positive probes",
+    "Native press/Markdown/API consumer contract tests with exact source fixtures and no model spend",
+    "Coordinator required final regression/report lint on the final candidate",
+    "CoS/Fable independent review before advancement"
+  ],
+  "fullsuite_run_in_this_assignment": false
+}
