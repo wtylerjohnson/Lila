@@ -1906,3 +1906,38 @@ lifecycle fallbacks only when current types are absent. Disagreement between
 current projections blocks current buying, while a differing original base type
 is retained without overriding a current type. The screening receipt is additive.
 Verify with `python -m pytest tests/test_notice_type_evidence.py -q` offline.
+
+### Step3 requested-work evidence (2026-09-12)
+
+`tools/relevance/requirement_support.py` extends the existing exact field/span
+receipt with bounded clause roles, original-field offsets, stored-field hashes,
+and tri-state requested support. It recomputes from source text and the current
+taxonomy; supplied role/verified flags never grant support. Explicit SOW requests
+may reach judgment, incidental-only context cannot, and incomplete/contradictory
+context stays unscreened unless an existing decisive gate excludes the record.
+These conservative language rules are discovery evidence, not general semantic
+entailment, qualification, independent authentication, or a recall result.
+
+CSV evidence v2 retains up to48 distinct matching positions across title and full
+description, with separate original and context offsets and field/context hashes.
+Overflow and clipped clauses remain visible. Retained-context hashes bind stored
+projections; they do not authenticate absent original bytes. Legacy contexts
+without original offsets remain readable but cannot independently establish
+requested work. Title evidence remains title-only after projection. API URL-only
+description is a named gap. Triage carries recomputed decisive support, including
+late API clauses, and rechecks it before model review when taxonomy is supplied.
+
+Amendment suppression checks the complete source census so an older positive
+cannot leapfrog a newer nonpositive revision. Structured family identity includes
+source lane, solicitation, agency and office. The additive internal
+`triage_prefilter.requirement_family_diagnostic` separates current/superseded,
+historical, incidental and unresolved evidence by original field and canonical
+term; overlapping field counts are never summed into market totals. Existing
+`term_yield`, `counts()`, strict Assess, engagement and release gates are unchanged.
+
+Focused check: `LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 python -m pytest
+tests/test_requirement_support.py tests/test_notice_type_evidence.py
+tests/test_capability_alignment.py tests/test_triage_prefilter.py
+tests/test_triage.py tests/test_sam_extract.py -q` using the configured runtime.
+The prespecified25 fixtures and operator-discovered counterexamples are synthetic
+software checks; authentic source success and recovered leads remain unproved.

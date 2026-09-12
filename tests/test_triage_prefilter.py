@@ -25,9 +25,9 @@ TAXONOMY = CapabilityTaxonomy(**{
 
 def test_capability_evidence_reaches_model_and_every_row_reconciles():
     notices = [
-        {"source_id": "brand", "title": "Arista EOS support", "naics": "541512"},
-        {"source_id": "demand", "title": "Data center switching refresh", "naics": "541512"},
-        {"source_id": "adjacent", "title": "Network modernization", "naics": "541512"},
+        {"source_id": "brand", "title": "Arista EOS support", "description": "Provide Arista EOS support.", "naics": "541512"},
+        {"source_id": "demand", "title": "Data center switching refresh", "description": "Provide data center switching infrastructure.", "naics": "541512"},
+        {"source_id": "adjacent", "title": "Network modernization", "description": "Provide network modernization services.", "naics": "541512"},
         {"source_id": "naics", "title": "Help desk staffing", "naics": "541512"},
         {"source_id": "collision", "title": "Arista Aviation Services", "naics": "541512"},
     ]
@@ -68,7 +68,7 @@ def test_public_attachment_text_can_supply_core_evidence():
     assert ruled == {}
 
 
-def test_full_description_screen_context_can_supply_adjacent_evidence():
+def test_legacy_context_without_original_offsets_remains_unresolved():
     notice = {
         "source_id": "deep-description",
         "title": "Enterprise platform RFI",
@@ -89,9 +89,9 @@ def test_full_description_screen_context_can_supply_adjacent_evidence():
 
     candidates, ruled, receipt = deterministic_prefilter([notice], TAXONOMY)
 
-    assert candidates == [notice]
-    assert ruled == {}
-    assert receipt["model_candidate_reasons"] == {"adjacent-evidence": 1}
+    assert not candidates
+    assert ruled["deep-description"]["screen_state"] == "CODE_BOUNDARY_EXCLUSION"  # existing decisive gate
+    assert receipt["screening_records"]["deep-description"]["requirement_support"]["requested_support"] is None
 
 
 def test_span_kill_does_not_discard_independent_surviving_core_evidence():
@@ -103,6 +103,7 @@ def test_span_kill_does_not_discard_independent_surviving_core_evidence():
     ))
     notice = {
         "source_id": "mixed",
+        "description": "Provide data center switching infrastructure.",
         "title": (
             "Legacy network monitoring " + "separate context " * 20
             + "data center switching refresh"
@@ -127,7 +128,7 @@ def test_solicitation_revisions_receive_one_model_judgment_with_lineage():
                 "solicitation": "SOL-1",
                 "agency": "Department of Energy",
                 "office": "National Laboratory Procurement Office",
-                "description_snippet": "Original switching requirement.",
+                "description_snippet": "Provide data center switching infrastructure.",
             },
         },
         {
@@ -139,7 +140,7 @@ def test_solicitation_revisions_receive_one_model_judgment_with_lineage():
                 "solicitation": "SOL-1",
                 "agency": "Department of Energy",
                 "office": "National Laboratory Procurement Office",
-                "description_snippet": "Updated switching requirement.",
+                "description_snippet": "Provide data center switching infrastructure with monthly maintenance.",
             },
         },
     ]
@@ -273,7 +274,7 @@ def test_cross_post_consolidation_does_not_collapse_distinct_lots():
         "LOT-A",
         "NETWORK-RFI-LOT-A",
         description=(
-            "Lot A covers data center switching modernization for the primary "
+            "Lot A requires data center switching modernization for the primary "
             "campus, with resilient leaf-spine infrastructure and lifecycle "
             "support limited to the production environment."
         ),
@@ -282,7 +283,7 @@ def test_cross_post_consolidation_does_not_collapse_distinct_lots():
         "LOT-B",
         "NETWORK-RFI-LOT-B",
         description=(
-            "Lot B covers data center switching modernization for the research "
+            "Lot B requires data center switching modernization for the research "
             "campus, with resilient leaf-spine infrastructure and lifecycle "
             "support limited to the laboratory environment."
         ),

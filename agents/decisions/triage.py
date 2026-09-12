@@ -102,7 +102,7 @@ def _notice_thread_key(notice: dict, index: int) -> tuple[str, ...]:
         agency = _normalized_text(raw.get("agency") or notice.get("agency"))
         office = _normalized_text(raw.get("office") or notice.get("office"))
         if agency and office:
-            return ("solicitation", normalized, agency, office)
+            return ("solicitation", normalized, agency, office, str(notice.get('source') or 'sam.gov'))
     return ("notice", _source_id(notice, f"idx-{index}"))
 
 
@@ -347,11 +347,25 @@ def _canonical_cross_posts(
     return [notice for _index, notice in selected], duplicates, len(duplicates)
 
 
-def _bounded_source_evidence(notice: dict) -> list[dict] | None:
+def _bounded_source_evidence(notice: dict, taxonomy=None) -> list[dict] | None:
+    from tools.relevance.engine import record_text_fields
     raw = notice.get("raw_payload")
     if not isinstance(raw, dict):
-        return None
+        raw = {}
     evidence: list[dict] = []
+    if taxonomy is not None:
+        from tools.relevance.requirement_support import requirement_support
+        support = requirement_support(notice, taxonomy)
+        evidence.append({"field": "requirement_support", "source_id": _source_id(notice),
+                         "support": support, "authority": "discovery_only_not_qualification"})
+    for field, value in record_text_fields(notice):
+        if field.split('.')[-1] in {'title', 'label', 'context', 'description_snippet'}:
+            continue
+        if re.fullmatch(r'\s*https?://\S+\s*', value):
+            evidence.append({'field': field, 'retrieval_gap': 'Description is a URL; text not supplied.'})
+            continue
+        evidence.append({'field': field, 'source_id': _source_id(notice),
+                         'context': value[:1200], 'truncated': len(value) > 1200})
     snippet = str(raw.get("description_snippet") or "").strip()
     if snippet:
         evidence.append({
@@ -366,8 +380,13 @@ def _bounded_source_evidence(notice: dict) -> list[dict] | None:
             "term": str(row.get("term") or "")[:120],
             "matched_text": str(row.get("matched_text") or "")[:160],
             "context": str(row.get("context") or "")[:500],
+            "source_id": _source_id(notice),
+            "original_start": row.get("start"),
+            "context_start": row.get("context_start"),
+            "field_sha256": row.get("field_sha256"),
+            "truncated": len(str(row.get("context") or "")) > 500 or row.get("context_truncated", False),
         })
-        if len(evidence) >= 6:
+        if len(evidence) >= 50:
             break
     for row in raw.get("triage_thread_evidence") or []:
         if isinstance(row, dict):
@@ -496,6 +515,7 @@ def deterministic_prefilter(
     """
     from tools.relevance.engine import score_record
     from tools.relevance.screening import no_match_state, screening_evidence
+    from tools.relevance.requirement_support import requirement_support, family_diagnostic
 
     candidates: list[dict] = []
     ruled: dict[str, dict] = {}
@@ -515,9 +535,11 @@ def deterministic_prefilter(
             notice, verdict, (attachment_receipts or {}).get(source_id))
         evidence["source_id"] = source_id
         screening_records[source_id] = evidence
+        support = requirement_support(notice, taxonomy, verdict=verdict)
+        evidence["requirement_support"] = support
         historical = evidence["notice_type_evidence"]["historical"]
         type_conflict = evidence["notice_type_evidence"]["conflict"]
-        if not historical and not type_conflict and not verdict.off_scope and (
+        if not historical and not type_conflict and support["requested_support"] is True and not verdict.off_scope and (
                 verdict.core_terms or verdict.adjacent_terms):
             candidates.append(notice)
             reason_key = (
@@ -554,6 +576,13 @@ def deterministic_prefilter(
             reason = "outside the approved code boundary without strong capability evidence"
             reason_key = "outside-code"
             evidence["screen_state"] = "CODE_BOUNDARY_EXCLUSION"
+        elif verdict.core_terms or verdict.adjacent_terms or support["requested_support"] is None:
+            unresolved = support["requested_support"] is None
+            reason = ("Capability mentioned but requested work remains unresolved; retain source research gap"
+                      if unresolved else "Capability appears only in incidental or excluded context; no requested work established")
+            reason_key = "requirement-context-unresolved" if unresolved else "incidental-capability"
+            evidence.update(screen_state="REQUIREMENT_CONTEXT_UNRESOLVED" if unresolved else "INCIDENTAL_CAPABILITY_ONLY",
+                            stage="source_research" if unresolved else "deterministic_screen")
         elif verdict.adjacent_terms:
             reason = "adjacent signal without core client capability evidence"
             reason_key = "adjacent-only"
@@ -563,7 +592,7 @@ def deterministic_prefilter(
             reason_key = "no-core-evidence"
         ruled[source_id] = {
             "verdict": "unscreened" if evidence["screen_state"] in {
-                "TEXT_INCOMPLETE", "ATTACHMENT_UNAVAILABLE", "NOTICE_TYPE_CONFLICT"} else "discard",
+                "TEXT_INCOMPLETE", "ATTACHMENT_UNAVAILABLE", "NOTICE_TYPE_CONFLICT", "REQUIREMENT_CONTEXT_UNRESOLVED"} else "discard",
             "reason": reason,
             "screen": "deterministic-capability-v3",
             "relevance_score": verdict.score,
@@ -574,6 +603,16 @@ def deterministic_prefilter(
             reasons[reason_key] = reasons.get(reason_key, 0) + 1
 
     pre_thread_candidates = len(candidates)
+    # Consolidate against the complete census, before positive selection can
+    # make an older requirement leapfrog a later withdrawal/negative amendment.
+    _latest, all_superseded, _count = _latest_notice_threads(notices)
+    for notice in list(candidates):
+        sid = _source_id(notice)
+        if sid in all_superseded and all_superseded[sid]['superseded_by'] in ruled:
+            candidates.remove(notice)
+            ruled[sid] = all_superseded[sid]
+            screening_records[sid].update(screen_state="CONSOLIDATED_POSTING", stage="thread_consolidation",
+                                           consolidation=all_superseded[sid])
     candidates, superseded, superseded_count = _latest_notice_threads(
         candidates)
     ruled.update(superseded)
@@ -604,6 +643,7 @@ def deterministic_prefilter(
         "discard_reasons": dict(sorted(reasons.items())),
         "complete": len(candidates) + len(ruled) == len(notices),
         "screening_records": screening_records,
+        "requirement_family_diagnostic": family_diagnostic(notices, screening_records),
     }
     return candidates, ruled, receipt
 
@@ -616,6 +656,7 @@ def triage_notices(
     batch_size: int = DEFAULT_BATCH_SIZE,
     batch_char_budget: int = DEFAULT_BATCH_CHAR_BUDGET,
     directive: Optional[str] = None,
+    taxonomy: Any = None,
 ) -> dict[str, dict]:
     """Return {source_id: {verdict, reason}} for every notice given.
 
@@ -627,6 +668,18 @@ def triage_notices(
     a fit the notice + strategy do not support — no invented opportunities.
     """
     engine = engine or research_engine()
+    withheld = {}
+    if taxonomy is not None:
+        from tools.relevance.requirement_support import requirement_support
+        eligible = []
+        for i, notice in enumerate(notices):
+            support = requirement_support(notice, taxonomy)
+            if support['requested_support'] is True:
+                eligible.append(notice)
+            else:
+                withheld[_source_id(notice, f'idx-{i}')] = {
+                    'verdict': 'unscreened', 'reason': 'Requested-work support did not reproduce from current stored text.'}
+        notices = eligible
     slim = [
         {
             "id": n.get("source_id") or n.get("id") or f"idx-{i}",
@@ -647,7 +700,7 @@ def triage_notices(
                 and (n.get("raw_payload") or {}).get("attachment_evidence")
                 else None
             ),
-            "official_source_evidence": _bounded_source_evidence(n),
+            "official_source_evidence": _bounded_source_evidence(n, taxonomy),
             "attachment_evidence_sha256": (
                 (n.get("raw_payload") or {}).get("attachment_evidence_sha256")
                 if isinstance(n.get("raw_payload"), dict) else None
@@ -655,7 +708,7 @@ def triage_notices(
         }
         for i, n in enumerate(notices)
     ]
-    out: dict[str, dict] = {}
+    out: dict[str, dict] = dict(withheld)
     batches = _adaptive_batches(
         slim,
         client_name=client_name,

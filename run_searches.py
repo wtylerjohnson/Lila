@@ -2375,6 +2375,7 @@ def main() -> int:
                 args.client,
                 getattr(strategy, "pursuit_strategy", "") or "",
                 model_notices,
+                taxonomy=sam_taxonomy,
             ))
             out["results"]["triage"] = verdicts
             decision_coverage = _decision_coverage_receipt(

@@ -58,18 +58,13 @@ def test_triage_reads_notice_type_from_canonical_raw_payload():
     }], engine=engine)
     assert seen["type"] == "Sources Sought"
     assert "Official PWS" in seen["official_attachment_excerpt"]
-    assert seen["official_source_evidence"] == [
-        {
-            "field": "description_snippet",
-            "context": "Public notice opening language.",
-        },
-        {
-            "field": "description",
-            "term": "threat intelligence",
-            "matched_text": "threat intelligence",
-            "context": "The requirement includes threat intelligence.",
-        },
-    ]
+    evidence = seen["official_source_evidence"]
+    assert any(e["field"] == "raw_payload.text" and "Official PWS" in e["context"] for e in evidence)
+    assert any(e["field"] == "description_snippet" and e["context"] == "Public notice opening language." for e in evidence)
+    retained = next(e for e in evidence if e.get("matched_text") == "threat intelligence")
+    assert retained["source_id"] == "N1"
+    assert retained["context"] == "The requirement includes threat intelligence."
+    assert retained["original_start"] is None  # legacy context, no invented original offset
     assert out["N1"]["attachment_evidence_sha256"] == "inventory-hash"
 
 

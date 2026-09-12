@@ -63,7 +63,7 @@ _DEFAULT_ARCHIVE = Path(__file__).resolve().parents[2] / "data" / "archive" / "s
 # of work would balloon triage prompts without adding screen recall.
 SCREEN_DESCRIPTION_CHARS = 2000
 SCREEN_EVIDENCE_CONTEXT_CHARS = 180
-MAX_SCREEN_EVIDENCE_MATCHES = 12
+MAX_SCREEN_EVIDENCE_MATCHES = 48
 _ATTACHMENT_ANCHOR_STOP = frozenset({
     "aided", "application", "applications", "case", "computer", "end",
     "enterprise", "federal", "first", "full", "management", "operations",
@@ -538,49 +538,60 @@ def _to_opportunity(r: dict) -> RawOpportunity:
         raw_payload={k: v for k, v in r.items() if k != "description"}
         | {"description_snippet":
            (r.get("description") or "")[:SCREEN_DESCRIPTION_CHARS],
+           "description_characters": len(r.get("description") or ""),
+           "description_sha256": hashlib.sha256((r.get("description") or "").encode()).hexdigest(),
+           "description_truncated": len(r.get("description") or "") > SCREEN_DESCRIPTION_CHARS,
            "via": "daily-extract"},
     )
 
 
-def _screen_evidence(title: str, description: str,
-                     keywords: list[str]) -> list[dict]:
-    """Preserve bounded verbatim context for full-description term hits.
-
-    The daily extract screen reads the complete description while the
-    downstream payload deliberately keeps only a short leading snippet.  A
-    capability phrase can therefore retrieve a notice after character 2,000
-    yet disappear before deterministic relevance sees it.  These compact
-    contexts preserve the exact source text that caused retrieval without
-    copying a multi-page notice into every sweep record.
-    """
+def _screen_evidence_with_coverage(title: str, description: str,
+                                   keywords: list[str]) -> tuple[list[dict], dict]:
+    """Retain multiple bounded clauses; disclose any omitted occurrences."""
     evidence: list[dict] = []
-    seen: set[tuple[str, str, int]] = set()
-    for term in keywords:
-        pattern = _keyword_pattern(term)
-        if pattern is None:
-            continue
-        for field, value in (("title", title), ("description", description)):
-            match = pattern.search(value)
-            if match is None:
+    seen = set()
+    occurrences = 0
+    for field, value in (("description", description), ("title", title)):
+        field_hash = hashlib.sha256(value.encode()).hexdigest()
+        for term in keywords:
+            pattern = _keyword_pattern(term)
+            if pattern is None:
                 continue
-            start, end = match.span()
-            key = (field, term.casefold(), start)
-            if key in seen:
-                continue
-            seen.add(key)
-            lo = max(0, start - SCREEN_EVIDENCE_CONTEXT_CHARS)
-            hi = min(len(value), end + SCREEN_EVIDENCE_CONTEXT_CHARS)
-            evidence.append({
-                "term": term,
-                "field": field,
-                "matched_text": match.group(0),
-                "context": value[lo:hi],
-                "start": start,
-            })
-            break
-        if len(evidence) >= MAX_SCREEN_EVIDENCE_MATCHES:
-            break
-    return evidence
+            for match in pattern.finditer(value):
+                start, end = match.span()
+                key = (field, start, end)
+                if key in seen:
+                    continue
+                seen.add(key)
+                occurrences += 1
+                if len(evidence) >= MAX_SCREEN_EVIDENCE_MATCHES:
+                    continue
+                # Sentence bounds keep section prefixes/negation attached.
+                left = list(re.finditer(r'[.!?;\n]\s*', value[:start]))
+                clause_lo = left[-1].end() if left else 0
+                prior = value[max(0, clause_lo - 220):clause_lo]
+                # Keep a preceding section label with the imperative below it.
+                if re.search(r'(?:quoted prior|prior work|historical background|previous requirement|not current|excluded from)[^.!?]*[.:\n]\s*$', prior, re.I):
+                    clause_lo = max(0, clause_lo - len(prior))
+                right = re.search(r'[.!?;\n](?:\s|$)', value[end:])
+                clause_hi = end + right.start() + 1 if right else len(value)
+                lo, hi = max(clause_lo, start - 350), min(clause_hi, end + 350)
+                context = value[lo:hi]
+                evidence.append({
+                    "version": "extract-context-v2", "term": term, "field": field,
+                    "matched_text": match.group(0), "context": context,
+                    "start": start, "end": end, "context_start": lo, "context_end": hi,
+                    "field_characters": len(value), "field_sha256": field_hash,
+                    "context_sha256": hashlib.sha256(context.encode()).hexdigest(),
+                    "context_truncated": lo != clause_lo or hi != clause_hi,
+                })
+    return evidence, {"version": "extract-context-v2", "occurrences": occurrences,
+                      "retained": len(evidence), "overflow": occurrences > len(evidence),
+                      "all_keyword_occurrences_scanned": True}
+
+
+def _screen_evidence(title: str, description: str, keywords: list[str]) -> list[dict]:
+    return _screen_evidence_with_coverage(title, description, keywords)[0]
 
 
 def _attachment_anchor_terms(taxonomy) -> set[str]:
@@ -701,11 +712,12 @@ class SamExtractSource(DataSource):
                 opp.raw_payload["matched"] = (
                     (["naics"] if hit_naics else [])
                     + matched_keywords[:MAX_SCREEN_EVIDENCE_MATCHES])
-                evidence = _screen_evidence(
+                evidence, evidence_coverage = _screen_evidence_with_coverage(
                     r.get("title") or "",
                     r.get("description") or "",
                     matched_keywords,
                 )
+                opp.raw_payload["screen_evidence_coverage"] = evidence_coverage
                 if evidence:
                     opp.raw_payload["screen_evidence_matches"] = evidence
                 results.append(opp)
