@@ -1726,6 +1726,17 @@ and refreshes an already-active Assess pointer; it does not activate a client or
 approve a requirement. Use `--notice-id`, `--disposition` and `--reason` together
 to remove a weak case from priority while retaining its evidence and history.
 
+Strict report projection reopens the casebook against its immutable input hash
+and requires complete record equality for an out-of-sweep case. Supplemental
+records travel in `LiveReportProjection.reviewed_research`, separately from raw
+SAM `notices` and posting counts. Any existing raw row or indexed family retains
+its strict join requirements. Selected reviewed research renders as an explicit
+standing research entry after the existing capped watchlist, retaining its source
+classification, deadline and next ask. It never enters sweep snapshots, displaces
+an existing watchlist row, acquires a NEW badge, or gains a pursuit rank. Rejected
+and deprioritized cases remain in the immutable assessment and lead companion.
+Regression: `tests/test_reviewed_case_projection.py`.
+
 Each normal release binds the matching `<slug>.dossier.json` and optional
 `<slug>.target_actions.json`, then joins reviewed actions to exact Assess parents.
 The release includes `company_dossier.json`, `reviewed_cases.json` and

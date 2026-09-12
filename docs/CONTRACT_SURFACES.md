@@ -695,6 +695,12 @@ operator approval/scope semantics, and independent lead qualification tiers.
 - ReviewedCases is a versioned, scope-bound input to the immutable Assess ledger.
   It cannot approve bid_now or overwrite a discovered notice. Its hash is an
   Assess projection input; a changed casebook must be refreshed before release.
+  The strict report authenticates the same casebook bytes and exact record before
+  projecting supplemental research separately from discovered SAM postings.
+  Research priorities may appear as explicitly labeled standing research without
+  changing source classification, raw counts, discovery badges, pursuit rank,
+  or existing watchlist selection. This September 9 repair completes the authorized
+  reviewed-case path; corrupt raw/index joins and all release gates still refuse.
 - Research priority never implies LEAD_T1/T2 or permission to contact. Closed RFI
   sources may support explicitly conditional follow-on investigation. Source
   deadlines remain historical, and unanswered questions stay visible.

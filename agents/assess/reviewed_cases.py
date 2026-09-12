@@ -45,11 +45,19 @@ class ReviewedCases(BaseModel):
         return self
 
 
-def load_cases(client_name: str, review_dir: Path) -> ReviewedCases:
+def load_cases(client_name: str, review_dir: Path, *,
+               expected_sha256: str | None = None) -> ReviewedCases:
     path = review_dir / f"{client_slug(client_name)}.reviewed_cases.json"
-    if not path.exists():
+    try:
+        raw = path.read_bytes()
+    except FileNotFoundError:
+        if expected_sha256 not in (None, "missing"):
+            raise ValueError("bound reviewed cases are missing")
         return ReviewedCases(client_name=client_name)
-    book = ReviewedCases.model_validate_json(path.read_bytes())
+    if (expected_sha256 is not None
+            and hashlib.sha256(raw).hexdigest() != expected_sha256):
+        raise ValueError("reviewed cases changed from the bound projection input")
+    book = ReviewedCases.model_validate_json(raw)
     if book.client_name.casefold() != client_name.casefold():
         raise ValueError("reviewed cases belong to a different client")
     return book
