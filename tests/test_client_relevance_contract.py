@@ -213,11 +213,7 @@ PUBLIC_PROJECTION_CASES = [
         {},
         {
             "kind": "record-core-match",
-            "text": (
-                "DISPLACEMENT TARGET · IRS currently funds NETWORK "
-                "PERFORMANCE MONITORING; prioritize this incumbent account "
-                "for Testco replacement and follow-on capture."
-            ),
+            "text": 'ACCOUNT RESEARCH · The cited IRS record mentions NETWORK PERFORMANCE MONITORING; check current funding, incumbent scope, and the next buying action before positioning Testco.',
         },
         id="competitor-displacement",
     ),
@@ -227,11 +223,7 @@ PUBLIC_PROJECTION_CASES = [
         {},
         {
             "kind": "corridor-core-match",
-            "text": (
-                "PARTNER DECISION · Candidate Partner holds the cited IRS "
-                "NETWORK PERFORMANCE MONITORING award; target that incumbent "
-                "channel for a Testco partner-or-displace decision."
-            ),
+            "text": "PARTNER RESEARCH · The cited records associated with Candidate Partner mention NETWORK PERFORMANCE MONITORING; check the partner's current role and access before assigning Testco outreach.",
         },
         id="teaming-award-holder",
     ),
@@ -241,12 +233,7 @@ PUBLIC_PROJECTION_CASES = [
         {},
         {
             "kind": "shared-core-route",
-            "text": (
-                "PRIME-CHANNEL SIGNAL · Candidate Partner has matched "
-                "opportunity and subaward evidence for NETWORK PERFORMANCE "
-                "MONITORING; prioritize this prime for Testco teaming "
-                "outreach."
-            ),
+            "text": "PARTNER RESEARCH · The cited records associated with Candidate Partner mention NETWORK PERFORMANCE MONITORING; check the partner's current role and access before assigning Testco outreach.",
         },
         id="teaming-evidenced-prime",
     ),
@@ -256,13 +243,7 @@ PUBLIC_PROJECTION_CASES = [
         {"event_kind": "award-window", "client_footprint": False},
         {
             "kind": "record-core-match",
-            "text": (
-                "FOLLOW-ON CHECK · Incumbent NETWORK PERFORMANCE MONITORING "
-                "work reaches period end. That date is not a confirmed "
-                "recompete; confirm option, extension, follow-on, "
-                "replacement, or sunset before assigning Testco takeout "
-                "action."
-            ),
+            "text": 'TIMING RESEARCH · The cited award-window record mentions NETWORK PERFORMANCE MONITORING; check current scope, options, and the next buying action before assigning Testco capture action.',
         },
         id="horizon-award-window-non-client",
     ),
@@ -272,12 +253,7 @@ PUBLIC_PROJECTION_CASES = [
         {"event_kind": "award-window", "client_footprint": True},
         {
             "kind": "record-core-match",
-            "text": (
-                "CONTINUITY CHECK · Testco's cited NETWORK PERFORMANCE "
-                "MONITORING footprint reaches period end. That date is not a "
-                "confirmed recompete; confirm option, extension, follow-on, "
-                "replacement, or sunset before assigning capture action."
-            ),
+            "text": 'TIMING RESEARCH · The cited award-window record mentions NETWORK PERFORMANCE MONITORING; check current scope, options, and the next buying action before assigning Testco capture action.',
         },
         id="horizon-award-window-client",
     ),
@@ -287,11 +263,7 @@ PUBLIC_PROJECTION_CASES = [
         {"event_kind": "forecast", "client_footprint": False},
         {
             "kind": "record-core-match",
-            "text": (
-                "PRE-SOLICITATION MOVE · The cited forecast matches NETWORK "
-                "PERFORMANCE MONITORING; engage the buyer and place Testco "
-                "ahead of the stated acquisition milestone."
-            ),
+            "text": 'TIMING RESEARCH · The cited forecast record mentions NETWORK PERFORMANCE MONITORING; check current scope, options, and the next buying action before assigning Testco capture action.',
         },
         id="horizon-forecast",
     ),
@@ -301,12 +273,7 @@ PUBLIC_PROJECTION_CASES = [
         {"event_kind": "expiring", "client_footprint": False},
         {
             "kind": "record-core-match",
-            "text": (
-                "COMPLETION SIGNAL · Cited NETWORK PERFORMANCE MONITORING "
-                "work approaches contract completion; validate options, "
-                "extension, and the follow-on acquisition path before "
-                "assigning Testco capture action."
-            ),
+            "text": 'TIMING RESEARCH · The cited expiring record mentions NETWORK PERFORMANCE MONITORING; check current scope, options, and the next buying action before assigning Testco capture action.',
         },
         id="horizon-expiring",
     ),

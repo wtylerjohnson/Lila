@@ -1169,7 +1169,7 @@ def test_program_horizon_is_visible_source_bound_and_directly_linked(world):
             "requirements for federal responders"
         ),
     }
-    assert card["client_relevance"]["text"].startswith("PROGRAM MOVE")
+    assert card["client_relevance"]["text"].startswith("TIMING RESEARCH")
     assert card["machine_evidence"]["client_relevance_basis"][
         "supports"][0]["field"] == "abstract"
 
@@ -1177,7 +1177,7 @@ def test_program_horizon_is_visible_source_bound_and_directly_linked(world):
     html = signal_board.render_signal_board(materialized)
     assert f'href="{official_url}"' in html
     assert "OCT 2026" in html
-    assert "PROGRAM MOVE" in html
+    assert "TIMING RESEARCH" in html
 
     trail = composer.build_trail(
         "Testco", best_fit=bf, competitors=comp, teaming=team,
@@ -1611,7 +1611,7 @@ def test_teaming_prefers_subaward_evidence(world):
                for row in subaward_cards)
     assert all(
         row["client_relevance"]["text"].startswith(
-            "PRIME-CHANNEL SIGNAL · ")
+            "PARTNER RESEARCH · ")
         for row in subaward_cards
     )
     assert "prioritize the matched primes for teaming outreach" in \
@@ -2200,7 +2200,7 @@ def test_acquisition_pathways_are_distinct_deterministic_and_company_free(
     assert "Commercial Solutions Opening" in card["requirement"]
     assert "ACQUISITION METHOD Commercial Solutions Opening" in \
         card["pathway"]
-    assert card["client_relevance"]["text"].startswith("PUBLISHED DEMAND")
+    assert card["client_relevance"]["text"].startswith("SOURCE CONTEXT")
     assert "has funded" not in card["client_relevance"]["text"]
     assert card["machine_evidence"]["quote"] == card["requirement"]
     assert card["machine_evidence"]["pathway_basis"][
@@ -2297,7 +2297,7 @@ def test_acquisition_path_uses_client_footprint_posture(world):
     assert card["action"].startswith("DEFEND / EXPAND NEXT")
     assert "renewal or follow-on owner" in card["action"]
     assert card["client_relevance"]["text"].startswith(
-        "DEFEND / EXPAND PATH")
+        "SOURCE CONTEXT")
     assert "Testco TESTCO footprint" not in \
         card["client_relevance"]["text"]
     assert card["machine_evidence"]["pathway_basis"][
@@ -3192,7 +3192,7 @@ def test_exact_client_term_renders_as_federal_footprint_not_duplicate_brand():
     public = composer.client_relevance_public(basis)
 
     assert public["text"].startswith(
-        "CONTINUITY CHECK · Mark43's cited federal footprint reaches")
+        "TIMING RESEARCH · The cited award-window record mentions MARK43")
     assert "Mark43's cited MARK43" not in public["text"]
 
 

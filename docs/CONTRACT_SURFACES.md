@@ -725,3 +725,27 @@ When the lead companion is complete, automatic priority requires LEAD_T1 or
 LEAD_T2 and is capped at three. Reviewed investigation/qualification cases may
 form the separate explicit priority selection. An assessment classified as a
 qualified opportunity alone cannot silently become seller-ready priority.
+
+### C1 Step3 extension: scope of capability citation (2026-09-12)
+
+The unchanged exact CORE/alias basis proves a mention in a cited stored field.
+It does not contain current-funding, purchased-deliverable, active-incumbency or
+access predicates. `client_relevance_public` now projects account, source, partner
+and timing research actions bounded to those mentions. It withholds affirmative
+current-funding, displacement and purchased-demand copy for every such basis,
+including historical awards and incidental quotes. Stronger prose must wait for
+a separately evidenced claim contract; current award dates alone cannot grant it.
+This intentionally narrows the C1 copy claim, not the report's stored source set,
+figures, qualification gates or Market Map slots.
+
+`validate_machine_client_relevance_contract` returns `projection_only` for the
+standalone all-inputs-omitted call and `current_sources_rebound` when complete
+current inputs are checked. Partial inputs still fail. Native press explicitly
+sets `require_current_sources=True`. Operator-authored cards retain their existing
+boundary. No native missing-taxonomy bypass was reproduced on Step2; this makes
+the existing stronger native boundary explicit. Preserved receipt/trail schemas
+and alias support still rebind to current client, taxonomy and exact source.
+
+Check this separately labeled extension with `python -m pytest
+tests/test_client_relevance_claim_scope.py tests/test_client_relevance_contract.py
+tests/test_client_relevance_alias_contract.py tests/test_composer.py -q` offline.

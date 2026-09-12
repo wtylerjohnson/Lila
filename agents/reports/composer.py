@@ -2909,93 +2909,34 @@ def client_relevance_public(basis: dict) -> dict:
     context = basis["public_context"]
     band = context["band"]
     client = str(context["client"])
+    # C1 Step3 contract extension: CORE citation is lexical context only.
+    # Stronger current-funding, purchased-deliverable, access and displacement
+    # claims require separate predicates that this basis does not carry.
     if band == "competitors":
         text = (
-            f"DISPLACEMENT TARGET · {context['buyer']} currently funds "
-            f"{term}; prioritize this incumbent account for {client} "
-            "replacement and follow-on capture."
+            f"ACCOUNT RESEARCH · The cited {context['buyer']} record mentions "
+            f"{term}; check current funding, incumbent scope, and the next "
+            f"buying action before positioning {client}."
         )
     elif band == "acquisition_pathways":
-        if context["evidence_state"] == "executed-award":
-            if context["client_footprint"]:
-                footprint = (
-                    "federal footprint"
-                    if _company_key(term) == _company_key(client)
-                    else f"{term} footprint"
-                )
-                text = (
-                    f"DEFEND / EXPAND PATH · {context['buyer']} funds a "
-                    f"cited {client} {footprint}; use the award to "
-                    "confirm the renewal owner, channel route, and expansion "
-                    "scope before the next procurement action."
-                )
-            else:
-                text = (
-                    f"ACCOUNT-ENTRY PATH · {context['buyer']} funded "
-                    f"{term}; use the cited award to position {client} and "
-                    "resolve vehicle, incumbent, and follow-on access before "
-                    "the next procurement action."
-                )
-        else:
-            text = (
-                f"PUBLISHED DEMAND · {context['buyer']} published a "
-                f"requirement matching {term}; use the cited notice to "
-                f"position {client} before the stated acquisition action."
-            )
+        noun = "award" if context["evidence_state"] == "executed-award" else "notice"
+        text = (
+            f"SOURCE CONTEXT · The cited {context['buyer']} {noun} mentions "
+            f"{term}; inspect requested work, timing, and vehicle access "
+            f"before assigning {client} capture action."
+        )
     elif band == "teaming":
-        if kind == "shared-core-route":
-            text = (
-                f"PRIME-CHANNEL SIGNAL · {context['partner']} has matched "
-                f"opportunity and subaward evidence for {term}; prioritize "
-                f"this prime for {client} teaming outreach."
-            )
-        else:
-            text = (
-                f"PARTNER DECISION · {context['partner']} holds the cited "
-                f"{context['buyer']} {term} award; target that incumbent "
-                f"channel for a {client} partner-or-displace decision."
-            )
+        text = (
+            f"PARTNER RESEARCH · The cited records associated with "
+            f"{context['partner']} mention {term}; check the partner's "
+            f"current role and access before assigning {client} outreach."
+        )
     else:
-        event_kind = str(context["event_kind"])
-        if event_kind in {"award-window", "calendar-expiry"}:
-            if context["client_footprint"]:
-                footprint = (
-                    "federal footprint"
-                    if _company_key(term) == _company_key(client)
-                    else f"{term} footprint"
-                )
-                text = (
-                    f"CONTINUITY CHECK · {client}'s cited {footprint} "
-                    "reaches period end. That date is not a confirmed "
-                    "recompete; confirm option, extension, follow-on, "
-                    "replacement, or sunset before assigning capture "
-                    "action."
-                )
-            else:
-                text = (
-                    f"FOLLOW-ON CHECK · Incumbent {term} work reaches "
-                    "period end. That date is not a confirmed recompete; "
-                    "confirm option, extension, follow-on, replacement, or "
-                    f"sunset before assigning {client} takeout action."
-                )
-        elif event_kind == "forecast":
-            text = (
-                f"PRE-SOLICITATION MOVE · The cited forecast matches "
-                f"{term}; engage the buyer and place {client} ahead of the "
-                "stated acquisition milestone."
-            )
-        elif event_kind == "program":
-            text = (
-                f"PROGRAM MOVE · The cited official program signal matches "
-                f"{term}; position {client} with the sponsoring organization "
-                "before the stated program or funding action."
-            )
-        else:
-            text = (
-                f"COMPLETION SIGNAL · Cited {term} work approaches contract "
-                "completion; validate options, extension, and the follow-on "
-                f"acquisition path before assigning {client} capture action."
-            )
+        text = (
+            f"TIMING RESEARCH · The cited {context['event_kind']} record "
+            f"mentions {term}; check current scope, options, and the next "
+            f"buying action before assigning {client} capture action."
+        )
     return {"kind": kind, "text": text}
 
 
@@ -3698,12 +3639,12 @@ def _client_relevance_trail_rows(trail_md: str) -> dict[tuple[str, str], dict]:
 def validate_machine_client_relevance_contract(
         content, *, trail_md: Optional[str] = None, taxonomy=None,
         profile=None, sweep: Optional[dict] = None,
-        calendar: Optional[dict] = None) -> None:
-    """Require relevance context on all three machine-produced card bands."""
+        calendar: Optional[dict] = None, require_current_sources: bool = False) -> str:
+    """Return validation strength; standalone validation is projection-only."""
     payload = (content.model_dump(mode="python")
                if hasattr(content, "model_dump") else content)
     if str(payload.get("composition_mode") or "operator") != "machine":
-        return
+        return "operator_not_applicable"
     expected: dict[tuple[str, str], dict] = {}
     allowed_kinds = {
         "competitors": {"record-core-match"},
@@ -3718,6 +3659,9 @@ def validate_machine_client_relevance_contract(
             value is not None for value in current_inputs):
         raise ValueError(
             "client relevance current-source validation inputs are partial")
+    if require_current_sources and any(value is None for value in current_inputs):
+        raise ValueError("client relevance native press requires current source inputs")
+    strength = "current_sources_rebound" if taxonomy is not None else "projection_only"
     for band in (
             "competitors", "acquisition_pathways", "teaming", "horizon"):
         for card in payload.get(band) or []:
@@ -3752,7 +3696,7 @@ def validate_machine_client_relevance_contract(
                     taxonomy=taxonomy, sweep=sweep, calendar=calendar)
             expected[key] = basis
     if trail_md is None:
-        return
+        return strength
     actual = _client_relevance_trail_rows(trail_md)
     if set(actual) != set(expected):
         raise ValueError(
@@ -3761,6 +3705,8 @@ def validate_machine_client_relevance_contract(
         if actual[key] != basis:
             raise ValueError(
                 "client relevance basis does not match its trail-bound source")
+
+    return strength
 
 
 def _source_excerpt_count(count: int) -> str:
