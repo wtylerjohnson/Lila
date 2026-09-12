@@ -50,6 +50,8 @@ def test_prespecified_pairs(case):
     ('The requirement requires projectors and refers vendors to guidance about supplier risk management.', False),
     ('Quoted prior work:\nProvide supplier risk management software.', False),
     ('Historical background:\nProvide supplier risk management software.', False),
+    ('The following work is not required. Provide supplier risk management software.', False),
+    ('The agency requires a response about supplier risk management; the actual scope is only in an unavailable SOW.', None),
 ])
 @pytest.mark.parametrize('adapter', ['direct','extract'])
 def test_independent_operator_scope_cases(text, expected, adapter):
@@ -122,3 +124,26 @@ def test_families_do_not_merge_different_offices_or_lanes():
         r=notice('Provide supplier risk management software.');r.update(source_id=str(i),source=lane,posted_date=f'2026-01-0{i+1}',raw_payload={'solicitation':'S','agency':'A','office':office});rows.append(r)
     _,_,receipt=deterministic_prefilter(rows,TAX)
     assert receipt['requirement_family_diagnostic']['unique_lexical_families']==3
+
+
+def test_prespecified_family_denominator_four_lexical_three_requested():
+    positive=CASES[0]['description'];boiler=CASES[2]['description'];rows=[]
+    for sid,sol,text,office in [('B1','B',boiler,'O1'),('B2','B',boiler,'O1'),('P1','P',positive,'O1'),('P2','P',positive+' '+positive,'O1'),('P3','P-call2',positive,'O1'),('P4','P',positive,'O2')]:
+        row=notice(text);row.update(source_id=sid,source='sam.gov',agency='Synthetic Agency',raw_payload={'solicitation':sol,'office':office},posted_date='2026-09-12' if sid.endswith('2') else '2026-09-11');rows.append(row)
+    _,_,receipt=deterministic_prefilter(rows,TAX)
+    counts=receipt['requirement_family_diagnostic']['term_field_counts']
+    assert len(counts)==1
+    assert counts[0]['field']=='description'
+    assert counts[0]['lexical_families']==4 and counts[0]['requested_families']==3
+
+
+def test_attachment_bundle_keeps_its_discovery_provenance():
+    row=notice('Platform procurement.')
+    row['raw_payload']={'text':'Provide supplier risk management software.',
+                        'attachment_evidence':[{'resource_id':'A','source_url':'https://example.gov/sow','sha256':'abc'}],
+                        'attachment_evidence_sha256':'bundle','attachment_inventory_hash':'inventory'}
+    support=requirement_support(row,TAX)
+    assert support['attachment_context']['files']==row['raw_payload']['attachment_evidence']
+    assert support['attachment_context']['bundle_sha256']=='bundle'
+    assert support['attachment_context']['per_file_text_offsets']=='NOT_RECORDED'
+    assert support['qualification']=='NOT_ESTABLISHED'

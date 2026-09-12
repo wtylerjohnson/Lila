@@ -571,7 +571,7 @@ def _screen_evidence_with_coverage(title: str, description: str,
                 clause_lo = left[-1].end() if left else 0
                 prior = value[max(0, clause_lo - 220):clause_lo]
                 # Keep a preceding section label with the imperative below it.
-                if re.search(r'(?:quoted prior|prior work|historical background|previous requirement|not current|excluded from)[^.!?]*[.:\n]\s*$', prior, re.I):
+                if re.search(r'(?:quoted prior|prior work|historical background|previous requirement|not current|following[^.!?]{0,50}not required|excluded from)[^.!?]*[.:\n]\s*$', prior, re.I):
                     clause_lo = max(0, clause_lo - len(prior))
                 right = re.search(r'[.!?;\n](?:\s|$)', value[end:])
                 clause_hi = end + right.start() + 1 if right else len(value)

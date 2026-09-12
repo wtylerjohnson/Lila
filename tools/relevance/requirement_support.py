@@ -47,7 +47,7 @@ def clause_role(text: str, start: int, end: int, *, field: str = "description") 
     after = text[end:hi].casefold()
     request = re.search(r'\b(?:shall|must)\s+(?:provide|deliver|implement|configure|perform|supply|support|develop|install|maintain|integrate|replace)\b|\b(?:requires?|seeks?|seeking|purchases?)\b|\brequirement (?:is|includes)\b|(?:^|:\s*)(?:provide|deliver|implement|supply|perform|replace)\b', before)
     prior = text[max(0, lo - 220):lo].casefold()
-    inherited = re.search(r'(?:quoted prior|prior work|historical background|previous requirement|not (?:current|a requirement)|excluded from (?:this|the) (?:purchase|scope))[^.!?]*[.:\n]\s*$', prior)
+    inherited = re.search(r'(?:quoted prior|prior work|historical background|previous requirement|not (?:current|a requirement)|following[^.!?]{0,50}not required|excluded from (?:this|the) (?:purchase|scope))[^.!?]*[.:\n]\s*$', prior)
     role = "context_missing"
     # A title, URL, or cut clause cannot establish a purchased deliverable.
     if field.split('.')[-1] in {'title', 'label'}:
@@ -70,6 +70,8 @@ def clause_role(text: str, start: int, end: int, *, field: str = "description") 
         role = 'evaluation_boilerplate'
     elif re.search(r'\b(?:refers?|references?|discusses?|mentions?)\b.{0,90}\b(?:guidance|handbook|manual)\b|\bguidance (?:on|about)\b', before):
         role = 'reference_guidance'
+    elif re.search(r'\b(?:response|responses) (?:about|regarding|concerning)\b', before):
+        role = 'response_context_only'
     else:
         # Require the request verb in the same clause and before the matched
         # concept (or an explicit passive predicate immediately after it).
@@ -166,9 +168,10 @@ def requirement_support(record: dict, taxonomy, *, verdict=None) -> dict:
                         and isinstance(raw.get('description_characters'), int)
                         and bool(raw.get('description_sha256')))
     unscanned = bool(record.get('description_truncated')) or (bool(raw.get('description_truncated')) and not complete_capture)
+    material_missing = any(re.search(r'\b(?:scope|requirements?|work)\b[^.!?\n]{0,120}\b(?:unavailable|missing|unreadable)\b|\b(?:unavailable|missing|unreadable)\b[^.!?\n]{0,60}\b(?:sow|scope|attachment)\b', text, re.I) for text in fields.values())
     if lifecycle['historical']:
         support, state = False, 'historical_award'
-    elif len(identities) > 1 or not identities or lifecycle['conflict'] or contradictory or overflow or unscanned or any(s['role'] == 'source_origin_unresolved' for s in spans):
+    elif material_missing or len(identities) > 1 or not identities or lifecycle['conflict'] or contradictory or overflow or unscanned or any(s['role'] == 'source_origin_unresolved' for s in spans):
         support, state = None, 'contradictory_context' if contradictory else 'evidence_incomplete'
     elif positive:
         support, state = True, 'requested_deliverable'
@@ -186,6 +189,11 @@ def requirement_support(record: dict, taxonomy, *, verdict=None) -> dict:
             'record_sha256': digest(json.dumps(record, sort_keys=True, separators=(',', ':'), default=str)),
             'taxonomy_client': taxonomy.client_name, 'taxonomy_version': taxonomy.version,
             'requested_support': support, 'state': state, 'spans': spans,
+            'attachment_context': {'files': raw.get('attachment_evidence') or [],
+                'bundle_sha256': raw.get('attachment_evidence_sha256'),
+                'inventory_hash': raw.get('attachment_inventory_hash'),
+                'per_file_text_offsets': 'NOT_RECORDED',
+                'authority': 'DISCOVERY_ONLY_NOT_REQUIREMENT_APPROVAL'},
             'overflow': overflow, 'qualification': 'NOT_ESTABLISHED',
             'limitations': ['Conservative clause rules, not semantic entailment.',
                             'Stored-source attribution is not independent source authentication.']}
@@ -221,6 +229,18 @@ def family_diagnostic(notices: list[dict], screenings: dict) -> dict:
     for row in groups.values():
         row['buckets'] = sorted(row['buckets'])
         rows.append(row)
+    term_fields = {}
+    for row in rows:
+        entry = term_fields.setdefault((row['term'], row['field']), {
+            'term': row['term'], 'field': row['field'], 'lexical_families': set(),
+            'requested_families': set(), 'incidental_families': set(),
+            'historical_families': set(), 'unresolved_families': set(), 'superseded_families': set()})
+        entry['lexical_families'].add(tuple(row['family']))
+        for bucket in row['buckets']:
+            entry[bucket + '_families'].add(tuple(row['family']))
+    counts = [{key: len(value) if isinstance(value, set) else value for key, value in entry.items()}
+              for entry in term_fields.values()]
     return {'version': VERSION, 'population': 'supplied_notice_census', 'families_by_term_field': rows,
+            'term_field_counts': counts,
             'unique_lexical_families': len({tuple(r['family']) for r in rows}),
             'limitation': 'Overlapping field buckets are not additive totals; historical spans are retained.'}
