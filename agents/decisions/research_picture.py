@@ -15,7 +15,10 @@ from agents.decisions.engine import DecisionEngine, research_engine
 from agents.decisions.research_evidence import (
     EvidenceSource, ResearchClaim, build_registry, checked_claim, claim_text,
     classification, clean_text, coverage_gaps, source_record,
+    source_temporal_assessment, source_action_evidence,
 )
+
+from tools.relevance.temporal import clock_context, instant
 
 LAYER = "research-picture"
 
@@ -62,6 +65,8 @@ class TopOpportunity(BaseModel):
     classification: str = "research_signal"
     validation_status: str = "UNVALIDATED"
     source_url: Optional[str] = None
+    temporal_status: dict = Field(default_factory=dict)
+    action_evidence: list[dict] = Field(default_factory=list)
 
 
 class ResearchPicture(BaseModel):
@@ -85,16 +90,20 @@ class ResearchPicture(BaseModel):
     evidence_gaps: list[str] = Field(default_factory=list)
     validation_version: Optional[str] = None
     evidence_as_of: Optional[str] = None
+    assessment_clocks: dict = Field(default_factory=dict)
     operator_focus_names: list[str] = Field(default_factory=list)
 
 
-_VALIDATION_VERSION = "research-picture.evidence.v3"
+_VALIDATION_VERSION = "research-picture.evidence.v4"
 _VERIFY_ACTION = "Verify original notice identity, current procurement state, requirements and available action."
 
 
 def validate_picture(p: ResearchPicture, registry: dict[str, EvidenceSource],
-                     gaps: list[str], as_of: datetime) -> ResearchPicture:
+                     gaps: list[str], as_of: datetime, *, mode='current',
+                     presented_at=None, clocks=None) -> ResearchPicture:
     """Ignore model-supplied status/registry; rebuild visible prose from checked claims."""
+    context = clock_context(as_of, mode=mode, presented_at=presented_at, supplied=clocks)
+    as_of = instant(context['buying_status_as_of'])
     issues = list(p.validation_issues) if p.validation_version == _VALIDATION_VERSION else []
     from tools.relevance.taxonomy import load_taxonomy, derived_taxonomy
     try:
@@ -134,7 +143,10 @@ def validate_picture(p: ResearchPicture, registry: dict[str, EvidenceSource],
         if not any(ref.source_id == item.id for c in claims for ref in c.evidence):
             claims = []
             issues.append(f"{item.id}: no evidence bound to this source; verify before promotion.")
-        kind = classification(source, claims, as_of, taxonomy)
+        kind = classification(source, claims, as_of, taxonomy, context)
+        timing = source_temporal_assessment(source, as_of, context)
+        timing['current_action'] = 'confirmed_current_action' if kind == 'confirmed_opportunity' else 'not_established'
+        action_evidence = source_action_evidence(source, claims, as_of)
         if kind != 'confirmed_opportunity' and any(c.kind == 'offering_fit' for c in claims):
             issues.append(f'{item.id}: current requested offering and response action require source-bound support.')
         why = " ".join(claim_text(c, registry) for c in claims)
@@ -146,7 +158,7 @@ def validate_picture(p: ResearchPicture, registry: dict[str, EvidenceSource],
             id=source.source_id, title=source.title, deadline=source.deadline,
             source_url=source.url, claims=claims, classification=kind,
             validation_status="EXCERPTS_CHECKED_NOT_QUALIFIED" if claims else "VERIFICATION_REQUIRED",
-            why_now=why))
+            why_now=why, temporal_status=timing, action_evidence=action_evidence))
     narrative = check(p.narrative_claims)
     sections = {key: [] for key in ('headline', 'demand_signals', 'market_structure', 'watchlist', 'next_action')}
     for claim in narrative:
@@ -180,10 +192,12 @@ def validate_picture(p: ResearchPicture, registry: dict[str, EvidenceSource],
         'narrative_claims': narrative, 'evidence_registry': registry,
         'validation_issues': list(dict.fromkeys(issues)),
         'validation_version': _VALIDATION_VERSION, 'evidence_as_of': as_of.isoformat(),
+        'assessment_clocks': context,
     })
 
 
-def revalidate_picture(p: ResearchPicture, results: Optional[dict] = None) -> ResearchPicture:
+def revalidate_picture(p: ResearchPicture, results: Optional[dict] = None, *,
+                       mode='current', reference_as_of=None, presented_at=None, clocks=None) -> ResearchPicture:
     """One observational projection for saved JSON, Markdown and native UI."""
     if isinstance(results, dict):
         registry, gaps = build_registry(results, distill(results))
@@ -193,16 +207,27 @@ def revalidate_picture(p: ResearchPicture, results: Optional[dict] = None) -> Re
         gaps.append('Original source results unavailable; a saved evidence registry cannot validate itself.')
         if not p.validation_version:
             gaps.append('Legacy picture has no validated evidence registry.')
-    # Display-time currentness cannot be pinned by a saved/model timestamp.
-    as_of = datetime.now(timezone.utc)
-    verified = validate_picture(p, registry, gaps, as_of)
+    # Saved/model clocks never select replay or pin current presentation.
+    shown = presented_at if presented_at is not None else datetime.now(timezone.utc)
+    if mode == 'historical':
+        if reference_as_of is None:
+            raise ValueError('Historical replay requires a trusted caller reference_as_of')
+        as_of = reference_as_of
+    elif mode == 'current':
+        if reference_as_of is not None:
+            raise ValueError('Use explicit historical mode for a historical reference clock')
+        as_of = shown
+    else:
+        raise ValueError('Research Picture mode must be current or historical')
+    verified = validate_picture(p, registry, gaps, as_of, mode=mode, presented_at=shown, clocks=clocks)
     if p.operator_focus_names:
         names = ', '.join(clean_text(name) for name in p.operator_focus_names)
         verified = verified.model_copy(update={'headline': f'Engagement focus: {names}. {verified.headline}'})
     return verified
 
 
-def project_saved_picture(data: dict) -> Optional[dict]:
+def project_saved_picture(data: dict, *, mode='current', reference_as_of=None,
+                          presented_at=None, clocks=None) -> Optional[dict]:
     results = data.get('results') or {}
     raw = results.get('research_picture')
     if not isinstance(raw, dict) or raw.get('error'):
@@ -214,13 +239,14 @@ def project_saved_picture(data: dict) -> Optional[dict]:
                 'next_action': _VERIFY_ACTION, 'top': [], 'research_cards': [],
                 'signals': [], 'watchlist': [], 'market': '',
                 'gaps': ['Saved picture schema is invalid; original evidence review is required.']}
-    p = revalidate_picture(picture, results)
+    p = revalidate_picture(picture, results, mode=mode, reference_as_of=reference_as_of,
+                           presented_at=presented_at, clocks=clocks)
     return {'headline': p.headline, 'next_action': p.next_action,
             'top': [t.model_dump() for t in p.top_opportunities],
             'research_cards': [t.model_dump() for t in p.research_signals],
             'signals': p.demand_signals, 'watchlist': p.watchlist,
             'market': p.market_structure, 'gaps': p.gaps,
-            'evidence_as_of': p.evidence_as_of}
+            'evidence_as_of': p.evidence_as_of, 'assessment_clocks': p.assessment_clocks}
 
 
 def distill(results: dict) -> dict:
@@ -506,17 +532,21 @@ def render_provenance(sweep: dict) -> str:
 
 
 def render_markdown(p: ResearchPicture, sweep: Optional[dict] = None,
-                    *, results: Optional[dict] = None) -> str:
+                    *, results: Optional[dict] = None, mode='current', reference_as_of=None,
+                    presented_at=None, clocks=None) -> str:
     # Rebuild every visible claim even if the persisted version marker exists.
-    p = revalidate_picture(p, results)
+    p = revalidate_picture(p, results, mode=mode, reference_as_of=reference_as_of,
+                           presented_at=presented_at, clocks=clocks)
     lines = [
         f"# Research Picture · {clean_text(p.client_name)}",
-        f"*GTM Group research synthesis; evidence checked at {p.evidence_as_of}*",
+        f"*GTM Group research synthesis; {p.assessment_clocks['mode']} assessment at {p.evidence_as_of}; presented at {p.assessment_clocks['presented_at']}*",
         "", p.headline, "",
         "*Source excerpts establish traceability. Inferences require verification; existing qualification still applies.*",
     ]
     labels = {
-        'confirmed_opportunity': 'Documented current notices; qualification required',
+        'confirmed_opportunity': ('Documented notices current at historical assessment; qualification required'
+                                  if p.assessment_clocks['mode'] == 'historical' else
+                                  'Documented current notices; qualification required'),
         'research_signal': 'Research signals; verification required',
         'historical_market_evidence': 'Historical market evidence',
         'channel_fact': 'Channel facts; opportunity access unverified',
@@ -531,6 +561,8 @@ def render_markdown(p: ResearchPicture, sweep: Optional[dict] = None,
             link = f'[{title}](<{o.source_url}>)' if o.source_url else title
             dl = f'; recorded deadline {clean_text(o.deadline)}' if o.deadline else '; deadline unknown'
             lines += [f'{i}. **{link}** ({clean_text(o.id)}{dl})', f'   {o.why_now}']
+            if o.temporal_status:
+                lines.append(f"   Response window: {clean_text(o.temporal_status['response_window'])}; source freshness: {clean_text(o.temporal_status['source_freshness'])}; current action: {clean_text(o.temporal_status['current_action'])}.")
     lines += ["", "## Demand signals"]
     lines += [f"- {s}" for s in p.demand_signals]
     lines += ["", "## Market structure", p.market_structure, "", "## Watchlist"]

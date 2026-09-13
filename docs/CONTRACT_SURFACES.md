@@ -749,3 +749,23 @@ and alias support still rebind to current client, taxonomy and exact source.
 Check this separately labeled extension with `python -m pytest
 tests/test_client_relevance_claim_scope.py tests/test_client_relevance_contract.py
 tests/test_client_relevance_alias_contract.py tests/test_composer.py -q` offline.
+
+
+### Research Picture v4 precise clocks and per-passage authority (Step4-049)
+
+Explicit internal contract extension under the locked weekend repair authority.
+Original source fields determine exact temporal evidence and passage authority;
+cached registries, model status and saved clocks cannot authenticate themselves.
+The default projection still rebinds original source results at current presentation.
+A trusted caller may request explicitly labeled historical replay only with an
+aware reference timestamp. Metadata, response prose, source freshness and the
+original amendment census jointly constrain active confirmation. Discovery-only
+attachment text remains investigation evidence and cannot alone satisfy the trusted
+requirement/action clause; independently sufficient original notice passages on
+mixed rows remain usable. Legacy Assess/release/counts/C1 contracts are unchanged.
+
+This extension is separately committed from source-parser/chronology work, with
+its own positive/negative/native-projection tests in
+`tests/test_step4_temporal_evidence.py`. Fable reviews the combined exact candidate
+before advancement. Standing user auto-passthrough authorizes this internal plan
+work; it does not imply a production merge or evidence authenticity claim.

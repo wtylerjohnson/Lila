@@ -2028,3 +2028,53 @@ python -m pytest tests/test_source_temporal_values.py tests/test_step4_temporal_
 tests/test_triage_prefilter.py tests/test_notice_type_evidence.py -q` using the
 configured runtime. Source002 read integrity remains separately identified by
 its original commit and tests; Step4 temporal edits must preserve those helpers.
+
+
+### Step4 Research Picture clock and authority contract extension
+
+This is a separately labeled change to the internal Research Picture evidence
+contract. `research-picture.evidence.v4` recomputes temporal values and authority
+from independently supplied original rows, never saved/model clocks, registries,
+temporal caches, authority labels or validation flags. Per-passage authority
+preserves native attachment provenance. The native `text` surface is discovery
+context, even when its metadata is missing; it cannot supply trusted requirement
+or response support. Original-notice description passages on mixed rows remain
+eligible independently. Discovery quotes remain readable and explicitly labeled
+as not requirement approval. This does not upgrade strict Assess evidence.
+
+An open response window means assessment < aware deadline; equality is closed.
+Date-only/offsetless/missing/invalid deadlines are unknown for a precise action.
+Same-UTC-day observation freshness normalizes offsets, rejects future/stale
+observations, and never substitutes sweep/file/attachment timestamps. An open
+window alone does not establish current action, capability fit, access or a lead.
+Returned temporal state and action evidence retain these distinctions. Explicit
+prose deadlines must reconcile with source metadata; partial month/day language
+compares only its stated components to independently recorded metadata, without
+inventing a year. Original heading scope survives narrowed citations. Archived,
+historical, previous and prior instructions cannot supply current response proof;
+explicit current instructions can coexist with archived context. Ambiguous repeated
+citation spans and uncertain chronology retain holds.
+
+Default `revalidate_picture`, `project_saved_picture` and `render_markdown` remain
+current-view, display-time revalidation against original source results. Optional
+trusted caller arguments add `mode='historical'`, mandatory `reference_as_of`, and
+`presented_at`. Saved/model timestamps never choose replay mode. Historical output
+labels its assessment and presentation clocks and still independently rebinds
+source evidence. Naive, absent historical, or future assessment clocks refuse.
+Optional caller `clocks` carries query start, capture completion and evidence cutoff;
+all are aware, ordered where applicable, and no later than presentation. Their
+roles remain separate: capture elapsed time is not a freshness or deadline rule.
+Evidence cutoff is checked against source observation/publication, never review
+runtime or a newly inferred source timestamp. Omitted query/capture/cutoff stays
+explicitly absent; no capture budget or benchmark score is manufactured here.
+
+Full original SAM census chronology prevents older evidence from resurfacing via
+a saved picture. Superseded/uncertain sources remain research context with lineage
+and gaps. Legacy report/Assess date policy, frozen cases, counts(), release gates,
+source selection and the current C1 source-rebinding contract are not migrated.
+Verify with `LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 python -m pytest
+tests/test_step4_temporal_evidence.py tests/test_research_picture_evidence.py
+tests/test_research_picture_hardening.py tests/test_research_picture_semantics.py -q`.
+All fixture results are bounded synthetic/native-function proof, not real captured
+lead yield or cloud-suite parity. Source002 retains its separate endpoint and I/O
+cost limitations and is included in combined verification/Fable scope.

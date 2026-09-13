@@ -9,6 +9,7 @@ from typing import Literal
 from urllib.parse import urlsplit
 
 from pydantic import BaseModel, Field
+from tools.relevance.temporal import record_time, instant, temporal_assessment
 
 
 class EvidenceRef(BaseModel):
@@ -43,6 +44,9 @@ class EvidenceSource(BaseModel):
     primary_notice: bool = False
     supplied_retrieval_statuses: list[str] = Field(default_factory=list)
     passages: dict[str, str] = Field(default_factory=dict)
+    temporal_evidence: dict = Field(default_factory=dict)
+    passage_authority: dict[str, dict] = Field(default_factory=dict)
+    attachment_provenance: dict = Field(default_factory=dict)
     content_sha256: str
     truncated: bool = False
     binding_issues: list[str] = Field(default_factory=list)
@@ -51,7 +55,8 @@ class EvidenceSource(BaseModel):
 # Only recorded scalar fields: no attachment research or model-generated triage.
 _PASSAGE_FIELDS = ('description', 'description_snippet', 'full_text', 'text',
                    'summary', 'title', 'notice_type', 'type', 'active', 'status',
-                   'response_deadline', 'deadline', 'posted_date', 'posted',
+                   'response_deadline', 'deadline', 'responseDeadLine', 'responseDeadline',
+                   'posted_date', 'posted', 'postedDate',
                    'estimated_value', 'amount', 'value', 'awardee', 'recipient_name',
                    'completion', 'piid', 'signal_type', 'vehicle', 'contract_number')
 _TEXT_FIELDS = {'description', 'description_snippet', 'full_text', 'text'}
@@ -87,14 +92,22 @@ def source_record(lane: str, locator: str, row: dict) -> EvidenceSource:
     original = _scalar(row, raw, 'source_id', 'notice_id', 'id')
     sid = original or f'rp:{lane}:{digest[:16]}'
     passages = {}
+    authority = {}
     truncated = False
     for prefix, data in (('', row), ('raw_payload.', raw)):
         for key in _PASSAGE_FIELDS:
             value = data.get(key)
             if isinstance(value, (str, int, float, bool)) and str(value).strip():
                 value = str(value)
-                passages[prefix + key] = value[:2000]
-                truncated |= len(value) > 2000
+                field = prefix + key
+                passages[field] = value[:2000]
+                # Native attachment enrichment owns raw text. Missing or forged
+                # cached authority cannot upgrade this field to notice evidence.
+                level = ('discovery_only' if key == 'text' else
+                         'original_notice' if lane == 'sam.gov' else 'recorded_context')
+                authority[field] = {'authority': level, 'original_field': field,
+                                    'source_id': sid, 'truncated': len(value) > 2000}
+                truncated |= len(value) > 2000 and level != 'discovery_only'
     url = safe_url(_scalar(row, raw, 'url', 'api_url', 'canonical_url', 'html_url'))
     host = urlsplit(url).hostname if url else ''
     notice_id = _scalar(row, raw, 'notice_id') or (original if lane == 'sam.gov' else None)
@@ -108,24 +121,13 @@ def source_record(lane: str, locator: str, row: dict) -> EvidenceSource:
         if len(identities) > 1:
             binding_issues.append('Conflicting primary notice identities.')
             primary = False
-    deadlines = set()
-    for data in (row, raw):
-        for key in ('response_deadline', 'deadline'):
-            value = data.get(key)
-            if value is None or not str(value).strip():
-                continue
-            value = str(value).strip()
-            try:
-                parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
-                if parsed.tzinfo:
-                    value = parsed.astimezone(timezone.utc).isoformat()
-            except ValueError:
-                pass
-            deadlines.add(value)
-    deadline = _scalar(row, raw, 'response_deadline', 'deadline')
-    if len(deadlines) > 1:
+    temporal = {kind: record_time(row, kind) for kind in ('deadline', 'posted', 'observed')}
+    deadline = temporal['deadline']['selected']['raw']
+    if temporal['deadline']['conflict']:
         binding_issues.append('Conflicting response deadlines; verify the original notice.')
         deadline = None
+    if temporal['observed']['conflict']:
+        binding_issues.append('Conflicting source observation timestamps.')
     has_text = any(k.split('.')[-1] in _TEXT_FIELDS for k in passages)
     supplied = [str(d[k]).casefold().strip() for d in (row, raw)
                 for k in ('retrieval_status', 'evidence_status') if d.get(k)]
@@ -143,11 +145,15 @@ def source_record(lane: str, locator: str, row: dict) -> EvidenceSource:
         title=_scalar(row, raw, 'title', 'name') or sid, url=url,
         notice_id=notice_id,
         solicitation_id=_scalar(row, raw, 'solicitation', 'solicitation_number'),
-        retrieved_at=_scalar(row, raw, 'retrieved_at', 'fetched_at', 'observed_at'),
-        posted_at=_scalar(row, raw, 'posted_date', 'posted', 'published'),
+        retrieved_at=temporal['observed']['selected']['raw'],
+        posted_at=temporal['posted']['selected']['raw'],
         deadline=deadline,
         retrieval_status=status, primary_notice=primary, passages=passages,
-        supplied_retrieval_statuses=supplied,
+        supplied_retrieval_statuses=supplied, temporal_evidence=temporal,
+        passage_authority=authority,
+        attachment_provenance={k: raw[k] for k in (
+            'attachment_evidence', 'attachment_inventory_hash', 'attachment_evidence_sha256',
+            'attachment_text_sha256', 'attachment_text_authority', 'attachment_research') if k in raw},
         content_sha256=digest, truncated=truncated, binding_issues=binding_issues)
 
 
@@ -230,6 +236,21 @@ def build_registry(results: dict, sweep: dict) -> tuple[dict[str, EvidenceSource
                 gaps.append(f'{sid}: retrieval state {source.retrieval_status}.')
             if source.truncated:
                 gaps.append(f'{sid}: source passages truncated to 2000 characters per field.')
+    # Recompute amendment chronology from the complete original SAM census.
+    # Saved triage choices and an attractive old source cannot authenticate it.
+    from agents.decisions.triage import _latest_notice_threads
+    sam_rows = [r for r in results.get('sam.gov', []) if isinstance(r, dict)] if isinstance(results.get('sam.gov'), list) else []
+    latest, superseded, _ = _latest_notice_threads(sam_rows)
+    uncertain = {sid for row in latest if row.get('raw_payload', {}).get('triage_thread_order_status') == 'unresolved'
+                 for sid in row['raw_payload']['triage_thread_members']}
+    for sid, source in registry.items():
+        if source.lane != 'sam.gov':
+            continue
+        issue = ('Amendment chronology unresolved; current action withheld.' if sid in uncertain else
+                 f"Superseded by source {superseded[sid]['superseded_by']}; retained as context." if sid in superseded else None)
+        if issue:
+            source.binding_issues.append(issue)
+            gaps.append(f'{sid}: {issue}')
     return registry, gaps
 
 
@@ -256,58 +277,44 @@ def checked_claim(claim: ResearchClaim, registry: dict[str, EvidenceSource]):
     return claim.model_copy(update={'statement': statement}), None
 
 
-def _timestamp(value: str | None):
-    try:
-        parsed = datetime.fromisoformat((value or '').replace('Z', '+00:00'))
-        return parsed if parsed.tzinfo else None
-    except ValueError:
-        return None
+def _timestamp(value):
+    return instant(value)
 
 
-def _current_response_instruction(quote: str, as_of: datetime, cited_quote: str | None = None) -> bool:
-    """Conservative action clause, excluding negation/history/past stated dates."""
-    if cited_quote is not None and quote.count(cited_quote) != 1:
-        return False
-    cited_start = quote.index(cited_quote) if cited_quote is not None else 0
-    cited_end = cited_start + len(cited_quote) if cited_quote is not None else len(quote)
-    for match in re.finditer(r'\b(?:submit|respond|send|provide)\b[^.!?;\n]{0,70}\b(?:response|responses|questions|proposal|proposals|capability statement)\b', quote, re.I):
-        if match.start() < cited_start or match.end() > cited_end:
-            continue
-        left = list(re.finditer(r'[.!?;\n]\s*', quote[:match.start()]))
-        lo = left[-1].end() if left else 0
-        tail = re.search(r'[.!?;\n]', quote[match.end():])
-        hi = match.end() + tail.start() if tail else len(quote)
-        clause = quote[lo:hi]
-        prior = quote[max(0, lo-220):lo]
-        if re.search(r'(?:historical|previous|prior)[^.!?]*[.:\n]\s*$', prior, re.I) and not re.match(r'\s*(?:current|new|amended) instructions?\s*:', clause, re.I):
-            continue
-        if re.search(r'\b(?:not|no|never|historical|previous|prior|expired|closed)\b', clause, re.I):
-            continue
-        dates = re.findall(r'\b\d{4}-\d{2}-\d{2}\b|\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:,?\s+\d{4})?', clause, re.I)
-        invalid = False
-        for value in dates:
-            parsed = None
-            for fmt in ('%Y-%m-%d', '%B %d, %Y', '%B %d %Y', '%B %d'):
-                try:
-                    parsed = datetime.strptime(value + f' {as_of.year}', '%B %d %Y').date() if fmt == '%B %d' else datetime.strptime(value, fmt).date()
-                    break
-                except ValueError:
-                    pass
-            invalid |= parsed is None or parsed < as_of.date()
-        # A standalone historical year is also incompatible with current action.
-        invalid |= any(int(y) < as_of.year for y in re.findall(r'\b(?:19\d{2}|20\d{2})\b', clause))
-        if not invalid:
-            return True
-    return False
+def _current_response_instruction(quote: str, as_of: datetime, cited_quote: str | None = None, *, deadline=None) -> bool:
+    from tools.relevance.response_action import response_instruction
+    return response_instruction(quote, as_of, cited_quote, deadline=deadline)['supported']
 
 
-def current_notice(source: EvidenceSource, claims: list[ResearchClaim], as_of: datetime, taxonomy=None) -> bool:
+def trusted_passage(source: EvidenceSource, field: str) -> bool:
+    return source.passage_authority.get(field, {}).get('authority') == 'original_notice'
+
+
+def source_temporal_assessment(source: EvidenceSource, as_of: datetime, clocks=None):
+    temporal = source.temporal_evidence
+    return temporal_assessment(temporal.get('deadline') or record_time({'response_deadline': source.deadline}, 'deadline'),
+                               temporal.get('observed') or record_time({'retrieved_at': source.retrieved_at}, 'observed'),
+                               as_of, cutoff=(clocks or {}).get('evidence_cutoff_at'),
+                               posted=temporal.get('posted'))
+
+
+def source_action_evidence(source: EvidenceSource, claims: list[ResearchClaim], as_of: datetime):
+    from tools.relevance.response_action import response_instruction
+    return [dict(source_id=source.source_id, passage_id=ref.passage_id,
+                 authority=source.passage_authority.get(ref.passage_id, {}),
+                 **response_instruction(source.passages.get(ref.passage_id, ''), as_of,
+                                        ref.quote, deadline=source.deadline))
+            for claim in claims if claim.basis == 'source_fact' and claim.kind == 'next_action'
+            for ref in claim.evidence if ref.source_id == source.source_id]
+
+
+def current_notice(source: EvidenceSource, claims: list[ResearchClaim], as_of: datetime, taxonomy=None, clocks=None) -> bool:
     """A documented notice is still subject to existing qualification/requirement review."""
     if (not source.primary_notice or source.binding_issues or source.truncated
             or source.retrieval_status != 'stored_source_text'):
         return False
-    fetched, deadline = _timestamp(source.retrieved_at), _timestamp(source.deadline)
-    if not fetched or fetched > as_of or fetched.date() != as_of.date() or not deadline or deadline <= as_of:
+    timing = source_temporal_assessment(source, as_of, clocks)
+    if timing['source_freshness'] != 'fresh' or timing['response_window'] != 'open' or not timing['evidence_within_cutoff']:
         return False
     active_values = [v.casefold().strip() for k, v in source.passages.items()
                      if k.split('.')[-1] == 'active']
@@ -323,7 +330,7 @@ def current_notice(source: EvidenceSource, claims: list[ResearchClaim], as_of: d
         if claim.basis != 'source_fact':
             continue
         if any(ref.source_id == source.source_id and
-               ref.passage_id.split('.')[-1] in _TEXT_FIELDS for ref in claim.evidence):
+               ref.passage_id.split('.')[-1] in _TEXT_FIELDS and trusted_passage(source, ref.passage_id) for ref in claim.evidence):
             kinds.add(claim.kind)
     if not {'procurement_state', 'offering_fit', 'next_action'} <= kinds or taxonomy is None:
         return False
@@ -332,6 +339,8 @@ def current_notice(source: EvidenceSource, claims: list[ResearchClaim], as_of: d
     # screening receipt. Passage IDs retain their exact original source field.
     row = {'source_id': source.source_id, 'raw_payload': {}}
     for field, text in source.passages.items():
+        if field.split('.')[-1] in _TEXT_FIELDS and not trusted_passage(source, field):
+            continue
         if field.startswith('raw_payload.'):
             row['raw_payload'][field.removeprefix('raw_payload.')] = text
         else:
@@ -344,7 +353,7 @@ def current_notice(source: EvidenceSource, claims: list[ResearchClaim], as_of: d
         if claim.basis != 'source_fact':
             continue
         for ref in claim.evidence:
-            if ref.source_id != source.source_id:
+            if ref.source_id != source.source_id or not trusted_passage(source, ref.passage_id):
                 continue
             if claim.kind == 'offering_fit':
                 offering |= any(s['field'] == ref.passage_id and s['tier'] == 'core'
@@ -353,12 +362,12 @@ def current_notice(source: EvidenceSource, claims: list[ResearchClaim], as_of: d
             if claim.kind == 'next_action':
                 # A deadline is not an instruction to respond, and a CORE
                 # quote cannot fill this typed claim solely by being relabeled.
-                action |= _current_response_instruction(source.passages.get(ref.passage_id, ''), as_of, ref.quote)
+                action |= _current_response_instruction(source.passages.get(ref.passage_id, ''), as_of, ref.quote, deadline=source.deadline)
     return offering and action
 
 
-def classification(source: EvidenceSource, claims: list[ResearchClaim], as_of: datetime, taxonomy=None) -> str:
-    if current_notice(source, claims, as_of, taxonomy):
+def classification(source: EvidenceSource, claims: list[ResearchClaim], as_of: datetime, taxonomy=None, clocks=None) -> str:
+    if current_notice(source, claims, as_of, taxonomy, clocks):
         return 'confirmed_opportunity'
     if source.lane in {'contract_awards', 'usaspending.gov', 'dod_contracts'}:
         return 'historical_market_evidence'
@@ -378,7 +387,10 @@ def clean_text(value: str) -> str:
 def claim_text(claim: ResearchClaim, registry: dict[str, EvidenceSource]) -> str:
     sources = [registry[ref.source_id] for ref in claim.evidence]
     prefix = ('Inference (requires verification)' if claim.basis == 'inference' else
-              'Discovery excerpt (unverified)' if any(s.retrieval_status == 'discovery_only' for s in sources)
+              'Discovery excerpt (unverified)' if any(s.retrieval_status == 'discovery_only' for s in sources) else
+              'Discovery excerpt (not requirement approval)' if any(
+                  registry[r.source_id].passage_authority.get(r.passage_id, {}).get('authority') == 'discovery_only'
+                  or registry[r.source_id].retrieval_status == 'discovery_only' for r in claim.evidence)
               else 'Recorded source excerpt (retrieval state unverified)' if any(
                   s.retrieval_status not in {'stored_source_text', 'metadata_only'} for s in sources)
               else 'Recorded source excerpt')
