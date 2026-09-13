@@ -121,7 +121,7 @@ def test_restricted_set_aside_is_not_ranked_direct(ctx):
     record["set_aside"] = "IEE"
     row = er.classify_record(record, ctx)
     assert row["eligible_route"] is False
-    assert row["commercial_route"] == "possible_subcontracting"
+    assert row["commercial_route"] == "restricted_route_needed"
 
 
 def test_past_forecast_is_not_ranked_current(ctx):
@@ -143,9 +143,11 @@ def test_duplicate_notice_family_collapses():
          "agency": "Department of State", "window_state": "live",
          "response_deadline": "2026-09-25"},
     ]
+    for i, row in enumerate(rows):
+        row.update(solicitation="LANG-01", office="Acquisition", posted_date=f"2026-08-0{i+1}")
     kept = canonicalize_requirement_families(rows)
     assert len(kept) == 1
-    assert kept[0]["family_member_ids"] == ["sol-1", "ss-1"]
+    assert kept[0]["family_member_ids"] == ["ss-1", "sol-1"]
 
 
 def test_displayed_amount_with_broken_receipt_is_rejected():

@@ -72,12 +72,12 @@ def dedupe_by_title_agency(records: list) -> tuple[list, list]:
     """Compatibility name; structured identity and source chronology now own dedupe."""
     from tools.relevance.notice_family import resolve
     notices = [r for r in records if getattr(r, "lane", None) == "L1_notice"]
-    dictionaries = [r.model_dump(mode="json") for r in notices]
+    dictionaries = [r.model_dump(mode="json") if hasattr(r, "model_dump") else dict(vars(r)) for r in notices]
     selected = set()
     for family in resolve(dictionaries):
         index = family["representative_ordinal"]
         selected.add(id(notices[index]))
-        notices[index].source_fields = dict(notices[index].source_fields,
+        notices[index].source_fields = dict(getattr(notices[index], "source_fields", {}) or {},
             notice_family_v1={k: v for k, v in family.items() if k != "representative"})
     kept = [r for r in records if getattr(r, "lane", None) != "L1_notice" or id(r) in selected]
     dropped = [r for r in notices if id(r) not in selected]

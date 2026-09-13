@@ -228,7 +228,7 @@ def _metric(label: str, value: Any, note: str = "", evidence: Any = ()) -> dict:
 
 
 def _priority_records(opportunities: list[dict], forecasts: list[dict]) -> list[dict]:
-    source = opportunities[:7] or forecasts[:5]
+    source = opportunities[:7]
     rows = []
     for index, row in enumerate(source, start=1):
         target_count = len(row.get("targets") or [])

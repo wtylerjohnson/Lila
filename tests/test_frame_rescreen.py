@@ -140,16 +140,14 @@ def test_leverage_orders_live_windows_then_rank(frame):
     assert ordered == ["t10", "t9", "t11"]
 
 
-def test_family_dedupe_collapses_same_title_agency(frame):
+def test_same_title_without_structured_identity_stays_separate(frame):
     keeps, receipt = _screen(frame, [
         _row("t12", "Data loss prevention BPA", "data loss prevention.",
              ntype="Solicitation"),
         _row("t13", "Data loss prevention BPA", "data loss prevention.",
              ntype="Sources Sought")])
-    assert len(keeps) == 1
-    assert receipt["deduped_away"] == 1
-    # the survivor is the most shapeable member (leverage rank 1)
-    assert keeps[0]["leverage_rank"] == 1
+    assert len(keeps) == 2
+    assert receipt["deduped_away"] == 0
 
 
 def test_forecast_screen_keep_rule_and_labels(frame, tmp_path):

@@ -41,7 +41,7 @@ CLASSIFICATION_INPUT_FIELDS = (
 CLASSIFICATION_DECISION_FIELDS = (
     "service_fit", "fit_basis", "window_state", "window_basis",
     "evidence_class", "evidence_basis", "route_relationship",
-    "commercial_route", "eligible_route", "route_basis",
+    "commercial_route", "eligible_route", "route_basis", "original_access_claims",
     "canonical_entity_id", "canonical_entity", "relationship_provenance",
 )
 
@@ -131,8 +131,8 @@ class ExistingSystemsGraphAdapter:
         def compute_decision() -> dict:
             classified = er.classify_record(record, self.context)
             return {
-                field: classified.get(field)
-                for field in CLASSIFICATION_DECISION_FIELDS
+                field: classified[field]
+                for field in CLASSIFICATION_DECISION_FIELDS if field in classified
             }
 
         result = self.cache.get_or_compute(

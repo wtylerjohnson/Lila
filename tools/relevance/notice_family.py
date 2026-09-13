@@ -46,7 +46,10 @@ def identity(row, index=0):
     conflict = False
     for keys in (('solicitation', 'solicitation_number', 'solicitationNumber', 'sol_number'),
                  ('agency',), ('office',)):
-        claims = [str(d[k]).strip() for d in (raw, row) for k in keys if d.get(k)]
+        # Canonical agency strings may include display component paths. The
+        # original structured namespace owns identity, as in native triage.
+        claims = ([str(raw[k]).strip() for k in keys if raw.get(k)] or
+                  [str(row[k]).strip() for k in keys if row.get(k)])
         # Identifier punctuation is significant. No suffix/call-number stripping.
         normalized = [(' '.join(v.split()).upper() if len(keys) > 1 else _norm(v)) for v in claims]
         conflict |= len(set(normalized)) > 1

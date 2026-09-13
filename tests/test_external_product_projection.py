@@ -149,8 +149,7 @@ def test_each_evidence_record_has_one_owning_slot_and_priority_only_references()
                 assert row["record_key"] not in owners
                 owners[row["record_key"]] = slot.slot_id
     priority = document.slots[0]
-    assert priority.records[0]["reference_slot_id"] == "federal-opportunities"
-    assert "record_key" not in priority.records[0]
+    assert not priority.records  # unbound graph and forecasts cannot fill current priorities
 
 
 def test_forecasts_and_live_opportunities_are_separate_and_targets_stay_bound():
@@ -160,7 +159,8 @@ def test_forecasts_and_live_opportunities_are_separate_and_targets_stay_bound():
     future = by_id["future-forecasts"].records
     assert [row["source_id"] for row in live] == ["NOTICE-1"]
     assert [row["source_id"] for row in future] == ["FORECAST-1"]
-    assert live[0]["targets"][0]["requirement_family"] == live[0]["requirement_family"]
+    assert not live[0]["targets"]  # saved target groups are not current source authority
+    assert by_id["federal-opportunities"].coverage["qualified"] == 0
     assert {visual["type"] for visual in by_id["future-forecasts"].visuals} == {
         "directional_graph", "relationship_vector_map"}
 

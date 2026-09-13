@@ -68,7 +68,7 @@ def test_advancing_as_of_changes_window_state_without_changing_identity():
     assert live["record_id"] == past["record_id"] == "NOTICE-1"
     assert live["window_state"] == "live"
     assert past["window_state"] == "stated_past"
-    assert live["evidence_class"] == "current_opportunity"
+    assert live["evidence_class"] == "ambiguous"
     assert past["evidence_class"] != "current_opportunity"
 
 

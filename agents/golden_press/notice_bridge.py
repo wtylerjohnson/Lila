@@ -261,4 +261,5 @@ class NoticeReadContext:
             files=self.files, gaps=self.gaps, family_count=len(self.families),
             projection_diagnostics=getattr(self, 'projection_diagnostics', []),
             source_count=len(self.sources), unchanged=self.unchanged(),
+            source_coverage=ledger._sam_coverage(self.sweep.get('results') or {}).model_dump(mode='json'),
             source_authenticity='bounded original-input and native Assess binding; not independent source authentication')

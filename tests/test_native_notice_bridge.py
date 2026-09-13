@@ -139,3 +139,60 @@ def test_route_does_not_infer_access_from_contact_or_incumbent():
     assert not access_decision({'description': 'Incumbent: Example Inc', 'set_aside': '8(a)'}, [])['eligible_route']
     assert access_decision({'set_aside': '8(a)'}, ['8a'])['eligible_route']
     assert not access_decision({'set_aside': 'Unknown'}, ['8a'])['eligible_route']
+
+
+def test_newer_zero_match_outside_selected_pack_suppresses_old_positive(tmp_path):
+    def amended(sweep):
+        old = sweep['results']['sam.gov'][0]
+        old['raw_payload'].update(solicitation='CALL-1', office='Office')
+        latest = deepcopy(old)
+        latest.update(source_id='N2', title='Revised projector purchase',
+                      api_url='https://sam.gov/opp/N2/view', posted_date='2026-07-09')
+        latest['raw_payload'].update(notice_id='N2', description_snippet='Deliver only projectors.')
+        sweep['results']['sam.gov'].append(latest)
+        sweep['results']['sam_census']['matched'] = 2
+    context, graph = graph_fixture(tmp_path, amended)
+    assert not context.gaps
+    assert not graph['qualified_opportunities']
+    assert len(graph['records']) == 1  # no replacement from outside selected lexical slice
+    family = graph['canonical_requirement_families'][0]
+    assert family['canonical_record_id'] == 'N2'
+    assert family['family_member_ids'] == ['N1', 'N2']
+    assert family['family_members'][1]['original_record']['title'] == 'Revised projector purchase'
+
+
+def test_multiple_original_qualified_calls_keep_native_order_and_unique_families(tmp_path):
+    def two_calls(sweep):
+        first = sweep['results']['sam.gov'][0]
+        first['raw_payload'].update(solicitation='CALL-1', office='Office')
+        second = deepcopy(first)
+        second.update(source_id='Z2', api_url='https://sam.gov/opp/Z2/view')
+        second['raw_payload'].update(notice_id='Z2', solicitation='CALL-2')
+        depth = deepcopy(sweep['results']['dossiers']['depth_records'][0])
+        depth.update(id='Z2')
+        depth['source_depth'].update(notice_id='Z2', source_url='https://sam.gov/opp/Z2/view')
+        sweep['results']['sam.gov'] = [second, first]
+        sweep['results']['dossiers']['depth_records'].insert(0, depth)
+        sweep['results']['sam_census']['matched'] = 2
+        sweep['results']['triage']['Z2'] = {'verdict': 'pursue'}
+    context, graph = graph_fixture(tmp_path, two_calls)
+    assert not context.gaps
+    assert graph['qualified_opportunities'] == ['Z2', 'N1']
+    assert len({r['requirement_family'] for r in graph['qualified_opportunity_records']}) == 2
+    assert [r.identifier for r in attach_v2_targets((), graph, notice_context=context)] == ['Z2', 'N1']
+
+
+def test_forged_projected_claims_and_transport_do_not_override_originals(tmp_path):
+    context, graph = graph_fixture(tmp_path)
+    original = graph['records'][0]
+    assert context.decision(original)['admitted']
+    for field, value in [('title', 'Invented procurement'), ('url', 'https://sam.gov/opp/OTHER/view'),
+                         ('description', 'No packet capture is required.')]:
+        row = deepcopy(original)
+        row[field] = value
+        assert not context.decision(row)['admitted']
+    row = deepcopy(original)
+    row['source_fields']['notice_source_v1']['original_record']['title'] = 'Invented'
+    from tools.relevance.notice_family import digest
+    row['source_fields']['notice_source_v1']['record_sha256'] = digest(row['source_fields']['notice_source_v1']['original_record'])
+    assert not context.decision(row)['admitted']

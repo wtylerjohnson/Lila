@@ -1709,6 +1709,8 @@ def fetch_store_candidates(conn, *, exact_terms: Any,
     not change factual output, and a render-time SQL query is exactly how
     it would.
     """
+    columns = {row[1] for row in conn.execute("PRAGMA table_info(notices)")}
+    active_field = "active" if "active" in columns else "NULL AS active"
     shaping = ("Sources Sought", "Request for Information", "RFI",
                "Special Notice", "Presolicitation", "Solicitation",
                "Combined Synopsis/Solicitation", "Request for Proposal",
@@ -1746,7 +1748,7 @@ def fetch_store_candidates(conn, *, exact_terms: Any,
         boundary = " OR ".join(boundary_parts)
         rows = conn.execute(
             f"SELECT notice_id, title, notice_type, sol_number, deadline, "
-            f"posted, naics, set_aside, agency, subtier, active, "
+            f"posted, naics, set_aside, agency, subtier, {active_field}, "
             f"poc_name, poc_email, poc_phone, poc_title, "
             f"poc_secondary_name, poc_secondary_email, poc_secondary_phone, "
             f"poc_secondary_title, description_prefix, "
@@ -1765,7 +1767,7 @@ def fetch_store_candidates(conn, *, exact_terms: Any,
     for term in terms:
         rows = conn.execute(
             f"SELECT notice_id, title, notice_type, sol_number, deadline, "
-            f"posted, naics, set_aside, agency, subtier, active, "
+            f"posted, naics, set_aside, agency, subtier, {active_field}, "
             f"poc_name, poc_email, poc_phone, poc_title, "
             f"poc_secondary_name, poc_secondary_email, poc_secondary_phone, "
             f"poc_secondary_title, description_prefix, "

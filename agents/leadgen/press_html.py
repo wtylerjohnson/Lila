@@ -168,6 +168,7 @@ def render_html(receipt: PressLeadGenReceipt) -> str:
             ("Classification", parent.live_classification),
             ("Recommendation", parent.live_recommendation),
             ("Requirement", parent.requirement_span),
+            ("Source acquisition", "Collection time not established in this parent summary; inspect the source Assess evidence."),
         ])
         parent_rows.append(
             f'<tr id="{parent_anchors[parent.assessment_id]}">'

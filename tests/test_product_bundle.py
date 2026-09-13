@@ -61,7 +61,7 @@ def test_one_release_action_writes_complete_hash_bound_zip(
         to_dict=lambda: {"slots": [f"slot-{index}" for index in range(1, 9)]})
     monkeypatch.setattr(bundle, "_load_pack", lambda *_args: (pressed, pack))
     monkeypatch.setattr(bundle, "_load_profile", lambda *_args: {})
-    monkeypatch.setattr(bundle, "_build_graph", lambda *_args: (graph_path, graph))
+    monkeypatch.setattr(bundle, "_build_graph", lambda *_args, **_kwargs: (graph_path, graph))
     monkeypatch.setattr(bundle, "build_external_product_document",
                         lambda **_kwargs: product)
     monkeypatch.setattr(bundle, "render_external_product",

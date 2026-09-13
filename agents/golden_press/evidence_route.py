@@ -734,6 +734,10 @@ def apply_native_admission(record: dict, notice_context=None, *, recheck=True) -
                    window_state="live", window_basis="current aware source response window")
         out.update(decision["route"])
     else:
+        out["discovery_service_fit"] = record.get("service_fit")
         out.update(eligible_route=False, commercial_route="unknown", route_relationship="unknown",
+                   service_fit="ambiguous", fit_basis="current source qualification is withheld",
+                   window_state="stated_past" if decision.get("temporal", {}).get("response_window") == "closed" else "unstated",
+                   window_basis="current action clock is not established",
                    route_basis="current source access not established", qualification_state="held_for_source_review")
     return out
