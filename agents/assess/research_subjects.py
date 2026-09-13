@@ -95,7 +95,7 @@ def source_posture(kind, row, as_of=None):
         end_date=date.fromisoformat(str(end)[:10])
         if as_of is None:return 'award_timing_unknown'
         if end_date<as_of.date():return 'historical_award'
-        if start and date.fromisoformat(str(start)[:10])>as_of.date():return 'award_timing_unknown'
+        if not start or date.fromisoformat(str(start)[:10])>as_of.date():return 'award_timing_unknown'
         return 'current_period_award'
     except (TypeError,ValueError):return 'award_timing_unknown'
 

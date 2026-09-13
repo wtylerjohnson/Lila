@@ -45,7 +45,8 @@ def discover_forecasts(records: list[ForecastRecord], profile: CapabilityProfile
             from .dhs_apfs import scope_identity
             scoring_record["agency"] = scope_identity(record) or record.agency
         from tools.relevance.scope import in_scope
-        if not in_scope(scoring_record, engagement_scope)[0]:
+        inside, scope_basis = in_scope(scoring_record, engagement_scope)
+        if not inside or engagement_scope is not None and "unresolved" in scope_basis:
             continue
         # Honor operator record exclusions before consulting supplemental or
         # exploratory vocabulary. Span exclusions remain local in the scorer.
@@ -101,7 +102,7 @@ def discover_forecasts(records: list[ForecastRecord], profile: CapabilityProfile
             "native_boundary_evidence": native_verdict.model_dump(mode="json") if native_verdict is not None else None,
             "discovery_policy": "research_only_including_explicit_off_code_functions",
             "qualification_effect": "none; direct qualification is unchanged",
-            "route_hypothesis": "OEM or partner research; route unverified" if not eligible else "research; acquisition route unverified",
+            "route_hypothesis": "OEM or partner research; eligible supplier and route remain to be established" if not eligible else "research; acquisition route remains to be established",
             "unknowns": ["Current solicitation and status", "Exact product and configuration conformity", "Tool ownership and purchasing authority", "Eligible supplier and permitted OEM role", "Alternatives or complementary products allowed"],
             "communication_permission": "none",
         })

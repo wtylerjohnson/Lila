@@ -77,6 +77,7 @@ a{color:var(--blue);text-underline-offset:3px}
 .footer{padding:28px 62px;background:#111;color:#ccc;font-size:12px}
 .footer strong{color:#fff}
 .source-note{color:var(--muted);font-size:13px}
+pre.mono{white-space:pre-wrap;overflow-wrap:anywhere;max-width:100%}
 .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;word-break:break-all}
 /* Press layout adaptations only; the palette and report chrome above are reused. */
 .metric{text-decoration:none}

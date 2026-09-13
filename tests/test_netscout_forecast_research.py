@@ -84,6 +84,7 @@ def test_exploratory_competitor_does_not_establish_capability():
     rec=rows()[0].model_copy(update={'title':'Gigamon renewal','description':'License maintenance'})
     result=discover_forecasts([rec],PROFILE)[0]
     assert result['exploratory_terms']==['Gigamon'] and not result['capability_terms']
+    assert any(r.get('term')=='Gigamon' and r['disposition']=='exploratory' and r['definition_sha256'] and r['reason'] for r in result['vocabulary'])
     exclusion=CapabilityTaxonomy(client_name='NETSCOUT',version=1,updated='2026-09-12',exclude=[KillRule(term='license maintenance',scope='record')])
     assert discover_forecasts([rec],PROFILE,taxonomy=exclusion)==[]
     with pytest.raises(ValueError,match='different client'):
