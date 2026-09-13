@@ -1124,9 +1124,34 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   upstream publication time. The absolute path, exact raw bytes read, SHA-256,
   UTC read interval, and descriptor/path metadata bind what the CSV decoder
   consumed. `status=verified`, `complete=true`, `integrity=stable` require EOF,
-  exact byte count and unchanged file identity/metadata. Both attachment passes
-  must consume the same file/digest. Failed reads retain an honest partial hash
-  and failure state; a failed download has selection evidence but no read row.
+  exact byte count, consistent observed file identity/metadata, and the independent
+  content check below. Both attachment passes must consume the same file/digest.
+  Failed reads retain an honest partial hash and failure state; a failed download
+  has selection evidence but no read row.
+- S2-SOURCE-002 additive receipt semantics (2026-09-12): schema version 1,
+  existing keys/status values and public consumers stay compatible. `sha256`
+  and `bytes_read` always identify the raw bytes delivered to the CSV decoder;
+  they are never replaced by a later file hash. `scan_metadata_consistency`
+  describes the scan's observed descriptor/path metadata. The separate
+  `content_verification` records an independent fresh-descriptor, full raw
+  SHA-256 pass, its byte count, read interval and before/after metadata for the
+  verification descriptor, consumed descriptor and selected path. Its
+  `metadata_consistency` is separate from content equality. Only a complete
+  pass with matching metadata, digest and byte count can report `verified`.
+  Its `complete` means that verification reached EOF at the expected byte count;
+  a complete but different digest is `changed`, not verified. Root `complete`
+  stays false on every failure. A scan that fails first leaves verification
+  `not_checked`; unreadable/incomplete verification fails named as
+  `ExtractReadFailed` with retained partial verification bytes/hash and the
+  underlying error type where available. Existing consumer failure/fallback
+  paths retain these internal diagnostics without changing public coverage copy.
+- This check costs one additional O(file-size) read/hash per completed scan,
+  with a 1 MiB buffer. It verifies equal content across two observed reads and
+  their metadata checks. It cannot establish immutable storage, prevent future
+  writes, or detect every transient rewrite that evades both observations.
+  The legacy `integrity=stable` token has that bounded meaning, not a universal
+  cross-filesystem guarantee. No original-source freshness/authenticity or
+  government upstream publication assertion is added by matching hashes.
 - Midnight is not silently normalized: a later attachment download can select
   the next local day's file, and each pass carries its own selection bounds.
   No snapshot option, query filter, search limit, ranking or fallback changes.

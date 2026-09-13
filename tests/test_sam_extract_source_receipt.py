@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import builtins
 import concurrent.futures
 import hashlib
 import json
@@ -110,6 +111,20 @@ def _assert_verified(receipt, path, payload):
     assert all(value.utcoffset().total_seconds() == 0 for value in times)
     assert receipt["file_stat_before"] == receipt["file_stat_after"]
     assert receipt["path_stat_before"] == receipt["path_stat_after"]
+    assert receipt["schema_version"] == 1
+    assert receipt["scan_metadata_consistency"] == "consistent"
+    verification = receipt["content_verification"]
+    assert verification["method"] == "independent_post_read_sha256"
+    assert verification["status"] == "verified"
+    assert verification["complete"] is True
+    assert verification["metadata_consistency"] == "consistent"
+    assert verification["sha256"] == receipt["sha256"]
+    assert verification["bytes_read"] == len(payload)
+    for key in ("file_stat_before", "file_stat_after", "path_stat_before",
+                "path_stat_after", "consumed_file_stat_before", "consumed_file_stat_after"):
+        assert verification[key] == receipt["file_stat_before"]
+    assert (receipt["read_started_at_utc"] <= verification["read_started_at_utc"]
+            <= verification["read_finished_at_utc"] <= receipt["read_finished_at_utc"])
 
 
 def test_native_cache_reuse_hashes_exact_bytes_before_text_replacement(native_extract):
@@ -230,6 +245,199 @@ def test_concurrent_path_or_byte_change_never_verifies(
     assert receipt["integrity"] == "changed"
     assert receipt["complete"] is False
     assert source.last_census["complete"] is False
+
+
+def test_same_length_rewrite_with_hidden_timestamps_fails_content_verification(
+        native_extract, monkeypatch):
+    """S2-SOURCE-002: synthetic metadata invisibility, not a cloud-FS claim."""
+    cache, _ = native_extract
+    path = cache / "opportunities_2026-09-10.csv"
+    path.write_bytes(CSV)
+    before = path.stat()
+    file_stat = se._file_stat
+    original = se.iter_rows
+
+    def hidden_timestamps(stat):
+        observed = file_stat(stat)
+        observed.update(modified_at_ns=before.st_mtime_ns,
+                        changed_at_ns=before.st_ctime_ns)
+        return observed
+
+    def mutate(handle):
+        for index, row in enumerate(original(handle)):
+            if index == 0:
+                path.write_bytes(CSV.replace(b"N-NEW", b"N-DIF"))
+                os.utime(path, ns=(before.st_atime_ns, before.st_mtime_ns))
+            yield row
+
+    monkeypatch.setattr(se, "_file_stat", hidden_timestamps)
+    monkeypatch.setattr(se, "iter_rows", mutate)
+    source = se.SamExtractSource()
+    with pytest.raises(se.ExtractReadFailed, match="digest mismatch"):
+        source.search(SourceQuery())
+    receipt = source.last_census["extract_receipts"][0]
+    assert receipt["sha256"] == hashlib.sha256(CSV).hexdigest()
+    assert receipt["bytes_read"] == len(CSV)
+    assert receipt["scan_metadata_consistency"] == "consistent"
+    verification = receipt["content_verification"]
+    assert verification["metadata_consistency"] == "consistent"
+    assert verification["sha256"] == hashlib.sha256(path.read_bytes()).hexdigest()
+    assert verification["sha256"] != receipt["sha256"]
+    assert verification["status"] == "changed"
+    assert verification["complete"] is True
+    assert receipt["status"] == "failed" and receipt["integrity"] == "changed"
+    assert receipt["complete"] is False
+    assert source.last_census["complete"] is False
+
+
+def test_unchanged_content_gets_independent_full_digest(native_extract, monkeypatch):
+    """The second pass opens a distinct descriptor and hashes beyond one chunk."""
+    cache, http = native_extract
+    path = cache / "opportunities_2026-09-10.csv"
+    payload = CSV + b"\n" * 1_100_000
+    path.write_bytes(payload)
+    handles = []
+
+    def observed_open(selected, *args, **kwargs):
+        assert selected == path
+        handle = builtins.open(selected, *args, **kwargs)
+        if handles:
+            assert handles[0].closed is False
+            assert handles[0].fileno() != handle.fileno()
+        handles.append(handle)
+        return handle
+
+    monkeypatch.setattr(se, "open", observed_open, raising=False)
+    source = se.SamExtractSource()
+    rows = source.search(SourceQuery())
+    assert [row.source_id for row in rows] == ["N-OLD", "N-NEW"]
+    assert http.calls == 0 and len(handles) == 2
+    assert all(handle.closed for handle in handles)
+    _assert_verified(source.last_census["extract_receipts"][0], path, payload)
+
+
+@pytest.mark.parametrize("failure", [
+    "open", "read", "closed_descriptor", "short_eof", "no_progress",
+    "file_stat_before", "file_stat_after", "path_stat_before", "path_stat_after",
+])
+def test_verification_io_failure_keeps_consumed_digest_and_fails_named(
+        native_extract, monkeypatch, failure):
+    """S2-SOURCE-002: verification cannot turn unreadable input into success."""
+    cache, _ = native_extract
+    path = cache / "opportunities_2026-09-10.csv"
+    payload = CSV + b"\n" * 1_100_000
+    path.write_bytes(payload)
+    opened = []
+    real_read, real_fstat, real_stat = se._HashingReader.readinto, os.fstat, type(path).stat
+    calls = {"file_stat": 0, "path_stat": 0}
+
+    def verification_open(selected, *args, **kwargs):
+        if len(opened) == 1 and failure == "open":
+            raise PermissionError("fixture verification reopen denied")
+        handle = builtins.open(selected, *args, **kwargs)
+        opened.append(handle)
+        return handle
+
+    def interrupted_read(reader, buffer):
+        if len(opened) == 2 and reader.source is opened[1] and reader.bytes_read:
+            if failure == "read":
+                raise OSError("fixture verification read interrupted")
+            if failure == "closed_descriptor":
+                reader.source.close()
+                return real_read(reader, buffer)
+            if failure == "short_eof":
+                reader.eof = True
+                return 0
+            if failure == "no_progress":
+                return None
+        return real_read(reader, buffer)
+
+    def check_stat(kind, is_verifier):
+        if is_verifier:
+            calls[kind] += 1
+            if failure == f"{kind}_{'before' if calls[kind] == 1 else 'after'}":
+                raise OSError("fixture verification stat unavailable")
+
+    def interrupted_fstat(fd):
+        check_stat("file_stat", len(opened) == 2 and not opened[1].closed
+                   and fd == opened[1].fileno())
+        return real_fstat(fd)
+
+    def interrupted_path_stat(selected, *args, **kwargs):
+        check_stat("path_stat", selected == path and len(opened) == 2
+                   and not opened[1].closed)
+        return real_stat(selected, *args, **kwargs)
+
+    monkeypatch.setattr(se, "open", verification_open, raising=False)
+    monkeypatch.setattr(se._HashingReader, "readinto", interrupted_read)
+    monkeypatch.setattr(os, "fstat", interrupted_fstat)
+    monkeypatch.setattr(type(path), "stat", interrupted_path_stat)
+    source = se.SamExtractSource()
+    message = "full EOF" if failure in {"short_eof", "no_progress"} else "unreadable"
+    with pytest.raises(se.ExtractReadFailed, match=f"content verification.*{message}"):
+        source.search(SourceQuery())
+    receipt = source.last_census["extract_receipts"][0]
+    assert receipt["sha256"] == hashlib.sha256(payload).hexdigest()
+    assert receipt["bytes_read"] == len(payload)
+    assert receipt["status"] == "failed" and receipt["integrity"] == "read_failed"
+    assert receipt["complete"] is False and source.last_census["complete"] is False
+    verification = receipt["content_verification"]
+    assert verification["status"] == "read_failed"
+    assert verification["read_finished_at_utc"] and verification["error_type"]
+    if failure in {"read", "closed_descriptor", "short_eof", "no_progress"}:
+        assert 0 < verification["bytes_read"] < len(payload)
+        assert verification["sha256"] == hashlib.sha256(
+            payload[:verification["bytes_read"]]).hexdigest()
+        assert verification["complete"] is False
+    assert all(handle.closed for handle in opened)
+
+
+@pytest.mark.parametrize("when", ["before", "during"])
+@pytest.mark.parametrize("mutation", ["replace", "unlink"])
+def test_path_identity_change_at_verification_boundary_fails(
+        native_extract, monkeypatch, when, mutation):
+    cache, _ = native_extract
+    path = cache / "opportunities_2026-09-10.csv"
+    path.write_bytes(CSV)
+    opened = []
+    real_read = se._HashingReader.readinto
+    changed = False
+
+    def mutate():
+        nonlocal changed
+        changed = True
+        if mutation == "replace":
+            replacement = cache / "verification-replacement.csv"
+            replacement.write_bytes(CSV)
+            replacement.replace(path)
+        else:
+            path.unlink()
+
+    def verification_open(selected, *args, **kwargs):
+        if len(opened) == 1 and when == "before":
+            mutate()
+        handle = builtins.open(selected, *args, **kwargs)
+        opened.append(handle)
+        return handle
+
+    def verification_read(reader, buffer):
+        count = real_read(reader, buffer)
+        if len(opened) == 2 and reader.source is opened[1] and not changed:
+            mutate()
+        return count
+
+    monkeypatch.setattr(se, "open", verification_open, raising=False)
+    monkeypatch.setattr(se._HashingReader, "readinto", verification_read)
+    source = se.SamExtractSource()
+    with pytest.raises(se.ExtractReadFailed, match="content verification"):
+        source.search(SourceQuery())
+    receipt = source.last_census["extract_receipts"][0]
+    assert receipt["sha256"] == hashlib.sha256(CSV).hexdigest()
+    assert receipt["status"] == "failed" and receipt["complete"] is False
+    assert source.last_census["complete"] is False
+    assert receipt["content_verification"]["status"] == (
+        "changed" if mutation == "replace" else "read_failed")
+    assert all(handle.closed for handle in opened)
 
 
 def test_read_error_preserves_partial_consumed_hash(native_extract, monkeypatch):

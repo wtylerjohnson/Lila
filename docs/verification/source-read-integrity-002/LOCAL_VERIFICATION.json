@@ -1,0 +1,127 @@
+{
+  "work_id": "S2-SOURCE-002",
+  "status": "LOCAL_VERIFIED_NOT_PUBLISHED",
+  "verified_at_utc": "2026-09-13T00:13:58.605065+00:00",
+  "branch": "codex/source-read-integrity-002",
+  "checkout": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/source-read-integrity-002",
+  "base_revision": "cb8448e788cf41d63a8fa1049ac1d9eeecdedf87",
+  "code_verification_basis": "Full suite ran the working tree on the exact base; final source/test/doc hashes rechecked against the tested snapshot before commit. No code changes after focused/full runs.",
+  "canonical_plan_sha256": "71a4c7c11ee575596357e5e0fcfb66a75d2c855b4761040042732c8cad26bfc5",
+  "tested_files_sha256": {
+    "tools/api/sam_extract.py": "69c64e615684f2d0e1a90322f1eab9d1448a042c36ba7a651d7ad4793c41842d",
+    "tests/test_sam_extract_source_receipt.py": "4977d9cdbf03a8e9b23f29bba3e02e630442455fd8ec8f7e1b4a50a284c892cd",
+    "docs/CONVENTIONS.md": "d731e2c975f0490db43df2a5b15d88c602b97f2eb46e81994600a50e37f063a7",
+    "docs/verification/source-read-integrity-002/PRE_PATCH_REPORT.md": "4a28348f9c824f0ec39583e69d9af9f12e25b952ff1c1840f17d56221c5808ff"
+  },
+  "environment": {
+    "python": "3.14.5 (main, May 10 2026, 19:20:57) [Clang 22.1.3 ]",
+    "executable": "/Users/wtjohnson/Lila/.venv/bin/python",
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "flags": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "LILA_SUITE_OFFLINE": "1",
+      "LILA_SUITE_STRICT": "1"
+    },
+    "ignored_modules": []
+  },
+  "full_suite_command": "PYTHONDONTWRITEBYTECODE=1 LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 /Users/wtjohnson/Lila/.venv/bin/python -m pytest tests/ -q -rs -p no:cacheprovider --junitxml=../../outputs/S2_SOURCE_002_IMPLEMENTATION/full-suite-final.xml",
+  "tests": {
+    "old_code_red": {
+      "exit_code": 1,
+      "expected": true,
+      "reason": "Known synthetic hidden-timestamp rewrite did not raise ExtractReadFailed on accepted Step3 base; test body unchanged after repair."
+    },
+    "focused": {
+      "tests": 119,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 119,
+      "exit_code": 0,
+      "summary": "119 passed in 1.98s"
+    },
+    "full_sandbox_attempt": {
+      "tests": 5640,
+      "failures": 6,
+      "errors": 0,
+      "skipped": 114,
+      "passed": 5520,
+      "exit_code": 1,
+      "summary": "6 failed, 5520 passed, 114 skipped, 16 warnings in 87.39s (0:01:27)"
+    },
+    "full_permitted_rerun": {
+      "tests": 5640,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 40,
+      "passed": 5600,
+      "exit_code": 0,
+      "summary": "5600 passed, 40 skipped, 18 warnings in 133.31s (0:02:13)"
+    }
+  },
+  "sandbox_failure_disclosure": "Initial full run had 6 Chrome/PDF launch failures and 74 extra browser skips. Normal tool escalation was granted; unchanged full strict/offline suite reran with browser-launch permission. No tests or modules were ignored.",
+  "report_checks": "Existing report validation, retention, press, render, browser and PDF checks are included in the green full suite; the 40 existing data/live opt-in skips remain. No live client report was pressed.",
+  "fixture_receipt": {
+    "path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP2-045/test_fixture_receipt.json",
+    "sha256": "0bd13a1b97a667098f8d115c22248498dff523a4de83644002127cf59c14a774",
+    "count": 31,
+    "all_hashes_matched_before_copy_and_after_suite": true,
+    "copied_fixture_receipt_sha256": "710501c8d3a73a57771c09bc0a1519da447df38d52c51680b7c87af10c6fd92b",
+    "scope": "Existing exact ignored baseline fixtures only, no current operating client data imported."
+  },
+  "logs_sha256": {
+    "old-code-red.log": "0b20e8cad42eca2214c854ac2aa1faeb96ad6d788e864e45d291a6750f8b39d5",
+    "focused-final.log": "9ea65e3228877f92586c1e08f3140e40f05d7399f98b7619d0573f2b767d189c",
+    "focused-final.xml": "576428e467493ddfb1111c8a021573566406cda1de5335f126b5ff62665cf2b7",
+    "full-suite.log": "b4b4afca80767798125ec23e458ffda008e3217b6e0ddec629b9f430dcbadd55",
+    "full-suite.xml": "04bc89afcd58966c973b7caf15a559248d3389b3936b27eddb87b423f4caa23b",
+    "full-suite-final.log": "57b6dc7cda75de4aaeeec902a2a35d850017340465c29022dfa43d6d6ee725c4",
+    "full-suite-final.xml": "9534e728bb954a944e5002841f19dfdcef7436287634cd218776692951664a3c"
+  },
+  "diff_sha256": "696666bcee8361862af5e50cb82731f7940efe01019c8ea16b9f4deca8edae15",
+  "receipt_semantics": {
+    "schema_version": 1,
+    "compatibility": "Existing internal keys/status tokens preserved; additive scan_metadata_consistency and content_verification. Public-safe census projection unchanged.",
+    "consumed_bytes": "sha256 and bytes_read still identify exactly the raw bytes delivered to the decoder.",
+    "verification": "Independent fresh-descriptor full SHA-256 and byte count; both descriptors and selected path checked before and after. Complete verification digest mismatch fails changed; unreadable/incomplete verification fails named with separate partial evidence.",
+    "cost": "One additional O(file-size) read/hash per completed scan, with a 1 MiB buffer."
+  },
+  "scope_limits": [
+    "Synthetic hidden-timestamp regression is not a recreation of the Fable cloud filesystem.",
+    "Two observed reads plus metadata checks do not guarantee immutable storage, detect every transient mutation, or prevent later writes.",
+    "No new freshness, source authenticity, current authority, source selection, clock, qualification or gate behavior.",
+    "No fresh real-data lead acceptance, separate cloud review, publication or production merge. Step4 owns dates/authority and combined-tree review."
+  ],
+  "preserved_state": {
+    "canonical_plan_and_frozen_hashes_unchanged": true,
+    "source_checkout_before": {
+      "head": "cb8448e788cf41d63a8fa1049ac1d9eeecdedf87",
+      "status": "",
+      "dirty_file_hashes": {}
+    },
+    "source_checkout_after": {
+      "head": "cb8448e788cf41d63a8fa1049ac1d9eeecdedf87",
+      "status": "",
+      "dirty_file_hashes": {}
+    },
+    "operating_head_before": "f0f7aecb034d617152907f445ca0d697e135081c",
+    "operating_head_after": "f0f7aecb034d617152907f445ca0d697e135081c",
+    "operating_status_before": " M clients/netscout/profile.json\n M data/entities/unresolved.log\n?? clients/netscout/capability_taxonomy.json\n?? clients/netscout/engagement_scope.json\n",
+    "operating_status_after": " M clients/netscout/profile.json\n M data/entities/unresolved.log\n?? clients/netscout/capability_taxonomy.json\n?? clients/netscout/engagement_scope.json\n",
+    "operating_dirty_hashes_before": {
+      "clients/netscout/profile.json": "4c43f61c4c67eabd961136dcc415f8280974fef6d2d9d0bb7e399106def49c2a",
+      "data/entities/unresolved.log": "17ed3d14df94f1728cd67e3cdada21171cd7acbe69fd9e8c3c3f8ae2894c8caa",
+      "clients/netscout/capability_taxonomy.json": "64360dfb67abdd260efa07a8c7e2a3812491a83db2d840a75db3ef48cedf0425",
+      "clients/netscout/engagement_scope.json": "0f8a6f22f1b616ff4b891a213e02cfc2bb928d9423c69ebbca6551535f17f1c4"
+    },
+    "operating_dirty_hashes_after": {
+      "clients/netscout/profile.json": "4c43f61c4c67eabd961136dcc415f8280974fef6d2d9d0bb7e399106def49c2a",
+      "data/entities/unresolved.log": "17ed3d14df94f1728cd67e3cdada21171cd7acbe69fd9e8c3c3f8ae2894c8caa",
+      "clients/netscout/capability_taxonomy.json": "64360dfb67abdd260efa07a8c7e2a3812491a83db2d840a75db3ef48cedf0425",
+      "clients/netscout/engagement_scope.json": "0f8a6f22f1b616ff4b891a213e02cfc2bb928d9423c69ebbca6551535f17f1c4"
+    },
+    "changed_operating_paths_in_agent_snapshot_interval": {},
+    "observation_boundary": "No writes by this agent to shared/operating repos. Comparisons cover this agent snapshot interval only; root reported unresolved.log changed before this BEFORE snapshot while other work was active."
+  },
+  "handoff_directory": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S2_SOURCE_002_IMPLEMENTATION"
+}

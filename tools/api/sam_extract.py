@@ -149,7 +149,7 @@ def _file_stat(stat) -> dict:
 
 
 class _HashingReader(io.RawIOBase):
-    """Hash the bytes delivered to the CSV decoder, not a later path reopen."""
+    """Hash bytes from this descriptor; keep separate readers' digests separate."""
 
     def __init__(self, source):
         self.source = source
@@ -170,6 +170,68 @@ class _HashingReader(io.RawIOBase):
         return count
 
 
+def _verify_extract_content(path: Path, source, before: dict, receipt: dict):
+    """Check a second full read, not all transient mutations or future writes.
+
+    One extra O(file-size) read/hash per scan; the consumed-byte digest stays
+    untouched. Both open descriptors and the path must retain their identity.
+    """
+    verification = receipt["content_verification"]
+    verification.update(
+        method="independent_post_read_sha256", status="reading",
+        metadata_consistency="not_checked", sha256=None, bytes_read=0,
+        read_started_at_utc=_utc_now(), read_finished_at_utc=None)
+    try:
+        with open(path, "rb", buffering=0) as check:
+            verification["file_stat_before"] = _file_stat(os.fstat(check.fileno()))
+            verification["path_stat_before"] = _file_stat(path.stat())
+            verification["consumed_file_stat_before"] = _file_stat(
+                os.fstat(source.fileno()))
+            if any(verification[key] != before for key in (
+                    "file_stat_before", "path_stat_before", "consumed_file_stat_before")):
+                verification["metadata_consistency"] = "changed"
+                receipt["integrity"] = "changed"
+                raise ExtractReadFailed("extract changed before content verification")
+            reader = _HashingReader(check)
+            try:
+                buffer = bytearray(1024 * 1024)
+                while reader.readinto(buffer):
+                    pass
+            finally:
+                verification.update(sha256=reader.digest.hexdigest(),
+                                    bytes_read=reader.bytes_read,
+                                    complete=reader.eof and
+                                    reader.bytes_read == before["size_bytes"])
+            verification["file_stat_after"] = _file_stat(os.fstat(check.fileno()))
+            verification["path_stat_after"] = _file_stat(path.stat())
+            verification["consumed_file_stat_after"] = _file_stat(
+                os.fstat(source.fileno()))
+            if any(verification[key] != before for key in (
+                    "file_stat_after", "path_stat_after", "consumed_file_stat_after")):
+                verification["metadata_consistency"] = "changed"
+                receipt["integrity"] = "changed"
+                raise ExtractReadFailed("extract changed during content verification")
+            verification["metadata_consistency"] = "consistent"
+            if not verification["complete"]:
+                raise ExtractReadFailed("extract content verification did not reach full EOF")
+            if (verification["sha256"] != receipt["sha256"]
+                    or verification["bytes_read"] != receipt["bytes_read"]):
+                receipt["integrity"] = "changed"
+                raise ExtractReadFailed(
+                    "extract changed during content verification: digest mismatch")
+        verification["status"] = "verified"
+    except Exception as exc:
+        verification.update(
+            status="changed" if receipt["integrity"] == "changed" else "read_failed",
+            error_type=type(exc).__name__, error=str(exc)[:240])
+        if isinstance(exc, ExtractReadFailed):
+            raise
+        raise ExtractReadFailed(
+            f"extract content verification unreadable: {type(exc).__name__}") from exc
+    finally:
+        verification["read_finished_at_utc"] = _utc_now()
+
+
 @contextmanager
 def _read_extract(path: Path, census: dict, scan: str, *, previous=None):
     """Receipt each full scan; two-pass callers may bind to their first read."""
@@ -184,6 +246,8 @@ def _read_extract(path: Path, census: dict, scan: str, *, previous=None):
         "read_started_at_utc": _utc_now(), "read_finished_at_utc": None,
         "status": "reading", "complete": False, "integrity": "not_checked",
         "sha256": None, "bytes_read": 0,
+        "scan_metadata_consistency": "not_checked",
+        "content_verification": {"status": "not_checked", "complete": False},
     }
     census["extract_receipts"].append(receipt)
     try:
@@ -195,6 +259,7 @@ def _read_extract(path: Path, census: dict, scan: str, *, previous=None):
                     previous is not None
                     and previous["file_stat_after"] != before):
                 receipt["integrity"] = "changed"
+                receipt["scan_metadata_consistency"] = "changed"
                 raise ExtractReadFailed("extract changed before scan")
             reader = _HashingReader(source)
             with io.TextIOWrapper(io.BufferedReader(reader), encoding="utf-8",
@@ -213,6 +278,9 @@ def _read_extract(path: Path, census: dict, scan: str, *, previous=None):
                     if (receipt["file_stat_after"] != before
                             or receipt["path_stat_after"] != before):
                         receipt["integrity"] = "changed"
+                        receipt["scan_metadata_consistency"] = "changed"
+                    else:
+                        receipt["scan_metadata_consistency"] = "consistent"
                 if receipt["integrity"] == "changed":
                     raise ExtractReadFailed("extract changed during scan")
                 if not reader.eof or reader.bytes_read != before["size_bytes"]:
@@ -221,6 +289,7 @@ def _read_extract(path: Path, census: dict, scan: str, *, previous=None):
                         receipt["sha256"] != previous["sha256"]):
                     receipt["integrity"] = "changed"
                     raise ExtractReadFailed("extract bytes changed between scans")
+                _verify_extract_content(path, source, before, receipt)
         receipt.update(status="verified", complete=True, integrity="stable")
     except Exception as exc:
         receipt.update(status="failed", error_type=type(exc).__name__,
