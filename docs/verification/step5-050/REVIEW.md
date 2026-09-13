@@ -159,3 +159,30 @@ receipt supplies the actual publication proof.
 All Step1 R1-R7, Step3 retained surface/diagnostic/role/semantic residuals and
 Step4 source/transient-mutation/cloud-proof limitations retain their existing
 meaning. S3-ROLE-007 is not manufactured in the scorer. No frozen scores change.
+
+## Fixed-review repairs
+
+The first fixed candidate55bf3aa passed37 tests and5802 combined checks but failed
+six new operator repros, grouped as two required P2 repairs. The original report
+and verification are preserved as FIXED_REVIEW_REPORT.md and
+FIXED_REVIEW_VERIFICATION.json; FIXED_REVIEW_PRE_PATCH.md records the repair decision.
+
+S5-REVIEW-050-01: `original_semantic_proposals` retains each predicate/value set
+before support screening. Missing proposals differ from explicit unknowns.
+`original_proposal_disagreements` and `original_proposal_coverage` remain separate
+from `validated_state_disagreements` and `validated_state_agreement`. Overall
+`disagreements` is their union. `initial_semantic_proposal_agreement` compares
+original predicate/value sets; `initial_complete_decision_agreement` additionally
+requires all six predicate/grade slots to have proposals from both reviewers.
+Different IDs, evidence references and rationale text alone do not create a
+semantic disagreement. Agreed counts still use validated states only, explicitly
+labeled; unsupported opposition never becomes supported credit or adjudication.
+
+S5-REVIEW-050-02: each admitted receipt context validates exact field sets,
+string/date types and integer-only span offsets; each checker record requires a
+boolean synthetic/live domain. All context and checker-record comparisons use
+canonical serialized JSON, keeping false,0 and0.0 distinct. This also applies to
+receipts unused by reviewers and does not let admission waive schema checks.
+The repaired suite has39 methods, including all six independently reproduced
+failures plus unused-receipt, numeric predicate, extra-field and canonical-span
+controls. Root source-clock code is unchanged by these repairs.

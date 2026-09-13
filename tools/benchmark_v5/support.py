@@ -1,5 +1,5 @@
 """Exact admission and substantive-assessment binding, not language entailment."""
-from .io import bound, digest, nonempty, object_hash, read, require
+from .io import bound, digest, exact, nonempty, object_hash, read, require
 
 DIMENSIONS = ("fit", "response_open", "continuation_open", "route_eligible", "evidence_sufficient")
 CLAIM_FIELDS = {"claim_id", "predicate", "value", "rationale", "evidence_refs", "scope"}
@@ -23,7 +23,7 @@ def validate_claim(claim, card):
             len(refs) == len(set(refs)), "Invalid evidence references")
     by_id = {e["evidence_id"]: e for e in card["evidence"]}
     require(set(refs) <= set(by_id), "Unknown/cross-card reference")
-    require(claim["scope"] == card["decision_scope"], "Claim action/route/offering scope mismatch")
+    require(exact(claim["scope"], card["decision_scope"]), "Claim action/route/offering scope mismatch")
     return [by_id[r] for r in refs]
 
 
@@ -34,6 +34,30 @@ def context(packet, packet_sha, card, family, claim):
             "objective_sha256": object_hash(packet["objective"]), "brief_sha256": packet["brief_sha256"],
             "support_policy_sha256": packet["support_policy_sha256"], "claim": claim_body(claim),
             "evidence": evidence}
+
+
+def validate_context(ctx):
+    """Validate the received receipt representation, before exact comparison."""
+    fields = {"packet_sha256", "blind_id", "subject_id", "family_identity_sha256", "objective_sha256",
+              "brief_sha256", "support_policy_sha256", "claim", "evidence"}
+    require(isinstance(ctx, dict) and set(ctx) == fields, "Receipt context schema")
+    for field in fields - {"claim", "evidence"}:
+        nonempty(ctx[field], "context " + field)
+    require(isinstance(ctx["claim"], dict) and set(ctx["claim"]) == CLAIM_FIELDS, "Receipt claim schema")
+    evidence = ctx["evidence"]
+    require(isinstance(evidence, list), "Receipt evidence list required")
+    fields = {"source_id", "passage_id", "subject_id", "source_url", "published_at_utc", "retrieved_at_utc",
+              "retrieval_state", "authority", "passage", "span", "locator", "snapshot_sha256", "identity_state",
+              "evidence_id", "snapshot_file"}
+    for ev in evidence:
+        require(isinstance(ev, dict) and set(ev) == fields, "Receipt evidence schema")
+        for field in fields - {"span", "published_at_utc", "retrieved_at_utc"}:
+            nonempty(ev[field], "receipt evidence " + field)
+        for field in ("published_at_utc", "retrieved_at_utc"):
+            require(ev[field] is None or isinstance(ev[field], str), "Receipt date type")
+        span = ev["span"]
+        require(isinstance(span, list) and len(span) == 2 and all(type(n) is int for n in span)
+                and 0 <= span[0] < span[1], "Receipt span needs canonical integer offsets")
 
 
 def load_registry(path, expected_sha, anchor_sha, lock, key, support_dir):
@@ -82,14 +106,17 @@ def load_registry(path, expected_sha, anchor_sha, lock, key, support_dir):
         require(receipt["synthetic"] is key["synthetic"] and receipt["issuer_id"] in issuers,
                 "Receipt issuer/domain not authorized")
         require(receipt["verdict"] == "supported", "Unsupported receipt verdict")
+        validate_context(receipt["context"])
         assessment = receipt["assessment"]
         require(set(assessment) == {"original_source_reviewed", "rationale", "record_file", "record_sha256"}
                 and assessment["original_source_reviewed"] is True, "Missing source-grounded assessment")
         nonempty(assessment["rationale"], "source-support assessment rationale")
         record = read(bound(support_dir, assessment["record_file"], assessment["record_sha256"]))
-        require(record == {"schema": "benchmark-check-record.v5", "synthetic": key["synthetic"],
+        require(isinstance(record, dict) and type(record.get("synthetic")) is bool,
+                "Checker record domain must be boolean")
+        require(exact(record, {"schema": "benchmark-check-record.v5", "synthetic": key["synthetic"],
                            "issuer_id": receipt["issuer_id"], "context_sha256": object_hash(receipt["context"]),
-                           "rationale": assessment["rationale"]}, "Checker original-review record mismatch")
+                           "rationale": assessment["rationale"]}), "Checker original-review record mismatch")
         receipts[receipt_sha] = receipt
     return registry, receipts
 
@@ -123,7 +150,7 @@ def evaluate(packet, packet_sha, card, family, row, registry, receipts):
         elif receipt_sha in registry["revoked_receipts"]:
             reason = "receipt_revoked"
         else:
-            require(receipt["context"] == ctx, "Receipt/claim context mismatch")
+            require(exact(receipt["context"], ctx), "Receipt/claim context mismatch")
         supported = reason is None
         outcomes.append({"claim_id": claim["claim_id"], "predicate": claim["predicate"], "value": claim["value"],
                          "support_status": "supported" if supported else "unsupported", "reason": reason,
@@ -146,7 +173,7 @@ def evaluate(packet, packet_sha, card, family, row, registry, receipts):
             if other["predicate"] != p:
                 continue
             expected = context(packet, packet_sha, card, family, other)
-            require(ctx == expected, "Admitted support context mismatch")
+            require(exact(ctx, expected), "Admitted support context mismatch")
             if other["value"] != "unknown" and admissibility(ctx["evidence"]) is None:
                 values[p].add(other["value"])
                 context_receipts.append({"receipt_sha256": receipt_sha, "predicate": p, "value": other["value"]})

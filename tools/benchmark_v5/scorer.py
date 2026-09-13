@@ -2,10 +2,10 @@
 from pathlib import Path
 
 from .custody import validate_case
-from .io import (bound, code_hash, digest, external_file, nonempty, read, require,
+from .io import (bound, code_hash, digest, exact, external_file, nonempty, read, require,
                  safe_path, verify_manifest, write)
 from .legacy.v3.discovery_score import RETRIEVED
-from .support import context, evaluate, load_registry
+from .support import DIMENSIONS, context, evaluate, load_registry
 
 
 def metrics(key, judgments):
@@ -39,8 +39,8 @@ def score(case, packet_dir, anchor_path, support_trust, support_trust_sha256, su
     require(anchor["schema"] == "benchmark-prepared-trust.v5", "Wrong anchor schema")
     require(anchor["code_sha256"] == code_hash(), "Prepared scorer changed")
     key = read(bound(root, "PRIVATE_key.json", anchor["private_key_sha256"]))
-    require(key["schema"] == "benchmark-private-key.v5" and key["input_trust"] == anchor["input_trust"]
-            and key["packet_hashes"] == anchor["packet_hashes"], "Private custody/anchor mismatch")
+    require(key["schema"] == "benchmark-private-key.v5" and exact(key["input_trust"], anchor["input_trust"])
+            and exact(key["packet_hashes"], anchor["packet_hashes"]), "Private custody/anchor mismatch")
     lock, capture, pool, _, _, _, certification = validate_case(case, anchor["input_trust"])
     key = key | {"capture_runs": capture["runs"], "custodian": pool["custodian"]}
     registry, receipts = load_registry(support_trust, support_trust_sha256, anchor_sha, lock, key, support_dir)
@@ -59,7 +59,7 @@ def score(case, packet_dir, anchor_path, support_trust, support_trust_sha256, su
             require(ctx["blind_id"] in cards, "Admitted receipt has unknown card")
             card = cards[ctx["blind_id"]]
             family = key["families"][key["ids"][card["blind_id"]]]
-            require(ctx == context(packet, packet_sha, card, family, ctx["claim"]), "Admitted context mismatch")
+            require(exact(ctx, context(packet, packet_sha, card, family, ctx["claim"])), "Admitted context mismatch")
         rpath = safe_path(folder, "review.json")
         raw = rpath.read_bytes()
         from .io import loads, sha_bytes
@@ -81,8 +81,22 @@ def score(case, packet_dir, anchor_path, support_trust, support_trust_sha256, su
     one, two = evaluations["reviewer_1"], evaluations["reviewer_2"]
     def signature(row):
         return row["states"], row["action_state"], row["classification"], row["supported_proposals"]
-    disagreements = [bid for bid in key["ids"] if signature(one[bid]) != signature(two[bid])]
-    agreed = {bid: one[bid] if bid not in disagreements else {"classification": "unknown"} for bid in key["ids"]}
+    validated_disagreements = [bid for bid in key["ids"] if signature(one[bid]) != signature(two[bid])]
+    def proposals(row):
+        # Claims have already been type validated. Ignore only IDs, citations and
+        # prose, not unsupported proposals. Empty lists mean not proposed and
+        # remain distinct from an explicit unknown assertion.
+        return {p: sorted({c["value"] for c in row["raw_judgment"]["claims"] if c["predicate"] == p}, key=str)
+                for p in (*DIMENSIONS, "grade")}
+    original = {name: {bid: proposals(row) for bid, row in rows.items()} for name, rows in evaluations.items()}
+    proposal_disagreements = [bid for bid in key["ids"] if
+                             not exact(original["reviewer_1"][bid], original["reviewer_2"][bid])]
+    disagreements = [bid for bid in key["ids"] if bid in set(validated_disagreements) | set(proposal_disagreements)]
+    agreed = {bid: one[bid] if bid not in validated_disagreements else {"classification": "unknown"} for bid in key["ids"]}
+    coverage = {name: {"cards": len(rows), "proposed_predicate_slots": sum(bool(v) for row in rows.values() for v in row.values()),
+                       "possible_predicate_slots": len(rows) * (len(DIMENSIONS) + 1)} for name, rows in original.items()}
+    complete_initial_agreements = [bid for bid in key["ids"] if bid not in proposal_disagreements and
+                                   all(all(original[name][bid].values()) for name in original)]
     unresolved = [bid for bid in key["ids"] if any(
         row["unresolved_dimensions"] or row["evidence_gaps"] or row["classification"] == "unknown"
         or any(c["support_status"] != "supported" for c in row["support_outcomes"])
@@ -96,7 +110,12 @@ def score(case, packet_dir, anchor_path, support_trust, support_trust_sha256, su
               "reviewer_counts": {name: metrics(key, rows) for name, rows in evaluations.items()},
               "agreed_counts_only": metrics(key, agreed), "validated_reviews": evaluations, "raw_reviews": reviews,
               "disagreements": disagreements, "unresolved_card_ids": unresolved,
-              "initial_complete_decision_agreement": (len(one)-len(disagreements))/len(one) if one else None,
+              "original_proposal_disagreements": proposal_disagreements, "original_semantic_proposals": original,
+              "original_proposal_coverage": coverage, "validated_state_disagreements": validated_disagreements,
+              "initial_complete_decision_agreement": len(complete_initial_agreements)/len(one) if one else None,
+              "initial_semantic_proposal_agreement": (len(one)-len(proposal_disagreements))/len(one) if one else None,
+              "validated_state_agreement": (len(one)-len(validated_disagreements))/len(one) if one else None,
+              "agreed_counts_basis": "Validated states only; original proposal disagreements are retained separately, never adjudicated",
               "adjudication": "NOT_PERFORMED", "overall_winner": None, "novelty_metric": "WITHHELD_PARTIAL_BASELINE",
               "marketing_status": "NOT_AUTHORIZED_BY_THIS_SCORE",
               "evidence_hashes": {"prepared_anchor": anchor_sha, "support_registry": support_trust_sha256,

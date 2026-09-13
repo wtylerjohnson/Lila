@@ -38,6 +38,11 @@ def object_hash(value):
     return sha_bytes(encoded(value))
 
 
+def exact(left, right):
+    """Canonical JSON equality keeps booleans, integers and floats distinct."""
+    return encoded(left) == encoded(right)
+
+
 def write(path, value):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)

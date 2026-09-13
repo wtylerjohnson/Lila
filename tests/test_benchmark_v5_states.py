@@ -457,6 +457,74 @@ class EvidenceStates(unittest.TestCase):
             for private in ("GovTribe", '"rank"', '"family_id"', "synthetic-checker", "selected_slots"):
                 self.assertNotIn(private, text)
 
+    def test_unsupported_original_proposal_disagreements(self):
+        for predicate, values in (("fit", (False, True)), ("grade", (0, 3)), ("fit", (False, "unknown"))):
+            result = self.fixture("insufficient", override=lambda n, c, cs: [make_claim(c, predicate, values[n-1])])
+            self.assertEqual(self.decision(result, 1)["classification"], "unknown")
+            self.assertEqual(self.decision(result, 2)["classification"], "unknown")
+            self.assertEqual(len(result["original_proposal_disagreements"]), 1)
+            self.assertEqual(len(result["disagreements"]), 1)
+            self.assertEqual(result["validated_state_disagreements"], [])
+            self.assertEqual(result["initial_complete_decision_agreement"], 0)
+            self.assertEqual(result["initial_semantic_proposal_agreement"], 0)
+            self.assertEqual(result["validated_state_agreement"], 1)
+            self.assertEqual(result["agreed_counts_only"]["LILA"]["unknown_relevance_slots_top20"], 1)
+            self.assertEqual(result["original_proposal_coverage"]["reviewer_1"]["proposed_predicate_slots"], 1)
+        result = self.fixture("insufficient", override=lambda n, c, cs: [] if n == 1 else [make_claim(c, "fit", "unknown")])
+        self.assertEqual(len(result["original_proposal_disagreements"]), 1)
+        result = self.fixture(override=lambda n, c, cs: [])
+        self.assertEqual(result["initial_complete_decision_agreement"], 0)
+        self.assertEqual(result["original_proposal_coverage"]["reviewer_1"]["proposed_predicate_slots"], 0)
+
+    def replace_admitted_receipt(self, edit_context=None, edit_record=None, selected=True):
+        registry_path = self.root / "trust/support.json"
+        registry = read(registry_path)
+        old = registry["accepted_receipts"][0]
+        receipt = read(self.root / "support" / (old + ".json"))
+        if edit_context:
+            edit_context(receipt["context"])
+        record = read(self.root / "support" / receipt["assessment"]["record_file"])
+        record["context_sha256"] = object_hash(receipt["context"])
+        if edit_record:
+            edit_record(record)
+        record_sha = object_hash(record)
+        name = "records/" + record_sha + ".json"
+        put(self.root / "support" / name, record)
+        receipt["assessment"].update(record_file=name, record_sha256=record_sha)
+        new = object_hash(receipt)
+        put(self.root / "support" / (new + ".json"), receipt)
+        registry["accepted_receipts"] = [new if x == old else x for x in registry["accepted_receipts"]]
+        put(registry_path, registry)
+        for number in (1, 2):
+            def update(review):
+                for row in review["judgments"]:
+                    for claim in row["claims"]:
+                        if claim.get("support_receipt_sha256") == old:
+                            if selected:
+                                claim["support_receipt_sha256"] = new
+                            else:
+                                claim.pop("support_receipt_sha256")
+            self.change_review(update, number)
+
+    def test_admitted_receipt_noncanonical_nested_types(self):
+        for selected in (True, False):
+            for label, ctx, record in (
+                ("float-span", lambda c: c["evidence"][0].update(span=[float(n) for n in c["evidence"][0]["span"]]), None),
+                ("bool-span", lambda c: c["evidence"][0]["span"].__setitem__(0, False), None),
+                ("numeric-domain", None, lambda r: r.update(synthetic=1)),
+                ("float-domain", None, lambda r: r.update(synthetic=1.0)),
+                ("numeric-predicate", lambda c: c["claim"].update(value=1), None),
+                ("unexpected-context-field", lambda c: c.update(extra=True), None)):
+                with self.subTest(case=label, selected=selected):
+                    self.fixture(complete=False)
+                    self.replace_admitted_receipt(ctx, record, selected)
+                    with self.assertRaises(ValueError):
+                        score_fixture(self.root)
+        # Correct canonical integer span remains accepted after fresh admission.
+        self.fixture(complete=False)
+        self.replace_admitted_receipt(lambda c: c["evidence"][0].update(span=list(c["evidence"][0]["span"])))
+        self.assertEqual(self.decision(score_fixture(self.root))["classification"], "relevant")
+
 
 if __name__ == "__main__":
     unittest.main()
