@@ -239,10 +239,11 @@ def _cross_post_key(notice: dict) -> tuple[str, ...] | None:
     """Identify one requirement published as several SAM cross-posts.
 
     No fuzzy title-only grouping is allowed. A cross-post must agree on the
-    normalized title, explicit agency and issuing office, response day,
+    full solicitation identifier, normalized title, explicit agency and issuing office, response day,
     primary POC email, notice type, and a substantive description fingerprint.
     Missing evidence disables this consolidation path. This keeps separate
-    lots and similarly named requirements independent.
+    lots and similarly named requirements independent. Identical wording alone
+    cannot merge separate full solicitation numbers.
     """
     raw = _raw_payload(notice)
     title = _normalized_text(notice.get("title"))
@@ -258,7 +259,7 @@ def _cross_post_key(notice: dict) -> tuple[str, ...] | None:
         or raw.get("description_snippet")
         or notice.get("description")
     )
-    required = (title, agency, office, deadline, email, notice_type)
+    required = (_solicitation_id(notice).upper(), title, agency, office, deadline, email, notice_type)
     if not all(required) or len(description) < 120:
         return None
     description_sha256 = hashlib.sha256(description.encode("utf-8")).hexdigest()

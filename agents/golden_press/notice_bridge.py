@@ -169,6 +169,32 @@ class NoticeReadContext:
     def family_for(self, sid):
         return next((f for f in self.families if sid in f['member_ids']), None)
 
+    def material_fields(self, sid):
+        """Positive display fields come from the bound source, not the input pack."""
+        row = self.sources[sid]
+        raw = row.get('raw_payload') or {}
+        depth = ledger._dossier_depth(self.sweep.get('results') or {}).get(sid) or {}
+        def value(*keys):
+            return next((d[k] for d in (row, raw) for k in keys
+                         if d.get(k) is not None and isinstance(d[k], (str, int, float))), None)
+        contacts = row.get('contacts') or raw.get('pointOfContact') or []
+        contacts = [c for c in contacts if isinstance(c, dict)] if isinstance(contacts, list) else []
+        primary = next((c for c in contacts if str(c.get('contact_type') or c.get('type') or '').lower() == 'primary'),
+                       contacts[0] if contacts else {})
+        return dict(title=row.get('title'), agency=row.get('agency') or raw.get('agency'),
+            sub_agency=value('sub_agency', 'subtier'), office=value('office'),
+            description=depth.get('description'),
+            url=value('api_url', 'url', 'uiLink'),
+            notice_type=value('notice_type', 'type'), posted_date=value('posted_date', 'posted', 'postedDate'),
+            set_aside=value('set_aside', 'set_aside_code', 'typeOfSetAside', 'typeOfSetAsideDescription'),
+            naics=value('naics_code', 'naics'), psc=value('psc_code', 'psc'),
+            ceiling_dollars=value('ceiling_dollars'), estimated_value_range=value('estimated_value_range'),
+            contact_name=primary.get('name') or primary.get('fullName') or value('poc_name'),
+            contact_title=primary.get('title') or value('poc_title'),
+            contact_email=primary.get('email') or value('poc_email'),
+            contact_phone=primary.get('phone') or value('poc_phone'),
+            contact_secondary_email=value('poc_secondary_email'))
+
     def decision(self, record, *, recheck=True):
         sid = str(record.get('record_id') or '')
         gaps = list(self.gaps)

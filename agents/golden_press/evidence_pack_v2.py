@@ -104,7 +104,8 @@ def build_target_groups(opportunities: list[dict], *,
         if name or email:
             rows.append({
                 **common,
-                "role": "contracting_officer_or_specialist",
+                "role": "published_notice_contact",
+                "title": opp.get("contact_title"),
                 "name": name or None, "email": email or None,
                 "phone": str(opp.get("contact_phone") or "").strip() or None,
                 "organization": opp.get("agency"),
@@ -117,7 +118,8 @@ def build_target_groups(opportunities: list[dict], *,
         if sec:
             rows.append({
                 **common,
-                "role": "contracting_officer_or_specialist",
+                "role": "published_notice_contact",
+                "title": opp.get("contact_title"),
                 "name": None, "email": sec, "phone": None,
                 "organization": opp.get("agency"),
                 "source_kind": "published_contact",

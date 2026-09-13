@@ -723,13 +723,8 @@ def apply_native_admission(record: dict, notice_context=None, *, recheck=True) -
     out["evidence_basis"] = ("current original source, bound requirement approval, action, acquisition and access"
                              if decision["admitted"] else "; ".join(decision["gaps"]))
     if decision["admitted"]:
-        source = notice_context.sources[record["record_id"]]
-        raw = source.get("raw_payload") or {}
-        out.update(title=source.get("title"), agency=source.get("agency"),
-                   office=source.get("office") or raw.get("office"),
-                   url=source.get("api_url") or source.get("url") or raw.get("url"),
-                   notice_type=source.get("notice_type") or raw.get("type"),
-                   response_deadline=decision["temporal"]["deadline"]["selected"]["raw"],
+        out.update(notice_context.material_fields(record["record_id"]))
+        out.update(response_deadline=decision["temporal"]["deadline"]["selected"]["raw"],
                    service_fit="direct", fit_basis="source-bound approved requested capability span",
                    window_state="live", window_basis="current aware source response window")
         out.update(decision["route"])

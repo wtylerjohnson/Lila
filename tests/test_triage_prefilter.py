@@ -208,64 +208,35 @@ def _cross_post_notice(
     }
 
 
-def test_sam_cross_posts_receive_one_judgment_and_preserve_every_identity():
+def test_identical_cross_post_wording_does_not_merge_independent_solicitations():
     notices = [
         _cross_post_notice("N-334", "NETWORK-RFI(334-EQUIPMENT)"),
         _cross_post_notice("N-BASE", "NETWORK-RFI"),
         _cross_post_notice("N-541", "NETWORK-RFI(541-SERVICES)"),
     ]
-
     candidates, ruled, receipt = deterministic_prefilter(notices, TAXONOMY)
-
-    assert [row["source_id"] for row in candidates] == ["N-BASE"]
-    assert set(ruled) == {"N-334", "N-541"}
-    assert all(row["screen"] == "deterministic-sam-cross-post-v1"
-               for row in ruled.values())
-    assert all(row["superseded_by"] == "N-BASE"
-               for row in ruled.values())
-    raw = candidates[0]["raw_payload"]
-    assert raw["triage_cross_post_members"] == ["N-334", "N-BASE", "N-541"]
-    assert raw["triage_cross_post_solicitations"] == [
-        "NETWORK-RFI(334-EQUIPMENT)",
-        "NETWORK-RFI",
-        "NETWORK-RFI(541-SERVICES)",
-    ]
-    assert [(row["source_id"], row["solicitation_id"])
-            for row in raw["triage_notice_lineage"]] == [
-        ("N-334", "NETWORK-RFI(334-EQUIPMENT)"),
-        ("N-BASE", "NETWORK-RFI"),
-        ("N-541", "NETWORK-RFI(541-SERVICES)"),
-    ]
-    assert receipt["model_candidates_before_thread_consolidation"] == 3
-    assert receipt["model_candidates_after_solicitation_consolidation"] == 3
-    assert receipt["model_candidates"] == 1
+    assert [row["source_id"] for row in candidates] == ["N-334", "N-BASE", "N-541"]
+    assert not ruled
+    assert receipt["model_candidates"] == 3
     assert receipt["superseded_revisions"] == 0
-    assert receipt["cross_post_duplicates"] == 2
+    assert receipt["cross_post_duplicates"] == 0
     assert receipt["complete"] is True
 
 
-def test_cross_post_lineage_includes_prior_revisions_from_each_solicitation():
+def test_amendment_lineage_remains_separate_from_an_independent_call():
     old = _cross_post_notice("N-BASE-OLD", "NETWORK-RFI")
     old["posted_date"] = "2026-07-20"
     latest = _cross_post_notice("N-BASE-NEW", "NETWORK-RFI")
     suffix = _cross_post_notice("N-334", "NETWORK-RFI(334-EQUIPMENT)")
-
-    candidates, ruled, receipt = deterministic_prefilter(
-        [old, latest, suffix], TAXONOMY)
-
-    assert [row["source_id"] for row in candidates] == ["N-BASE-NEW"]
-    assert ruled["N-BASE-OLD"]["screen"] == (
-        "deterministic-solicitation-thread-v2")
-    assert ruled["N-334"]["screen"] == "deterministic-sam-cross-post-v1"
+    candidates, ruled, receipt = deterministic_prefilter([old, latest, suffix], TAXONOMY)
+    assert [row["source_id"] for row in candidates] == ["N-BASE-NEW", "N-334"]
+    assert ruled["N-BASE-OLD"]["screen"] == "deterministic-solicitation-thread-v2"
+    assert "N-334" not in ruled
     lineage = candidates[0]["raw_payload"]["triage_notice_lineage"]
-    assert [(row["source_id"], row["solicitation_id"])
-            for row in lineage] == [
-        ("N-BASE-OLD", "NETWORK-RFI"),
-        ("N-BASE-NEW", "NETWORK-RFI"),
-        ("N-334", "NETWORK-RFI(334-EQUIPMENT)"),
-    ]
+    assert [(row["source_id"], row["solicitation_id"]) for row in lineage] == [
+        ("N-BASE-OLD", "NETWORK-RFI"), ("N-BASE-NEW", "NETWORK-RFI")]
     assert receipt["superseded_revisions"] == 1
-    assert receipt["cross_post_duplicates"] == 1
+    assert receipt["cross_post_duplicates"] == 0
     assert receipt["complete"] is True
 
 
