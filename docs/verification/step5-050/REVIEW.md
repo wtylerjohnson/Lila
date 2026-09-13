@@ -186,3 +186,37 @@ receipts unused by reviewers and does not let admission waive schema checks.
 The repaired suite has39 methods, including all six independently reproduced
 failures plus unused-receipt, numeric predicate, extra-field and canonical-span
 controls. Root source-clock code is unchanged by these repairs.
+
+## Final local verification
+
+Repaired code482091a271d632e87635473023d5c918e2bc02d3 passed39 portable tests
+and the combined strict/offline product suite:5804 passed,40 skipped,20 warnings,
+26 subtests passed,130.15 seconds. The existing operator's narrow recheck passed
+all six original repros,20 nearby controls and five selected unittest methods;
+both local findings are CLOSED_BOUNDED. Five commands from a clean committed
+archive pass (unittest, help, demo, prepare, score). No cloud/local suite parity,
+Fable acceptance, authentic source or business outcome is claimed.
+
+`COMMANDS.json` records exact invocations and their original working directories.
+`raw_evidence/RAW_LOG_MANIFEST.json` maps gzip copies to original raw hashes,
+including the root's earlier failing/interrupted attempts and both combined suite
+runs. `operator-original-complete.tar.gz` and `operator-recheck-complete.tar.gz`
+under `raw_evidence/` retain complete synthetic review fixtures, original probes,
+commands and receipts. Their original scripts intentionally pin their reviewed
+SHA and original paths; use the repository's documented39-test portable suite
+for a fresh reproduction, or inspect the preserved scripts/fixtures as exact
+historical evidence. The two repaired-defect reproductions are in that test suite.
+
+The first targeted attempt failed on macOS's symlinked temp-root alias, corrected
+in the fixture path. An initial archive setup attempt used the system's older
+Python and stopped before tests at tarfile's filter argument; the declared3.14.5
+runtime completed the archive checks. These are preserved, not hidden as passes.
+The earlier55bf3aa full pass did not detect the two operator findings; the new
+full run and recheck apply to repaired482091a. No unchanged full suite was repeated
+merely to accumulate green results.
+
+The publication commit is a documentation/receipt child. Its runtime/test file
+hashes must equal LOCAL_VERIFICATION.json's tested files; the final external
+handoff records exact published SHA and remote ref equality, avoiding a
+self-referential in-tree commit hash. One combined Step5 + root source-clock
+Fable review must be accepted before Step6. Root P1 remains OPEN until then.

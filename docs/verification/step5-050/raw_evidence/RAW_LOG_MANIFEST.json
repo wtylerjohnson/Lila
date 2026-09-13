@@ -1,0 +1,184 @@
+{
+  "portable-attempt2-demo.log": {
+    "packaged_file": "portable-attempt2-demo.log.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/portable-attempt2-demo.log",
+    "raw_sha256": "441df61261ccc95629a9323184e1db3ed5b82160ea62fae08f42a5a7eb2061d1",
+    "gzip_sha256": "4d033bc6dcc91b8bdbe8860735bf26ece1b682f1b3fbbb2ab7ea62d168dcbcfd",
+    "raw_bytes": 128382
+  },
+  "portable-attempt2-help.log": {
+    "packaged_file": "portable-attempt2-help.log.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/portable-attempt2-help.log",
+    "raw_sha256": "c6e0b381ac223e84f13e58ccdbcfeb36ec55e7a78999f1bfb5bc8dea73459271",
+    "gzip_sha256": "ef38b27b0bcd41818ca258d3c831703fe869d3f5b3be6a0dad494a46c8d1fb91",
+    "raw_bytes": 390
+  },
+  "portable-attempt2-prepare.log": {
+    "packaged_file": "portable-attempt2-prepare.log.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/portable-attempt2-prepare.log",
+    "raw_sha256": "43f1a1bd52fb805ef8a3b0abd43a96404bf589b5687379c8880f79329e50ea08",
+    "gzip_sha256": "4a504fd5346ee435be6daeee733d6745d381eabed2b107ecb8d705b8e088e4da",
+    "raw_bytes": 1415
+  },
+  "portable-attempt2-score.log": {
+    "packaged_file": "portable-attempt2-score.log.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/portable-attempt2-score.log",
+    "raw_sha256": "441df61261ccc95629a9323184e1db3ed5b82160ea62fae08f42a5a7eb2061d1",
+    "gzip_sha256": "4d033bc6dcc91b8bdbe8860735bf26ece1b682f1b3fbbb2ab7ea62d168dcbcfd",
+    "raw_bytes": 128382
+  },
+  "portable-attempt2-unittest.log": {
+    "packaged_file": "portable-attempt2-unittest.log.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/portable-attempt2-unittest.log",
+    "raw_sha256": "a76bbc19e8e5cb8f9a6b0f4258572ad291a05e01eea000267eb0e6e903830e65",
+    "gzip_sha256": "202606a89ea342917b81d7ef7b16830d8885634187d1669d4fb8b4088ae43ed0",
+    "raw_bytes": 4194
+  },
+  "combined-full-attempt1.log": {
+    "packaged_file": "combined-full-attempt1.log.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/combined-full-attempt1.log",
+    "raw_sha256": "26fc927ea6f75a60cf13c36b08079dcff687137fef2cceeda77adc32b4a2ff11",
+    "gzip_sha256": "0ec06f1cbc909f86ad8be66354fdbd05c688d98d27ff4399af940477101bc8a4",
+    "raw_bytes": 12086
+  },
+  "combined-full-attempt1.xml": {
+    "packaged_file": "combined-full-attempt1.xml.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/combined-full-attempt1.xml",
+    "raw_sha256": "cbcab40f440b2d9e9680d501757c455593f70f5f54236d8d9ecd2183524f9383",
+    "gzip_sha256": "489dd8bdbb7ca6fd0c890a350d1a5766dd8b229d854ccccdb8b796c439cd0b4b",
+    "raw_bytes": 812406
+  },
+  "root-p1-browser.log": {
+    "packaged_file": "root-p1-browser.log.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/browser.log",
+    "raw_sha256": "3550c802342bcdc98b8fee9bc7137e05d416caa0548c9e9035a15a73b2d415f3",
+    "gzip_sha256": "152e791e5b837f49f139b869dfa7b22f7a123aff7ae3859934f6d75985c27e11",
+    "raw_bytes": 21
+  },
+  "root-p1-clock-tests.log": {
+    "packaged_file": "root-p1-clock-tests.log.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/clock-tests.log",
+    "raw_sha256": "d586002f2ac85cee6cc09fd60647c7b6ae8e1d46dd64a419eae1afa8ecdadc82",
+    "gzip_sha256": "9b8b1794b5ba5c4ebe9f16267701f1d762af0a2dd5653e70689d7d0479d6c459",
+    "raw_bytes": 7090
+  },
+  "root-p1-full-final.log": {
+    "packaged_file": "root-p1-full-final.log.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/full-final.log",
+    "raw_sha256": "237814786f94fbc33852d1a90ef8d42adf98117f26b1eae32b710d7c79ed66ea",
+    "gzip_sha256": "ffca0388e4558da1ac8e0607530bc3ac5180b8e67f2c6a381f1d0d93aa25e7fe",
+    "raw_bytes": 12002
+  },
+  "root-p1-full-final.xml": {
+    "packaged_file": "root-p1-full-final.xml.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/full-final.xml",
+    "raw_sha256": "0f6fa2836ea8f112a536916c3df36284e65bed1f3d46b91a92e563bd10d8e2f7",
+    "gzip_sha256": "a97aa694b2f5dc65513bb572a9b1a8f7753d9ac208c3a0cac2559ffc9ee6d357",
+    "raw_bytes": 807935
+  },
+  "root-p1-full-initial.log": {
+    "packaged_file": "root-p1-full-initial.log.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/full-initial.log",
+    "raw_sha256": "5f01b10c40b3c54bfa7bf0fde27bcf45d0f608df5bab0ccd0deecf90b7ed85d3",
+    "gzip_sha256": "fc798f792f1f0920ab2366f4a2f3c1d273082d2aaf5e9b24afe75bb24252c86e",
+    "raw_bytes": 764292
+  },
+  "root-p1-full-initial.xml": {
+    "packaged_file": "root-p1-full-initial.xml.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/full-initial.xml",
+    "raw_sha256": "1d3098edeb1ab0f9c45a936308725ed7b2444240747acc413001ce6b91b2ce63",
+    "gzip_sha256": "f7b6fd1d25f04b39bca2876e8f5434513d8e2215b64e04f51d6e604ac12bfe7d",
+    "raw_bytes": 2032205
+  },
+  "root-p1-full-interrupted-before-version-guard.log": {
+    "packaged_file": "root-p1-full-interrupted-before-version-guard.log.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/full-interrupted-before-version-guard.log",
+    "raw_sha256": "964960e2ee05999b0fa6524ad6e9921f4ff7423afc7859308513da631b98c127",
+    "gzip_sha256": "6a17c88bb34fc7c72dea34be0fe5ea6b2610a3d3916d59e101725e40a4c79c15",
+    "raw_bytes": 3277
+  },
+  "root-p1-full-interrupted-before-version-guard.xml": {
+    "packaged_file": "root-p1-full-interrupted-before-version-guard.xml.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/full-interrupted-before-version-guard.xml",
+    "raw_sha256": "d5fc4137cbc740eaaa2c9ab1b504f584a4d1eb01c07ebe02ba49b1968b0b16f7",
+    "gzip_sha256": "817d570ae2733dba30cc701f191ae334eba4e18de1b189f1584669cb3f7643e7",
+    "raw_bytes": 257989
+  },
+  "root-p1-initial-targeted.log": {
+    "packaged_file": "root-p1-initial-targeted.log.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/initial-targeted.log",
+    "raw_sha256": "2edf3cd2ba7f72816edc461b7b2099dd3a09c3a400a19ab080f2f4c67ae09a50",
+    "gzip_sha256": "a914082150abc7443916e1506b0905d7986ea642b2e8a44ea446d973a8d2a134",
+    "raw_bytes": 9151
+  },
+  "root-p1-targeted-final.log": {
+    "packaged_file": "root-p1-targeted-final.log.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/targeted-final.log",
+    "raw_sha256": "7e52d72fb8b410b74505b52c482361e4a63dc2dc714859ad57680d91e15e466a",
+    "gzip_sha256": "4cda243c744d42f173ad2467d6a673034f82da069039929aff311700059c6bbf",
+    "raw_bytes": 1470
+  },
+  "root-p1-targeted-final.xml": {
+    "packaged_file": "root-p1-targeted-final.xml.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/targeted-final.xml",
+    "raw_sha256": "b565e7900ae2d5ff68dfd9db4f2bae243b99d1ce5ed0deb5cf0d38e11eab531f",
+    "gzip_sha256": "f2be0d92f8d6ba0afe6eb4389f34bce339a65733348d7e6987f3c1fda5f95f77",
+    "raw_bytes": 54373
+  },
+  "root-p1-targeted.log": {
+    "packaged_file": "root-p1-targeted.log.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/targeted.log",
+    "raw_sha256": "4228fc0c7bbba016469306d5780e447b13c481374a397c1456b5de65087141d8",
+    "gzip_sha256": "b8dfc36beb6172f2c6f839b72260ffe419523ff958a9398609d5add454e31778",
+    "raw_bytes": 17140
+  },
+  "portable-repairs-attempt1-unittest.log": {
+    "packaged_file": "portable-repairs-attempt1-unittest.log.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/portable-repairs-attempt1-unittest.log",
+    "raw_sha256": "417e6e903a40c91fb34e59b6808b5c560a10acaf8f4b60de6a79fd79ab67c78a",
+    "gzip_sha256": "866990906c47d26535fced928ef1c9f5474e21e7ceb57739b57413370f80982d",
+    "raw_bytes": 4486
+  },
+  "portable-repairs-attempt1-score.log": {
+    "packaged_file": "portable-repairs-attempt1-score.log.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/portable-repairs-attempt1-score.log",
+    "raw_sha256": "a23e783d5aa0961b33c547a9f520d69748befa9a0a612df1f5f67719e46e10f8",
+    "gzip_sha256": "507bd8ed2f11d20811bdc46e95359bb1a93b0c73c2f4a5355ae33e9aea85b100",
+    "raw_bytes": 132563
+  },
+  "portable-repairs-attempt1-demo.log": {
+    "packaged_file": "portable-repairs-attempt1-demo.log.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/portable-repairs-attempt1-demo.log",
+    "raw_sha256": "a23e783d5aa0961b33c547a9f520d69748befa9a0a612df1f5f67719e46e10f8",
+    "gzip_sha256": "507bd8ed2f11d20811bdc46e95359bb1a93b0c73c2f4a5355ae33e9aea85b100",
+    "raw_bytes": 132563
+  },
+  "portable-repairs-attempt1-help.log": {
+    "packaged_file": "portable-repairs-attempt1-help.log.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/portable-repairs-attempt1-help.log",
+    "raw_sha256": "c6e0b381ac223e84f13e58ccdbcfeb36ec55e7a78999f1bfb5bc8dea73459271",
+    "gzip_sha256": "ef38b27b0bcd41818ca258d3c831703fe869d3f5b3be6a0dad494a46c8d1fb91",
+    "raw_bytes": 390
+  },
+  "portable-repairs-attempt1-prepare.log": {
+    "packaged_file": "portable-repairs-attempt1-prepare.log.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/portable-repairs-attempt1-prepare.log",
+    "raw_sha256": "f8427634a6bd82bb91d419aea4a45f91751acd3d8c9d068b8424d6048d98ee09",
+    "gzip_sha256": "2ca318f3813a7914e4c50d476ff31f1e8aed5fd4f5a2ca11f85f7970f41a8c81",
+    "raw_bytes": 1415
+  },
+  "combined-full-repairs-attempt1.log": {
+    "packaged_file": "combined-full-repairs-attempt1.log.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/combined-full-repairs-attempt1.log",
+    "raw_sha256": "0aeac1f8929a1cd57de06987f25fa604a9fab144b271ee4417c01fd176a04b11",
+    "gzip_sha256": "20059fbc8fe32e9240783e42fed80dfed4705e8165bd339a820c92178eea480f",
+    "raw_bytes": 12067
+  },
+  "combined-full-repairs-attempt1.xml": {
+    "packaged_file": "combined-full-repairs-attempt1.xml.gz",
+    "original_path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/combined-full-repairs-attempt1.xml",
+    "raw_sha256": "bfb6769a74fdeca63a77873a4145e2ba310edffa533acaf90c3eef71613bca9b",
+    "gzip_sha256": "6ef4abf05d6a455f8169108ead222e3830247ba446e1c9a8d407e0ae0ccf01fe",
+    "raw_bytes": 812683
+  }
+}

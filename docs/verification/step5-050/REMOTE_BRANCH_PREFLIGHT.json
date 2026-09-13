@@ -1,0 +1,11 @@
+{
+  "at_utc": "2026-09-13T01:53:11.970652+00:00",
+  "repository": "git@github.com:wtylerjohnson/Lila.git",
+  "branch": "codex/step5-evidence-states",
+  "command": "git ls-remote --heads git@github.com:wtylerjohnson/Lila.git refs/heads/codex/step5-evidence-states",
+  "exit_code": 0,
+  "stdout": "",
+  "state": "BRANCH_NOT_PRESENT",
+  "prior_sandbox_attempt": "DNS resolution unavailable; read succeeded with authorized normal network access",
+  "force_push_allowed": false
+}

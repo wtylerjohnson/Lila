@@ -149,7 +149,7 @@
     {
       "id": "portable_exact_commit",
       "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_portable_exact_commit",
-      "status": "CLI_PASS_REMOTE_AND_ARCHIVE_PROOF_PENDING"
+      "status": "COMMITTED_ARCHIVE_PASS_REMOTE_PUBLICATION_RECORDED_SEPARATELY"
     },
     {
       "id": "portable_relocation",
@@ -162,6 +162,11 @@
       "status": "PASS_LOCAL_SYNTHETIC"
     }
   ],
-  "test_count": 37,
-  "targeted_log_sha256": "964a206667712f5122062495c1d124fbc339e2c61a28470bce614ff24131beef"
+  "test_count": 39,
+  "targeted_log_sha256": "5341011a918df3d32b0d9cfbbf0059d169aaf014ebd0ef6d8bc139ae8ecff480",
+  "tested_code_commit": "482091a271d632e87635473023d5c918e2bc02d3",
+  "operator_findings": {
+    "S5-REVIEW-050-01": "CLOSED_LOCAL_RECHECK",
+    "S5-REVIEW-050-02": "CLOSED_LOCAL_RECHECK"
+  }
 }

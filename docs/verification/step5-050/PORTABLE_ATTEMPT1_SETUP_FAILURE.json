@@ -1,0 +1,9 @@
+{
+  "at_utc": "2026-09-13T01:43:34.389119+00:00",
+  "status": "SETUP_FAILURE_BEFORE_TESTS",
+  "command_interpreter": "system python3",
+  "error": "TypeError: extractall() got an unexpected keyword argument 'filter'",
+  "candidate": "55bf3aa800fd7a3dfdecd8d20ccc6abd2591a28a",
+  "correction": "Re-executed archive runner with declared Python3.14.5 runtime; no product code change",
+  "failed_product_tests": 0
+}
