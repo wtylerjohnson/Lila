@@ -13,6 +13,8 @@ from collections.abc import Mapping, Sequence
 from enum import Enum
 from typing import Any
 
+from agents.assess.source_clock import acquired_at
+
 from agents.assess.contracts import (
     AssessRun,
     EvidenceKind,
@@ -226,6 +228,9 @@ def _qualify_one(
     *,
     t1_used: bool,
 ) -> tuple[LeadRow, DecisionTrace | None, bool]:
+    if lead.lead_tier in (LeadTier.LEAD_T1, LeadTier.LEAD_T2) and any(
+            acquired_at(e) is None for e in lead.external_pathway.evidence):
+        return _source_clock_hold(lead, lead.seller_path, trace)
     if parent is None:
         return lead, trace, False
     if lead.lead_tier is LeadTier.REJECT:
@@ -256,6 +261,8 @@ def _qualify_one(
         )
 
     if klass in (PromotionClass.INCUMBENT_RENEWAL, PromotionClass.PRIME_RECOMPETE):
+        if any(acquired_at(e) is None for e in lead.external_pathway.evidence):
+            return _source_clock_hold(lead, path, trace)
         if blockers or path.kind is SellerPathKind.PATH_UNKNOWN:
             return _as_watch_or_hold(
                 lead, path, trace,
@@ -285,6 +292,14 @@ def _qualify_one(
             watch=True,
         )
     return lead, _refresh_trace(lead, path, trace, lead.next_action.blocked_by or ""), False
+
+
+def _source_clock_hold(lead, path, trace):
+    reason = "HOLD: source acquisition chronology is incomplete"
+    previous = lead.next_action.blocked_by or ""
+    if reason not in previous:
+        previous = "; ".join(filter(None, (previous, reason)))
+    return _as_watch_or_hold(lead, path, trace, previous, watch=False)
 
 
 def _keep_hold(

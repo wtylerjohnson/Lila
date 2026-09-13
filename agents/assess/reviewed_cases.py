@@ -84,6 +84,36 @@ def save_cases(book: ReviewedCases, review_dir: Path) -> Path:
     return current
 
 
+def current_case_record(record: LiveSolicitation) -> LiveSolicitation:
+    """Deterministic v2 projection; preserve the immutable research input."""
+    from agents.assess.source_clock import acquired_at, acquisition_clock
+    row = record.model_dump(mode="json")
+    for evidence in row["authoritative_evidence"]:
+        if evidence.get("source_acquisition") is None:
+            binding = evidence.get("record_hash") or hashlib.sha256(
+                json.dumps(evidence, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+            evidence["source_acquisition"] = acquisition_clock(
+                evidence.get("retrieved_at"), basis="none", component="notice_payload",
+                field="legacy_reviewed_case.retrieved_at", binding=binding).model_dump(mode="json")
+            evidence["record_hash"] = binding
+            evidence["retrieved_at"] = None
+    if any(acquired_at(e) is None for e in row["authoritative_evidence"]):
+        names = ("requirement_review_evidence_id", "requirement_reviewed_by",
+                 "requirement_reviewed_at", "attachment_reviewed_by", "attachment_reviewed_at")
+        prior = {name: row.get(name) for name in names if row.get(name) is not None}
+        if prior:
+            row["fit_trace"].append(
+                "Retained historical review; acquisition chronology is not established: "
+                + json.dumps(prior, sort_keys=True))
+            for name in names:
+                row[name] = None
+            if row["attachments"]:
+                row["attachments_checked"] = False
+            row["attachment_gap"] = "; ".join(filter(None, (row.get("attachment_gap"),
+                "Source acquisition chronology is not established")))
+    return LiveSolicitation.model_validate(row)
+
+
 def supplement_live(live, book: ReviewedCases, scope_designator: str):
     if not book.cases:
         return live
@@ -92,6 +122,7 @@ def supplement_live(live, book: ReviewedCases, scope_designator: str):
     records = {r.notice_id: r for r in live.records}
     for case in book.cases:
         # Discovery owns existing records; research never overwrites its status.
-        records.setdefault(case.record.notice_id, case.record)
+        records.setdefault(case.record.notice_id,
+            current_case_record(case.record) if live.run_id.startswith("assess:v2:") else case.record)
     return type(live).model_validate({
         **live.model_dump(mode="python"), "records": tuple(records.values())})

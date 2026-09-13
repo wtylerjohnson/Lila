@@ -1215,7 +1215,7 @@ def test_review_board_is_strict_under_a_current_pointer(tmp_path, monkeypatch):
     review = next(s for s in steps if s["key"] == "review")
     strict = review["detail"]["strict"]
     assert strict and strict["state"] == "current"
-    assert strict["run_id"].startswith("assess:v1:")
+    assert strict["run_id"].startswith("assess:v2:")
     assert len(strict["rows"]) >= 1
     row = strict["rows"][0]
     assert {"notice_id", "title", "agency", "classification",

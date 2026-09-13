@@ -197,7 +197,7 @@ def coerce_assess_run(assess: AssessRun | Mapping[str, Any]) -> AssessRun:
     """Accept an ``AssessRun`` or an AssessRun-shaped / golden-pack dict."""
 
     if isinstance(assess, AssessRun):
-        return assess
+        return AssessRun.model_validate(assess.model_dump(mode="python"))
     if not isinstance(assess, Mapping):
         raise TypeError("assess must be an AssessRun or mapping")
     payload: Any = assess
@@ -206,6 +206,15 @@ def coerce_assess_run(assess: AssessRun | Mapping[str, Any]) -> AssessRun:
         if isinstance(inner, Mapping) and inner.get("run_id"):
             payload = inner
             break
+    if payload is not assess and "schema_version" in assess:
+        version = assess["schema_version"]
+        from agents.assess.ledger import _contains_acquisition
+        if type(version) is not int or version not in (1, 2):
+            raise ValueError("unsupported Assess envelope version")
+        if not str(payload.get("run_id", "")).startswith(f"assess:v{version}:"):
+            raise ValueError("Assess envelope version disagrees with its run identity")
+        if version == 1 and _contains_acquisition(payload):
+            raise ValueError("legacy Assess envelope cannot contain v2 source acquisition")
     return AssessRun.model_validate(payload)
 
 

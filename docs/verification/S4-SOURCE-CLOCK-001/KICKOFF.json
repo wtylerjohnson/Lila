@@ -1,0 +1,177 @@
+{
+  "work_id": "S4-SOURCE-CLOCK-001",
+  "owner": "root/source_receipt",
+  "base": "ca6620dd9a4387b5145e49588a878ca3efb925e4",
+  "branch": "codex/strict-assess-source-clock-001",
+  "checkout": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/strict-assess-source-clock-001",
+  "at_utc": "2026-09-13T01:18:56.322660+00:00",
+  "plan_id": "LILA-WEEKEND-2026-09-11-v1",
+  "input_sha256": {
+    "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/ROOT-SOURCE-CLOCK-001/PRE_PATCH_REPORT.md": "72e49ed58cfed08236547b3ac62f5c4a3643e52c466a0ce33f43f863f01c085a",
+    "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/ROOT-SOURCE-CLOCK-001/DISPOSITION.json": "f1ef64bc94e4bbf0f7f091a98bda52ed1c4482709721daea69755f759227716a",
+    "/Users/wtjohnson/Lila/docs/plans/WEEKEND_BUILD_PLAN_2026-09-11.md": "71a4c7c11ee575596357e5e0fcfb66a75d2c855b4761040042732c8cad26bfc5",
+    "/Users/wtjohnson/Lila/docs/plans/WEEKEND_BUILD_PLAN_2026-09-11_SOURCES.md": "8d5c2fe8d5e9a47837581caf1b59a4c70453163e23e07379fd5c5c7f1ed084b6",
+    "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/strict-assess-source-clock-001/CLAUDE.md": "22123504ba680e6f6c561e7de63b1deee307be5040288a83922482392a68c123",
+    "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/strict-assess-source-clock-001/docs/CONVENTIONS.md": "acb3124bf25510b66ae09edf3f4ab004236340281c26aad24487673a43b465ea",
+    "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/strict-assess-source-clock-001/docs/CONTRACT_SURFACES.md": "af57bf6e063a832f6c1ff1ccf67be7fe017c24859b5d37432b2e2edeb6f5bf18"
+  },
+  "fixtures": [
+    {
+      "path": "data/cleaned/searches_insignary.json",
+      "sha256": "b8b0309d6400a8e626a36b0d08dfbcdd6c237434c4dc519c9896660ec96caac9",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/cleaned/searches_insignary.json"
+    },
+    {
+      "path": "data/raw/sample_sam_response.json",
+      "sha256": "a15ab2f11f72911aed1461505c7b778a617a90be8088d299c45f7fc9c6c03368",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/raw/sample_sam_response.json"
+    },
+    {
+      "path": "data/reference/marks/client/NAMING.txt",
+      "sha256": "378007213774e97bea792fe43ac02332e94539ac5d66cf989cdba4c25fdaf243",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/client/NAMING.txt"
+    },
+    {
+      "path": "data/reference/marks/client/apexanalytix.png",
+      "sha256": "51024a59cb0f482f463e865ccd78048880472446fc965ed5163fec6a4679552f",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/client/apexanalytix.png"
+    },
+    {
+      "path": "data/reference/marks/client/insignary.png",
+      "sha256": "32beb6a3edfc1c576c9f9136795b0bafc3b8d263675dcb604028ce9e919805da",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/client/insignary.png"
+    },
+    {
+      "path": "data/reference/marks/client/mark43.png",
+      "sha256": "b7b8133066a345aadd706e82d713c8471fb476f790206918d3c38f51c6374353",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/client/mark43.png"
+    },
+    {
+      "path": "data/reference/marks/client/netapp.png",
+      "sha256": "4b483efd0fb32d99b3c4da8fd30b1e0f32d7d92baa40b38b0f9f31d47555fd18",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/client/netapp.png"
+    },
+    {
+      "path": "data/reference/marks/client/netscout.svg",
+      "sha256": "d11e9edd739b64bf03d985eeadd5ef06688031876f989ed39e92b06c92caf562",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/client/netscout.svg"
+    },
+    {
+      "path": "data/reference/marks/client/osprey_flight_solutions.png",
+      "sha256": "211635c8f254d8a3f34fed46766baefa2a7b8d691980cae5e40809fd444c6829",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/client/osprey_flight_solutions.png"
+    },
+    {
+      "path": "data/reference/marks/client/recorded_future.svg",
+      "sha256": "820448dea994a3a299d0bf937156c49b8fc9eb2d2d70de1fad18d5cc6d6e2333",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/client/recorded_future.svg"
+    },
+    {
+      "path": "data/reference/marks/client/red_hat.png",
+      "sha256": "bb92168446f810d00c7f3ed5becd8dff1379670cee7fc13ddb2d17c4d410884d",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/client/red_hat.png"
+    },
+    {
+      "path": "data/reference/marks/client/riverbed.png",
+      "sha256": "a3f89032ee5c260f90b02cf3e7c5993e23c6f9718c094d1be4336c5250c146e1",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/client/riverbed.png"
+    },
+    {
+      "path": "data/reference/marks/client/thinklogical.png",
+      "sha256": "57099c72b04ac5bcad37fcbe4e7656d88b146d502daadfd4663e5407b355a377",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/client/thinklogical.png"
+    },
+    {
+      "path": "data/reference/marks/client/varonis.png",
+      "sha256": "8d40604b12cd4fb0ec790d0eb4b74ebd973d10b5baf76915d5204fc80798e8cb",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/client/varonis.png"
+    },
+    {
+      "path": "data/reference/marks/company/NAMING.txt",
+      "sha256": "3e1dbeb82416c6a58a24340155f5cd19037101f52a797665fedde1276158be31",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/company/NAMING.txt"
+    },
+    {
+      "path": "data/reference/marks/company/abt_global.png",
+      "sha256": "b21086aeaf8513136e8027c1c8841dd84b89e79df5d81bdde368f8756278b4c6",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/company/abt_global.png"
+    },
+    {
+      "path": "data/reference/marks/company/booz_allen_hamilton.png",
+      "sha256": "90cdeef9ec027beb18c1d7fad094de8d79d5d8457f0e5eb3a0d8254341628db5",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/company/booz_allen_hamilton.png"
+    },
+    {
+      "path": "data/reference/marks/company/international_business_machines.png",
+      "sha256": "002bf16e498f94efaf9a53d59ab1796fda6662675b7e1ee20e4681449babbd67",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/company/international_business_machines.png"
+    },
+    {
+      "path": "data/reference/marks/company/l3_technologies.png",
+      "sha256": "ea24570dd7740951432738e3db4477babeb01173f43f3f2d4e970aca1c3223bb",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/company/l3_technologies.png"
+    },
+    {
+      "path": "data/reference/marks/company/leidos.png",
+      "sha256": "893ad2b26ddf462a3044162d615fda04f53fd4ef1b42169b7a4c0514f8cb1d68",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/company/leidos.png"
+    },
+    {
+      "path": "data/reference/marks/company/peraton.png",
+      "sha256": "7332c8805953ab8517cd189c048675c47b98df21d22499207143574fc7a164b6",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/company/peraton.png"
+    },
+    {
+      "path": "data/reference/marks/company/raytheon.png",
+      "sha256": "0e4666d3f3ba8ba2b7984706690b656c577f186c462c6f6e7ecaf500c51428b9",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/company/raytheon.png"
+    },
+    {
+      "path": "data/reference/marks/company/rockwell_collins.png",
+      "sha256": "0e4666d3f3ba8ba2b7984706690b656c577f186c462c6f6e7ecaf500c51428b9",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/company/rockwell_collins.png"
+    },
+    {
+      "path": "data/reference/marks/company/serco.png",
+      "sha256": "3fa86711f0b0ae376853ab61fb18d9b2c120f3a9b3f4fe01651f73ed98951130",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/company/serco.png"
+    },
+    {
+      "path": "data/reference/marks/company/sierra_nevada.png",
+      "sha256": "cf8467f422e4d1308f15bfce0155839e3904ab12576fc70a6a3a97ad67fc24b2",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/company/sierra_nevada.png"
+    },
+    {
+      "path": "data/reference/marks/company/terma.png",
+      "sha256": "dcf2528ac0fd861dab7f2b3bd47808337ce0aacfe8618457842b057525f32206",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/company/terma.png"
+    },
+    {
+      "path": "data/reference/marks/company/truemath.png",
+      "sha256": "79caa225a38e334ffd1fb9fe2d3c320e03c218f606b062b3e47a525c7481eabf",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/company/truemath.png"
+    },
+    {
+      "path": "data/reference/marks/company/unicom_government.png",
+      "sha256": "8a8af018dada0b110f8f1e17bf9142cb502c3f750a018373216e308823929429",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/company/unicom_government.png"
+    },
+    {
+      "path": "data/reference/marks/company/viasat.png",
+      "sha256": "546da47dab247cdc67d72a159325c80d891c9a14104510dd91fd78000af749aa",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/reference/marks/company/viasat.png"
+    },
+    {
+      "path": "data/state/candidate_review_v1/arista_networks/arista_networks.golden_report.evidence_pack.json",
+      "sha256": "f25c802cbc9bbeae81c8308fb585e4535c4f112365538574ad25076b7f02f4fe",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/state/candidate_review_v1/arista_networks/arista_networks.golden_report.evidence_pack.json"
+    },
+    {
+      "path": "data/state/candidate_review_v1/apexanalytix/apexanalytix.golden_report.evidence_pack.json",
+      "sha256": "8727d339d0f844800906284135467917676dcd7b9aaf5f018e0fb5b42b61301e",
+      "source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/lila-source-receipts/data/state/candidate_review_v1/apexanalytix/apexanalytix.golden_report.evidence_pack.json"
+    }
+  ],
+  "fixture_manifest_sha256": "0bd13a1b97a667098f8d115c22248498dff523a4de83644002127cf59c14a774",
+  "preservation": "No operating/shared checkout, live client artifact, frozen case, source or approval mutated. Exactly31 manifest-bound ignored fixtures copied."
+}

@@ -2104,3 +2104,43 @@ Equivalent original aware instants reconcile across local midnight before a
 matching top-level display date is recognized as derived. Genuinely conflicting
 original values remain a conflict. Raw/source fields and supplied offsets remain
 intact in the receipt.
+
+### Strict Assess acquisition clocks (S4-SOURCE-CLOCK-001)
+
+New immutable Assess writes use schema `2` and `assess:v2:` identities. EvidenceRef
+`retrieved_at` is nullable and means supported **source acquisition**, never the
+assessment, approval, sweep, file, attachment or posting clock. Family `verified_at`
+continues to record assessment verification. Do not repurpose generated_at as
+acquisition or reconstruct an authentic time from old approval-looking values.
+
+`source_acquisition` records typed status, bounded native basis/component, original
+field/text and input type, and the existing evidence record hash. The accepted
+Step 4 pure timestamp parser preserves an aware source timestamp and offset;
+missing, invalid, date-only, unknown-timezone, conflicting and untrusted values
+remain explicit, with null acquisition. Only same-notice trusted description
+`source_depth.retrieved_at` and the existing validated Horizon fact bank are admitted
+here. Raw/model/imported timestamp fields are not native authority. USAspending
+subaward rows retain explicit missing acquisition. No acquisition pipeline is added.
+Receipts describe adapter inputs; they do not independently authenticate a source.
+
+Schema 1 immutable artifacts/pointers validate against their original recorded
+version and exact identity, without modifying bytes, IDs or pointers. Their missing
+provenance defaults are archival only. Injected v2 provenance under a schema 1
+wrapper and version downgrades refuse. New schema 2 runs require explicit provenance
+on every evidence member. Old leadgen.contracts.v1 rows remain readable as history;
+new qualification/promotion and strict release/freshness consumers require supported
+acquisition. Reviewed legacy cases retain all evidence, targets, and research; a
+v2 projection preserves unusable historical review metadata in fit_trace, exposes a
+chronology gap, and clears only active review authority. Original casebook history
+is unchanged and strict joins bind the exact deterministic projection.
+
+Strict report facts persist `acquisition_required` through serialization and do not
+receive sweep fallback on reload. Market Map source dates require complete acquisition
+coverage across every family evidence member; mixed known/unknown families show
+incomplete coverage and null source date while retaining their full assessment.
+Existing LeadRow evidence HTML distinguishes unknown collection from known acquisition
+and preserves the original offset text. LeadRow/pathway JSON schemas include the
+nullable clock/provenance fields; leadgen contract version is unchanged because
+archival row acceptance is preserved. Existing Horizon refusal, strict requirement,
+attachment, BID_NOW and coverage thresholds are not relaxed. Deadline policy is not
+migrated by this amendment.

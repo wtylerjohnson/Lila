@@ -1,0 +1,31 @@
+{
+  "proof": "controlled native adapter on exact base versus corrected tree; no live data or acquisition",
+  "base": "ca6620dd9a4387b5145e49588a878ca3efb925e4",
+  "before": [
+    {
+      "assessment_at": "2026-07-10T12:00:00+00:00",
+      "retrieved_at": "2026-07-10T12:00:00+00:00",
+      "evidence_id": "ev:sam:v1:N3:6fa9c28aedd25d46cd3d06c068b3bc10a50e328ba282bc942df7c6144f634517"
+    },
+    {
+      "assessment_at": "2026-07-11T12:00:00+00:00",
+      "retrieved_at": "2026-07-11T12:00:00+00:00",
+      "evidence_id": "ev:sam:v1:N3:6fa9c28aedd25d46cd3d06c068b3bc10a50e328ba282bc942df7c6144f634517"
+    }
+  ],
+  "after": [
+    {
+      "assessment_at": "2026-07-10T12:00:00+00:00",
+      "retrieved_at": null,
+      "status": "missing",
+      "evidence_id": "ev:sam:v1:N3:6fa9c28aedd25d46cd3d06c068b3bc10a50e328ba282bc942df7c6144f634517"
+    },
+    {
+      "assessment_at": "2026-07-11T12:00:00+00:00",
+      "retrieved_at": null,
+      "status": "missing",
+      "evidence_id": "ev:sam:v1:N3:6fa9c28aedd25d46cd3d06c068b3bc10a50e328ba282bc942df7c6144f634517"
+    }
+  ],
+  "unchanged_evidence_id": true
+}

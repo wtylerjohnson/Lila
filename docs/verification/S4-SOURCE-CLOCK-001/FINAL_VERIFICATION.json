@@ -1,0 +1,132 @@
+{
+  "work_id": "S4-SOURCE-CLOCK-001",
+  "base": "ca6620dd9a4387b5145e49588a878ca3efb925e4",
+  "branch": "codex/strict-assess-source-clock-001",
+  "verified_at_utc": "2026-09-13T01:34:21.707292+00:00",
+  "tested_file_sha256": {
+    "agents/assess/contracts.py": "4d8bfef9646359d1262d70bc73633cdc32fb8b367414ecb0585e20c48111bad3",
+    "agents/assess/ledger.py": "94005d395dea09faa58f709097d789622cbfa86adeb18bb581646f6dedaafcba",
+    "agents/assess/live_report.py": "da04302667471179b747731f3c0e0260313363fa59402103fd94f5ecbb8f943a",
+    "agents/assess/reviewed_cases.py": "291a141ce0b84d71d250c76dc6d58fd783d6c7e2f8f73a6b2796bb7d842da90e",
+    "agents/assess/source_clock.py": "ccd4124dc4c90d1b4fceb73610e7ed9178535e0e1544c95be20d0befbca6fc31",
+    "agents/golden_press/external_product_projection.py": "18f010e892b867c28b684f2c200e94829dfe1671128436da85995026362ded1b",
+    "agents/golden_press/external_product_render.py": "9e005512c91f08d66620747630c8b40cb77d93a48f401e3c88d5cc7534c91370",
+    "agents/golden_press/product_leadgen.py": "e0d29920f656800ee09999b9949997164938deecb8a893027b6e4f194b460426",
+    "agents/leadgen/from_assess.py": "b9c8a71a8925337515f1e8961cf3e324219a09d2a63c55276f8f270c6872057b",
+    "agents/leadgen/press_html.py": "6831ab4db5410e89859616cd187d8b2e0b2dfa59dda3e590c0eb2371367ead31",
+    "agents/leadgen/qualify.py": "e2a202b4cb0313938f52629e372317e649175037693dafc48248e8c34c1f79ea",
+    "agents/leadgen/schemas/actionableexternalpathway.schema.json": "6981b62c4b1cc5836606da9ae046a1fd79946518b274d79c780c5fbf3db8d93a",
+    "agents/leadgen/schemas/leadrow.schema.json": "77baddf16b8d9b4a711bb3665d57944ae06cb317ce5fee5a95d83b0c447094d0",
+    "agents/reports/facts.py": "420ef1105b6576f869f43210d17feb287cd0f41e719c08c5cb1d6a4676117361",
+    "docs/CONTRACT_SURFACES.md": "a4606959a727ce17817fc67e4d549fb23aad5f2f7f0ce05f845f9b99881f2234",
+    "docs/CONVENTIONS.md": "7d2fe309d6deb86ea6c530bcae953466643e36df3bcdc772ef34bed0cafb32b4",
+    "tests/fixtures/assess_source_clock_legacy_leads.json": "41c3c066b55d62cddc70c2714d690cd6a05998fbd6dfe8a48f913eb66c5662ab",
+    "tests/test_assess_ledger.py": "246a86416f25c514d2d8bb946ebb43f073268a07b865ca29705e3b18cbfe038f",
+    "tests/test_assess_reapproval_identity.py": "73ce46e1216ecbb8cc2a28f86715c62024c63f7f430ae4201c382ad69b3ebb8f",
+    "tests/test_assess_refresh.py": "79e66d75d0dc4a47de33b3830e76bfb76ad414b76b35cfcab2b99dca934fbedd",
+    "tests/test_assess_source_clock.py": "1c5423577f470e28a0a4e53375a4e7c5a6d55a0d3f811f27f245f5438949d9c3",
+    "tests/test_leadgen_from_assess.py": "d2e392c01fd8f2a1e1a1d4424cb63e07510b87f898df7acaf26efe8263a5eb55",
+    "tests/test_live_report_truth.py": "a616cdeb5b5cf277cc7b00940a01d92811e8e6da4be3008e3ef8974318c35877",
+    "tests/test_reviewed_case_projection.py": "16a32899bdc706174dd33959939abab0648ddc11b311a2827f815c0e69eeb474"
+  },
+  "full_suite": {
+    "passed": 5765,
+    "skipped": 40,
+    "warnings": 20,
+    "seconds": 131.01,
+    "exit_code": 0,
+    "command": "PYTHONDONTWRITEBYTECODE=1 LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 /Users/wtjohnson/Lila/.venv/bin/python -m pytest tests/ -q -rs -p no:cacheprovider",
+    "environment": "Normal authorized escalation for existing browser launch; no network/LLM acquisition runs"
+  },
+  "targeted": {
+    "passed": 399,
+    "skipped": 1,
+    "warnings": 2
+  },
+  "logs": {
+    "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/browser.log": {
+      "sha256": "3550c802342bcdc98b8fee9bc7137e05d416caa0548c9e9035a15a73b2d415f3",
+      "bytes": 21
+    },
+    "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/clock-tests.log": {
+      "sha256": "d586002f2ac85cee6cc09fd60647c7b6ae8e1d46dd64a419eae1afa8ecdadc82",
+      "bytes": 7090
+    },
+    "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/full-final.log": {
+      "sha256": "237814786f94fbc33852d1a90ef8d42adf98117f26b1eae32b710d7c79ed66ea",
+      "bytes": 12002
+    },
+    "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/full-final.xml": {
+      "sha256": "0f6fa2836ea8f112a536916c3df36284e65bed1f3d46b91a92e563bd10d8e2f7",
+      "bytes": 807935
+    },
+    "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/full-initial.log": {
+      "sha256": "5f01b10c40b3c54bfa7bf0fde27bcf45d0f608df5bab0ccd0deecf90b7ed85d3",
+      "bytes": 764292
+    },
+    "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/full-initial.xml": {
+      "sha256": "1d3098edeb1ab0f9c45a936308725ed7b2444240747acc413001ce6b91b2ce63",
+      "bytes": 2032205
+    },
+    "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/full-interrupted-before-version-guard.log": {
+      "sha256": "964960e2ee05999b0fa6524ad6e9921f4ff7423afc7859308513da631b98c127",
+      "bytes": 3277
+    },
+    "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/full-interrupted-before-version-guard.xml": {
+      "sha256": "d5fc4137cbc740eaaa2c9ab1b504f584a4d1eb01c07ebe02ba49b1968b0b16f7",
+      "bytes": 257989
+    },
+    "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/initial-targeted.log": {
+      "sha256": "2edf3cd2ba7f72816edc461b7b2099dd3a09c3a400a19ab080f2f4c67ae09a50",
+      "bytes": 9151
+    },
+    "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/targeted-final.log": {
+      "sha256": "7e52d72fb8b410b74505b52c482361e4a63dc2dc714859ad57680d91e15e466a",
+      "bytes": 1470
+    },
+    "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/targeted-final.xml": {
+      "sha256": "b565e7900ae2d5ff68dfd9db4f2bae243b99d1ce5ed0deb5cf0d38e11eab531f",
+      "bytes": 54373
+    },
+    "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/S4_SOURCE_CLOCK_001_VERIFICATION/targeted.log": {
+      "sha256": "4228fc0c7bbba016469306d5780e447b13c481374a397c1456b5de65087141d8",
+      "bytes": 17140
+    }
+  },
+  "browser": {
+    "receipt": "BROWSER.json",
+    "html": "synthetic-source-clock.html",
+    "screenshot": "browser-source-clock.png",
+    "script": "browser_check.py",
+    "synthetic_only": true
+  },
+  "proof_receipts": [
+    "BEFORE_AFTER.json",
+    "SAVED_INPUT_COMPATIBILITY.json",
+    "PRESERVATION.json",
+    "KICKOFF.json"
+  ],
+  "diagnostics": {
+    "full_initial": "216 failures (204 legacy LeadRow acceptance,4 new-version assertions,2 reviewed-case projection joins,6 browser environment); fixed before final verification",
+    "full_interrupted": "Explicit-v1 shared validator gap found during run; interrupted exit2 before fix; retained as pre-fix evidence, not final proof"
+  },
+  "scope_limits": [
+    "Only local candidate; no publication, production integration or Fable dispatch",
+    "SourceAcquisition records sanctioned native adapter inputs; not standalone source authentication",
+    "No source acquisition reconstruction for legacy NetScout; all25 unknown retained",
+    "Existing permission to present held assessment history is not fresh source or priority lead proof",
+    "No new acquisition pipeline; USAspending remains explicit unknown; existing Horizon and deadline policy preserved"
+  ],
+  "proof_artifact_sha256": {
+    "BEFORE_AFTER.json": "d94b90b7c3852d40baefdab5d65c4384d496fe3eab7d4e0a370a5308e709a37b",
+    "BROWSER.json": "142f36502b8aa55c23852f0417a0e17e298adca9b3eca0214acc188b490a272a",
+    "KICKOFF.json": "e5a7fd4f363190e4973ac7a607d37d0c3fa0fb1119eb9fcd9cdc64d08ea6e201",
+    "PRESERVATION.json": "fae626e34cc8b76af7fadeb6ae58f3055de11947bbf7aba2c1664c2b2b7b5eb4",
+    "PRE_PATCH_REPORT.md": "72e49ed58cfed08236547b3ac62f5c4a3643e52c466a0ce33f43f863f01c085a",
+    "RESULT.md": "3fc954e74aa70665668da3aea72f780f82c23fc397d0b4ad3fb073d229d9db8c",
+    "SAVED_INPUT_COMPATIBILITY.json": "2a5c81dafca1fa3995972d2e6d83d370431aca20a59ff4a317e15e9ad04ae8ce",
+    "browser-source-clock.png": "c0767b951fcac0bb4caa62c451b41972f991387b4ffb18ce8cb350cb557a0aae",
+    "browser_check.py": "3534d1854054ccf8a46ab696151da4f3deac74a5849f0d375c54fda997fec9bd",
+    "synthetic-source-clock.html": "abbb222028e75b321862fb57b94760ef97a630694579c9de2441a098eb60346d"
+  }
+}

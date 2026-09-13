@@ -42,7 +42,7 @@ from agents.assess.ledger import (
     load_current_assess_run,
     scope_from_sweep,
 )
-from agents.assess.reviewed_cases import ReviewedCase, ReviewedCases, load_cases
+from agents.assess.reviewed_cases import ReviewedCase, ReviewedCases, load_cases, current_case_record
 
 
 class LiveReportState(str, Enum):
@@ -224,7 +224,9 @@ def project_live_ledger(
             raise AssessLedgerError("reviewed cases belong to a different client")
         if book.cases and book.scope_designator != _scope_designator(ledger.scope):
             raise AssessLedgerError("reviewed cases do not match the report scope")
-        reviewed_by_id = {case.record.notice_id: case for case in book.cases}
+        reviewed_by_id = {
+            case.record.notice_id: case.model_copy(update={"record": current_case_record(case.record)})
+            if ledger.run_id.startswith("assess:v2:") else case for case in book.cases}
 
     notices: list[LiveReportNotice] = []
     reviewed_research: list[ReviewedCase] = []

@@ -50,7 +50,9 @@ def test_bound_reviewed_research_renders_without_fake_discovery(tmp_path, monkey
     assert sum(projection.verdict_counts().values()) == len(seed['posting_index'])
     assert len(projection.notices) + len(projection.reviewed_research) == len(seed['run'].live.records)
     for case in projection.reviewed_research:
-        assert case in seed['book'].cases
+        original = next(c for c in seed['book'].cases if c.record.notice_id == case.record.notice_id)
+        assert case.targets == original.targets and case.research == original.research
+        assert all(e.retrieved_at is None for e in case.record.authoritative_evidence)
         assert case.record.notice_id not in seed['posting_index']
         assert case.record.notice_id not in {n.record.notice_id for n in projection.actionable}
     document = build_document('Testco', searches=seed['searches'],

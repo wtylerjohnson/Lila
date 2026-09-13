@@ -1,0 +1,15 @@
+{
+  "fixture_count": 31,
+  "fixture_manifest_sha256": "0bd13a1b97a667098f8d115c22248498dff523a4de83644002127cf59c14a774",
+  "actual_fixture_copy_source": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/source-read-integrity-002",
+  "fixture_original_source_labels": "KICKOFF.fixture source values retain original manifest labels",
+  "all_31_copies_and_source_hashes_match": true,
+  "saved_native_artifact_and_pointer_unchanged": true,
+  "operating_shared_frozen_and_live_artifacts": "No writes by this task; originals remain outside isolated clone",
+  "legacy_positive_fixture": {
+    "path": "tests/fixtures/assess_source_clock_legacy_leads.json",
+    "generated_from_exact_base": "ca6620dd9a4387b5145e49588a878ca3efb925e4",
+    "method": "git archive selected agents/tools/test helper into temporary directory; generated T1 and T2 using original contracts; temporary source removed",
+    "sha256": "41c3c066b55d62cddc70c2714d690cd6a05998fbd6dfe8a48f913eb66c5662ab"
+  }
+}

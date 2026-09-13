@@ -139,7 +139,8 @@ def _fields(record: dict) -> str:
         ("method", "Method"), ("result_count", "Returned"),
         ("kept_after_screen", "Kept"),
         ("assessment_status", "Assessment"), ("lead_status", "Lead readiness"),
-        ("source_as_of", "Evidence date"),
+        ("source_as_of", "Source acquisition" if record.get("source_clock_status") else "Evidence date"),
+        ("source_clock_coverage", "Acquisition coverage"),
     )
     rows = []
     for key, label in labels:

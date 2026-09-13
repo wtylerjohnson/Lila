@@ -22,6 +22,8 @@ from pathlib import Path
 from typing import Any, Optional
 from urllib.parse import parse_qs, unquote, urlparse
 
+from agents.assess.source_clock import acquisition_clock, clock_instant, acquired_at
+
 from agents.assess.contracts import (
     AssessRun,
     AssessScope,
@@ -52,7 +54,8 @@ from agents.assess.contracts import (
 
 _ROOT = Path(__file__).resolve().parents[2]
 _DEFAULT_STATE = _ROOT / "data" / "state" / "assess_runs"
-_SCHEMA_VERSION = 1
+_SCHEMA_VERSION = 2
+_SUPPORTED_SCHEMAS = (1, 2)
 _UNSET = object()
 _LOG = logging.getLogger(__name__)
 
@@ -397,6 +400,15 @@ def _dossier_depth(results: dict) -> dict[str, dict]:
             if isinstance(depth, dict):
                 out[str(record["id"])] = depth
     return out
+
+
+def _depth_clock_claims(results: dict, posting_id: str):
+    dossiers = results.get("dossiers") or {}
+    return [row["source_depth"].get("retrieved_at")
+            for key in ("depth_records", "records")
+            for row in dossiers.get(key) or []
+            if isinstance(row, dict) and str(row.get("id") or "") == posting_id
+            and _depth_matches_posting(row.get("source_depth"), posting_id)]
 
 
 def _attachment_state(depth: Optional[dict]) -> tuple[bool, Optional[str]]:
@@ -822,9 +834,21 @@ def adapt_live_ledger(
             trusted_depth = depth if _depth_matches_posting(depth, posting_id) else None
             description = _text((trusted_depth or {}).get("description"))
             excerpt = description[:800] if description else _text(posting.get("title"))
-            retrieved = _parse_datetime(
-                (trusted_depth or {}).get("retrieved_at"), fallback=as_of)
             observation_hash = _digest({"posting": posting, "depth": depth})
+            clock = acquisition_clock(
+                (trusted_depth or {}).get("retrieved_at"),
+                basis="sam_notice_depth", component="notice_description",
+                field="source_depth.retrieved_at", binding=observation_hash,
+                competing=_depth_clock_claims(results, posting_id) if trusted_depth else ())
+            if not trusted_depth:
+                # Record unsupported claims, never promote them to source authority.
+                claims = [(prefix + key, data[key]) for prefix, data in (("row.", posting), ("raw_payload.", posting.get("raw_payload") or {}), ("source_depth.", depth or {}))
+                          if isinstance(data, dict) for key in ("retrieved_at", "fetched_at", "observed_at")
+                          if data.get(key) is not None]
+                clock = acquisition_clock(claims[0][1] if claims else None,
+                    competing=[v for _, v in claims[1:]], basis="none", component="notice_payload",
+                    field=" | ".join(key for key, _ in claims) or "unrecorded", binding=observation_hash)
+            retrieved = clock_instant(clock)
             supports = [EvidenceUse.TIMING, EvidenceUse.BUYER]
             if trusted_depth and description:
                 supports.insert(0, EvidenceUse.REQUIREMENT)
@@ -834,7 +858,8 @@ def adapt_live_ledger(
                 kind=EvidenceKind.NOTICE,
                 source_name="SAM.gov notice",
                 source_url=url,
-                retrieved_at=retrieved or as_of,
+                retrieved_at=retrieved,
+                source_acquisition=clock,
                 observed_date=_parse_date(
                     posting.get("posted_date")
                     or _raw_value(posting, "posted", "postedDate")),
@@ -860,9 +885,7 @@ def adapt_live_ledger(
         trusted_current_depth = (current_depth if _depth_matches_posting(
             current_depth, notice_id) else None)
         description = _text((trusted_current_depth or {}).get("description"))
-        depth_time = _parse_datetime(
-            (trusted_current_depth or {}).get("retrieved_at"),
-            require_timezone=True)
+        depth_time = acquired_at(evidence[-1]) if trusted_current_depth else None
         verification_time = max(
             (stamp for stamp in (as_of, depth_time) if stamp), default=as_of)
         posted_time, modified_time = _posting_times(current)
@@ -987,6 +1010,10 @@ def adapt_live_ledger(
                 if proposed_reviewed_at is None:
                     review_problems.append(
                         "review timestamp is missing or timezone-naive")
+                elif acquired_at(evidence[-1]) is None:
+                    review_problems.append("source acquisition chronology is unknown")
+                elif raw_attachments and any(acquired_at(e) is None for e in evidence):
+                    review_problems.append("attachment evidence acquisition chronology is incomplete")
                 elif proposed_reviewed_at < evidence[-1].retrieved_at:
                     review_problems.append("review predates its evidence")
                 if raw_attachments:
@@ -1398,6 +1425,9 @@ def adapt_horizon_ledger(
                     source_name=f"Horizon {kind.replace('_', ' ')}",
                     source_url=signal.source,
                     retrieved_at=retrieved,
+                    source_acquisition=acquisition_clock(fact.get("retrieved_at"),
+                        basis="horizon_fact_bank", component="horizon_fact",
+                        field="fact.retrieved_at", binding=_digest(fact)),
                     excerpt=signal.text,
                     record_hash=_digest(fact),
                     primary_source=primary,
@@ -1746,7 +1776,9 @@ def adapt_partner_ledger(
                             kind=EvidenceKind.SUBAWARD,
                             source_name="USAspending subaward record",
                             source_url=source,
-                            retrieved_at=as_of,
+                            retrieved_at=None,
+                            source_acquisition=acquisition_clock(None, basis="none",
+                                component="subaward_record", field="unrecorded", binding=_digest(edge)),
                             observed_date=_parse_date(edge.get("date")),
                             excerpt=excerpt,
                             record_hash=_digest(edge),
@@ -1974,14 +2006,28 @@ def _run_projection(
     }
 
 
-def _run_identity(client_name: str, binding: dict, projection: Any) -> str:
+def _contains_acquisition(value):
+    if isinstance(value, dict):
+        return "source_acquisition" in value or any(_contains_acquisition(v) for v in value.values())
+    return isinstance(value, (list, tuple)) and any(_contains_acquisition(v) for v in value)
+
+
+def _legacy_projection(value):
+    if isinstance(value, dict):
+        return {k: _legacy_projection(v) for k, v in value.items() if k != "source_acquisition"}
+    if isinstance(value, (list, tuple)):
+        return [_legacy_projection(v) for v in value]
+    return value
+
+
+def _run_identity(client_name: str, binding: dict, projection: Any, *, schema_version=_SCHEMA_VERSION) -> str:
     basis = {
-        "schema_version": _SCHEMA_VERSION,
+        "schema_version": schema_version,
         "client_name": _text(client_name),
         "binding": binding,
         "projection": projection,
     }
-    return "assess:v1:" + _digest(basis)
+    return f"assess:v{schema_version}:" + _digest(basis)
 
 
 def build_assess_run(
@@ -2089,11 +2135,13 @@ def build_assess_run(
     for record in live.records:
         valid_observation_times.append(record.verified_at)
         valid_observation_times.extend(
-            evidence.retrieved_at for evidence in record.authoritative_evidence)
+            evidence.retrieved_at for evidence in record.authoritative_evidence
+            if evidence.retrieved_at is not None)
     for thesis in horizon.items:
         valid_observation_times.extend(
             evidence.retrieved_at
-            for evidence in (*thesis.evidence, *thesis.counterevidence))
+            for evidence in (*thesis.evidence, *thesis.counterevidence)
+            if evidence.retrieved_at is not None)
     if (not horizon_diagnostics and isinstance(horizon_payload, dict)
             and horizon_payload.get("status") == "approved"):
         horizon_approved_at = _parse_datetime(
@@ -2307,6 +2355,7 @@ def persist_assess_run(
     expected_pointer: Any = _UNSET,
 ) -> Path:
     """Persist an immutable run plus an atomic scope-specific current pointer."""
+    run = AssessRun.model_validate(run.model_dump(mode="python"))
     root = _state_dir(state_dir) / assess_client_storage_key(run.client_name)
     canonical_diagnostics = tuple(sorted(set(diagnostics)))
     canonical_posting_index = dict(sorted((posting_index or {}).items()))
@@ -2409,12 +2458,17 @@ def load_current_assess_run(
             return None
         path = root / artifact_name
         payload = json.loads(path.read_text(encoding="utf-8"))
-        if (pointer.get("schema_version") != _SCHEMA_VERSION
-                or payload.get("schema_version") != _SCHEMA_VERSION):
+        version = payload.get("schema_version")
+        if (type(version) is not int or version not in _SUPPORTED_SCHEMAS
+                or pointer.get("schema_version") != version):
             return None
         if _digest(payload) != pointer.get("artifact_sha256"):
             return None
+        if version == 1 and _contains_acquisition(payload.get("run")):
+            return None  # a v2 receipt cannot be smuggled under a legacy identity
         run = AssessRun.model_validate(payload.get("run") or {})
+        if not run.run_id.startswith(f"assess:v{version}:"):
+            return None
         identity = payload.get("identity")
         if (not isinstance(identity, dict)
                 or identity.get("algorithm") != "sha256-canonical-json-v1"):
@@ -2431,6 +2485,8 @@ def load_current_assess_run(
             diagnostics=tuple(payload.get("diagnostics") or ()),
             posting_index=payload.get("posting_index") or {},
         )
+        if version == 1:
+            expected_projection = _legacy_projection(expected_projection)
         if (_text(run.client_name) != _text(client_name)
                 or _scope_designator(run.scope) != scope_designator
                 or run.run_id != pointer.get("run_id")
@@ -2440,7 +2496,7 @@ def load_current_assess_run(
                 != _digest(expected_projection)
                 or _run_identity(
                     run.client_name, payload.get("binding") or {},
-                    expected_projection) != run.run_id):
+                    expected_projection, schema_version=version) != run.run_id):
             return None
         return payload
     except (OSError, KeyError, TypeError, json.JSONDecodeError, ValueError):
@@ -2497,7 +2553,7 @@ def current_run_identity(
             if isinstance(pointer, dict) else None
         expected_artifact = f"{run.run_id.rsplit(':', 1)[-1]}.json"
         if (not isinstance(pointer, dict)
-                or pointer.get("schema_version") != _SCHEMA_VERSION
+                or pointer.get("schema_version") not in _SUPPORTED_SCHEMAS
                 or not isinstance(artifact_name, str)
                 or Path(artifact_name).name != artifact_name
                 or artifact_name != expected_artifact

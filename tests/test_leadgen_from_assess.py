@@ -68,7 +68,12 @@ ROOT = Path(__file__).resolve().parents[1]
 def _evidence(*, eid="E1", notice_id="N1",
               kind=EvidenceKind.NOTICE, tier=EvidenceTier.NOTICE,
               primary=True, supports=None, url=None, excerpt=None):
+    from agents.assess.source_clock import acquisition_clock
+    binding = "a" * 64
+    clock = acquisition_clock(NOW.isoformat(), basis="sam_notice_depth",
+        component="notice_description", field="source_depth.retrieved_at", binding=binding)
     return EvidenceRef(
+        record_hash=binding, source_acquisition=clock,
         evidence_id=eid, tier=tier, kind=kind,
         source_name="official source",
         source_url=url or f"https://sam.gov/opp/{notice_id}/view",

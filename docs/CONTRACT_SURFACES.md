@@ -769,3 +769,44 @@ its own positive/negative/native-projection tests in
 `tests/test_step4_temporal_evidence.py`. Fable reviews the combined exact candidate
 before advancement. Standing user auto-passthrough authorizes this internal plan
 work; it does not imply a production merge or evidence authenticity claim.
+
+## Strict Assess source acquisition extension — S4-SOURCE-CLOCK-001
+
+**Explicit amendment:** `agents/assess/contracts.py::EvidenceRef.retrieved_at` is
+nullable; `source_acquisition: SourceAcquisition | None` is additive. SourceAcquisition
+lives in `agents/assess/source_clock.py` and uses version `assess.source-acquisition.v1`.
+Its finite status vocabulary is `known`, `missing`, `invalid`, `date_only`,
+`unknown_timezone`, `conflict`, `untrusted`. Supported basis is `sam_notice_depth`,
+`horizon_fact_bank`, or `none`; component is notice description/payload, Horizon fact,
+or subaward record. Original raw text/input type and `binding_sha256` are retained.
+Only known, source-bound aware acquisition has a non-null `retrieved_at`. Offset text
+is retained separately from the UTC comparison instant. `verified_at` retains its
+assessment meaning.
+
+`agents/assess/ledger.py` writes immutable schema 2, with version-bound
+`assess:v2:` identity. Its loader supports original schema 1 and 2 identities and
+refuses injected acquisition fields under schema 1, mismatched wrappers and unknown
+versions. Legacy serialization excludes only the new evidence provenance field when
+reconstructing the original schema 1 identity; raw artifacts/pointers are unchanged.
+The nullable archival default is never authority for new generation. Persist and
+Assess-to-LeadRow entry points revalidate copied models. Schema 2 requires a receipt
+for every evidence member. No historical acquisition is reconstructed.
+
+Affected consumers: strict requirement/attachment/BID_NOW and approved intelligence
+validation; release; Assess-to-LeadRow, qualifier and evidence HTML; LeadRow/pathway
+schema exports; durable strict Fact stamping; Golden Press companion census, restored
+assessment population and Market Map source-date completeness. Old positive
+leadgen.contracts.v1 rows remain accepted by archival readers/scorers. Qualification
+of an old T1/T2 row with unresolved source acquisition yields a named HOLD; new
+priority promotion requires known acquisition. Source date completeness preserves
+unknown members, rather than selecting only known timestamps. Reviewed case input
+bytes/history and exact record binding survive the v2 current projection, with
+unusable active chronology removed and retained as historical fit-trace detail.
+
+Native authority limit: SAM must use checked matching source depth; generic row/raw,
+model, saved import, generated_at/as_of, approval, posting, mtime/cache filename and
+attachment clocks are not acquisition. Existing Horizon fact-bank authority and its
+strict refusal remain; shared USAspending evidence now explicitly lacks acquisition
+instead of borrowing as_of. Source receipts do not authenticate themselves or weaken
+source/hash/coverage gates. No external schema migration, mutable data rewrite, new
+acquisition collector, deadline-policy change or CRM work is included.
