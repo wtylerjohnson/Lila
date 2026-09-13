@@ -1,0 +1,10 @@
+{
+  "accepted_base": "ca6620dd9a4387b5145e49588a878ca3efb925e4",
+  "observed_legacy_comparators": {
+    "v3/discovery_score.py": "5b0b8d7fad96241ee7e4177cfbb6395fd6b61661610d1c041b03a63a5cd33bc5",
+    "v4/discovery_score.py": "654e75829bb5e5bf547edf931f4ca3e1c871daa9831a627d75295e67baf1d90a",
+    "v4/native_source_policy.py": "0984b1e8ea0d8d573a06cc9d503d8dcc4d4d8c3b9a1fb328f7584dab6edee471"
+  },
+  "plan_sha256": "71a4c7c11ee575596357e5e0fcfb66a75d2c855b4761040042732c8cad26bfc5",
+  "support_policy": "Caller-owned anchors and registered independent source-support review; synthetic tests only; see PRE_PATCH_REPORT.md"
+}

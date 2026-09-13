@@ -1,0 +1,106 @@
+{
+  "recorded_at_utc": "2026-09-11T19:06:22.240944+00:00",
+  "basis": "Prespecified synthetic software acceptance; known development cases, no holdout or recall claim",
+  "cases": [
+    {
+      "id": "supplier-master",
+      "text": "The agency requires supplier master data validation.",
+      "expected": "candidate"
+    },
+    {
+      "id": "vendor-master",
+      "text": "The requirement is vendor master validation before payment.",
+      "expected": "candidate"
+    },
+    {
+      "id": "ap-full",
+      "text": "The agency requires accounts payable recovery auditing.",
+      "expected": "candidate"
+    },
+    {
+      "id": "ap-bound",
+      "text": "The agency requires recovery audit services for supplier payments.",
+      "expected": "candidate"
+    },
+    {
+      "id": "ap-unbounded",
+      "text": "The agency requires recovery audit services.",
+      "expected": "no_candidate"
+    },
+    {
+      "id": "patient",
+      "text": "The requirement is patient insurance eligibility validation using a data validation and enrichment API.",
+      "expected": "no_candidate"
+    },
+    {
+      "id": "projector",
+      "text": "Buy six projectors. Vendors must register in SAM.gov.",
+      "expected": "no_candidate"
+    },
+    {
+      "id": "api-general",
+      "text": "Provide a data validation and enrichment API for weather records.",
+      "expected": "no_candidate"
+    },
+    {
+      "id": "duplicate-alias",
+      "text": "Provide AP recovery audit and accounts payable recovery audit.",
+      "expected": "one_core_score"
+    },
+    {
+      "id": "split-context",
+      "text": "supplier master [separate field] data validation",
+      "expected": "no_candidate"
+    },
+    {
+      "id": "title-only",
+      "text": "Enterprise platform support",
+      "expected": "text_incomplete"
+    },
+    {
+      "id": "attachment-failed",
+      "text": "Enterprise platform support",
+      "expected": "attachment_unavailable"
+    },
+    {
+      "id": "positive-attachment-failed",
+      "text": "Provide vendor master validation.",
+      "expected": "candidate_with_gap"
+    },
+    {
+      "id": "award",
+      "text": "The contract for supplier master data validation was awarded.",
+      "expected": "historical"
+    },
+    {
+      "id": "off-scope",
+      "text": "Provide vendor master validation.",
+      "expected": "excluded_scope"
+    },
+    {
+      "id": "alias-record-kill",
+      "text": "APEX Gamma Service provides supplier master data validation.",
+      "expected": "excluded"
+    },
+    {
+      "id": "naics-only",
+      "text": "Provide cafeteria staffing.",
+      "expected": "no_candidate"
+    },
+    {
+      "id": "sanctions-generic",
+      "text": "Provide sanctions and PEP screening.",
+      "expected": "no_candidate"
+    },
+    {
+      "id": "bank-equivalent",
+      "text": "Provide bank account ownership validation.",
+      "expected": "candidate"
+    },
+    {
+      "id": "risk-equivalent",
+      "text": "Provide vendor risk management.",
+      "expected": "candidate"
+    }
+  ]
+}

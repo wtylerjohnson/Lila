@@ -1,0 +1,172 @@
+{
+  "scope": "Synthetic matrix and bounded trust checks; exact publication separately verified",
+  "cases": [
+    {
+      "id": "scope_negative_unknown_time",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_scope_negative_unknown_time",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "fit_unknown_action",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_fit_unknown_action",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "expired_response",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_expired_response",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "expired_broader_action",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_expired_broader_action",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "insufficient_evidence",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_insufficient_evidence",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "all_affirmative",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_all_affirmative",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "unsupported_negative",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_unsupported_negative",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "binding_adversaries",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_binding_adversaries",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "supported_negative_matrix",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_supported_negative_matrix",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "counting",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_counting",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "source_certification_failure",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_source_certification_failure",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "claim_bound_negative",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_claim_bound_negative",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "untrusted_supported_flag",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_untrusted_supported_flag",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "conflicting_support_receipt",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_conflicting_support_receipt",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "changed_support_policy",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_changed_support_policy",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "route_unknown",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_route_unknown",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "route_positive_qualification_open",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_route_positive_qualification_open",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "all_material_affirmatives",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_all_material_affirmatives",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "negative_assertion_discovery",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_negative_assertion_discovery",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "positive_assertion_discovery",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_positive_assertion_discovery",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "cross_card_ref",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_cross_card_ref",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "cross_subject_inside_card",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_cross_subject_inside_card",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "unreadable_not_empty",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_unreadable_not_empty",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "objective_expiry_alternatives",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_objective_expiry_alternatives",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "negative_preserves_unknown_status",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_negative_preserves_unknown_status",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "disagreement_supported_negative_vs_unknown",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_disagreement_supported_negative_vs_unknown",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "different_evidence_same_decision",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_different_evidence_same_decision",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "zero_credit_uncertainty",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_zero_credit_uncertainty",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "old_packet_rejected",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_old_packet_rejected",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "portable_exact_commit",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_portable_exact_commit",
+      "status": "COMMITTED_ARCHIVE_PASS_REMOTE_PUBLICATION_RECORDED_SEPARATELY"
+    },
+    {
+      "id": "portable_relocation",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_portable_relocation",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    },
+    {
+      "id": "role_label_boundary",
+      "test": "tests/test_benchmark_v5_states.py::EvidenceStates::test_role_label_boundary",
+      "status": "PASS_LOCAL_SYNTHETIC"
+    }
+  ],
+  "test_count": 39,
+  "targeted_log_sha256": "5341011a918df3d32b0d9cfbbf0059d169aaf014ebd0ef6d8bc139ae8ecff480",
+  "tested_code_commit": "482091a271d632e87635473023d5c918e2bc02d3",
+  "operator_findings": {
+    "S5-REVIEW-050-01": "CLOSED_LOCAL_RECHECK",
+    "S5-REVIEW-050-02": "CLOSED_LOCAL_RECHECK"
+  }
+}

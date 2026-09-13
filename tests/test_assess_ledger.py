@@ -775,7 +775,7 @@ def test_cross_client_future_horizon_and_review_cannot_advance_run_as_of():
     live = next(row for row in run.live.records if row.notice_id == "N1")
     assert live.requirement_reviewed_at is None
     assert live.verified_at == NOW
-    assert all(evidence.retrieved_at <= NOW
+    assert all(evidence.retrieved_at is None or evidence.retrieved_at <= NOW
                for record in run.live.records
                for evidence in record.authoritative_evidence)
     assert any("Horizon artifact belongs to a different client" in message

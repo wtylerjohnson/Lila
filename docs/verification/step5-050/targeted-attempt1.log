@@ -1,0 +1,831 @@
+test_all_affirmative (test_benchmark_v5_states.EvidenceStates.test_all_affirmative) ... ERROR
+test_all_material_affirmatives (test_benchmark_v5_states.EvidenceStates.test_all_material_affirmatives) ... ERROR
+test_binding_adversaries (test_benchmark_v5_states.EvidenceStates.test_binding_adversaries) ... ERROR
+test_changed_support_policy (test_benchmark_v5_states.EvidenceStates.test_changed_support_policy) ... ERROR
+test_claim_bound_negative (test_benchmark_v5_states.EvidenceStates.test_claim_bound_negative) ... ERROR
+test_conflicting_support_receipt (test_benchmark_v5_states.EvidenceStates.test_conflicting_support_receipt) ... ERROR
+test_counting (test_benchmark_v5_states.EvidenceStates.test_counting) ... ERROR
+test_cross_card_ref (test_benchmark_v5_states.EvidenceStates.test_cross_card_ref) ... ERROR
+test_cross_subject_inside_card (test_benchmark_v5_states.EvidenceStates.test_cross_subject_inside_card) ... FAIL
+test_different_evidence_same_decision (test_benchmark_v5_states.EvidenceStates.test_different_evidence_same_decision) ... ERROR
+test_disagreement_supported_negative_vs_unknown (test_benchmark_v5_states.EvidenceStates.test_disagreement_supported_negative_vs_unknown) ... ERROR
+test_expired_broader_action (test_benchmark_v5_states.EvidenceStates.test_expired_broader_action) ... ERROR
+test_expired_response (test_benchmark_v5_states.EvidenceStates.test_expired_response) ... ERROR
+test_fit_unknown_action (test_benchmark_v5_states.EvidenceStates.test_fit_unknown_action) ... ERROR
+test_independence_and_no_trust_bootstrap (test_benchmark_v5_states.EvidenceStates.test_independence_and_no_trust_bootstrap) ... ERROR
+test_insufficient_evidence (test_benchmark_v5_states.EvidenceStates.test_insufficient_evidence) ... 
+  test_insufficient_evidence (test_benchmark_v5_states.EvidenceStates.test_insufficient_evidence) (authority='discovery_only') ... ERROR
+  test_insufficient_evidence (test_benchmark_v5_states.EvidenceStates.test_insufficient_evidence) (authority='non_substantive') ... ERROR
+test_insufficient_evidence (test_benchmark_v5_states.EvidenceStates.test_insufficient_evidence) ... ERROR
+test_negative_assertion_discovery (test_benchmark_v5_states.EvidenceStates.test_negative_assertion_discovery) ... ERROR
+test_negative_preserves_unknown_status (test_benchmark_v5_states.EvidenceStates.test_negative_preserves_unknown_status) ... ERROR
+test_no_overwrite_and_blind_bundle (test_benchmark_v5_states.EvidenceStates.test_no_overwrite_and_blind_bundle) ... ERROR
+test_objective_expiry_alternatives (test_benchmark_v5_states.EvidenceStates.test_objective_expiry_alternatives) ... ERROR
+test_old_packet_rejected (test_benchmark_v5_states.EvidenceStates.test_old_packet_rejected) ... FAIL
+test_portable_exact_commit (test_benchmark_v5_states.EvidenceStates.test_portable_exact_commit) ... FAIL
+test_portable_relocation (test_benchmark_v5_states.EvidenceStates.test_portable_relocation) ... ERROR
+test_positive_assertion_discovery (test_benchmark_v5_states.EvidenceStates.test_positive_assertion_discovery) ... ERROR
+test_revocation_requires_new_snapshot_and_preserves_old_result (test_benchmark_v5_states.EvidenceStates.test_revocation_requires_new_snapshot_and_preserves_old_result) ... ERROR
+test_role_label_boundary (test_benchmark_v5_states.EvidenceStates.test_role_label_boundary) ... ERROR
+test_route_action_and_grade_scope_binding (test_benchmark_v5_states.EvidenceStates.test_route_action_and_grade_scope_binding) ... ERROR
+test_route_positive_qualification_open (test_benchmark_v5_states.EvidenceStates.test_route_positive_qualification_open) ... ERROR
+test_route_unknown (test_benchmark_v5_states.EvidenceStates.test_route_unknown) ... ERROR
+test_scope_negative_unknown_time (test_benchmark_v5_states.EvidenceStates.test_scope_negative_unknown_time) ... ERROR
+test_source_certification_failure (test_benchmark_v5_states.EvidenceStates.test_source_certification_failure) ... FAIL
+test_strict_json_paths_and_types (test_benchmark_v5_states.EvidenceStates.test_strict_json_paths_and_types) ... ok
+test_supported_negative_matrix (test_benchmark_v5_states.EvidenceStates.test_supported_negative_matrix) ... ERROR
+test_unreadable_not_empty (test_benchmark_v5_states.EvidenceStates.test_unreadable_not_empty) ... ERROR
+test_unsupported_negative (test_benchmark_v5_states.EvidenceStates.test_unsupported_negative) ... ERROR
+test_untrusted_supported_flag (test_benchmark_v5_states.EvidenceStates.test_untrusted_supported_flag) ... ERROR
+test_zero_credit_uncertainty (test_benchmark_v5_states.EvidenceStates.test_zero_credit_uncertainty) ... ERROR
+
+======================================================================
+ERROR: test_all_affirmative (test_benchmark_v5_states.EvidenceStates.test_all_affirmative)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 90, in test_all_affirmative
+    result = self.fixture()
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_all_material_affirmatives (test_benchmark_v5_states.EvidenceStates.test_all_material_affirmatives)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 244, in test_all_material_affirmatives
+    row = self.decision(self.fixture(override=lambda n, c, cs: [x for x in cs if x["predicate"] != omitted]))
+                        ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_binding_adversaries (test_benchmark_v5_states.EvidenceStates.test_binding_adversaries)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 112, in test_binding_adversaries
+    self.fixture(complete=False)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_changed_support_policy (test_benchmark_v5_states.EvidenceStates.test_changed_support_policy)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 209, in test_changed_support_policy
+    self.fixture(complete=False)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_claim_bound_negative (test_benchmark_v5_states.EvidenceStates.test_claim_bound_negative)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 176, in test_claim_bound_negative
+    row = self.decision(self.fixture("negative"))
+                        ~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_conflicting_support_receipt (test_benchmark_v5_states.EvidenceStates.test_conflicting_support_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 194, in test_conflicting_support_receipt
+    self.fixture(complete=False)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_counting (test_benchmark_v5_states.EvidenceStates.test_counting)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 143, in test_counting
+    result = self.fixture(("positive",) * 5, rows=rows, pre=pre)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_cross_card_ref (test_benchmark_v5_states.EvidenceStates.test_cross_card_ref)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 258, in test_cross_card_ref
+    self.fixture(("positive", "positive"), complete=False)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_different_evidence_same_decision (test_benchmark_v5_states.EvidenceStates.test_different_evidence_same_decision)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 320, in test_different_evidence_same_decision
+    result = self.fixture(pre=pre, override=different)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_disagreement_supported_negative_vs_unknown (test_benchmark_v5_states.EvidenceStates.test_disagreement_supported_negative_vs_unknown)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 304, in test_disagreement_supported_negative_vs_unknown
+    result = self.fixture("negative", override=lambda n, c, cs: cs if n == 1 else [])
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_expired_broader_action (test_benchmark_v5_states.EvidenceStates.test_expired_broader_action)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 75, in test_expired_broader_action
+    row = self.decision(self.fixture("expired"))
+                        ~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_expired_response (test_benchmark_v5_states.EvidenceStates.test_expired_response)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 72, in test_expired_response
+    self.assertEqual(self.decision(self.fixture("expired", objective="respond_to_this_notice"))["classification"], "not_relevant")
+                                   ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_fit_unknown_action (test_benchmark_v5_states.EvidenceStates.test_fit_unknown_action)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 67, in test_fit_unknown_action
+    result = self.fixture(override=lambda n, c, cs: [x for x in cs if x["predicate"] == "fit"])
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_independence_and_no_trust_bootstrap (test_benchmark_v5_states.EvidenceStates.test_independence_and_no_trust_bootstrap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 388, in test_independence_and_no_trust_bootstrap
+    self.fixture(complete=False)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_insufficient_evidence (test_benchmark_v5_states.EvidenceStates.test_insufficient_evidence) (authority='discovery_only')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 82, in test_insufficient_evidence
+    row = self.decision(self.fixture(pre=lambda p: self.mutate_evidence(p, authority=authority)))
+                        ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_insufficient_evidence (test_benchmark_v5_states.EvidenceStates.test_insufficient_evidence) (authority='non_substantive')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 82, in test_insufficient_evidence
+    row = self.decision(self.fixture(pre=lambda p: self.mutate_evidence(p, authority=authority)))
+                        ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_insufficient_evidence (test_benchmark_v5_states.EvidenceStates.test_insufficient_evidence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 85, in test_insufficient_evidence
+    row = self.decision(self.fixture("insufficient"))
+                        ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_negative_assertion_discovery (test_benchmark_v5_states.EvidenceStates.test_negative_assertion_discovery)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 250, in test_negative_assertion_discovery
+    row = self.decision(self.fixture("negative", pre=lambda p: self.mutate_evidence(p, authority="discovery_only")))
+                        ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_negative_preserves_unknown_status (test_benchmark_v5_states.EvidenceStates.test_negative_preserves_unknown_status)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 298, in test_negative_preserves_unknown_status
+    result = self.fixture("negative")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_no_overwrite_and_blind_bundle (test_benchmark_v5_states.EvidenceStates.test_no_overwrite_and_blind_bundle)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 436, in test_no_overwrite_and_blind_bundle
+    self.fixture(complete=False)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_objective_expiry_alternatives (test_benchmark_v5_states.EvidenceStates.test_objective_expiry_alternatives)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 295, in test_objective_expiry_alternatives
+    self.assertEqual(self.decision(self.fixture(kind, objective=objective))["classification"], wanted)
+                                   ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_portable_relocation (test_benchmark_v5_states.EvidenceStates.test_portable_relocation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 351, in test_portable_relocation
+    original = self.fixture()
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_positive_assertion_discovery (test_benchmark_v5_states.EvidenceStates.test_positive_assertion_discovery)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 254, in test_positive_assertion_discovery
+    row = self.decision(self.fixture(pre=lambda p: self.mutate_evidence(p, authority="discovery_only")))
+                        ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_revocation_requires_new_snapshot_and_preserves_old_result (test_benchmark_v5_states.EvidenceStates.test_revocation_requires_new_snapshot_and_preserves_old_result)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 424, in test_revocation_requires_new_snapshot_and_preserves_old_result
+    original = self.fixture()
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_role_label_boundary (test_benchmark_v5_states.EvidenceStates.test_role_label_boundary)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 365, in test_role_label_boundary
+    result = self.fixture("negative")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_route_action_and_grade_scope_binding (test_benchmark_v5_states.EvidenceStates.test_route_action_and_grade_scope_binding)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 410, in test_route_action_and_grade_scope_binding
+    self.fixture(complete=False)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_route_positive_qualification_open (test_benchmark_v5_states.EvidenceStates.test_route_positive_qualification_open)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 237, in test_route_positive_qualification_open
+    row = self.decision(self.fixture())
+                        ~~~~~~~~~~~~^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_route_unknown (test_benchmark_v5_states.EvidenceStates.test_route_unknown)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 232, in test_route_unknown
+    row = self.decision(self.fixture(override=lambda n, c, cs: [x for x in cs if x["predicate"] != "route_eligible"]))
+                        ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_scope_negative_unknown_time (test_benchmark_v5_states.EvidenceStates.test_scope_negative_unknown_time)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 58, in test_scope_negative_unknown_time
+    result = self.fixture("negative")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_supported_negative_matrix (test_benchmark_v5_states.EvidenceStates.test_supported_negative_matrix)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 126, in test_supported_negative_matrix
+    row = self.decision(self.fixture("negative", override=claims))
+                        ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_unreadable_not_empty (test_benchmark_v5_states.EvidenceStates.test_unreadable_not_empty)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 281, in test_unreadable_not_empty
+    row = self.decision(self.fixture(pre=pre))
+                        ~~~~~~~~~~~~^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_unsupported_negative (test_benchmark_v5_states.EvidenceStates.test_unsupported_negative)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 98, in test_unsupported_negative
+    row = self.decision(self.fixture(override=unsupported))
+                        ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_untrusted_supported_flag (test_benchmark_v5_states.EvidenceStates.test_untrusted_supported_flag)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 184, in test_untrusted_supported_flag
+    row = self.decision(self.fixture(override=claims))
+                        ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+ERROR: test_zero_credit_uncertainty (test_benchmark_v5_states.EvidenceStates.test_zero_credit_uncertainty)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 325, in test_zero_credit_uncertainty
+    result = self.fixture(override=lambda n, c, cs: [])
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 36, in fixture
+    prepare_fixture(self.root)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/synthetic.py", line 164, in prepare_fixture
+    return prepare(root / "case", root / "packets", root / "trust/input.json", root / "trust/prepared.json",
+                   "synthetic-reviewer-1", "synthetic-reviewer-2")
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/custody.py", line 200, in prepare
+    trust_path = external_file(input_trust, case, out)
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/io.py", line 84, in external_file
+    require(not any(p.is_symlink() for p in (path, *path.parents)), "Symlink trust file")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tools/benchmark_v5/legacy/v3/discovery_score.py", line 49, in require
+    raise ValueError(message)
+ValueError: Symlink trust file
+
+======================================================================
+FAIL: test_cross_subject_inside_card (test_benchmark_v5_states.EvidenceStates.test_cross_subject_inside_card)
+----------------------------------------------------------------------
+ValueError: Symlink trust file
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 271, in test_cross_subject_inside_card
+    with self.assertRaisesRegex(ValueError, "identity/URL mismatch"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "identity/URL mismatch" does not match "Symlink trust file"
+
+======================================================================
+FAIL: test_old_packet_rejected (test_benchmark_v5_states.EvidenceStates.test_old_packet_rejected)
+----------------------------------------------------------------------
+ValueError: Symlink trust file
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 337, in test_old_packet_rejected
+    with self.assertRaisesRegex(ValueError, "migration required"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "migration required" does not match "Symlink trust file"
+
+======================================================================
+FAIL: test_portable_exact_commit (test_benchmark_v5_states.EvidenceStates.test_portable_exact_commit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 345, in test_portable_exact_commit
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : Validation failed; no comparable score: Symlink trust file
+
+
+======================================================================
+FAIL: test_source_certification_failure (test_benchmark_v5_states.EvidenceStates.test_source_certification_failure)
+----------------------------------------------------------------------
+ValueError: Symlink trust file
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_benchmark_v5_states.py", line 165, in test_source_certification_failure
+    with self.assertRaisesRegex(ValueError, "complete native extract census"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "complete native extract census" does not match "Symlink trust file"
+
+----------------------------------------------------------------------
+Ran 37 tests in 0.215s
+
+FAILED (failures=4, errors=34)

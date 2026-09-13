@@ -1,0 +1,30 @@
+{
+  "at_utc": "2026-09-13T01:55:45.765482+00:00",
+  "status": "ACCEPTED_FOR_COMBINED_FABLE_HANDOFF",
+  "candidate": "482091a271d632e87635473023d5c918e2bc02d3",
+  "report_sha256": "a2be4d3968f6cb99db71b6561782d6a3b77e58dcbbbc2bb0efedb9957ff01f40",
+  "verification_sha256": "a1d8baa242ef325b43a1ee91caf051827c7943dc7fd0c2ecb28ff7ffb695f256",
+  "defect_dispositions": {
+    "S5-REVIEW-050-01": {
+      "status": "CLOSED_BOUNDED",
+      "original_repros_passed": 3,
+      "fix": "Original semantic proposals/disagreement/coverage separate from validated states and counts; six-slot completeness enforced"
+    },
+    "S5-REVIEW-050-02": {
+      "status": "CLOSED_BOUNDED",
+      "original_repros_passed": 3,
+      "fix": "Typed received context/checker records and canonical exact equality for every admitted receipt"
+    }
+  },
+  "original_repros_passed": 6,
+  "nearby_controls_passed": 20,
+  "selected_unittest_methods": 5,
+  "artifact_counts_verified": {
+    "ARTIFACT_MANIFEST.json": 11,
+    "FIXTURE_MANIFEST.json": 950
+  },
+  "reviewed_candidate_files_verified": 12,
+  "root_p1_status": "OPEN_PENDING_COMBINED_FABLE_ACCEPTANCE",
+  "step6": "PENDING",
+  "scope": "Two local operator findings closed only; no Fable, production or authentic-source claim"
+}

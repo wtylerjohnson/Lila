@@ -1,0 +1,188 @@
+{
+  "created_before_probe_at_utc": "2026-09-12T23:19:02.830578+00:00",
+  "cases": [
+    {
+      "id": "sow-canonical",
+      "description": "Statement of work: The contractor shall provide supplier risk management software, integrate supplier records, and deliver monthly risk assessments and alerts.",
+      "expected_role": "requested_deliverable",
+      "expected_requested_support": true,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "sow-alias",
+      "description": "Statement of work: The contractor shall provide vendor risk management software with continuous supplier monitoring and monthly exception reports.",
+      "expected_role": "requested_deliverable",
+      "expected_requested_support": true,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "projector-sprs",
+      "description": "Deliver six projectors. Evaluation: The Government will use Supplier Performance Risk System (SPRS) supplier risk management information to evaluate vendor performance.",
+      "expected_role": "evaluation_boilerplate",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "guidance",
+      "description": "Reference guidance: The manufacturing readiness handbook discusses supplier risk management. The contractor shall fabricate metal brackets.",
+      "expected_role": "reference_guidance",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "guidance-purchased",
+      "description": "The contractor shall implement supplier risk management controls from the referenced handbook, configure monitoring software, and deliver monthly supplier risk dashboards.",
+      "expected_role": "requested_deliverable",
+      "expected_requested_support": true,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "past-work",
+      "description": "In 2019 the agency purchased supplier risk management software. This solicitation purchases only conference tables.",
+      "expected_role": "historical_mention",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "past-and-current",
+      "description": "In 2019 the agency purchased supplier risk management software. This statement of work requires a replacement supplier risk management platform with daily monitoring and migration deliverables.",
+      "expected_role": "mixed_current_and_historical",
+      "expected_requested_support": true,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "negated",
+      "description": "The contractor is not required to provide supplier risk management software. Only projector installation is required.",
+      "expected_role": "negated_requirement",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "negated-scope",
+      "description": "Supplier risk management is out of scope. Deliver projectors and mounts only.",
+      "expected_role": "negated_requirement",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "not-only",
+      "description": "The contractor shall provide not only supplier risk management software but also onboarding workflows, weekly alerts and monthly risk reports.",
+      "expected_role": "requested_deliverable",
+      "expected_requested_support": true,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "quoted-prior",
+      "description": "Quoted prior work, excluded from this purchase: \"Provide supplier risk management services.\" The current requirement is to deliver office chairs.",
+      "expected_role": "quoted_prior_work",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "name-collision",
+      "description": "Awardee name for office chairs: Supplier Risk Management LLC. The only deliverable is office chairs.",
+      "expected_role": "company_name_collision",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "known-identity-collision",
+      "description": "APEX Gamma Service provides supplier risk management software.",
+      "expected_role": "known_excluded_identity",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "mixed-positive",
+      "description": "Evaluation uses SPRS supplier risk management data. Separately, SOW task 2 requires supplier risk management software, daily supplier monitoring and monthly risk reports.",
+      "expected_role": "mixed_requested_and_boilerplate",
+      "expected_requested_support": true,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "mixed-negative",
+      "description": "Evaluation uses SPRS supplier risk management data. The SOW excludes supplier risk management services and requires only projectors.",
+      "expected_role": "mixed_boilerplate_and_negation",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "thin-context",
+      "description": "supplier risk management",
+      "expected_role": "context_missing",
+      "expected_requested_support": "unresolved",
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "missing-sow",
+      "description": "The supplier risk management scope is specified in the unavailable SOW attachment.",
+      "expected_role": "material_source_missing",
+      "expected_requested_support": "unresolved",
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout.",
+      "attachment_status": "INVENTORY_UNAVAILABLE"
+    },
+    {
+      "id": "contradictory",
+      "description": "SOW task 1: Provide supplier risk management software. SOW task 1 correction: No supplier risk management software is required.",
+      "expected_role": "contradictory_context",
+      "expected_requested_support": "unresolved",
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "no-capability",
+      "description": "Deliver six projectors and mounting brackets.",
+      "expected_role": "unrelated_requirement",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout."
+    },
+    {
+      "id": "split-fields",
+      "description": "risk management software must be provided.",
+      "expected_role": "incomplete_cross_field_phrase",
+      "expected_requested_support": "unresolved",
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout.",
+      "title": "supplier"
+    },
+    {
+      "id": "title-only",
+      "description": "",
+      "expected_role": "title_only",
+      "expected_requested_support": "unresolved",
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout.",
+      "title": "Supplier risk management"
+    },
+    {
+      "id": "historical-label",
+      "description": "The contractor shall provide supplier risk management software with monthly reports.",
+      "expected_role": "historical_award",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout.",
+      "notice_type": "Awarded"
+    },
+    {
+      "id": "canonical-award",
+      "description": "The contractor shall provide supplier risk management software with monthly reports.",
+      "expected_role": "historical_award",
+      "expected_requested_support": false,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout.",
+      "notice_type": "Award Notice"
+    },
+    {
+      "id": "preaward",
+      "description": "The contractor shall provide supplier risk management software with monthly reports.",
+      "expected_role": "requested_deliverable",
+      "expected_requested_support": true,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout.",
+      "notice_type": "Preaward"
+    },
+    {
+      "id": "pre-award",
+      "description": "The contractor shall provide supplier risk management software with monthly reports.",
+      "expected_role": "requested_deliverable",
+      "expected_requested_support": true,
+      "fixture_origin": "Operator-authored synthetic original-notice/SOW text; not a real federal opportunity or independent holdout.",
+      "notice_type": "pre-award"
+    }
+  ],
+  "scope": "Prespecified paired software fixtures only. Authentic buyer-source validation is a separate future requirement, not established by this plan."
+}

@@ -1,0 +1,42 @@
+test_all_affirmative (test_benchmark_v5_states.EvidenceStates.test_all_affirmative) ... ok
+test_all_material_affirmatives (test_benchmark_v5_states.EvidenceStates.test_all_material_affirmatives) ... ok
+test_binding_adversaries (test_benchmark_v5_states.EvidenceStates.test_binding_adversaries) ... ok
+test_changed_support_policy (test_benchmark_v5_states.EvidenceStates.test_changed_support_policy) ... ok
+test_claim_bound_negative (test_benchmark_v5_states.EvidenceStates.test_claim_bound_negative) ... ok
+test_conflicting_support_receipt (test_benchmark_v5_states.EvidenceStates.test_conflicting_support_receipt) ... ok
+test_counting (test_benchmark_v5_states.EvidenceStates.test_counting) ... ok
+test_cross_card_ref (test_benchmark_v5_states.EvidenceStates.test_cross_card_ref) ... ok
+test_cross_subject_inside_card (test_benchmark_v5_states.EvidenceStates.test_cross_subject_inside_card) ... ok
+test_different_evidence_same_decision (test_benchmark_v5_states.EvidenceStates.test_different_evidence_same_decision) ... ok
+test_disagreement_supported_negative_vs_unknown (test_benchmark_v5_states.EvidenceStates.test_disagreement_supported_negative_vs_unknown) ... ok
+test_expired_broader_action (test_benchmark_v5_states.EvidenceStates.test_expired_broader_action) ... ok
+test_expired_response (test_benchmark_v5_states.EvidenceStates.test_expired_response) ... ok
+test_fit_unknown_action (test_benchmark_v5_states.EvidenceStates.test_fit_unknown_action) ... ok
+test_independence_and_no_trust_bootstrap (test_benchmark_v5_states.EvidenceStates.test_independence_and_no_trust_bootstrap) ... ok
+test_insufficient_evidence (test_benchmark_v5_states.EvidenceStates.test_insufficient_evidence) ... ok
+test_negative_assertion_discovery (test_benchmark_v5_states.EvidenceStates.test_negative_assertion_discovery) ... ok
+test_negative_preserves_unknown_status (test_benchmark_v5_states.EvidenceStates.test_negative_preserves_unknown_status) ... ok
+test_no_overwrite_and_blind_bundle (test_benchmark_v5_states.EvidenceStates.test_no_overwrite_and_blind_bundle) ... ok
+test_objective_expiry_alternatives (test_benchmark_v5_states.EvidenceStates.test_objective_expiry_alternatives) ... ok
+test_old_packet_rejected (test_benchmark_v5_states.EvidenceStates.test_old_packet_rejected) ... ok
+test_portable_exact_commit (test_benchmark_v5_states.EvidenceStates.test_portable_exact_commit) ... ok
+test_portable_relocation (test_benchmark_v5_states.EvidenceStates.test_portable_relocation) ... ok
+test_positive_assertion_discovery (test_benchmark_v5_states.EvidenceStates.test_positive_assertion_discovery) ... ok
+test_revocation_requires_new_snapshot_and_preserves_old_result (test_benchmark_v5_states.EvidenceStates.test_revocation_requires_new_snapshot_and_preserves_old_result) ... ok
+test_role_label_boundary (test_benchmark_v5_states.EvidenceStates.test_role_label_boundary) ... ok
+test_route_action_and_grade_scope_binding (test_benchmark_v5_states.EvidenceStates.test_route_action_and_grade_scope_binding) ... ok
+test_route_positive_qualification_open (test_benchmark_v5_states.EvidenceStates.test_route_positive_qualification_open) ... ok
+test_route_unknown (test_benchmark_v5_states.EvidenceStates.test_route_unknown) ... ok
+test_scope_negative_unknown_time (test_benchmark_v5_states.EvidenceStates.test_scope_negative_unknown_time) ... ok
+test_source_certification_failure (test_benchmark_v5_states.EvidenceStates.test_source_certification_failure) ... ok
+test_strict_json_paths_and_types (test_benchmark_v5_states.EvidenceStates.test_strict_json_paths_and_types) ... ok
+test_supported_negative_matrix (test_benchmark_v5_states.EvidenceStates.test_supported_negative_matrix) ... ok
+test_unreadable_not_empty (test_benchmark_v5_states.EvidenceStates.test_unreadable_not_empty) ... ok
+test_unsupported_negative (test_benchmark_v5_states.EvidenceStates.test_unsupported_negative) ... ok
+test_untrusted_supported_flag (test_benchmark_v5_states.EvidenceStates.test_untrusted_supported_flag) ... ok
+test_zero_credit_uncertainty (test_benchmark_v5_states.EvidenceStates.test_zero_credit_uncertainty) ... ok
+
+----------------------------------------------------------------------
+Ran 37 tests in 1.486s
+
+OK

@@ -31,10 +31,13 @@ from __future__ import annotations
 
 import csv
 import gzip
+import hashlib
+import io
 import os
 import re
 import sys
 import time
+from contextlib import contextmanager
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Iterable, Optional
@@ -60,7 +63,7 @@ _DEFAULT_ARCHIVE = Path(__file__).resolve().parents[2] / "data" / "archive" / "s
 # of work would balloon triage prompts without adding screen recall.
 SCREEN_DESCRIPTION_CHARS = 2000
 SCREEN_EVIDENCE_CONTEXT_CHARS = 180
-MAX_SCREEN_EVIDENCE_MATCHES = 12
+MAX_SCREEN_EVIDENCE_MATCHES = 48
 _ATTACHMENT_ANCHOR_STOP = frozenset({
     "aided", "application", "applications", "case", "computer", "end",
     "enterprise", "federal", "first", "full", "management", "operations",
@@ -106,6 +109,196 @@ class ExtractRefused(RuntimeError):
     """The upstream object is not a credible daily extract. Raised INSTEAD of
     promoting the payload, so a broken upstream day leaves no file behind
     for the idempotent skip to trust or for _latest_path to serve."""
+
+
+class ExtractReadFailed(OSError):
+    """A consumed extract changed or was not read completely."""
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _select_extract(census: dict) -> Path:
+    """Observe the native daily selection without overriding its clock/path."""
+    selection = {
+        "selection_started_at_utc": _utc_now(),
+        "selection_started_local_date": date.today().isoformat(),
+        "status": "selecting",
+    }
+    census["extract_selection"] = selection
+    try:
+        path = download_extract()
+        selection["status"] = "selected"
+        return path
+    except Exception as exc:
+        selection.update(status="failed", error_type=type(exc).__name__,
+                         error=str(exc)[:240])
+        raise
+    finally:
+        selection["selection_finished_local_date"] = date.today().isoformat()
+        selection["selection_finished_at_utc"] = _utc_now()
+
+
+def _file_stat(stat) -> dict:
+    return {
+        "device": stat.st_dev, "inode": stat.st_ino,
+        "size_bytes": stat.st_size, "modified_at_ns": stat.st_mtime_ns,
+        "changed_at_ns": stat.st_ctime_ns,
+    }
+
+
+class _HashingReader(io.RawIOBase):
+    """Hash bytes from this descriptor; keep separate readers' digests separate."""
+
+    def __init__(self, source):
+        self.source = source
+        self.digest = hashlib.sha256()
+        self.bytes_read = 0
+        self.eof = False
+
+    def readable(self) -> bool:
+        return True
+
+    def readinto(self, buffer) -> int:
+        count = self.source.readinto(buffer)
+        if count:
+            self.digest.update(memoryview(buffer)[:count])
+            self.bytes_read += count
+        elif count == 0:
+            self.eof = True
+        return count
+
+
+def _verify_extract_content(path: Path, source, before: dict, receipt: dict):
+    """Check a second full read, not all transient mutations or future writes.
+
+    One extra O(file-size) read/hash per scan; the consumed-byte digest stays
+    untouched. Both open descriptors and the path must retain their identity.
+    """
+    verification = receipt["content_verification"]
+    verification.update(
+        method="independent_post_read_sha256", status="reading",
+        metadata_consistency="not_checked", sha256=None, bytes_read=0,
+        read_started_at_utc=_utc_now(), read_finished_at_utc=None)
+    try:
+        with open(path, "rb", buffering=0) as check:
+            verification["file_stat_before"] = _file_stat(os.fstat(check.fileno()))
+            verification["path_stat_before"] = _file_stat(path.stat())
+            verification["consumed_file_stat_before"] = _file_stat(
+                os.fstat(source.fileno()))
+            if any(verification[key] != before for key in (
+                    "file_stat_before", "path_stat_before", "consumed_file_stat_before")):
+                verification["metadata_consistency"] = "changed"
+                receipt["integrity"] = "changed"
+                raise ExtractReadFailed("extract changed before content verification")
+            reader = _HashingReader(check)
+            try:
+                buffer = bytearray(1024 * 1024)
+                while reader.readinto(buffer):
+                    pass
+            finally:
+                verification.update(sha256=reader.digest.hexdigest(),
+                                    bytes_read=reader.bytes_read,
+                                    complete=reader.eof and
+                                    reader.bytes_read == before["size_bytes"])
+            verification["file_stat_after"] = _file_stat(os.fstat(check.fileno()))
+            verification["path_stat_after"] = _file_stat(path.stat())
+            verification["consumed_file_stat_after"] = _file_stat(
+                os.fstat(source.fileno()))
+            if any(verification[key] != before for key in (
+                    "file_stat_after", "path_stat_after", "consumed_file_stat_after")):
+                verification["metadata_consistency"] = "changed"
+                receipt["integrity"] = "changed"
+                raise ExtractReadFailed("extract changed during content verification")
+            verification["metadata_consistency"] = "consistent"
+            if not verification["complete"]:
+                raise ExtractReadFailed("extract content verification did not reach full EOF")
+            if (verification["sha256"] != receipt["sha256"]
+                    or verification["bytes_read"] != receipt["bytes_read"]):
+                receipt["integrity"] = "changed"
+                raise ExtractReadFailed(
+                    "extract changed during content verification: digest mismatch")
+        verification["status"] = "verified"
+    except Exception as exc:
+        verification.update(
+            status="changed" if receipt["integrity"] == "changed" else "read_failed",
+            error_type=type(exc).__name__, error=str(exc)[:240])
+        if isinstance(exc, ExtractReadFailed):
+            raise
+        raise ExtractReadFailed(
+            f"extract content verification unreadable: {type(exc).__name__}") from exc
+    finally:
+        verification["read_finished_at_utc"] = _utc_now()
+
+
+@contextmanager
+def _read_extract(path: Path, census: dict, scan: str, *, previous=None):
+    """Receipt each full scan; two-pass callers may bind to their first read."""
+    path = Path(path).absolute()
+    match = re.fullmatch(r"opportunities_(\d{4}-\d{2}-\d{2})\.csv", path.name)
+    receipt = {
+        "schema_version": 1, "scan": scan, "path": str(path),
+        "filename": path.name, "cache_date": match.group(1) if match else None,
+        "cache_date_basis": "local_cache_filename_not_upstream_publication",
+        **{key: value for key, value in census["extract_selection"].items()
+           if key.startswith("selection_")},
+        "read_started_at_utc": _utc_now(), "read_finished_at_utc": None,
+        "status": "reading", "complete": False, "integrity": "not_checked",
+        "sha256": None, "bytes_read": 0,
+        "scan_metadata_consistency": "not_checked",
+        "content_verification": {"status": "not_checked", "complete": False},
+    }
+    census["extract_receipts"].append(receipt)
+    try:
+        with open(path, "rb", buffering=0) as source:
+            before = _file_stat(os.fstat(source.fileno()))
+            receipt["file_stat_before"] = before
+            receipt["path_stat_before"] = _file_stat(path.stat())
+            if receipt["path_stat_before"] != before or (
+                    previous is not None
+                    and previous["file_stat_after"] != before):
+                receipt["integrity"] = "changed"
+                receipt["scan_metadata_consistency"] = "changed"
+                raise ExtractReadFailed("extract changed before scan")
+            reader = _HashingReader(source)
+            with io.TextIOWrapper(io.BufferedReader(reader), encoding="utf-8",
+                                  errors="replace", newline="") as text:
+                try:
+                    yield text
+                finally:
+                    receipt["sha256"] = reader.digest.hexdigest()
+                    receipt["bytes_read"] = reader.bytes_read
+                    receipt["file_stat_after"] = _file_stat(
+                        os.fstat(source.fileno()))
+                    try:
+                        receipt["path_stat_after"] = _file_stat(path.stat())
+                    except OSError:
+                        receipt["path_stat_after"] = None
+                    if (receipt["file_stat_after"] != before
+                            or receipt["path_stat_after"] != before):
+                        receipt["integrity"] = "changed"
+                        receipt["scan_metadata_consistency"] = "changed"
+                    else:
+                        receipt["scan_metadata_consistency"] = "consistent"
+                if receipt["integrity"] == "changed":
+                    raise ExtractReadFailed("extract changed during scan")
+                if not reader.eof or reader.bytes_read != before["size_bytes"]:
+                    raise ExtractReadFailed("extract scan did not reach full EOF")
+                if previous is not None and (
+                        receipt["sha256"] != previous["sha256"]):
+                    receipt["integrity"] = "changed"
+                    raise ExtractReadFailed("extract bytes changed between scans")
+                _verify_extract_content(path, source, before, receipt)
+        receipt.update(status="verified", complete=True, integrity="stable")
+    except Exception as exc:
+        receipt.update(status="failed", error_type=type(exc).__name__,
+                       error=str(exc)[:240])
+        if receipt["integrity"] != "changed":
+            receipt["integrity"] = "read_failed"
+        raise
+    finally:
+        receipt["read_finished_at_utc"] = _utc_now()
 
 
 def _refusal_evidence() -> str:
@@ -347,13 +540,9 @@ _COLS = {
 
 
 def _parse_dt(value: str) -> Optional[date]:
-    v = (value or "").strip()
-    if len(v) >= 10:
-        try:
-            return date.fromisoformat(v[:10])
-        except ValueError:
-            return None
-    return None
+    """Legacy date projection, separate from exact source temporal evidence."""
+    from tools.relevance.temporal import display_date
+    return display_date(value)
 
 
 def _posted_order(value: str) -> float:
@@ -390,6 +579,7 @@ def iter_rows(fh: Iterable[str]) -> Iterable[dict]:
 
 
 def _to_opportunity(r: dict) -> RawOpportunity:
+    from tools.relevance.temporal import source_time
     contacts = []
     if r.get("poc_name") or r.get("poc_email"):
         contacts.append(OpportunityContact(
@@ -408,55 +598,69 @@ def _to_opportunity(r: dict) -> RawOpportunity:
         set_aside=r.get("set_aside") or None,
         posted_date=_parse_dt(r.get("posted", "")),
         response_deadline=_parse_dt(r.get("deadline", "")),
+        temporal_evidence={kind: source_time(r.get(field), field='raw_payload.' + field,
+                              source_id=r.get('notice_id') or r.get('solicitation') or '')
+                           for kind, field in (('deadline', 'deadline'), ('posted', 'posted'))},
         estimated_value=None,
         api_url=r.get("url") or None,
         contacts=contacts,
         raw_payload={k: v for k, v in r.items() if k != "description"}
         | {"description_snippet":
            (r.get("description") or "")[:SCREEN_DESCRIPTION_CHARS],
+           "description_characters": len(r.get("description") or ""),
+           "description_sha256": hashlib.sha256((r.get("description") or "").encode()).hexdigest(),
+           "description_truncated": len(r.get("description") or "") > SCREEN_DESCRIPTION_CHARS,
            "via": "daily-extract"},
     )
 
 
-def _screen_evidence(title: str, description: str,
-                     keywords: list[str]) -> list[dict]:
-    """Preserve bounded verbatim context for full-description term hits.
-
-    The daily extract screen reads the complete description while the
-    downstream payload deliberately keeps only a short leading snippet.  A
-    capability phrase can therefore retrieve a notice after character 2,000
-    yet disappear before deterministic relevance sees it.  These compact
-    contexts preserve the exact source text that caused retrieval without
-    copying a multi-page notice into every sweep record.
-    """
+def _screen_evidence_with_coverage(title: str, description: str,
+                                   keywords: list[str]) -> tuple[list[dict], dict]:
+    """Retain multiple bounded clauses; disclose any omitted occurrences."""
     evidence: list[dict] = []
-    seen: set[tuple[str, str, int]] = set()
-    for term in keywords:
-        pattern = _keyword_pattern(term)
-        if pattern is None:
-            continue
-        for field, value in (("title", title), ("description", description)):
-            match = pattern.search(value)
-            if match is None:
+    seen = set()
+    occurrences = 0
+    for field, value in (("description", description), ("title", title)):
+        field_hash = hashlib.sha256(value.encode()).hexdigest()
+        for term in keywords:
+            pattern = _keyword_pattern(term)
+            if pattern is None:
                 continue
-            start, end = match.span()
-            key = (field, term.casefold(), start)
-            if key in seen:
-                continue
-            seen.add(key)
-            lo = max(0, start - SCREEN_EVIDENCE_CONTEXT_CHARS)
-            hi = min(len(value), end + SCREEN_EVIDENCE_CONTEXT_CHARS)
-            evidence.append({
-                "term": term,
-                "field": field,
-                "matched_text": match.group(0),
-                "context": value[lo:hi],
-                "start": start,
-            })
-            break
-        if len(evidence) >= MAX_SCREEN_EVIDENCE_MATCHES:
-            break
-    return evidence
+            for match in pattern.finditer(value):
+                start, end = match.span()
+                key = (field, start, end)
+                if key in seen:
+                    continue
+                seen.add(key)
+                occurrences += 1
+                if len(evidence) >= MAX_SCREEN_EVIDENCE_MATCHES:
+                    continue
+                # Sentence bounds keep section prefixes/negation attached.
+                left = list(re.finditer(r'[.!?;\n]\s*', value[:start]))
+                clause_lo = left[-1].end() if left else 0
+                prior = value[max(0, clause_lo - 220):clause_lo]
+                # Keep a preceding section label with the imperative below it.
+                if re.search(r'(?:quoted prior|prior work|historical background|previous requirement|not current|following[^.!?]{0,50}not required|excluded from)[^.!?]*[.:\n]\s*$', prior, re.I):
+                    clause_lo = max(0, clause_lo - len(prior))
+                right = re.search(r'[.!?;\n](?:\s|$)', value[end:])
+                clause_hi = end + right.start() + 1 if right else len(value)
+                lo, hi = max(clause_lo, start - 350), min(clause_hi, end + 350)
+                context = value[lo:hi]
+                evidence.append({
+                    "version": "extract-context-v2", "term": term, "field": field,
+                    "matched_text": match.group(0), "context": context,
+                    "start": start, "end": end, "context_start": lo, "context_end": hi,
+                    "field_characters": len(value), "field_sha256": field_hash,
+                    "context_sha256": hashlib.sha256(context.encode()).hexdigest(),
+                    "context_truncated": lo != clause_lo or hi != clause_hi,
+                })
+    return evidence, {"version": "extract-context-v2", "occurrences": occurrences,
+                      "retained": len(evidence), "overflow": occurrences > len(evidence),
+                      "all_keyword_occurrences_scanned": True}
+
+
+def _screen_evidence(title: str, description: str, keywords: list[str]) -> list[dict]:
+    return _screen_evidence_with_coverage(title, description, keywords)[0]
 
 
 def _attachment_anchor_terms(taxonomy) -> set[str]:
@@ -476,7 +680,7 @@ class SamExtractSource(DataSource):
     kind = SourceKind.DISCOVERY
 
     #: census of the last search(): the screen's ground truth, set per call.
-    #: complete=False only if the scan aborted mid-file (OSError etc.).
+    #: Failed selection/read never retains a previous successful census.
     last_census: dict = {}
     last_attachment_census: dict = {}
 
@@ -503,7 +707,17 @@ class SamExtractSource(DataSource):
         one NAICS or one title substring per (rationed) call — here the whole
         keyword strategy runs against the whole notice universe at once, free.
         """
-        path = download_extract()
+        census = {"source": "sam_extract", "complete": False,
+                  "extract_receipts": []}
+        self.last_census = census
+        try:
+            return self._search(query, census)
+        except Exception as exc:
+            census.update(error_type=type(exc).__name__, error=str(exc)[:240])
+            raise
+
+    def _search(self, query: SourceQuery, census: dict) -> list[RawOpportunity]:
+        path = _select_extract(census)
         naics = {c.strip() for c in (query.naics_codes or []) if c.strip()}
         kws = [
             k.strip().strip('"') for k in (query.keywords or []) if k.strip()
@@ -523,8 +737,7 @@ class SamExtractSource(DataSource):
         results: list[RawOpportunity] = []
         seen: set[str] = set()
         n_scanned = n_active = n_market = 0
-        complete = True
-        with open(path, encoding="utf-8", errors="replace", newline="") as fh:
+        with _read_extract(path, census, "primary") as fh:
             for r in iter_rows(fh):
                 n_scanned += 1
                 if (r.get("active") or "").strip().lower() not in ("yes", "true", "y", ""):
@@ -568,20 +781,23 @@ class SamExtractSource(DataSource):
                 opp.raw_payload["matched"] = (
                     (["naics"] if hit_naics else [])
                     + matched_keywords[:MAX_SCREEN_EVIDENCE_MATCHES])
-                evidence = _screen_evidence(
+                evidence, evidence_coverage = _screen_evidence_with_coverage(
                     r.get("title") or "",
                     r.get("description") or "",
                     matched_keywords,
                 )
+                opp.raw_payload["screen_evidence_coverage"] = evidence_coverage
                 if evidence:
+                    for context in evidence:
+                        context['source_id'] = opp.source_id
                     opp.raw_payload["screen_evidence_matches"] = evidence
                 results.append(opp)
-        self.last_census = {
+        census.update({
             "matched": len(results), "market_matched": n_market,
             "active_screened": n_active, "rows_scanned": n_scanned,
-            "complete": complete, "source": "sam_extract",
+            "complete": True, "source": "sam_extract",
             "focus": [a["abbr"] for a in focus] or None,
-        }
+        })
         return results
 
     def attachment_candidates(self, query: SourceQuery, taxonomy,
@@ -595,9 +811,22 @@ class SamExtractSource(DataSource):
         before any public attachment is downloaded. The sanctioned relevance
         scorer still decides whether extracted text may publish.
         """
+        census = {"source": "sam_extract", "complete": False,
+                  "extract_receipts": []}
+        self.last_attachment_census = census
+        try:
+            return self._attachment_candidates(
+                query, taxonomy, engagement_scope, limit=limit, census=census)
+        except Exception as exc:
+            census.update(error_type=type(exc).__name__, error=str(exc)[:240])
+            raise
+
+    def _attachment_candidates(self, query: SourceQuery, taxonomy,
+                               engagement_scope, *, limit: int, census: dict
+                               ) -> list[RawOpportunity]:
         if limit <= 0:
-            self.last_attachment_census = {
-                "eligible": 0, "threads": 0, "selected": 0}
+            census.update(eligible=0, threads=0, selected=0,
+                          scan_skipped_reason="limit_zero")
             return []
         from tools.api.sam_notice_family import notice_family_rank
         from tools.agencies import find, matches_record
@@ -605,12 +834,12 @@ class SamExtractSource(DataSource):
 
         anchors = _attachment_anchor_terms(taxonomy)
         if len(anchors) < 2:
-            self.last_attachment_census = {
-                "eligible": 0, "threads": 0, "selected": 0}
+            census.update(eligible=0, threads=0, selected=0,
+                          scan_skipped_reason="insufficient_anchors")
             return []
         focus = [agency for agency in
                  (find(name) for name in (query.agencies or [])) if agency]
-        path = download_extract()
+        path = _select_extract(census)
         latest_by_thread: dict[str, tuple[float, str]] = {}
 
         def active_thread(row: dict) -> tuple[Optional[int], str]:
@@ -649,8 +878,7 @@ class SamExtractSource(DataSource):
         # Amendments are separate extract rows. Establish the latest active
         # record per solicitation thread first so an obsolete attachment set
         # can never win merely because its old response date was earlier.
-        with open(path, encoding="utf-8", errors="replace",
-                  newline="") as handle:
+        with _read_extract(path, census, "attachment_latest") as handle:
             for row in iter_rows(handle):
                 family, thread = active_thread(row)
                 if family is None or not thread:
@@ -662,8 +890,8 @@ class SamExtractSource(DataSource):
 
         selected_by_thread: dict[str, tuple[tuple, RawOpportunity]] = {}
         eligible = 0
-        with open(path, encoding="utf-8", errors="replace",
-                  newline="") as handle:
+        with _read_extract(path, census, "attachment_candidates",
+                           previous=census["extract_receipts"][0]) as handle:
             for row in iter_rows(handle):
                 family, thread = active_thread(row)
                 if family is None or not thread:
@@ -711,10 +939,11 @@ class SamExtractSource(DataSource):
         ranked = [item[1] for item in sorted(
             selected_by_thread.values(), key=lambda item: item[0])]
         chosen = ranked[:limit]
-        self.last_attachment_census = {
+        census.update({
             "eligible": eligible,
             "threads": len(selected_by_thread),
             "selected": len(chosen),
             "focus": [agency["abbr"] for agency in focus] or None,
-        }
+            "complete": True,
+        })
         return chosen

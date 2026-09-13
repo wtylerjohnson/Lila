@@ -209,6 +209,7 @@ def _press(args) -> int:
                     profile=profile,
                     sweep=sweep,
                     calendar=recompete_calendar,
+                    require_current_sources=True,
                 )
             except (RuntimeError, ValueError) as exc:
                 print(

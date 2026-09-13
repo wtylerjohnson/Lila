@@ -945,7 +945,35 @@ def _build_watchlist(results: dict, slug: str, generated_at: Optional[str],
             entries.append(WatchlistEntry(id=sid, source="sam.gov", kind="standing",
                                           title=n.get("title"), url=n.get("api_url"),
                                           detail=(t or {}).get("reason") or "monitor-grade"))
-    return Watchlist(last_refreshed=generated_at, delta_note=note, entries=entries[:40])
+    # Reviewed priorities have an independent, hash-bound source. They never
+    # enter sweep_slim_records or acquire a NEW discovery badge on re-render.
+    research_entries = []
+    if live_report is not None:
+        from agents.assess.ledger import _sam_url_matches_notice
+        for case in live_report.reviewed_research:
+            if not case.research.priority:
+                continue
+            record = case.record
+            source_url = next(
+                str(evidence.source_url)
+                for evidence in reversed(record.authoritative_evidence)
+                if _sam_url_matches_notice(str(evidence.source_url), record.notice_id)
+            )
+            deadline = (record.response_deadline.isoformat()
+                        if record.response_deadline else "not stated")
+            research_entries.append(WatchlistEntry(
+                id=record.notice_id, source="reviewed_case", kind="standing",
+                title=record.title,
+                url=source_url,
+                detail=(f"Reviewed research: {case.research.status.replace('_', ' ')}. "
+                        f"Source classification: {record.classification.value.replace('_', ' ')}. "
+                        f"Source response deadline: {deadline}. "
+                        f"Next ask: {case.research.next_ask}"),
+            ))
+    # Preserve the established native 40-row selection and its contact reasons.
+    # Reviewed priorities are additive; they cannot displace discovered rows.
+    return Watchlist(last_refreshed=generated_at, delta_note=note,
+                     entries=entries[:40] + research_entries)
 
 
 def _build_partnering(results: dict, board: PursuitBoard,

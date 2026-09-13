@@ -91,6 +91,7 @@ class RawOpportunity(BaseModel):
     set_aside: Optional[str] = None
     posted_date: Optional[date] = None
     response_deadline: Optional[date] = None
+    temporal_evidence: dict = Field(default_factory=dict, description="Source-bound exact times; legacy date fields remain display projections")
     estimated_value: Optional[float] = None
     api_url: Optional[HttpUrl] = None
     contacts: list[OpportunityContact] = Field(

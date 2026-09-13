@@ -1,0 +1,73 @@
+{
+  "work_id": "REPAIR-STEP5-RECHECK-050",
+  "status": "PASS_BOTH_ASSIGNED_DEFECTS_CLOSED_BOUNDED",
+  "completed_at_utc": "2026-09-13T01:54:29.925438+00:00",
+  "candidate_sha": "482091a271d632e87635473023d5c918e2bc02d3",
+  "parent_sha": "55bf3aa800fd7a3dfdecd8d20ccc6abd2591a28a",
+  "branch": "codex/step5-evidence-states",
+  "head_fixed_through_recheck": true,
+  "reviewed_files_sha256": {
+    "tools/benchmark_v5/synthetic.py": "f54eae7e3da48283b204c9eeb20dafec021aae203e7310411f9d97920af789f2",
+    "tools/benchmark_v5/support.py": "24178d78929199a535fe29400b3c429e3aac416e0176a92f80a159ab3cd8a7fa",
+    "tools/benchmark_v5/io.py": "38e02d60c23f2efed78a67eb4049a3f6bf23ba1f1022f04f2676c4feb524b4e5",
+    "tools/benchmark_v5/__init__.py": "0266850b20c540062a0b7b208dc5a6623d3de575af60d79afcbc6e14fafaf520",
+    "tools/benchmark_v5/__main__.py": "ae33afc7e2d2802f63840a3ff8758aaf9b37b7bc4ce6649ebfa0dc92d41118d9",
+    "tools/benchmark_v5/custody.py": "dc6b94f7cc4cc442523fbb060add6c1eca0f854d9f5615ce43afd09ac654b6e0",
+    "tools/benchmark_v5/scorer.py": "145cecbfffa35e00563f195c432e8d51ad3e7ea3448751ee91d696c57c7c29e2",
+    "tools/benchmark_v5/legacy/v4/native_source_policy.py": "0984b1e8ea0d8d573a06cc9d503d8dcc4d4d8c3b9a1fb328f7584dab6edee471",
+    "tools/benchmark_v5/legacy/v4/discovery_score.py": "654e75829bb5e5bf547edf931f4ca3e1c871daa9831a627d75295e67baf1d90a",
+    "tools/benchmark_v5/legacy/v3/discovery_score.py": "5b0b8d7fad96241ee7e4177cfbb6395fd6b61661610d1c041b03a63a5cd33bc5",
+    "tests/test_benchmark_v5_states.py": "cac641c13a10c6cbedbc922499bd772c8398f834d013e6a936d405fd619960c5",
+    "docs/verification/step5-050/REVIEW.md": "ce15029b804b1477bdc449191de26bf6e564976b8f20fff9ff49b5630e94963c"
+  },
+  "reviewed_file_count": 12,
+  "tracked_status_after": "",
+  "defect_dispositions": {
+    "S5-REVIEW-050-01": {
+      "status": "CLOSED_BOUNDED",
+      "original_repros_passed": 3,
+      "fix": "Original semantic proposals/disagreement/coverage separate from validated states and counts; six-slot completeness enforced"
+    },
+    "S5-REVIEW-050-02": {
+      "status": "CLOSED_BOUNDED",
+      "original_repros_passed": 3,
+      "fix": "Typed received context/checker records and canonical exact equality for every admitted receipt"
+    }
+  },
+  "remaining_findings": [],
+  "original_repros_passed": 6,
+  "nearby_controls_passed": 20,
+  "total_probe_cases": 26,
+  "selected_unittest_methods": 5,
+  "selected_unittest_failures": 0,
+  "python": "3.14.5",
+  "original_repro_source_bytes_equal": true,
+  "original_disagreement_raw_judgments_and_validated_counts_equal": true,
+  "original_review_preservation": {
+    "directory": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/operators/lila/STEP5-FIXED-REVIEW-050",
+    "file_count": 1350,
+    "all_hashes_unchanged": true
+  },
+  "report_sha256": "a2be4d3968f6cb99db71b6561782d6a3b77e58dcbbbc2bb0efedb9957ff01f40",
+  "commands_sha256": "a9f6f821c5f5191143c1c3aba53ecf4f16f3b1a21c2de67f1707e3f07543da85",
+  "probe_code_sha256": "ef2e60c967d878481e303683437d26a1602ed3ad52db10a13fdf8ffc4c44d1ba",
+  "probe_results_sha256": "b795f8fd4ea061d8a4805e727082566e681354f41d6895f89936c27b0d4cc5a3",
+  "artifact_manifest_sha256": "155aaf3f7e73e73f42559e1772fdfb7ab8a5f775028280d3e1ef899ffe331467",
+  "fixture_manifest_sha256": "32f4a387deaed52a95bbb29bde6cdf8fb8b40ad52a2549ca359a25944d17a270",
+  "fixture_file_count": 950,
+  "limits": {
+    "full39_method_suite_repeated": false,
+    "broad30_case_review_repeated": false,
+    "prior_baseline_repeated": false,
+    "root_p1_review_repeated": false,
+    "full_regression_run": false,
+    "product_edits": false,
+    "new_workers_or_worktrees": false,
+    "source_live_model_calls": false,
+    "push_production_fable": false,
+    "frozen_case_reads_or_writes": false
+  },
+  "root_p1": "OPEN pending combined review acceptance",
+  "step6": "PENDING",
+  "next_action": "Coordinator combined regression/archive checks then one exact published combined Step5/root P1 Fable handoff. Operator checkpoints."
+}

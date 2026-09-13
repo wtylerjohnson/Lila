@@ -1,0 +1,24 @@
+{
+  "proof": "saved schema1 native assessment loader compatibility; no new acquisition or assessment",
+  "run_id": "assess:v1:62917522314200293578fd874508b691a0dc70dd53e62e8bef99d6739bafb6ba",
+  "families": 23,
+  "postings": 25,
+  "new_source_acquisition_proof": 0,
+  "legacy_values_and_ids_preserved": true,
+  "originals_unchanged": true,
+  "input_hashes": {
+    "62917522314200293578fd874508b691a0dc70dd53e62e8bef99d6739bafb6ba.json": "205a79b7d886f3d832a36c812042edae565dd5fcfd36328c19974aa1d13e8059",
+    "agency_dhs.current.json": "a7caebecb1b8c5acf92afddfe1d7898e8c44614b542ea39e798b5eeda5c65220"
+  },
+  "final_checked_at_utc": "2026-09-13T01:32:36.371428+00:00",
+  "all_25_independently_unknown": true,
+  "archival_release_gate": true,
+  "source_date_coverage": {
+    "status": "incomplete",
+    "known": 0,
+    "total": 25,
+    "oldest_known_at": null,
+    "source_as_of": null
+  },
+  "release_note": "Existing release permission to show an assessment with held records is not source acquisition or fresh qualification proof"
+}

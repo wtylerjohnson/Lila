@@ -136,6 +136,14 @@ line-clamped: the complete capture directive remains visible. Machine
 the structured evidence and section framing carry those distinctions without
 weakening the client-facing action.
 
+Step2 amendment (2026-09-11): a canonical CORE term may bind an explicitly
+evidenced buyer-language alias in the current taxonomy version. Alias support
+must reproduce from the retained quote and current stored source, including its
+bounded context guard. Alias quotes use the matcher's separate guard context;
+unchanged canonical matches and shared-core routes retain their original quote
+format. Unmapped phrases and stale taxonomy versions cannot use this path.
+The closed basis schema, strict Assess and release gates are unchanged.
+
 ### Federal Opportunity Pre-Assessment source-coverage projection
 
 Every Signal Board press projects a public **Research source coverage** band
@@ -695,6 +703,12 @@ operator approval/scope semantics, and independent lead qualification tiers.
 - ReviewedCases is a versioned, scope-bound input to the immutable Assess ledger.
   It cannot approve bid_now or overwrite a discovered notice. Its hash is an
   Assess projection input; a changed casebook must be refreshed before release.
+  The strict report authenticates the same casebook bytes and exact record before
+  projecting supplemental research separately from discovered SAM postings.
+  Research priorities may appear as explicitly labeled standing research without
+  changing source classification, raw counts, discovery badges, pursuit rank,
+  or existing watchlist selection. This September 9 repair completes the authorized
+  reviewed-case path; corrupt raw/index joins and all release gates still refuse.
 - Research priority never implies LEAD_T1/T2 or permission to contact. Closed RFI
   sources may support explicitly conditional follow-on investigation. Source
   deadlines remain historical, and unanswered questions stay visible.
@@ -711,3 +725,103 @@ When the lead companion is complete, automatic priority requires LEAD_T1 or
 LEAD_T2 and is capped at three. Reviewed investigation/qualification cases may
 form the separate explicit priority selection. An assessment classified as a
 qualified opportunity alone cannot silently become seller-ready priority.
+
+### C1 Step3 extension: scope of capability citation (2026-09-12)
+
+The unchanged exact CORE/alias basis proves a mention in a cited stored field.
+It does not contain current-funding, purchased-deliverable, active-incumbency or
+access predicates. `client_relevance_public` now projects account, source, partner
+and timing research actions bounded to those mentions. It withholds affirmative
+current-funding, displacement and purchased-demand copy for every such basis,
+including historical awards and incidental quotes. Stronger prose must wait for
+a separately evidenced claim contract; current award dates alone cannot grant it.
+This intentionally narrows the C1 copy claim, not the report's stored source set,
+figures, qualification gates or Market Map slots.
+
+`validate_machine_client_relevance_contract` returns `projection_only` for the
+standalone all-inputs-omitted call and `current_sources_rebound` when complete
+current inputs are checked. Partial inputs still fail. Native press explicitly
+sets `require_current_sources=True`. Operator-authored cards retain their existing
+boundary. No native missing-taxonomy bypass was reproduced on Step2; this makes
+the existing stronger native boundary explicit. Preserved receipt/trail schemas
+and alias support still rebind to current client, taxonomy and exact source.
+
+Check this separately labeled extension with `python -m pytest
+tests/test_client_relevance_claim_scope.py tests/test_client_relevance_contract.py
+tests/test_client_relevance_alias_contract.py tests/test_composer.py -q` offline.
+
+
+### Research Picture v4 precise clocks and per-passage authority (Step4-049)
+
+Explicit internal contract extension under the locked weekend repair authority.
+Original source fields determine exact temporal evidence and passage authority;
+cached registries, model status and saved clocks cannot authenticate themselves.
+The default projection still rebinds original source results at current presentation.
+A trusted caller may request explicitly labeled historical replay only with an
+aware reference timestamp. Metadata, response prose, source freshness and the
+original amendment census jointly constrain active confirmation. Discovery-only
+attachment text remains investigation evidence and cannot alone satisfy the trusted
+requirement/action clause; independently sufficient original notice passages on
+mixed rows remain usable. Legacy Assess/release/counts/C1 contracts are unchanged.
+
+This extension is separately committed from source-parser/chronology work, with
+its own positive/negative/native-projection tests in
+`tests/test_step4_temporal_evidence.py`. Fable reviews the combined exact candidate
+before advancement. Standing user auto-passthrough authorizes this internal plan
+work; it does not imply a production merge or evidence authenticity claim.
+
+## Strict Assess source acquisition extension — S4-SOURCE-CLOCK-001
+
+**Explicit amendment:** `agents/assess/contracts.py::EvidenceRef.retrieved_at` is
+nullable; `source_acquisition: SourceAcquisition | None` is additive. SourceAcquisition
+lives in `agents/assess/source_clock.py` and uses version `assess.source-acquisition.v1`.
+Its finite status vocabulary is `known`, `missing`, `invalid`, `date_only`,
+`unknown_timezone`, `conflict`, `untrusted`. Supported basis is `sam_notice_depth`,
+`horizon_fact_bank`, or `none`; component is notice description/payload, Horizon fact,
+or subaward record. Original raw text/input type and `binding_sha256` are retained.
+Only known, source-bound aware acquisition has a non-null `retrieved_at`. Offset text
+is retained separately from the UTC comparison instant. `verified_at` retains its
+assessment meaning.
+
+`agents/assess/ledger.py` writes immutable schema 2, with version-bound
+`assess:v2:` identity. Its loader supports original schema 1 and 2 identities and
+refuses injected acquisition fields under schema 1, mismatched wrappers and unknown
+versions. Legacy serialization excludes only the new evidence provenance field when
+reconstructing the original schema 1 identity; raw artifacts/pointers are unchanged.
+The nullable archival default is never authority for new generation. Persist and
+Assess-to-LeadRow entry points revalidate copied models. Schema 2 requires a receipt
+for every evidence member. No historical acquisition is reconstructed.
+
+Affected consumers: strict requirement/attachment/BID_NOW and approved intelligence
+validation; release; Assess-to-LeadRow, qualifier and evidence HTML; LeadRow/pathway
+schema exports; durable strict Fact stamping; Golden Press companion census, restored
+assessment population and Market Map source-date completeness. Old positive
+leadgen.contracts.v1 rows remain accepted by archival readers/scorers. Qualification
+of an old T1/T2 row with unresolved source acquisition yields a named HOLD; new
+priority promotion requires known acquisition. Source date completeness preserves
+unknown members, rather than selecting only known timestamps. Reviewed case input
+bytes/history and exact record binding survive the v2 current projection, with
+unusable active chronology removed and retained as historical fit-trace detail.
+
+Native authority limit: SAM must use checked matching source depth; generic row/raw,
+model, saved import, generated_at/as_of, approval, posting, mtime/cache filename and
+attachment clocks are not acquisition. Existing Horizon fact-bank authority and its
+strict refusal remain; shared USAspending evidence now explicitly lacks acquisition
+instead of borrowing as_of. Source receipts do not authenticate themselves or weaken
+source/hash/coverage gates. No external schema migration, mutable data rewrite, new
+acquisition collector, deadline-policy change or CRM work is included.
+
+### Separately versioned benchmark v5 (Step5-050)
+
+Explicit isolated tool contract under locked weekend repair authority. New case,
+packet, support receipt, registry and result schemas use v5. Every scored predicate
+binds a frozen objective/action/route scope, canonical original source/passages and
+exact external receipt admission. No reviewer flag, grade, citation or local seal
+creates authority. Supported evidence insufficiency is a knowledge gap, never a
+standalone negative business verdict. Conflicts aggregate before decisive negatives.
+
+This does not change frozen benchmark v1-v4 semantics, product gate settings or
+release behavior. The parent root S4-SOURCE-CLOCK-001 extension remains separately
+reviewable. Combined local verification and one exact-SHA Fable review precede
+Step6. See `docs/verification/step5-050/REVIEW.md` and
+`tests/test_benchmark_v5_states.py` for the contract and its bounded proof.

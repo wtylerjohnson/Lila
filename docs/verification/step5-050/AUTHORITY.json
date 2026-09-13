@@ -1,0 +1,35 @@
+{
+  "schema": "lila.weekend.auto_passthrough.v1",
+  "plan_id": "LILA-WEEKEND-2026-09-11-v1",
+  "plan_path": "/Users/wtjohnson/Lila/docs/plans/WEEKEND_BUILD_PLAN_2026-09-11.md",
+  "plan_sha256": "71a4c7c11ee575596357e5e0fcfb66a75d2c855b4761040042732c8cad26bfc5",
+  "sources_sha256": "8d5c2fe8d5e9a47837581caf1b59a4c70453163e23e07379fd5c5c7f1ed084b6",
+  "operating_main_at_kickoff": "f0f7aecb034d617152907f445ca0d697e135081c",
+  "authorized_by": "Tyler via Chief of Staff chat 2026-09-11",
+  "instruction": "make sure codex works through this entire build plan and that fable checks it - i dont want to have to approve anything",
+  "auto_passthrough": true,
+  "do_not_ask_tyler": true,
+  "clears": [
+    "AUTOMATIC_APPROVAL_REVIEW_BLOCKING_INTERNAL_FORWARDS",
+    "operator_delivery BLOCKED_BY_AUTOMATIC_APPROVAL_REVIEW",
+    "parent_ack_delivery BLOCKED_BY_AUTOMATIC_APPROVAL_REVIEW",
+    "Prompt Lab STEP1-INTEGRATION-044 send blocked"
+  ],
+  "orders": [
+    "Coordinator executes Track A steps 1-7 in exact order with durable receipts",
+    "Step1 already VERIFIED \u2014 do not restart; advance Step2 implementation NOW",
+    "Fable (Cursor cloud / adversarial checker) reviews each step handoff before advancing",
+    "CoS may deliver prompts via codex queue to existing threads \u2014 that IS authorized delivery",
+    "Salesforce/CRM/rep activity deferred",
+    "Do not replace frozen calib 005 or create duplicate Step1 worker"
+  ],
+  "threads": {
+    "root": "01a08162-2f14-70a0-bc96-6297c68f4135",
+    "coordinator": "01a082f7-baad-74d2-9466-dcb649b818ce",
+    "lila_operator": "01a082f7-024e-7110-ad1b-4e47786fa72a",
+    "prompt_lab": "01a0278a-e36f-7280-82a8-21a601a5847f"
+  },
+  "recorded_at_denver": "2026-09-11T13:02:15.852087-06:00",
+  "recorded_at_utc": "2026-09-11T19:02:15.852201+00:00",
+  "recorded_by": "Chief of Staff"
+}

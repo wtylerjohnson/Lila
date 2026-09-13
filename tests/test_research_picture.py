@@ -89,7 +89,7 @@ def test_distill_is_compact():
 def test_compose_uses_engine_and_passes_sweep():
     eng = FakeEngine()
     pic = compose_research_picture("Recorded Future", "sell CTI", RESULTS, engine=eng)
-    assert pic.headline.startswith("DHS demand")
+    assert pic.headline == "Research signals require original-source verification."
     ctx = eng.calls[0]["context"]
     assert ctx["client_name"] == "Recorded Future"
     assert ctx["sweep"]["notice_counts"]["pursue"] == 1
@@ -98,16 +98,16 @@ def test_compose_uses_engine_and_passes_sweep():
 
 def test_render_markdown_covers_every_section():
     md = render_markdown(_picture())
-    for needle in ["# Research Picture · Recorded Future", "CTI Platform BPA",
+    for needle in ["# Research Picture · Recorded Future", "verification",
                    "## Demand signals", "## Market structure", "## Watchlist",
-                   "## Next action", "Respond to N-1", "## Gaps",
+                   "## Next action", "Verify original notice", "## Gaps",
                    "No dollar values"]:
         assert needle in md
 
 
-def test_render_markdown_omits_gaps_when_empty():
+def test_legacy_render_exposes_missing_evidence_even_with_empty_model_gaps():
     md = render_markdown(_picture(gaps=[]))
-    assert "## Gaps" not in md
+    assert "Legacy picture has no validated evidence registry" in md
 
 
 def test_compose_receives_operator_focus_from_the_gate():

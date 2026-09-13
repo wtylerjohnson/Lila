@@ -80,12 +80,13 @@ def test_press_refuses_named_when_client_relevance_evidence_fails(
         tmp_path, monkeypatch, capsys):
     seen: list[tuple[object, str]] = []
 
-    def reject(content, *, trail_md, taxonomy, profile, sweep, calendar):
+    def reject(content, *, trail_md, taxonomy, profile, sweep, calendar, require_current_sources):
         seen.append((content, trail_md))
         assert taxonomy is not None
         assert profile.client_name == "Testco"
         assert sweep == {"client": "Testco", "results": {}}
         assert calendar is None
+        assert require_current_sources is True
         raise ValueError("trail-bound relevance basis does not match")
 
     def executive_must_not_run(_content, *, sweep):
@@ -111,11 +112,12 @@ def test_press_accepts_client_relevance_evidence_and_continues(
     seen: list[str] = []
 
     def accept(
-            _content, *, trail_md, taxonomy, profile, sweep, calendar):
+            _content, *, trail_md, taxonomy, profile, sweep, calendar, require_current_sources):
         assert taxonomy is not None
         assert profile.client_name == "Testco"
         assert sweep == {"client": "Testco", "results": {}}
         assert calendar is None
+        assert require_current_sources is True
         seen.append(trail_md)
 
     def stop_at_next_gate(_content, *, sweep):

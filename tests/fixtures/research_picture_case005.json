@@ -1,0 +1,483 @@
+{
+  "provenance": {
+    "case": "apex-discovery-calibration-005",
+    "source_artifact_sha256": "6ce0ca8907f38f544aa59a3530ee614ac345c61fdacf7ef007284d570b0c6e73",
+    "selection": "The two VA web rows, first two generated opportunity claims, and original source coverage. Calibration regression, not holdout."
+  },
+  "results": {
+    "web": [
+      {
+        "source": "web",
+        "source_id": "web-af425e4fb2f913ce",
+        "title": "VA PIVOT \u2014 Payment Integrity Validation and Oversight Tool Solicitation",
+        "agency": null,
+        "naics_code": null,
+        "psc_code": null,
+        "set_aside": null,
+        "posted_date": null,
+        "response_deadline": null,
+        "estimated_value": null,
+        "api_url": "https://sam.gov/opp/c6b80d5618924f3d821eec39fa41a272/view",
+        "contacts": [],
+        "raw_payload": {
+          "title": "VA PIVOT \u2014 Payment Integrity Validation and Oversight Tool Solicitation",
+          "url": "https://sam.gov/opp/c6b80d5618924f3d821eec39fa41a272/view",
+          "summary": "VA issued multiple RFIs and solicitation VA-26-00015670 for PIVOT, a 10-year IDIQ estimated at ~$6.5 billion covering VA and DoD Community Care improper payment detection via SaaS or VA Enterprise Cloud-hosted solution.",
+          "signal_type": "RFI",
+          "relevance": "high"
+        }
+      },
+      {
+        "source": "web",
+        "source_id": "web-b0d1a4671b98953d",
+        "title": "VA Payer Compliance Tool (PCT) Sources Sought \u2014 SAM.gov",
+        "agency": null,
+        "naics_code": null,
+        "psc_code": null,
+        "set_aside": null,
+        "posted_date": null,
+        "response_deadline": null,
+        "estimated_value": null,
+        "api_url": "https://sam.gov/workspace/contract/opp/1750ea72795c425d935501764d904457/view",
+        "contacts": [],
+        "raw_payload": {
+          "title": "VA Payer Compliance Tool (PCT) Sources Sought \u2014 SAM.gov",
+          "url": "https://sam.gov/workspace/contract/opp/1750ea72795c425d935501764d904457/view",
+          "summary": "VA RFI VA-25-00095966 for a Payer Compliance Tool focused on payer compliance analytics within Community Care, with responses due August 11, 2025. Distinct from PIVOT; includes questions on improper payment rate reduction, CDS integration, and API data flows.",
+          "signal_type": "RFI",
+          "relevance": "high"
+        }
+      }
+    ],
+    "source_coverage_verdict": {
+      "verdict": "not-comprehensive",
+      "comprehensive": false,
+      "required_lanes": 27,
+      "blocking_sources": [
+        "contract_awards",
+        "congress",
+        "regulations",
+        "govinfo",
+        "sbir",
+        "calc",
+        "forecasts",
+        "source_mesh",
+        "funded_demand"
+      ],
+      "coverage_contract_met": false,
+      "source_coverage_complete": false,
+      "universe_comprehensive": false,
+      "advisory_gaps": [
+        "grants",
+        "gdelt",
+        "edgar"
+      ],
+      "bounded_sources": [
+        "usaspending.gov",
+        "web",
+        "federal_register",
+        "news",
+        "subawards",
+        "contract_awards",
+        "dod_contracts",
+        "watchdogs",
+        "congress",
+        "regulations",
+        "govinfo",
+        "treasury",
+        "gao",
+        "calc",
+        "fedramp",
+        "hierarchy",
+        "forecasts",
+        "source_mesh",
+        "buyer_map",
+        "funded_demand",
+        "dod_budget_exhibits"
+      ],
+      "counts": {
+        "complete": 5,
+        "screened-zero": 7,
+        "partial": 6,
+        "stale": 0,
+        "failed": 6,
+        "not-run": 0,
+        "scope-excluded": 2,
+        "gated": 0,
+        "complete-within-boundary": 12
+      },
+      "lanes": [
+        {
+          "source": "sam.gov",
+          "state": "complete",
+          "required": true,
+          "dimensions": [
+            "complete"
+          ],
+          "coverage_class": "required-exhaustive",
+          "coverage_boundary": ""
+        },
+        {
+          "source": "usaspending.gov",
+          "state": "complete-within-boundary",
+          "required": true,
+          "dimensions": [
+            "complete-within-boundary"
+          ],
+          "coverage_class": "required-bounded",
+          "coverage_boundary": "Approved NAICS and agency lanes using official aggregate totals plus a bounded award-detail sample for explanatory context."
+        },
+        {
+          "source": "web",
+          "state": "complete-within-boundary",
+          "required": true,
+          "dimensions": [
+            "complete-within-boundary"
+          ],
+          "coverage_class": "required-bounded",
+          "coverage_boundary": "The approved public-web query terms with at most fifteen returned leads; this is corroborating context, not a web census."
+        },
+        {
+          "source": "federal_register",
+          "state": "complete-within-boundary",
+          "required": true,
+          "dimensions": [
+            "complete-within-boundary"
+          ],
+          "coverage_class": "required-bounded",
+          "coverage_boundary": "The first eight approved terms, newest five Federal Register documents per term."
+        },
+        {
+          "source": "news",
+          "state": "complete-within-boundary",
+          "required": true,
+          "dimensions": [
+            "complete-within-boundary",
+            "screened-zero"
+          ],
+          "coverage_class": "required-bounded",
+          "coverage_boundary": "All configured federal and trade RSS feeds, with the first forty keyword-matched items retained in feed order."
+        },
+        {
+          "source": "subawards",
+          "state": "complete-within-boundary",
+          "required": true,
+          "dimensions": [
+            "complete-within-boundary"
+          ],
+          "coverage_class": "required-bounded",
+          "coverage_boundary": "The first six approved NAICS lanes, three-year USAspending subaward window, and source-declared per-query/result caps."
+        },
+        {
+          "source": "contract_awards",
+          "state": "partial",
+          "required": true,
+          "dimensions": [
+            "partial"
+          ],
+          "coverage_class": "required-bounded",
+          "coverage_boundary": "Approved NAICS lanes and the configured 18-month period-end window. The keyless USAspending census covers prime contract and IDV award summaries with action dates from 2007-10-01 through the sweep as-of date, subject to explicit total-row, archive-size, and shard safety limits. It is not an all-history federal award universe."
+        },
+        {
+          "source": "dod_contracts",
+          "state": "complete-within-boundary",
+          "required": true,
+          "dimensions": [
+            "complete-within-boundary",
+            "screened-zero"
+          ],
+          "coverage_class": "required-bounded",
+          "coverage_boundary": "The current official Defense.gov contract-announcement RSS feed, with the first twenty capability matches retained."
+        },
+        {
+          "source": "budget_pressure",
+          "state": "scope-excluded",
+          "required": false,
+          "dimensions": [
+            "scope-excluded"
+          ],
+          "coverage_class": "required-exhaustive",
+          "coverage_boundary": ""
+        },
+        {
+          "source": "watchdogs",
+          "state": "complete-within-boundary",
+          "required": true,
+          "dimensions": [
+            "complete-within-boundary",
+            "screened-zero"
+          ],
+          "coverage_class": "required-bounded",
+          "coverage_boundary": "All configured GAO and Inspector General feeds, with the first twenty capability-matched reports retained."
+        },
+        {
+          "source": "congress",
+          "state": "failed",
+          "required": true,
+          "dimensions": [
+            "failed"
+          ],
+          "coverage_class": "required-bounded",
+          "coverage_boundary": "The configured pages of recently updated bills in the current Congress, with the first twenty capability matches retained."
+        },
+        {
+          "source": "kev",
+          "state": "screened-zero",
+          "required": true,
+          "dimensions": [
+            "screened-zero"
+          ],
+          "coverage_class": "required-exhaustive",
+          "coverage_boundary": ""
+        },
+        {
+          "source": "regulations",
+          "state": "failed",
+          "required": true,
+          "dimensions": [
+            "failed"
+          ],
+          "coverage_class": "required-bounded",
+          "coverage_boundary": "The first six approved terms, newest five Regulations.gov documents per term."
+        },
+        {
+          "source": "govinfo",
+          "state": "failed",
+          "required": true,
+          "dimensions": [
+            "failed"
+          ],
+          "coverage_class": "required-bounded",
+          "coverage_boundary": "The first six approved terms across the configured GovInfo collections, newest five packages per term."
+        },
+        {
+          "source": "grants",
+          "state": "partial",
+          "required": false,
+          "dimensions": [
+            "partial"
+          ],
+          "coverage_class": "advisory",
+          "coverage_boundary": "Assistance-demand context selected by the approved capability vocabulary; not a procurement-opportunity census."
+        },
+        {
+          "source": "sbir",
+          "state": "partial",
+          "required": true,
+          "dimensions": [
+            "partial"
+          ],
+          "coverage_class": "required-exhaustive",
+          "coverage_boundary": ""
+        },
+        {
+          "source": "dsip_topics",
+          "state": "complete",
+          "required": true,
+          "dimensions": [
+            "complete"
+          ],
+          "coverage_class": "required-exhaustive",
+          "coverage_boundary": ""
+        },
+        {
+          "source": "gdelt",
+          "state": "failed",
+          "required": false,
+          "dimensions": [
+            "failed"
+          ],
+          "coverage_class": "advisory",
+          "coverage_boundary": "A bounded public-news context screen; it supplements, and never determines, federal procurement coverage."
+        },
+        {
+          "source": "treasury",
+          "state": "complete-within-boundary",
+          "required": true,
+          "dimensions": [
+            "complete-within-boundary"
+          ],
+          "coverage_class": "required-bounded",
+          "coverage_boundary": "The current official Monthly Treasury Statement screen for the engagement agencies, retaining the twelve largest matched lines."
+        },
+        {
+          "source": "gao",
+          "state": "complete-within-boundary",
+          "required": true,
+          "dimensions": [
+            "complete-within-boundary",
+            "screened-zero"
+          ],
+          "coverage_class": "required-bounded",
+          "coverage_boundary": "The current GAO legal-decision feed, retaining the first fifteen capability-matched decisions."
+        },
+        {
+          "source": "calc",
+          "state": "failed",
+          "required": true,
+          "dimensions": [
+            "failed"
+          ],
+          "coverage_class": "required-bounded",
+          "coverage_boundary": "Official CALC rate distributions for the first five approved labor-category terms, using the first one hundred current keyword matches per term."
+        },
+        {
+          "source": "edgar",
+          "state": "partial",
+          "required": false,
+          "dimensions": [
+            "partial"
+          ],
+          "coverage_class": "advisory",
+          "coverage_boundary": "Recent 10-K and 10-Q full-text context for the first four approved capability terms, capped at twelve hits per term."
+        },
+        {
+          "source": "fedramp",
+          "state": "complete-within-boundary",
+          "required": true,
+          "dimensions": [
+            "complete-within-boundary",
+            "screened-zero"
+          ],
+          "coverage_class": "required-bounded",
+          "coverage_boundary": "The current official FedRAMP Marketplace dataset, with the first fifteen capability-matched products retained."
+        },
+        {
+          "source": "hierarchy",
+          "state": "scope-excluded",
+          "required": false,
+          "dimensions": [
+            "scope-excluded"
+          ],
+          "coverage_class": "required-bounded",
+          "coverage_boundary": "The first engagement-scope agency and its first ten returned SAM.gov Federal Hierarchy organizations."
+        },
+        {
+          "source": "forecasts",
+          "state": "partial",
+          "required": true,
+          "dimensions": [
+            "partial"
+          ],
+          "coverage_class": "required-bounded",
+          "coverage_boundary": "The default official forecast contract covers the GSA Acquisition Gateway consolidated forecast; Army OSBP, NASA, State, and Education workbooks; the HHS SBCX published-forecast screen; DHS APFS; and the official HUD, SEC, NAWCWD, and NAWCAD forecast PDFs."
+        },
+        {
+          "source": "source_mesh",
+          "state": "partial",
+          "required": true,
+          "dimensions": [
+            "partial"
+          ],
+          "coverage_class": "required-bounded",
+          "coverage_boundary": "The complete enabled 27-adapter official and market enrichment mesh. Each child runs against the approved client terms, firms, NAICS codes, and agency scope; a failed, partial, disabled, or inapplicable child keeps the family incomplete instead of minting a clean zero."
+        },
+        {
+          "source": "buyer_map",
+          "state": "complete-within-boundary",
+          "required": true,
+          "dimensions": [
+            "complete-within-boundary",
+            "screened-zero"
+          ],
+          "coverage_class": "required-bounded",
+          "coverage_boundary": "Approved incumbent terms searched against bounded USAspending award and subaward result sets under a 180-second stage budget."
+        },
+        {
+          "source": "funded_demand",
+          "state": "failed",
+          "required": true,
+          "dimensions": [
+            "failed"
+          ],
+          "coverage_class": "required-bounded",
+          "coverage_boundary": "The first eight core capability terms across BUDGET, committee-report, and hearing collections, newest five packages per term."
+        },
+        {
+          "source": "reginfo_unified_agenda",
+          "state": "complete",
+          "required": true,
+          "dimensions": [
+            "complete"
+          ],
+          "coverage_class": "required-exhaustive",
+          "coverage_boundary": ""
+        },
+        {
+          "source": "darpa_opportunities",
+          "state": "complete",
+          "required": true,
+          "dimensions": [
+            "complete"
+          ],
+          "coverage_class": "required-exhaustive",
+          "coverage_boundary": ""
+        },
+        {
+          "source": "dod_budget_exhibits",
+          "state": "complete-within-boundary",
+          "required": true,
+          "dimensions": [
+            "complete-within-boundary"
+          ],
+          "coverage_class": "required-bounded",
+          "coverage_boundary": "The two machine-readable DoD Comptroller JSON exhibit books: Pacific Deterrence Initiative and Counter-Drug Activities. P-1, R-1, C-1, O-1, and M-1 Excel books remain explicitly outside this adapter boundary."
+        },
+        {
+          "source": "foreign_assistance",
+          "state": "complete",
+          "required": true,
+          "dimensions": [
+            "complete"
+          ],
+          "coverage_class": "required-exhaustive",
+          "coverage_boundary": ""
+        }
+      ]
+    }
+  },
+  "draft": {
+    "client_name": "apexanalytix",
+    "headline": "apexanalytix enters federal market with a confirmed GSA MAS vehicle (GS35F0119Y via Carahsoft) and two live VA payment-integrity solicitations that map directly to BankPro and apexportal capabilities; the August 2025 OMB M-25-32 Do Not Pay expansion mandate is the regulatory accelerant that makes FY2027 a build-or-lose window. No pursue-grade SAM notices cleared triage this sweep (zero in monitor/pursue buckets out of 356 total), so the two VA opportunities sourced via web leads and the recompete pipeline are the operative signal set.",
+    "top_opportunities": [
+      {
+        "id": "36C10B26Q0072",
+        "title": "VA PIVOT - Payment Integrity Validation and Oversight Tool",
+        "why_now": "Active solicitation (SAM.gov opp c6b80d5618924f3d821eec39fa41a272, DA10 PSC, solicitation 36C10B26Q0072) is an exact functional match for apexanalytix bank-account validation and vendor-master accuracy; the VA Supply Chain Management prime (Cognosante MVH, PIID 36C10B21N10010010, $244.8M) expires 2026-09-13, creating simultaneous prime-and-tool recompete pressure at the same agency.",
+        "deadline": null
+      },
+      {
+        "id": "VA-PCT-SAM-1750ea72795c425d935501764d904457",
+        "title": "VA Payer Compliance Tool (PCT) Sources Sought",
+        "why_now": "A second VA payment-integrity sources-sought (SAM.gov workspace 1750ea72795c425d935501764d904457) signals VA is building a suite of improper-payment controls beyond PIVOT; back-to-back RFIs at the same component means VA is scoping multi-tool architecture, and apexanalytix's QubitOn data APIs plus sanctions/PEP screening fit both slots.",
+        "deadline": null
+      }
+    ],
+    "demand_signals": [
+      "OMB M-25-32 (August 2025) mandates Do Not Pay expansion across all federal disbursing agencies, creating a compliance deadline that forces Treasury Fiscal Service, DFAS, CMS, and USDA to procure or upgrade vendor-validation and bank-account-screening tools by FY2027.",
+      "Federal gross outlays reached $6.91T FYTD through July 2026, with Medicare Supplementary Medical Insurance ($721B) and Hospital Insurance ($407B) trust funds alone representing over $1.1T in disbursements subject to PIIA improper-payment reporting requirements.",
+      "VA issued two sequential payment-integrity solicitations (PIVOT 36C10B26Q0072 and PCT sources-sought 1750ea72795c425d935501764d904457) within the same acquisition cycle, indicating a deliberate program build rather than a one-off procurement.",
+      "A Privacy Act of 1974 Matching Program notice surfaced under the 'improper payment prevention' keyword sweep, signaling active agency data-matching rulemaking that underpins Do Not Pay workflows where apexanalytix's 280M+ golden records provide direct integration value.",
+      "The FCC's proposed rule on robocall mitigation database surfacing under 'bank account validation' keyword reflects broad federal interest in identity and authentication data infrastructure, adjacent to the financial-fraud-prevention market apexanalytix serves.",
+      "Carahsoft's 44 active contracts (next expiry 2026-09-24) confirm sustained federal software-reseller activity across agencies, providing an immediate distribution channel for apexanalytix task-order activation without new vehicle competition."
+    ],
+    "market_structure": "The payment-integrity and vendor-management software market in federal is dominated by large integrators holding prime relationships, not commercial SaaS vendors holding direct contracts. Deloitte (24 active contracts, $516M subaward prime flow, incumbents at FDA CSOM PIID 75F40124F80205 and Air Force FIAR PIID FA701425F0005 both expiring this week) and GDIT ($899M subaward flow, 25 contracts) are the two most active integrators with both the prime relationships and the subaward appetite that apexanalytix needs to exploit. Booz Allen Hamilton (27 contracts, PIID 47QFCA25F0033 AFRL Shadow Raptor expiring today) and Accenture Federal Services (22 contracts, expiring 2026-09-30) are secondary teaming targets. The VA supply-chain recompete (Cognosante MVH, $244.8M, PIID 36C10B21N10010010, expiring 2026-09-13) is the largest single contract shaking loose this week and sits at the agency running both the PIVOT and PCT payment-integrity solicitations -- whoever wins that prime will need payment-validation tooling. Carahsoft (44 contracts, GS-35F-0119Y) is confirmed as apexanalytix's existing federal distribution channel; their contract density signals wide agency reach. The CMS QIC recompete (Q2 Administrators, $32.6M, PIID 75FCMC21F0001, expiring 2026-09-13) is the most direct AP-recovery beachhead: a new prime there would logically layer in apexanalytix overpayment audit technology. No small-business set-aside vehicles were identified as apexanalytix's likely path; full-and-open GSA MAS task orders and named-subcontractor teaming under these integrators are the confirmed structural lanes.",
+    "watchlist": [
+      "VA PIVOT recompete activity: monitor SAM.gov opp c6b80d5618924f3d821eec39fa41a272 for RFP release and amendment dates; the HigherGov and SweetSpot mirrors (36C10B26Q0072) should be tracked weekly for Q&A and proposal timeline.",
+      "OMB M-25-32 implementation guidance: Treasury Fiscal Service Do Not Pay program (fiscal.treasury.gov/payment-integrity/do-not-pay-dnp/about) will issue agency-specific compliance timelines; watch for DFAS and CMS implementation RFIs in Q1 FY2027.",
+      "Deloitte rebid posture on Air Force FIAR (FA701425F0005) and FDA CSOM (75F40124F80205): both expire this week; if Deloitte is recompeting, a teaming conversation needs to begin immediately given apexanalytix's audit-trail and vendor-data capabilities.",
+      "CMS QIC successor solicitation (post-75FCMC21F0001 expiry): the Administrative QIC function touches payment accuracy at the Medicare contractor level; watch for a sources-sought or RFP in the 75FC... vehicle family within 90 days.",
+      "Carahsoft contract renewals (next expiry 2026-09-24): confirm that apexanalytix's product listings and pricing are current on GS35F0119Y before the renewal cycle so agency task orders can be issued without interruption.",
+      "Federal Register Matching Program notice (Privacy Act, improper-payment-prevention keyword): track the associated docket for final rule publication; a finalized matching rule creates a procurement trigger for agencies needing compliant vendor-data screening tools."
+    ],
+    "next_action": "Engage Carahsoft's federal team this week to confirm apexanalytix product listings are active on GS35F0119Y and simultaneously request a warm introduction to the VA contracting officer on PIVOT (36C10B26Q0072) before any RFP drops, while initiating a teaming conversation with Deloitte or GDIT targeting the VA Supply Chain Management recompete (Cognosante MVH, PIID 36C10B21N10010010, expiring 2026-09-13) as the vehicle most likely to carry a payment-validation subcontract.",
+    "gaps": [
+      "Zero pursue- or monitor-grade SAM.gov notices cleared triage out of 356 total; the triage criteria or keyword set may not be tuned to PSC codes most common in payment-integrity procurements (R499, R703, R704, DA10) -- a PSC-targeted sweep is warranted before concluding the opportunity set is thin.",
+      "VA PIVOT and VA PCT deadline dates were not resolvable from the provided data; both opportunities lack confirmed RFP release or proposal-due dates, making timeline planning speculative.",
+      "No direct USAspending data was returned for apexanalytix as an awardee or subcontractor, so the client's existing federal revenue and past-performance record remain unconfirmed -- this affects both teaming credibility assessment and GSA MAS schedule status verification.",
+      "apexanalytix's SAM.gov registration status, cage code, and any socioeconomic certifications were not confirmed in this sweep; the strategy correctly flags this as a prerequisite before committing to any contract posture.",
+      "Treasury Fiscal Service Do Not Pay and DFAS vendor-pay procurement vehicles were not identified in the recompete or notice data; the M-25-32 mandate implies near-term procurements at both agencies but no specific solicitations surfaced.",
+      "News and CISA KEV feeds returned zero results; threat-intelligence and vendor-security context that could support a payment-fraud-prevention pitch to DHS or Treasury is absent from this sweep."
+    ]
+  }
+}

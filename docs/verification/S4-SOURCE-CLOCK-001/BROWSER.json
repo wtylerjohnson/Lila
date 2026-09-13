@@ -1,0 +1,15 @@
+{
+  "proof": "synthetic native Press HTML loaded from saved local bytes",
+  "html": "synthetic-source-clock.html",
+  "html_sha256": "abbb222028e75b321862fb57b94760ef97a630694579c9de2441a098eb60346d",
+  "screenshot": "browser-source-clock.png",
+  "checks": [
+    "native evidence disclosures clicked",
+    "known original offset text visible",
+    "unknown collection label visible",
+    "official source href retained",
+    "reload bytes unchanged",
+    "no page errors"
+  ],
+  "live_data_proof": false
+}

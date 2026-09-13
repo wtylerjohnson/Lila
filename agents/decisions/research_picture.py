@@ -1,47 +1,57 @@
-"""Research Picture: Claude's synthesis pass over ALL search inputs.
+"""Internal Research Picture synthesis from recorded source evidence.
 
-The reason this system beats a plain Claude Max search: a web search gives
-prose; the fan-out gives structured ground truth (verified notices, contract
-expirations, subaward flows, dockets, exploited-vuln velocity). This layer is
-where that becomes an advantage; Claude Max reads every source's output
-TOGETHER and writes the research picture a human strategist would: what's hot,
-what the demand signals say, how the market is structured, what to watch, and
-the single next action.
-
-Every search run produces this as a standing artifact:
-    data/review/<slug>.research_picture.md   (+ embedded in the searches JSON)
+Produces data/review/<slug>.research_picture.md and a searches JSON sidecar.
+Source excerpts, research inferences and qualification remain distinct.
 """
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import datetime, timezone
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 from agents.decisions.engine import DecisionEngine, research_engine
+from agents.decisions.research_evidence import (
+    EvidenceSource, ResearchClaim, build_registry, checked_claim, claim_text,
+    classification, clean_text, coverage_gaps, source_record,
+    source_temporal_assessment, source_action_evidence,
+)
+
+from tools.relevance.temporal import clock_context, instant
 
 LAYER = "research-picture"
 
 SYSTEM_PROMPT = """\
 You are the synthesis layer of a LILA. You receive the
 DISTILLED output of a parallel sweep across many sources: SAM.gov notices with
-triage verdicts, expiring contracts (recompetes) with incumbents, subaward prime
+triage verdicts, award completion dates with incumbents, subaward prime
 flows, federal news, Federal Register and Regulations.gov documents, and CISA
 KEV velocity; all for one client's offering.
 
-Write the research picture a senior capture strategist would after reading all
-of it side by side. Connect ACROSS sources: a pursue-grade notice plus a
-matching recompete plus a rule in comment period is a story, not three rows.
-Ground every claim in the provided data; reference notice ids, incumbent
-names, docket ids. Never invent. If the data is thin somewhere, say so in gaps
-rather than papering over it.
+Use evidence_registry as the only factual basis. It contains recorded passages,
+not automatically verified truth. Echo exact source_id and passage_id values;
+include an exact quote for each claim. Use typed claims for procurement_state,
+offering_fit, value, incumbent, vehicle_route and next_action. Source_fact
+statements are rendered from their cited excerpts. Use inference for reasoned
+connections and proposed actions, never to fill missing procurement facts.
+A contract completion date alone is not a recompete. A channel relationship
+does not establish access to a procurement. Web rows remain discovery signals,
+even when their URL points to a government site. Unknown timing stays unknown.
+
+Use top_opportunities only for supplied source IDs; do not invent solicitation
+IDs. Each entry needs claims. Use narrative_claims with section tags for the
+headline, demand signals, market structure, watchlist and next action. Legacy
+free-text fields remain readable for old artifacts but unreferenced prose will
+be withheld. Report missing evidence in gaps. Neither triage nor this synthesis
+qualifies a lead or approves a requirement. Source failures are not an empty
+market. Respect the source_coverage_verdict and named gaps.
 
 If operator_focus names agencies, the OPERATOR has focused this engagement
 there at the gate: open the headline by naming the focus ("Engagement focus:
 DHS"), lead the ranking and the demand story with evidence at those agencies
 and their components, and only then widen to the rest of the market. The focus
-is emphasis, never a filter — report the whole market and never discard or
+is emphasis, never a filter; report the whole market and never discard or
 zero-weight off-focus evidence. If operator_focus is all-agencies, say nothing
 about focus."""
 
@@ -51,6 +61,12 @@ class TopOpportunity(BaseModel):
     title: str
     why_now: str = Field(description="1-2 sentences; cross-reference other sources where they connect")
     deadline: Optional[str] = None
+    claims: list[ResearchClaim] = Field(default_factory=list, max_length=12)
+    classification: str = "research_signal"
+    validation_status: str = "UNVALIDATED"
+    source_url: Optional[str] = None
+    temporal_status: dict = Field(default_factory=dict)
+    action_evidence: list[dict] = Field(default_factory=list)
 
 
 class ResearchPicture(BaseModel):
@@ -66,6 +82,171 @@ class ResearchPicture(BaseModel):
     next_action: str = Field(description="the single most valuable move, one sentence")
     gaps: list[str] = Field(default_factory=list,
                             description="what this sweep could not answer; honesty, not filler")
+
+    narrative_claims: list[ResearchClaim] = Field(default_factory=list, max_length=24)
+    research_signals: list[TopOpportunity] = Field(default_factory=list)
+    evidence_registry: dict[str, EvidenceSource] = Field(default_factory=dict)
+    validation_issues: list[str] = Field(default_factory=list)
+    evidence_gaps: list[str] = Field(default_factory=list)
+    validation_version: Optional[str] = None
+    evidence_as_of: Optional[str] = None
+    assessment_clocks: dict = Field(default_factory=dict)
+    operator_focus_names: list[str] = Field(default_factory=list)
+
+
+_VALIDATION_VERSION = "research-picture.evidence.v4"
+_VERIFY_ACTION = "Verify original notice identity, current procurement state, requirements and available action."
+
+
+def validate_picture(p: ResearchPicture, registry: dict[str, EvidenceSource],
+                     gaps: list[str], as_of: datetime, *, mode='current',
+                     presented_at=None, clocks=None) -> ResearchPicture:
+    """Ignore model-supplied status/registry; rebuild visible prose from checked claims."""
+    context = clock_context(as_of, mode=mode, presented_at=presented_at, supplied=clocks)
+    as_of = instant(context['buying_status_as_of'])
+    issues = list(p.validation_issues) if p.validation_version == _VALIDATION_VERSION else []
+    from tools.relevance.taxonomy import load_taxonomy, derived_taxonomy
+    try:
+        taxonomy = load_taxonomy(p.client_name) or derived_taxonomy(p.client_name)
+    except (OSError, ValueError):
+        taxonomy = None
+    if taxonomy is None:
+        gaps = [*gaps, 'Client capability vocabulary unavailable; requested offering support cannot be confirmed.']
+    def check(claims, source_id=None):
+        accepted = []
+        for claim in claims:
+            verified, reason = checked_claim(claim, registry)
+            if (not reason and source_id and claim.basis == 'source_fact'
+                    and claim.kind != 'context'
+                    and any(ref.source_id != source_id for ref in claim.evidence)):
+                reason = f'source-specific {claim.kind} cites a different source than {source_id}'
+            if reason:
+                issues.append(f"{claim.kind}: {reason}")
+            else:
+                accepted.append(verified)
+        return accepted
+
+    opportunities = []
+    seen = set()
+    for item in p.top_opportunities:
+        source = registry.get(item.id)
+        if source is None:
+            issues.append(f"Rejected opportunity: unknown source ID {item.id}")
+            continue
+        if item.id in seen:
+            issues.append(f"Repeated source ID {item.id} omitted.")
+            continue
+        seen.add(item.id)
+        claims = check(item.claims, item.id)
+        # An opportunity's cited facts must include its own source, not a
+        # different notice whose text happens to look attractive.
+        if not any(ref.source_id == item.id for c in claims for ref in c.evidence):
+            claims = []
+            issues.append(f"{item.id}: no evidence bound to this source; verify before promotion.")
+        kind = classification(source, claims, as_of, taxonomy, context)
+        timing = source_temporal_assessment(source, as_of, context)
+        timing['current_action'] = 'confirmed_current_action' if kind == 'confirmed_opportunity' else 'not_established'
+        action_evidence = source_action_evidence(source, claims, as_of)
+        if kind != 'confirmed_opportunity' and any(c.kind == 'offering_fit' for c in claims):
+            issues.append(f'{item.id}: current requested offering and response action require source-bound support.')
+        why = " ".join(claim_text(c, registry) for c in claims)
+        if kind != "confirmed_opportunity":
+            why = (why + " " + _VERIFY_ACTION).strip()
+        else:
+            why += " Original notice evidence checked; fit, access and seller readiness require existing qualification."
+        opportunities.append(TopOpportunity(
+            id=source.source_id, title=source.title, deadline=source.deadline,
+            source_url=source.url, claims=claims, classification=kind,
+            validation_status="EXCERPTS_CHECKED_NOT_QUALIFIED" if claims else "VERIFICATION_REQUIRED",
+            why_now=why, temporal_status=timing, action_evidence=action_evidence))
+    narrative = check(p.narrative_claims)
+    sections = {key: [] for key in ('headline', 'demand_signals', 'market_structure', 'watchlist', 'next_action')}
+    for claim in narrative:
+        sections[claim.section].append(claim_text(claim, registry))
+    if not narrative:
+        issues.append('Unreferenced narrative withheld; source-backed claims are required.')
+    signals = [TopOpportunity(
+        id=s.source_id, title=s.title, deadline=s.deadline, source_url=s.url,
+        why_now=_VERIFY_ACTION, classification="research_signal",
+        validation_status="VERIFICATION_REQUIRED")
+        for s in registry.values() if s.lane == 'web' and s.source_id not in seen]
+    for item in opportunities + signals:
+        source = registry[item.id]
+        if not source.retrieved_at:
+            gaps = gaps + [f'{item.id}: retrieval timestamp not recorded.']
+        if not source.deadline:
+            gaps = gaps + [f'{item.id}: response deadline unknown.']
+    # Model gaps are suggestions, not proven source failures.
+    model_gaps = ([g for g in p.gaps if g.startswith('Suggested verification: ')]
+                  if p.validation_version == _VALIDATION_VERSION else
+                  [f'Suggested verification: {clean_text(g)}' for g in p.gaps])
+    return p.model_copy(update={
+        'headline': ' '.join(sections['headline']) or 'Research signals require original-source verification.',
+        'top_opportunities': opportunities, 'research_signals': signals,
+        'demand_signals': sections['demand_signals'],
+        'market_structure': ' '.join(sections['market_structure']) or 'No source-backed market claim supplied.',
+        'watchlist': sections['watchlist'],
+        'next_action': ' '.join(sections['next_action']) or _VERIFY_ACTION,
+        'gaps': list(dict.fromkeys(gaps + model_gaps + issues)),
+        'evidence_gaps': list(dict.fromkeys(gaps)),
+        'narrative_claims': narrative, 'evidence_registry': registry,
+        'validation_issues': list(dict.fromkeys(issues)),
+        'validation_version': _VALIDATION_VERSION, 'evidence_as_of': as_of.isoformat(),
+        'assessment_clocks': context,
+    })
+
+
+def revalidate_picture(p: ResearchPicture, results: Optional[dict] = None, *,
+                       mode='current', reference_as_of=None, presented_at=None, clocks=None) -> ResearchPicture:
+    """One observational projection for saved JSON, Markdown and native UI."""
+    if isinstance(results, dict):
+        registry, gaps = build_registry(results, distill(results))
+    else:
+        registry, gaps = {}, []
+    if not registry:
+        gaps.append('Original source results unavailable; a saved evidence registry cannot validate itself.')
+        if not p.validation_version:
+            gaps.append('Legacy picture has no validated evidence registry.')
+    # Saved/model clocks never select replay or pin current presentation.
+    shown = presented_at if presented_at is not None else datetime.now(timezone.utc)
+    if mode == 'historical':
+        if reference_as_of is None:
+            raise ValueError('Historical replay requires a trusted caller reference_as_of')
+        as_of = reference_as_of
+    elif mode == 'current':
+        if reference_as_of is not None:
+            raise ValueError('Use explicit historical mode for a historical reference clock')
+        as_of = shown
+    else:
+        raise ValueError('Research Picture mode must be current or historical')
+    verified = validate_picture(p, registry, gaps, as_of, mode=mode, presented_at=shown, clocks=clocks)
+    if p.operator_focus_names:
+        names = ', '.join(clean_text(name) for name in p.operator_focus_names)
+        verified = verified.model_copy(update={'headline': f'Engagement focus: {names}. {verified.headline}'})
+    return verified
+
+
+def project_saved_picture(data: dict, *, mode='current', reference_as_of=None,
+                          presented_at=None, clocks=None) -> Optional[dict]:
+    results = data.get('results') or {}
+    raw = results.get('research_picture')
+    if not isinstance(raw, dict) or raw.get('error'):
+        return None
+    try:
+        picture = ResearchPicture.model_validate(raw)
+    except ValidationError:
+        return {'headline': 'Research Picture evidence could not be validated.',
+                'next_action': _VERIFY_ACTION, 'top': [], 'research_cards': [],
+                'signals': [], 'watchlist': [], 'market': '',
+                'gaps': ['Saved picture schema is invalid; original evidence review is required.']}
+    p = revalidate_picture(picture, results, mode=mode, reference_as_of=reference_as_of,
+                           presented_at=presented_at, clocks=clocks)
+    return {'headline': p.headline, 'next_action': p.next_action,
+            'top': [t.model_dump() for t in p.top_opportunities],
+            'research_cards': [t.model_dump() for t in p.research_signals],
+            'signals': p.demand_signals, 'watchlist': p.watchlist,
+            'market': p.market_structure, 'gaps': p.gaps,
+            'evidence_as_of': p.evidence_as_of, 'assessment_clocks': p.assessment_clocks}
 
 
 def distill(results: dict) -> dict:
@@ -225,8 +406,13 @@ def distill(results: dict) -> dict:
 
     web = results.get("web")
     if isinstance(web, list):
-        out["web_leads"] = [{"title": w.get("title"), "url": w.get("url") or w.get("api_url")}
-                            for w in web[:10]]
+        # Remains under web_leads so the existing client-compose quarantine
+        # removes all web evidence along with these discovery records.
+        out["web_leads"] = [source_record("web", f"web[{i}]", w).model_dump()
+                            for i, w in enumerate(web[:10]) if isinstance(w, dict)]
+    out["source_coverage_verdict"] = results.get("source_coverage_verdict")
+    out["evidence_gaps"] = coverage_gaps(results)
+
     return out
 
 
@@ -241,52 +427,67 @@ def compose_research_picture(
     operator, threaded here so the synthesis ORIENTS on the engagement's
     focus. It is never a filter and never modified agent-side."""
     engine = engine or research_engine()
-    return engine.deliberate(
+    sweep = distill(results)
+    registry, gaps = build_registry(results, sweep)
+    as_of = datetime.now(timezone.utc)
+    draft = engine.deliberate(
         layer=LAYER,
         system_prompt=SYSTEM_PROMPT,
         context={
             "client_name": client_name,
             "client_pursuit_strategy": strategy_summary,
-            "as_of": date.today().isoformat(),
+            "as_of": as_of.isoformat(),
             "operator_focus": operator_focus or {"all": True},
-            "sweep": distill(results),
+            "sweep": sweep,
+            "evidence_registry": {key: value.model_dump() for key, value in registry.items()},
+            "evidence_gaps": gaps,
         },
         schema=ResearchPicture,
     )
+    verified = validate_picture(draft.model_copy(update={"client_name": client_name, "operator_focus_names": []}), registry, gaps, as_of)
+    focus = operator_focus or {}
+    if not focus.get("all"):
+        agencies = focus.get("agencies") or []
+        names = [a.get("abbr") or a.get("name") for a in agencies if isinstance(a, dict)]
+        names = [clean_text(name) for name in names if isinstance(name, str) and name]
+        if names:
+            verified = verified.model_copy(update={
+                "headline": f'Engagement focus: {", ".join(names)}. {verified.headline}',
+                "operator_focus_names": [name for name in names]})
+    return verified
 
 
-# What each source contributes that a plain web search cannot. Deterministic ;
-# computed from the sweep, never claimed by the model.
+# Recorded source categories and counts, not procurement conclusions.
 _PROVENANCE_LABELS = [
     ("notice_counts", None,
      "SAM.gov notices with structured NAICS/deadline/set-aside fields, "
      "each screened pursue/monitor/discard"),
     ("recompetes", "expiring contracts",
-     "award records with completion dates; recompete timing invisible to web search"),
+     "award records with completion dates; future procurement requires separate evidence"),
     ("incumbents", "ranked incumbents",
-     "who holds the ground today, from award data"),
+     "recipient summaries from award data; current incumbency requires verification"),
     ("subaward_primes", "teaming primes",
-     "who pushes this category of work to subs (USAspending flows)"),
+     "recorded subaward flows; specific procurement access remains unverified"),
     ("legislative_docs", "bills/reports/laws",
-     "full-text legislative hits; funding proof with citations"),
+     "matched legislative records; procurement funding requires separate evidence"),
     ("federal_register_docs", "Federal Register docs",
-     "program formation 6-18 months pre-RFP"),
+     "recorded Federal Register documents and available comment metadata"),
     ("regulations_docs", "regulatory dockets",
-     "comment windows = lawful early engagement channels"),
+     "recorded docket and comment-window metadata"),
     ("grant_programs", "grant programs",
      "assistance-side demand (posted + forecasted)"),
     ("sbir_solicitations", "SBIR/STTR topics",
-     "R&D-stage demand forming 1-3 years out"),
+     "recorded R&D topics; current actionability requires verification"),
     ("forecast_signals", "agency forecast signals",
      "stated procurement intent (P.L. 100-656); pre-RFP positioning windows, not live deals"),
     ("agency_outlays", "agency outlay lines",
      "Treasury MTS: money actually moving, not just appropriated"),
     ("legal_decisions", "GAO legal decisions",
-     "bid protests = contested awards and incumbency weakness"),
+     "protests and other recorded GAO legal decisions"),
     ("public_filings", "public-company filings",
      "SEC EDGAR: competitors' own federal-exposure disclosures"),
     ("fedramp_matches", "FedRAMP marketplace entries",
-     "cloud authorization status = who can sell today"),
+     "marketplace entries; procurement eligibility requires separate evidence"),
     ("buying_offices", "buying offices",
      "SAM Federal Hierarchy: the office level where deals actually close"),
     ("news", "trade-press items", "curated federal IT press, keyword-matched"),
@@ -296,11 +497,9 @@ _PROVENANCE_LABELS = [
 
 
 def render_provenance(sweep: dict) -> str:
-    """The 'why this beats a bare Claude search' section, from counts, not claims."""
+    """Describe collected source categories without inferring an available buy."""
     lines = ["", "---", "", "## Source provenance; what this run saw",
-             "*A plain web search sees only the open web. This picture was "
-             "synthesized from structured government data a web search cannot "
-             "query:*", ""]
+             "*Recorded source counts describe collection, not verified opportunities or market completeness.*", ""]
     n_lines = 0
     for key, noun, why in _PROVENANCE_LABELS:
         if key == "notice_counts":
@@ -332,24 +531,43 @@ def render_provenance(sweep: dict) -> str:
     return "\n".join(lines)
 
 
-def render_markdown(p: ResearchPicture, sweep: Optional[dict] = None) -> str:
+def render_markdown(p: ResearchPicture, sweep: Optional[dict] = None,
+                    *, results: Optional[dict] = None, mode='current', reference_as_of=None,
+                    presented_at=None, clocks=None) -> str:
+    # Rebuild every visible claim even if the persisted version marker exists.
+    p = revalidate_picture(p, results, mode=mode, reference_as_of=reference_as_of,
+                           presented_at=presented_at, clocks=clocks)
     lines = [
-        f"# Research Picture · {p.client_name}",
-        f"*GTM Group synthesis from the full source sweep, {date.today().isoformat()}*",
-        "",
-        f"**{p.headline}**",
-        "",
-        "## Top opportunities",
+        f"# Research Picture · {clean_text(p.client_name)}",
+        f"*GTM Group research synthesis; {p.assessment_clocks['mode']} assessment at {p.evidence_as_of}; presented at {p.assessment_clocks['presented_at']}*",
+        "", p.headline, "",
+        "*Source excerpts establish traceability. Inferences require verification; existing qualification still applies.*",
     ]
-    for i, o in enumerate(p.top_opportunities, 1):
-        dl = f"; due {o.deadline}" if o.deadline else ""
-        lines.append(f"{i}. **{o.title}** (`{o.id}`{dl})")
-        lines.append(f"   {o.why_now}")
+    labels = {
+        'confirmed_opportunity': ('Documented notices current at historical assessment; qualification required'
+                                  if p.assessment_clocks['mode'] == 'historical' else
+                                  'Documented current notices; qualification required'),
+        'research_signal': 'Research signals; verification required',
+        'historical_market_evidence': 'Historical market evidence',
+        'channel_fact': 'Channel facts; opportunity access unverified',
+    }
+    for kind, label in labels.items():
+        items = [o for o in p.top_opportunities + p.research_signals if o.classification == kind]
+        if not items:
+            continue
+        lines += ['', f'## {label}']
+        for i, o in enumerate(items, 1):
+            title = clean_text(o.title)
+            link = f'[{title}](<{o.source_url}>)' if o.source_url else title
+            dl = f'; recorded deadline {clean_text(o.deadline)}' if o.deadline else '; deadline unknown'
+            lines += [f'{i}. **{link}** ({clean_text(o.id)}{dl})', f'   {o.why_now}']
+            if o.temporal_status:
+                lines.append(f"   Response window: {clean_text(o.temporal_status['response_window'])}; source freshness: {clean_text(o.temporal_status['source_freshness'])}; current action: {clean_text(o.temporal_status['current_action'])}.")
     lines += ["", "## Demand signals"]
     lines += [f"- {s}" for s in p.demand_signals]
     lines += ["", "## Market structure", p.market_structure, "", "## Watchlist"]
     lines += [f"- {w}" for w in p.watchlist]
-    lines += ["", "## Next action", f"**{p.next_action}**"]
+    lines += ["", "## Next action", p.next_action]
     if p.gaps:
         lines += ["", "## Gaps (what this sweep could not answer)"]
         lines += [f"- {g}" for g in p.gaps]

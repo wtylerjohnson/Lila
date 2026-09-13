@@ -102,7 +102,7 @@ def _notice_thread_key(notice: dict, index: int) -> tuple[str, ...]:
         agency = _normalized_text(raw.get("agency") or notice.get("agency"))
         office = _normalized_text(raw.get("office") or notice.get("office"))
         if agency and office:
-            return ("solicitation", normalized, agency, office)
+            return ("solicitation", normalized, agency, office, str(notice.get('source') or 'sam.gov'))
     return ("notice", _source_id(notice, f"idx-{index}"))
 
 
@@ -186,17 +186,14 @@ def _latest_notice_threads(
         if len(rows) == 1:
             selected.append(rows[0])
             continue
-        latest_index, latest = max(
-            rows,
-            key=lambda item: (
-                str(item[1].get("posted_date") or ""),
-                str(item[1].get("source_id") or item[1].get("id") or ""),
-            ),
-        )
+        from tools.relevance.temporal import latest_posting
+        latest_position, order_status = latest_posting([r for _, r in rows])
+        latest_index, latest = rows[latest_position]
         representative = dict(latest)
         raw = latest.get("raw_payload")
         representative["raw_payload"] = (
             dict(raw) if isinstance(raw, dict) else {})
+        representative["raw_payload"]["triage_thread_order_status"] = order_status
         representative["raw_payload"]["triage_thread_members"] = [
             str(row.get("source_id") or row.get("id") or "")
             for _index, row in rows
@@ -216,14 +213,16 @@ def _latest_notice_threads(
             if source_id == selected_id:
                 continue
             superseded[source_id] = {
-                "verdict": "discard",
-                "reason": f"superseded SAM revision; screened latest notice {selected_id}",
-                "screen": "deterministic-solicitation-thread-v1",
-                "superseded_by": selected_id,
+                "verdict": "discard" if order_status == 'ordered' else "unscreened",
+                "reason": (f"superseded SAM revision; screened latest notice {selected_id}" if order_status == 'ordered'
+                           else "Amendment chronology unresolved; retain source research before current action"),
+                "screen": "deterministic-solicitation-thread-v2",
+                "order_status": order_status,
+                "superseded_by": selected_id if order_status == 'ordered' else None,
             }
 
     selected.sort(key=lambda item: item[0])
-    return [notice for _index, notice in selected], superseded, len(superseded)
+    return [notice for _index, notice in selected], superseded, sum(v['superseded_by'] is not None for v in superseded.values())
 
 
 def _primary_poc_email(notice: dict) -> str:
@@ -347,11 +346,25 @@ def _canonical_cross_posts(
     return [notice for _index, notice in selected], duplicates, len(duplicates)
 
 
-def _bounded_source_evidence(notice: dict) -> list[dict] | None:
+def _bounded_source_evidence(notice: dict, taxonomy=None) -> list[dict] | None:
+    from tools.relevance.engine import record_text_fields
     raw = notice.get("raw_payload")
     if not isinstance(raw, dict):
-        return None
+        raw = {}
     evidence: list[dict] = []
+    if taxonomy is not None:
+        from tools.relevance.requirement_support import requirement_support
+        support = requirement_support(notice, taxonomy)
+        evidence.append({"field": "requirement_support", "source_id": _source_id(notice),
+                         "support": support, "authority": "discovery_only_not_qualification"})
+    for field, value in record_text_fields(notice):
+        if field.split('.')[-1] in {'title', 'label', 'context', 'description_snippet'}:
+            continue
+        if re.fullmatch(r'\s*https?://\S+\s*', value):
+            evidence.append({'field': field, 'retrieval_gap': 'Description is a URL; text not supplied.'})
+            continue
+        evidence.append({'field': field, 'source_id': _source_id(notice),
+                         'context': value[:1200], 'truncated': len(value) > 1200})
     snippet = str(raw.get("description_snippet") or "").strip()
     if snippet:
         evidence.append({
@@ -366,8 +379,13 @@ def _bounded_source_evidence(notice: dict) -> list[dict] | None:
             "term": str(row.get("term") or "")[:120],
             "matched_text": str(row.get("matched_text") or "")[:160],
             "context": str(row.get("context") or "")[:500],
+            "source_id": _source_id(notice),
+            "original_start": row.get("start"),
+            "context_start": row.get("context_start"),
+            "field_sha256": row.get("field_sha256"),
+            "truncated": len(str(row.get("context") or "")) > 500 or row.get("context_truncated", False),
         })
-        if len(evidence) >= 6:
+        if len(evidence) >= 50:
             break
     for row in raw.get("triage_thread_evidence") or []:
         if isinstance(row, dict):
@@ -474,6 +492,7 @@ def deterministic_prefilter(
     taxonomy: Any,
     *,
     engagement_scope: Any = None,
+    attachment_receipts: dict | None = None,
 ) -> tuple[list[dict], dict[str, dict], dict[str, Any]]:
     """Separate evidence-bearing notices from NAICS-only inventory.
 
@@ -486,18 +505,22 @@ def deterministic_prefilter(
     full-description match contexts and public attachment text).  Evidence-
     bearing records reach model judgment even when the code boundary alone
     would keep them out of a client-facing opportunity board.  Everything
-    with no capability evidence receives an explicit discard verdict and
-    remains reconciled in the triage map.
+    with no capability evidence stays reconciled in the triage map. Missing
+    requirement text or failed attachments remain unscreened research gaps,
+    without sending every incomplete record to a model.
 
     This does not narrow source coverage.  It records how the complete
     candidate census was reduced before LLM judgment.
     """
     from tools.relevance.engine import score_record
+    from tools.relevance.screening import no_match_state, screening_evidence
+    from tools.relevance.requirement_support import requirement_support, family_diagnostic
 
     candidates: list[dict] = []
     ruled: dict[str, dict] = {}
     reasons: dict[str, int] = {}
     candidate_reasons: dict[str, int] = {}
+    screening_records: dict[str, dict] = {}
     for index, notice in enumerate(notices):
         source_id = str(
             notice.get("source_id") or notice.get("id") or f"idx-{index}"
@@ -507,7 +530,15 @@ def deterministic_prefilter(
             taxonomy,
             engagement_scope=engagement_scope,
         )
-        if not verdict.off_scope and (
+        evidence = screening_evidence(
+            notice, verdict, (attachment_receipts or {}).get(source_id))
+        evidence["source_id"] = source_id
+        screening_records[source_id] = evidence
+        support = requirement_support(notice, taxonomy, verdict=verdict)
+        evidence["requirement_support"] = support
+        historical = evidence["notice_type_evidence"]["historical"]
+        type_conflict = evidence["notice_type_evidence"]["conflict"]
+        if not historical and not type_conflict and support["requested_support"] is True and not verdict.off_scope and (
                 verdict.core_terms or verdict.adjacent_terms):
             candidates.append(notice)
             reason_key = (
@@ -516,32 +547,79 @@ def deterministic_prefilter(
             candidate_reasons[reason_key] = (
                 candidate_reasons.get(reason_key, 0) + 1
             )
+            evidence.update(screen_state="SUPPORTED_CAPABILITY_AWAITING_JUDGMENT", stage="model_review")
             continue
 
-        if verdict.killed:
+        if historical:
+            reason = "award notice retained as historical market evidence; no current buying action established"
+            reason_key = "historical-award"
+            evidence.update(screen_state="HISTORICAL_MARKET_EVIDENCE", stage="historical_research")
+        elif type_conflict:
+            reason = "conflicting notice type projections; current buying state unresolved"
+            reason_key = "notice-type-conflict"
+            evidence.update(screen_state="NOTICE_TYPE_CONFLICT", stage="source_research")
+        elif verdict.killed:
             reason = "excluded by a client-specific false-positive rule"
             reason_key = "false-positive-rule"
+            functional = any(
+                rule.category == "functional" and any(
+                    (rule.reason or rule.term) in message for message in verdict.killed)
+                for rule in taxonomy.exclude)
+            evidence["screen_state"] = (
+                "EXPLICIT_FUNCTIONAL_MISMATCH" if functional else "VERIFIED_EXCLUSION")
         elif verdict.off_scope:
             reason = "outside the approved engagement scope"
             reason_key = "outside-scope"
+            evidence["screen_state"] = "VERIFIED_SCOPE_EXCLUSION"
         elif verdict.excluded_by_code:
             reason = "outside the approved code boundary without strong capability evidence"
             reason_key = "outside-code"
+            evidence["screen_state"] = "CODE_BOUNDARY_EXCLUSION"
+        elif verdict.core_terms or verdict.adjacent_terms or support["requested_support"] is None:
+            unresolved = support["requested_support"] is None
+            reason = ("Capability mentioned but requested work remains unresolved; retain source research gap"
+                      if unresolved else "Capability appears only in incidental or excluded context; no requested work established")
+            reason_key = "requirement-context-unresolved" if unresolved else "incidental-capability"
+            evidence.update(screen_state="REQUIREMENT_CONTEXT_UNRESOLVED" if unresolved else "INCIDENTAL_CAPABILITY_ONLY",
+                            stage="source_research" if unresolved else "deterministic_screen")
         elif verdict.adjacent_terms:
-            reason = "adjacent signal without core Arista capability evidence"
+            reason = "adjacent signal without core client capability evidence"
             reason_key = "adjacent-only"
+            evidence["screen_state"] = "ADJACENT_ONLY"
         else:
-            reason = "NAICS or retrieval-term match without core capability evidence"
+            evidence["screen_state"], reason = no_match_state(evidence)
             reason_key = "no-core-evidence"
         ruled[source_id] = {
-            "verdict": "discard",
+            "verdict": "unscreened" if evidence["screen_state"] in {
+                "TEXT_INCOMPLETE", "ATTACHMENT_UNAVAILABLE", "NOTICE_TYPE_CONFLICT", "REQUIREMENT_CONTEXT_UNRESOLVED"} else "discard",
             "reason": reason,
-            "screen": "deterministic-capability-v2",
+            "screen": "deterministic-capability-v3",
             "relevance_score": verdict.score,
+            "screen_state": evidence["screen_state"],
+            "evidence_ref": source_id,
         }
-        reasons[reason_key] = reasons.get(reason_key, 0) + 1
+        if ruled[source_id]["verdict"] == "discard":
+            reasons[reason_key] = reasons.get(reason_key, 0) + 1
 
     pre_thread_candidates = len(candidates)
+    # Consolidate against the complete census, before positive selection can
+    # make an older requirement leapfrog a later withdrawal/negative amendment.
+    _latest, all_superseded, _count = _latest_notice_threads(notices)
+    uncertain = {sid for row in _latest if row.get('raw_payload', {}).get('triage_thread_order_status') == 'unresolved'
+                 for sid in row['raw_payload']['triage_thread_members']}
+    for notice in list(candidates):
+        sid = _source_id(notice)
+        if sid in uncertain:
+            candidates.remove(notice)
+            ruled[sid] = {'verdict': 'unscreened', 'reason': 'Amendment chronology unresolved; current action withheld',
+                          'screen': 'deterministic-solicitation-thread-v2', 'screen_state': 'AMENDMENT_ORDER_UNRESOLVED'}
+            screening_records[sid].update(screen_state='AMENDMENT_ORDER_UNRESOLVED', stage='source_research')
+            continue
+        if sid in all_superseded and all_superseded[sid]['superseded_by'] in ruled:
+            candidates.remove(notice)
+            ruled[sid] = all_superseded[sid]
+            screening_records[sid].update(screen_state="CONSOLIDATED_POSTING", stage="thread_consolidation",
+                                           consolidation=all_superseded[sid])
     candidates, superseded, superseded_count = _latest_notice_threads(
         candidates)
     ruled.update(superseded)
@@ -549,8 +627,12 @@ def deterministic_prefilter(
     candidates, cross_posts, cross_post_count = _canonical_cross_posts(
         candidates)
     ruled.update(cross_posts)
+    for source_id, disposition in {**superseded, **cross_posts}.items():
+        screening_records[source_id].update(
+            screen_state="CONSOLIDATED_POSTING", stage="thread_consolidation",
+            consolidation=disposition)
     receipt = {
-        "mode": "deterministic-capability-v2",
+        "mode": "deterministic-capability-v3",
         "taxonomy_client": taxonomy.client_name,
         "taxonomy_version": taxonomy.version,
         "candidate_census": len(notices),
@@ -562,9 +644,13 @@ def deterministic_prefilter(
         "superseded_revisions": superseded_count,
         "cross_post_duplicates": cross_post_count,
         "model_candidate_reasons": dict(sorted(candidate_reasons.items())),
-        "deterministic_discards": len(ruled),
+        "deterministic_discards": sum(v["verdict"] == "discard" for v in ruled.values()),
+        "research_gaps": sum(v["verdict"] == "unscreened" for v in ruled.values()),
+        "deterministic_dispositions": len(ruled),
         "discard_reasons": dict(sorted(reasons.items())),
         "complete": len(candidates) + len(ruled) == len(notices),
+        "screening_records": screening_records,
+        "requirement_family_diagnostic": family_diagnostic(notices, screening_records),
     }
     return candidates, ruled, receipt
 
@@ -577,6 +663,7 @@ def triage_notices(
     batch_size: int = DEFAULT_BATCH_SIZE,
     batch_char_budget: int = DEFAULT_BATCH_CHAR_BUDGET,
     directive: Optional[str] = None,
+    taxonomy: Any = None,
 ) -> dict[str, dict]:
     """Return {source_id: {verdict, reason}} for every notice given.
 
@@ -588,6 +675,18 @@ def triage_notices(
     a fit the notice + strategy do not support — no invented opportunities.
     """
     engine = engine or research_engine()
+    withheld = {}
+    if taxonomy is not None:
+        from tools.relevance.requirement_support import requirement_support
+        eligible = []
+        for i, notice in enumerate(notices):
+            support = requirement_support(notice, taxonomy)
+            if support['requested_support'] is True:
+                eligible.append(notice)
+            else:
+                withheld[_source_id(notice, f'idx-{i}')] = {
+                    'verdict': 'unscreened', 'reason': 'Requested-work support did not reproduce from current stored text.'}
+        notices = eligible
     slim = [
         {
             "id": n.get("source_id") or n.get("id") or f"idx-{i}",
@@ -608,7 +707,7 @@ def triage_notices(
                 and (n.get("raw_payload") or {}).get("attachment_evidence")
                 else None
             ),
-            "official_source_evidence": _bounded_source_evidence(n),
+            "official_source_evidence": _bounded_source_evidence(n, taxonomy),
             "attachment_evidence_sha256": (
                 (n.get("raw_payload") or {}).get("attachment_evidence_sha256")
                 if isinstance(n.get("raw_payload"), dict) else None
@@ -616,7 +715,7 @@ def triage_notices(
         }
         for i, n in enumerate(notices)
     ]
-    out: dict[str, dict] = {}
+    out: dict[str, dict] = dict(withheld)
     batches = _adaptive_batches(
         slim,
         client_name=client_name,

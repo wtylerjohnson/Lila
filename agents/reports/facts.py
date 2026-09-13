@@ -12,6 +12,8 @@ Assembled deterministically (no LLM) from the artifacts earlier steps already wr
 
 from __future__ import annotations
 
+from agents.assess.source_clock import acquired_at
+
 import json
 import os
 from datetime import date, datetime, timezone
@@ -95,8 +97,10 @@ class Fact(BaseModel):
     retrieved_at: Optional[datetime] = Field(
         default=None,
         description="UTC moment the backing record was pulled from its source; "
-                    "inherited from the sweep artifact's run metadata when the "
-                    "record carries no closer stamp")
+                    "inherited from sweep metadata only for non-strict facts when "
+                    "the record carries no closer stamp; strict Assess facts require "
+                    "supported source acquisition")
+    acquisition_required: bool = False
     freshness: Optional[Literal["UNKNOWN_FRESHNESS"]] = Field(
         default=None,
         description="set to UNKNOWN_FRESHNESS when no retrieval time is "
@@ -141,7 +145,7 @@ class FactPack(BaseModel):
     #: payload keeps its pre-provenance shape so prompt bytes stay stable and
     #: retrieval language can never leak into client copy
     _COMPOSER_EXCLUDED_FIELDS = frozenset({
-        "source_system", "source_record_id", "retrieved_at", "freshness",
+        "source_system", "source_record_id", "retrieved_at", "freshness", "acquisition_required",
         "disputed", "competing_values",
     })
 
@@ -262,7 +266,7 @@ def _stamp_provenance(facts: list[Fact],
             f.source_system = _infer_source_system(f.source)
         if f.source_record_id is None:
             f.source_record_id = _infer_record_id(f)
-        if f.retrieved_at is None:
+        if f.retrieved_at is None and not f.acquisition_required:
             own = _parse_retrieved((f.value or {}).get("retrieved_at"))
             f.retrieved_at = own or default_retrieved
         if f.retrieved_at is None:
@@ -438,7 +442,8 @@ def _ledger_opportunity_facts(live_report, c: _Counter) -> list[Fact]:
             # never inherit the sweep-level default
             source_system=SourceSystem.SAM,
             source_record_id=record.notice_id,
-            retrieved_at=record.authoritative_evidence[-1].retrieved_at,
+            retrieved_at=acquired_at(record.authoritative_evidence[-1]),
+            acquisition_required=True,
         ))
     return facts
 
@@ -479,7 +484,8 @@ def _ledger_monitor_facts(live_report, c: _Counter) -> list[Fact]:
             tier="notice",
             source_system=SourceSystem.SAM,
             source_record_id=record.notice_id,
-            retrieved_at=record.authoritative_evidence[-1].retrieved_at,
+            retrieved_at=acquired_at(record.authoritative_evidence[-1]),
+            acquisition_required=True,
         ))
     return facts
 

@@ -1,0 +1,118 @@
+{
+  "at_utc": "2026-09-13T01:43:15.010519+00:00",
+  "tested_commit": "55bf3aa800fd7a3dfdecd8d20ccc6abd2591a28a",
+  "scope": "git archive of committed portable package only; no ignored runtime data",
+  "archive_sha256": "25bdd69ab28936d238188ce914ed6947dff396db0ee356d3c71e3b88dbf105d5",
+  "root": "/private/tmp/step5-archive-050-q_8kioya",
+  "commands": [
+    {
+      "argv": [
+        "/Users/wtjohnson/Lila/.venv/bin/python",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_benchmark_v5*.py",
+        "-v"
+      ],
+      "cwd": "/private/tmp/step5-archive-050-q_8kioya/tree",
+      "environment": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "started_at_utc": "2026-09-13T01:43:13.284887+00:00",
+      "exit_code": 0,
+      "log": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/portable-attempt2-unittest.log",
+      "log_sha256": "a76bbc19e8e5cb8f9a6b0f4258572ad291a05e01eea000267eb0e6e903830e65"
+    },
+    {
+      "argv": [
+        "/Users/wtjohnson/Lila/.venv/bin/python",
+        "-m",
+        "tools.benchmark_v5",
+        "--help"
+      ],
+      "cwd": "/private/tmp/step5-archive-050-q_8kioya/tree",
+      "environment": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "started_at_utc": "2026-09-13T01:43:14.807861+00:00",
+      "exit_code": 0,
+      "log": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/portable-attempt2-help.log",
+      "log_sha256": "c6e0b381ac223e84f13e58ccdbcfeb36ec55e7a78999f1bfb5bc8dea73459271"
+    },
+    {
+      "argv": [
+        "/Users/wtjohnson/Lila/.venv/bin/python",
+        "-m",
+        "tools.benchmark_v5",
+        "demo",
+        "/private/tmp/step5-archive-050-q_8kioya/synthetic"
+      ],
+      "cwd": "/private/tmp/step5-archive-050-q_8kioya/tree",
+      "environment": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "started_at_utc": "2026-09-13T01:43:14.846912+00:00",
+      "exit_code": 0,
+      "log": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/portable-attempt2-demo.log",
+      "log_sha256": "441df61261ccc95629a9323184e1db3ed5b82160ea62fae08f42a5a7eb2061d1"
+    },
+    {
+      "argv": [
+        "/Users/wtjohnson/Lila/.venv/bin/python",
+        "-m",
+        "tools.benchmark_v5",
+        "score",
+        "/private/tmp/step5-archive-050-q_8kioya/synthetic/case",
+        "/private/tmp/step5-archive-050-q_8kioya/synthetic/packets",
+        "/private/tmp/step5-archive-050-q_8kioya/synthetic/cli-score.json",
+        "--anchor",
+        "/private/tmp/step5-archive-050-q_8kioya/synthetic/trust/prepared.json",
+        "--support-trust",
+        "/private/tmp/step5-archive-050-q_8kioya/synthetic/trust/support.json",
+        "--support-trust-sha256",
+        "ab7e8d4b3595eb070a16483b93d7a3a673a80db695883ea63f1864f6487831aa",
+        "--support-dir",
+        "/private/tmp/step5-archive-050-q_8kioya/synthetic/support"
+      ],
+      "cwd": "/private/tmp/step5-archive-050-q_8kioya/tree",
+      "environment": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "started_at_utc": "2026-09-13T01:43:14.914383+00:00",
+      "exit_code": 0,
+      "log": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/portable-attempt2-score.log",
+      "log_sha256": "441df61261ccc95629a9323184e1db3ed5b82160ea62fae08f42a5a7eb2061d1"
+    },
+    {
+      "argv": [
+        "/Users/wtjohnson/Lila/.venv/bin/python",
+        "-m",
+        "tools.benchmark_v5",
+        "prepare",
+        "/private/tmp/step5-archive-050-q_8kioya/synthetic/case",
+        "/private/tmp/step5-archive-050-q_8kioya/synthetic/packets-cli",
+        "--input-trust",
+        "/private/tmp/step5-archive-050-q_8kioya/synthetic/trust/input.json",
+        "--anchor-output",
+        "/private/tmp/step5-archive-050-q_8kioya/synthetic/trust/cli-anchor.json",
+        "--reviewer-one",
+        "synthetic-reviewer-1",
+        "--reviewer-two",
+        "synthetic-reviewer-2"
+      ],
+      "cwd": "/private/tmp/step5-archive-050-q_8kioya/tree",
+      "environment": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "started_at_utc": "2026-09-13T01:43:14.965273+00:00",
+      "exit_code": 0,
+      "log": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/portable-attempt2-prepare.log",
+      "log_sha256": "43f1a1bd52fb805ef8a3b0abd43a96404bf589b5687379c8880f79329e50ea08"
+    }
+  ],
+  "score_equal_to_demo": true,
+  "status": "PASS"
+}

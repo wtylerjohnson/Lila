@@ -1114,6 +1114,53 @@ Reality in the code wins. When you extend a pattern, extend it here too.
   header-only stub is not a copy of anything. Remove poison members on
   sight, mirroring download_extract's own discard-below-floor doctrine.
 
+## Native SAM consumed-source receipts (2026-09-10)
+
+- `SamExtractSource` resets its primary/attachment census before each call.
+  `extract_selection` records UTC and host-local calendar bounds around the
+  unchanged daily downloader. Each actual CSV pass adds an `extract_receipts`
+  row (`primary`, or `attachment_latest` and `attachment_candidates`).
+- Receipt `cache_date` is parsed from the local filename and explicitly is NOT
+  upstream publication time. The absolute path, exact raw bytes read, SHA-256,
+  UTC read interval, and descriptor/path metadata bind what the CSV decoder
+  consumed. `status=verified`, `complete=true`, `integrity=stable` require EOF,
+  exact byte count, consistent observed file identity/metadata, and the independent
+  content check below. Both attachment passes must consume the same file/digest.
+  Failed reads retain an honest partial hash and failure state; a failed download
+  has selection evidence but no read row.
+- S2-SOURCE-002 additive receipt semantics (2026-09-12): schema version 1,
+  existing keys/status values and public consumers stay compatible. `sha256`
+  and `bytes_read` always identify the raw bytes delivered to the CSV decoder;
+  they are never replaced by a later file hash. `scan_metadata_consistency`
+  describes the scan's observed descriptor/path metadata. The separate
+  `content_verification` records an independent fresh-descriptor, full raw
+  SHA-256 pass, its byte count, read interval and before/after metadata for the
+  verification descriptor, consumed descriptor and selected path. Its
+  `metadata_consistency` is separate from content equality. Only a complete
+  pass with matching metadata, digest and byte count can report `verified`.
+  Its `complete` means that verification reached EOF at the expected byte count;
+  a complete but different digest is `changed`, not verified. Root `complete`
+  stays false on every failure. A scan that fails first leaves verification
+  `not_checked`; unreadable/incomplete verification fails named as
+  `ExtractReadFailed` with retained partial verification bytes/hash and the
+  underlying error type where available. Existing consumer failure/fallback
+  paths retain these internal diagnostics without changing public coverage copy.
+- This check costs one additional O(file-size) read/hash per completed scan,
+  with a 1 MiB buffer. It verifies equal content across two observed reads and
+  their metadata checks. It cannot establish immutable storage, prevent future
+  writes, or detect every transient rewrite that evades both observations.
+  The legacy `integrity=stable` token has that bounded meaning, not a universal
+  cross-filesystem guarantee. No original-source freshness/authenticity or
+  government upstream publication assertion is added by matching hashes.
+- Midnight is not silently normalized: a later attachment download can select
+  the next local day's file, and each pass carries its own selection bounds.
+  No snapshot option, query filter, search limit, ranking or fallback changes.
+- Native sweep `results.sam_census` preserves these internal receipts. An
+  attachment-stage failure retains its failed census; native live-API fallback
+  retains `failed_extract_census` separately from the successful API census.
+  The public-safe `_sam_census_receipt` projection remains unchanged; local
+  filesystem paths do not become public coverage copy or release authority.
+
 ## Testing
 
 - Offline doctrine: temp data dirs, Flask test client, no subprocesses, no
@@ -1726,6 +1773,17 @@ and refreshes an already-active Assess pointer; it does not activate a client or
 approve a requirement. Use `--notice-id`, `--disposition` and `--reason` together
 to remove a weak case from priority while retaining its evidence and history.
 
+Strict report projection reopens the casebook against its immutable input hash
+and requires complete record equality for an out-of-sweep case. Supplemental
+records travel in `LiveReportProjection.reviewed_research`, separately from raw
+SAM `notices` and posting counts. Any existing raw row or indexed family retains
+its strict join requirements. Selected reviewed research renders as an explicit
+standing research entry after the existing capped watchlist, retaining its source
+classification, deadline and next ask. It never enters sweep snapshots, displaces
+an existing watchlist row, acquires a NEW badge, or gains a pursuit rank. Rejected
+and deprioritized cases remain in the immutable assessment and lead companion.
+Regression: `tests/test_reviewed_case_projection.py`.
+
 Each normal release binds the matching `<slug>.dossier.json` and optional
 `<slug>.target_actions.json`, then joins reviewed actions to exact Assess parents.
 The release includes `company_dossier.json`, `reviewed_cases.json` and
@@ -1736,3 +1794,368 @@ existing eight-slot validators run before promotion. The default run location is
 Run the full test gate with `LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 .venv/bin/python
 -m pytest tests/ -q`. The fresh runtime requires all packages in requirements.txt,
 including NumPy for the offline dense/hybrid retrieval contract checks.
+
+
+## Research Picture evidence validation (2026-09-11)
+
+The internal Research Picture extends its existing Pydantic models with typed
+`ResearchClaim` references. `agents/decisions/research_evidence.py` retains canonical
+source IDs (or explicitly generated registry IDs when no source ID exists), exact
+field locators, bounded passages, original URLs and identity, supplied timestamps,
+retrieval state and a SHA-256 of each original record. Web evidence is discovery
+only even when a search result links to SAM. The registry admits selected native
+pursue/monitor rows and bounded contextual lanes in native order, at most80 records
+and120000 serialized characters; truncation and source failures remain visible.
+
+`compose_research_picture` supplies the registry separately from `source_sweep`,
+then validates every generated reference against it. Source facts render cited
+excerpts rather than treating a cited paraphrase as proved. Offering-fit and
+cross-source suggestions may be labeled inference; procurement state, value,
+incumbent and route cannot be invented by inference. Unknown opportunity IDs are
+rejected without title matching, while canonical web signals remain verification
+tasks. Old unsourced narratives fail closed when rendered. No evidence checks
+establish semantic entailment of an inference or qualify a lead.
+
+The current-original-notice classification requires recorded government notice
+text, explicit active/type metadata, a same-day supplied retrieval timestamp,
+a future timezone-bearing response deadline, and references to its own text for
+state, requirements and action. It is not BID_NOW or seller readiness and cannot
+replace existing human-reviewed requirement or access checks. Unknown freshness
+or deadline precision stays research. Awards stay historical and channel records
+cannot establish access to a particular opportunity.
+
+The existing client-compose quarantine stays unchanged: Research Picture and
+web_leads are excluded by default. Evidence registry fields never appear as a new
+web-bearing sibling in source_sweep. Assess, Market Map, qualification, release,
+source collectors, retrieval vocabulary and operator gates are untouched.
+
+Targeted offline verification: `LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 python -m
+pytest tests/test_research_picture.py tests/test_research_picture_evidence.py
+tests/test_truth_purges.py -q`. Use the configured project Python environment.
+
+
+Saved Research Picture JSON and generated Markdown use the same observational
+revalidation path. Native `ui/server.py::_research_picture` calls
+`project_saved_picture`; `buildPicture` preserves linked research tasks and
+separate current-notice, historical and channel sections, using the existing
+safe Markdown sanitizer. Opening the view never recomposes a model, writes a
+sweep or changes a gate. A persisted version marker cannot bless raw prose.
+Explicit failed, unreadable, discovery-only, stale and unknown retrieval states
+survive normalization and cannot become documented current notices merely
+because a description field is present. The additive native projection change
+is isolated with `tests/test_research_picture_ui.py`; its browser test uses
+actual UI functions in a temporary Chrome page with all requests blocked.
+
+
+## Research Picture source rebind hardening (2026-09-11, work046)
+
+Saved `validation_version`, `evidence_registry` and hashes are audit material,
+never independent authority for the same saved picture. Native projection and
+Markdown must rebuild from their owning original `results`; absence fails closed
+with a named gap and no opportunity/source-fact cards. `render_markdown` accepts
+those results explicitly; `run_searches` and `run_picture` supply them. This changes only the
+internal Research Picture rendering boundary, not a client release contract.
+Display-time currentness uses current UTC rather than a model/saved as-of clock.
+
+Whitespace and punctuation-only quotations cannot bind claims. An opportunity's
+source-specific factual claims cite only that source; cross-source reasoning
+remains explicitly labeled inference or narrative context. Conflicting primary
+notice identities or response deadlines produce binding issues and prevent
+current-notice confirmation. Equivalent aware deadline representations normalize
+to UTC for conflict comparison; ambiguous deadlines are withheld, not selected
+optimistically. This does not amend strict Assess, profile, scope or release gates.
+
+Focused offline validation: `python -m pytest tests/test_research_picture.py
+tests/test_research_picture_evidence.py tests/test_research_picture_hardening.py
+tests/test_truth_purges.py -q`. Full regression uses the existing offline strict
+suite command. Use the configured project runtime; browser checks use temporary
+profiles. The synthetic probes are source-binding tests, not qualified-lead proof.
+
+## Capability vocabulary and screening evidence (Step2, 2026-09-11)
+
+`tools/relevance/taxonomy.py` owns optional, versioned capability evidence,
+explicit buyer-language aliases and retrieval mappings. An alias scores its
+canonical CORE concept once, even when several equivalent phrases occur.
+Aliases require a referenced company evidence record. Conditional aliases
+require a bounded same-sentence subject; the separate `guard_context` receipt includes
+that context. Canonical report quotes retain their existing 60-character format;
+reviewed alias supports carry the wider guard context under the separately
+documented C1 contract extension. No global synonym expansion or threshold reduction is applied.
+
+`retrieval_vocabulary()` derives SAM additions from the same definition. Existing
+operator query terms remain unchanged and are receipted even when unmapped.
+Exploratory retrieval entries do not themselves add screening evidence. Non-SAM
+lanes retain the existing canonical capability vocabulary. The sweep's
+`capability_vocabulary` records actual wire terms and the normalized definition
+hash. `term_yield` retains its count/title-only shape; separate
+`term_yield_population` identifies the accumulated, unfiltered notice store,
+which is not the filtered daily-extract population.
+
+`deterministic_prefilter()` keeps its three-part return interface and adds
+`screening_records`, keyed by source identity, with record hash, field spans,
+canonical score, source coverage, and stage/reason. Declared awards are historical
+research regardless of a future deadline or capability text. They do not enter
+open-opportunity model triage. Missing text and failed attachment lookups yield
+`unscreened` without a model call; existing decision coverage therefore remains
+incomplete. A decisive existing scope/code/false-positive exclusion may still
+reject a row with a nonessential source gap. Functional kill-rules can label an
+explicit functional mismatch; weak supplied-text matches are not such proof.
+No new Apex functional kill-rule is inferred from a generic healthcare word.
+
+The attachment producer records per-notice lookup results under
+`attachment_record_receipts`: unattempted, failed/stale inventory, checked empty,
+text unavailable, or unreviewed captured text. Absent receipt is unknown. This is
+an internal discovery receipt; strict Assess evidence, attachment inventory
+approval, source depth and lead qualification are unchanged. A supported alias
+reaches review, not automatic qualification. Full requirement-versus-boilerplate
+adjudication remains the subsequent repair step.
+
+Verify offline with `LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 python -m pytest
+tests/test_capability_alignment.py tests/test_relevance_engine.py
+tests/test_relevance_taxonomy.py tests/test_triage_prefilter.py
+tests/test_sam_attachment_text.py tests/test_term_yield.py
+tests/test_sam_extract_source_receipt.py tests/test_client_relevance_alias_contract.py -q`, using the configured runtime.
+The strict full suite is `LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 python -m pytest
+tests/ -q -rs`. `python -m tools.relevance.audit_saved_screen --help` documents
+an offline, hash-bound replay against a declared baseline, writing only an
+explicit output directory. Frozen captures are read-only development inputs;
+replay and synthetic tests make no independent holdout or recovered-lead claim.
+
+### Step3 entry: attributed historical notice types (S2-HISTORY-001)
+
+`tools/relevance/notice_type.py` preserves raw labels and selected-field provenance.
+The six explicit award labels normalize case and whitespace; substring matching
+and narrative text never classify lifecycle. Native `raw_payload.type` is current;
+top-level types are compatibility projections; `base_type`/`baseType` are original
+lifecycle fallbacks only when current types are absent. Disagreement between
+current projections blocks current buying, while a differing original base type
+is retained without overriding a current type. The screening receipt is additive.
+Verify with `python -m pytest tests/test_notice_type_evidence.py -q` offline.
+
+### Step3 requested-work evidence (2026-09-12)
+
+`tools/relevance/requirement_support.py` extends the existing exact field/span
+receipt with bounded clause roles, original-field offsets, stored-field hashes,
+and tri-state requested support. It recomputes from source text and the current
+taxonomy; supplied role/verified flags never grant support. Explicit SOW requests
+may reach judgment, incidental-only context cannot, and incomplete/contradictory
+context stays unscreened unless an existing decisive gate excludes the record.
+These conservative language rules are discovery evidence, not general semantic
+entailment, qualification, independent authentication, or a recall result.
+
+CSV evidence v2 retains up to48 distinct matching positions across title and full
+description, with separate original and context offsets and field/context hashes.
+Overflow and clipped clauses remain visible. Retained-context hashes bind stored
+projections; they do not authenticate absent original bytes. Legacy contexts
+without original offsets remain readable but cannot independently establish
+requested work. Title evidence remains title-only after projection. API URL-only
+description is a named gap. Triage carries recomputed decisive support, including
+late API clauses, and rechecks it before model review when taxonomy is supplied.
+
+Amendment suppression checks the complete source census so an older positive
+cannot leapfrog a newer nonpositive revision. Structured family identity includes
+source lane, solicitation, agency and office. The additive internal
+`triage_prefilter.requirement_family_diagnostic` separates current/superseded,
+historical, incidental and unresolved evidence by original field and canonical
+term; overlapping field counts are never summed into market totals. Existing
+`term_yield`, `counts()`, strict Assess, engagement and release gates are unchanged.
+
+Focused check: `LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 python -m pytest
+tests/test_requirement_support.py tests/test_notice_type_evidence.py
+tests/test_capability_alignment.py tests/test_triage_prefilter.py
+tests/test_triage.py tests/test_sam_extract.py -q` using the configured runtime.
+The prespecified25 fixtures and operator-discovered counterexamples are synthetic
+software checks; authentic source success and recovered leads remain unproved.
+
+### Research Picture Step3 semantic extension
+
+Evidence validation v3 retains Step1's original-source registry rebuild, exact
+passage binding, retrieval/current-clock checks and source-specific claims. A
+`confirmed_opportunity` additionally requires available current client vocabulary,
+a CORE requested-work clause reproduced from that source's passages and contained
+in the offering-fit quote, and an own-source response instruction contained in the
+next-action quote. Unknown vocabulary, incidental/negated/thin quotes, truncated
+passages and missing response instructions stay research signals. These are
+conservative predicates for a documented notice, not general entailment of model
+prose or strict qualification. Generated factual prose remains replaced by the
+actual excerpts; labeled inference remains a disclosed Step1 residual.
+
+Focused check: `python -m pytest tests/test_research_picture_semantics.py
+tests/test_research_picture.py tests/test_research_picture_evidence.py
+tests/test_research_picture_hardening.py tests/test_research_picture_ui.py
+tests/test_truth_purges.py -q` offline. The browser test uses a temporary profile
+and blocks page network requests. The positive Step1 test fixture now names the
+actual current Apex taxonomy and a canonical supplier-risk request, making its
+additional Step3 vocabulary predicate explicit while preserving identity tests.
+
+
+### Step4 source-time values and amendment chronology (2026-09-13)
+
+`tools/relevance/temporal.py` owns strict whole-value ISO parsing. It accepts an
+ISO calendar date or a date with T/space, hour:minute, optional seconds and up to
+six fractional digits, and a supplied Z or numeric offset. `source_time` retains
+exact input, original field/record identity, supplied precision and offset,
+normalized UTC instant, parse status and a separate local display date. Missing,
+invalid, date-only and offsetless values never establish a precise action instant.
+No host timezone or fabricated end-of-day is used by this value contract.
+
+API `responseDeadLine`/`postedDate` and canonical CSV `deadline`/`posted` produce
+additive RawOpportunity `temporal_evidence`; existing date fields remain compatibility
+projections. The CSV/store raw text is unchanged. `record_time` recomputes evidence
+from original raw fields, ignoring supplied cached temporal objects. A top-level
+legacy date equal to its raw source's display date is a derived projection, not
+an independent conflicting timestamp. Competing original values still conflict;
+equal aware instants reconcile across offsets. Invalid suffixes cannot borrow a
+valid ten-character prefix. This does not migrate strict Assess or report date
+contracts or change the query's calendar inclusion floor.
+
+Triage thread v2 uses uniquely supported full posting chronology. Same-day aware
+amendments retain time; differing date-only days support calendar ordering among
+date-only records. Equal, missing, mixed-precision, offsetless or conflicting
+posting times keep an explicit unresolved order, all original lineage and no
+current model candidate for that family. Input order is a display fallback only;
+source IDs do not establish chronology. The original CSV attachment-selection
+priority helper remains a retrieval heuristic and is not used as current-action
+or source-clock authority. Current-buying assessment is source-recomputed.
+
+The attributed historical label set adds `Award Synopsis` and `Awarded Contract`
+to the six previously reviewed exact aliases. J&A, justification and other
+unknown types remain investigation contexts; no blanket substring exclusion or
+current buying inference is added.
+
+Verify the combined Step4 policy with `LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1
+python -m pytest tests/test_source_temporal_values.py tests/test_step4_temporal_evidence.py
+tests/test_triage_prefilter.py tests/test_notice_type_evidence.py -q` using the
+configured runtime. Source002 read integrity remains separately identified by
+its original commit and tests; Step4 temporal edits must preserve those helpers.
+
+
+### Step4 Research Picture clock and authority contract extension
+
+This is a separately labeled change to the internal Research Picture evidence
+contract. `research-picture.evidence.v4` recomputes temporal values and authority
+from independently supplied original rows, never saved/model clocks, registries,
+temporal caches, authority labels or validation flags. Per-passage authority
+preserves native attachment provenance. The native `text` surface is discovery
+context, even when its metadata is missing; it cannot supply trusted requirement
+or response support. Original-notice description passages on mixed rows remain
+eligible independently. Discovery quotes remain readable and explicitly labeled
+as not requirement approval. This does not upgrade strict Assess evidence.
+
+An open response window means assessment < aware deadline; equality is closed.
+Date-only/offsetless/missing/invalid deadlines are unknown for a precise action.
+Same-UTC-day observation freshness normalizes offsets, rejects future/stale
+observations, and never substitutes sweep/file/attachment timestamps. An open
+window alone does not establish current action, capability fit, access or a lead.
+Returned temporal state and action evidence retain these distinctions. Explicit
+prose deadlines must reconcile with source metadata; partial month/day language
+compares only its stated components to independently recorded metadata, without
+inventing a year. Original heading scope survives narrowed citations. Archived,
+historical, previous and prior instructions cannot supply current response proof;
+explicit current instructions can coexist with archived context. Ambiguous repeated
+citation spans and uncertain chronology retain holds.
+
+Default `revalidate_picture`, `project_saved_picture` and `render_markdown` remain
+current-view, display-time revalidation against original source results. Optional
+trusted caller arguments add `mode='historical'`, mandatory `reference_as_of`, and
+`presented_at`. Saved/model timestamps never choose replay mode. Historical output
+labels its assessment and presentation clocks and still independently rebinds
+source evidence. Naive, absent historical, or future assessment clocks refuse.
+Optional caller `clocks` carries query start, capture completion and evidence cutoff;
+all are aware, ordered where applicable, and no later than presentation. Their
+roles remain separate: capture elapsed time is not a freshness or deadline rule.
+Evidence cutoff is checked against source observation/publication, never review
+runtime or a newly inferred source timestamp. Omitted query/capture/cutoff stays
+explicitly absent; no capture budget or benchmark score is manufactured here.
+
+Full original SAM census chronology prevents older evidence from resurfacing via
+a saved picture. Superseded/uncertain sources remain research context with lineage
+and gaps. Legacy report/Assess date policy, frozen cases, counts(), release gates,
+source selection and the current C1 source-rebinding contract are not migrated.
+Verify with `LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 python -m pytest
+tests/test_step4_temporal_evidence.py tests/test_research_picture_evidence.py
+tests/test_research_picture_hardening.py tests/test_research_picture_semantics.py -q`.
+All fixture results are bounded synthetic/native-function proof, not real captured
+lead yield or cloud-suite parity. Source002 retains its separate endpoint and I/O
+cost limitations and is included in combined verification/Fable scope.
+
+
+Step4 parser edge hardening: numeric offset hours/minutes are validated before
+stdlib conversion, so malformed offsets cannot normalize into evidence. Negative
+zero offsets are retained as unknown timezone under this conservative policy.
+Non-text temporal fields remain invalid with their original typed raw value in
+the receipt and a safe string display; they do not crash registry construction.
+Attached malformed suffixes on response date tokens cannot borrow a valid prefix.
+
+
+Step4 support-review closures (R049-01 through R049-05): response-instruction v3
+keeps explicit English-month/ISO date plus clock/zone expressions, including UTC,
+GMT, numeric offsets and AM/PM. An unsupported explicit clock or zone is unresolved,
+not silently reduced to a date. Full original passages are scanned before a cited
+clause is accepted; an uncited conflicting current instruction for the same
+submission blocks support. Questions are a separate action group, so their dates
+do not invalidate an independently supported proposal instruction. Archived scope
+is excluded from competing current instructions; full/narrow citations retain the
+same check. Standalone current instruction headings support LF/CRLF lines with or
+without colons; embedded occurrences of current do not override historical scope.
+This is bounded grammar, not universal natural-language temporal entailment.
+
+Equivalent original aware instants reconcile across local midnight before a
+matching top-level display date is recognized as derived. Genuinely conflicting
+original values remain a conflict. Raw/source fields and supplied offsets remain
+intact in the receipt.
+
+### Strict Assess acquisition clocks (S4-SOURCE-CLOCK-001)
+
+New immutable Assess writes use schema `2` and `assess:v2:` identities. EvidenceRef
+`retrieved_at` is nullable and means supported **source acquisition**, never the
+assessment, approval, sweep, file, attachment or posting clock. Family `verified_at`
+continues to record assessment verification. Do not repurpose generated_at as
+acquisition or reconstruct an authentic time from old approval-looking values.
+
+`source_acquisition` records typed status, bounded native basis/component, original
+field/text and input type, and the existing evidence record hash. The accepted
+Step 4 pure timestamp parser preserves an aware source timestamp and offset;
+missing, invalid, date-only, unknown-timezone, conflicting and untrusted values
+remain explicit, with null acquisition. Only same-notice trusted description
+`source_depth.retrieved_at` and the existing validated Horizon fact bank are admitted
+here. Raw/model/imported timestamp fields are not native authority. USAspending
+subaward rows retain explicit missing acquisition. No acquisition pipeline is added.
+Receipts describe adapter inputs; they do not independently authenticate a source.
+
+Schema 1 immutable artifacts/pointers validate against their original recorded
+version and exact identity, without modifying bytes, IDs or pointers. Their missing
+provenance defaults are archival only. Injected v2 provenance under a schema 1
+wrapper and version downgrades refuse. New schema 2 runs require explicit provenance
+on every evidence member. Old leadgen.contracts.v1 rows remain readable as history;
+new qualification/promotion and strict release/freshness consumers require supported
+acquisition. Reviewed legacy cases retain all evidence, targets, and research; a
+v2 projection preserves unusable historical review metadata in fit_trace, exposes a
+chronology gap, and clears only active review authority. Original casebook history
+is unchanged and strict joins bind the exact deterministic projection.
+
+Strict report facts persist `acquisition_required` through serialization and do not
+receive sweep fallback on reload. Market Map source dates require complete acquisition
+coverage across every family evidence member; mixed known/unknown families show
+incomplete coverage and null source date while retaining their full assessment.
+Existing LeadRow evidence HTML distinguishes unknown collection from known acquisition
+and preserves the original offset text. LeadRow/pathway JSON schemas include the
+nullable clock/provenance fields; leadgen contract version is unchanged because
+archival row acceptance is preserved. Existing Horizon refusal, strict requirement,
+attachment, BID_NOW and coverage thresholds are not relaxed. Deadline policy is not
+migrated by this amendment.
+
+## Offline benchmark v5 (Step5-050)
+
+`tools/benchmark_v5` extends the fixed20 native-capture harness as a separate
+portable tool. It has no release/acquisition integration. Caller-owned external
+input/prepared anchors and a pinned support-registry snapshot bind each exact
+claim to a named independent original-source assessment. Hashes establish binding,
+not language entailment. Supported scope/route/action negatives can decide an
+objective while unknown dimensions remain visible. Evidence insufficiency and
+unsupported assertions remain unknown. Old v3/v4 packets require explicit migration.
+
+See `docs/verification/step5-050/REVIEW.md` for the narrow JSON-record adapter,
+trust/role/correction policy, exact command templates and proof limits. New tests
+are standard-library unittest cases; preserved legacy comparator snapshots remain
+byte-identical and never supply v5 classification. No frozen case is re-scored.

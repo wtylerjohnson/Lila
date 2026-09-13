@@ -1,0 +1,24 @@
+{
+  "work_id": "REPAIR-STEP4-IMPLEMENT-049",
+  "at_utc": "2026-09-13T00:53:36.886721+00:00",
+  "status": "SUPPORT_CLOSURE_ACCEPTED_NOT_FABLE_ACCEPTANCE",
+  "tested_revision": "625f0e0e6f644dec9e9dab28575a4dc66fad832e",
+  "receipt_sha256": "edc8af466d9364ef26dc12198119f229c4fed7560972cedddc2c2f5592f0bd59",
+  "verification_sha256": "dc1c941ec63167867e46fd071dfe32beb2b9e2644f6090b59893dd3cccdcbe73",
+  "report_sha256": "2640025d451a48d5a1ea02a64532b254e25eeb41cb874ab1d692c7bdc0142fba",
+  "artifacts_verified": 17,
+  "original_findings": {
+    "R049-01": "CLOSED_IN_ASSIGNED_FIXTURES",
+    "R049-02": "CLOSED_IN_ASSIGNED_FIXTURES",
+    "R049-03": "CLOSED_IN_ASSIGNED_FIXTURES",
+    "R049-04": "CLOSED_IN_ASSIGNED_FIXTURES",
+    "R049-05": "CLOSED_IN_ASSIGNED_FIXTURES"
+  },
+  "closure_assertion_groups_passed": 14,
+  "additional_edge_cases_passed": 28,
+  "probe_execution_errors": 0,
+  "prior_artifacts_preserved_reported": 31,
+  "fable_accepted": false,
+  "prior_artifacts_preserved_verified": 31,
+  "source_files_verified": 21
+}

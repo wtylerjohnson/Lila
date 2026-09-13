@@ -1,0 +1,118 @@
+{
+  "at_utc": "2026-09-13T01:51:59.979140+00:00",
+  "tested_commit": "482091a271d632e87635473023d5c918e2bc02d3",
+  "scope": "git archive of committed portable package only; no ignored runtime data",
+  "archive_sha256": "73cec057f21f30706d00c70548e4e2ae28bf9b0ec1e0cb09f60efd10aeada0eb",
+  "root": "/private/tmp/step5-archive-050-4rngvn_p",
+  "commands": [
+    {
+      "argv": [
+        "/Users/wtjohnson/Lila/.venv/bin/python",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_benchmark_v5*.py",
+        "-v"
+      ],
+      "cwd": "/private/tmp/step5-archive-050-4rngvn_p/tree",
+      "environment": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "started_at_utc": "2026-09-13T01:51:57.758862+00:00",
+      "exit_code": 0,
+      "log": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/portable-repairs-attempt1-unittest.log",
+      "log_sha256": "417e6e903a40c91fb34e59b6808b5c560a10acaf8f4b60de6a79fd79ab67c78a"
+    },
+    {
+      "argv": [
+        "/Users/wtjohnson/Lila/.venv/bin/python",
+        "-m",
+        "tools.benchmark_v5",
+        "--help"
+      ],
+      "cwd": "/private/tmp/step5-archive-050-4rngvn_p/tree",
+      "environment": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "started_at_utc": "2026-09-13T01:51:59.740938+00:00",
+      "exit_code": 0,
+      "log": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/portable-repairs-attempt1-help.log",
+      "log_sha256": "c6e0b381ac223e84f13e58ccdbcfeb36ec55e7a78999f1bfb5bc8dea73459271"
+    },
+    {
+      "argv": [
+        "/Users/wtjohnson/Lila/.venv/bin/python",
+        "-m",
+        "tools.benchmark_v5",
+        "demo",
+        "/private/tmp/step5-archive-050-4rngvn_p/synthetic"
+      ],
+      "cwd": "/private/tmp/step5-archive-050-4rngvn_p/tree",
+      "environment": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "started_at_utc": "2026-09-13T01:51:59.792794+00:00",
+      "exit_code": 0,
+      "log": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/portable-repairs-attempt1-demo.log",
+      "log_sha256": "a23e783d5aa0961b33c547a9f520d69748befa9a0a612df1f5f67719e46e10f8"
+    },
+    {
+      "argv": [
+        "/Users/wtjohnson/Lila/.venv/bin/python",
+        "-m",
+        "tools.benchmark_v5",
+        "score",
+        "/private/tmp/step5-archive-050-4rngvn_p/synthetic/case",
+        "/private/tmp/step5-archive-050-4rngvn_p/synthetic/packets",
+        "/private/tmp/step5-archive-050-4rngvn_p/synthetic/cli-score.json",
+        "--anchor",
+        "/private/tmp/step5-archive-050-4rngvn_p/synthetic/trust/prepared.json",
+        "--support-trust",
+        "/private/tmp/step5-archive-050-4rngvn_p/synthetic/trust/support.json",
+        "--support-trust-sha256",
+        "1b604d35775487d0c40512d30c1a19fad853366bb40421b910f7372ecbc5e965",
+        "--support-dir",
+        "/private/tmp/step5-archive-050-4rngvn_p/synthetic/support"
+      ],
+      "cwd": "/private/tmp/step5-archive-050-4rngvn_p/tree",
+      "environment": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "started_at_utc": "2026-09-13T01:51:59.869269+00:00",
+      "exit_code": 0,
+      "log": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/portable-repairs-attempt1-score.log",
+      "log_sha256": "a23e783d5aa0961b33c547a9f520d69748befa9a0a612df1f5f67719e46e10f8"
+    },
+    {
+      "argv": [
+        "/Users/wtjohnson/Lila/.venv/bin/python",
+        "-m",
+        "tools.benchmark_v5",
+        "prepare",
+        "/private/tmp/step5-archive-050-4rngvn_p/synthetic/case",
+        "/private/tmp/step5-archive-050-4rngvn_p/synthetic/packets-cli",
+        "--input-trust",
+        "/private/tmp/step5-archive-050-4rngvn_p/synthetic/trust/input.json",
+        "--anchor-output",
+        "/private/tmp/step5-archive-050-4rngvn_p/synthetic/trust/cli-anchor.json",
+        "--reviewer-one",
+        "synthetic-reviewer-1",
+        "--reviewer-two",
+        "synthetic-reviewer-2"
+      ],
+      "cwd": "/private/tmp/step5-archive-050-4rngvn_p/tree",
+      "environment": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "started_at_utc": "2026-09-13T01:51:59.927854+00:00",
+      "exit_code": 0,
+      "log": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP5-050/portable-repairs-attempt1-prepare.log",
+      "log_sha256": "f8427634a6bd82bb91d419aea4a45f91751acd3d8c9d068b8424d6048d98ee09"
+    }
+  ],
+  "score_equal_to_demo": true,
+  "status": "PASS"
+}

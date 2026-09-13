@@ -83,17 +83,9 @@ def _is_rate_limited(exc: Exception) -> bool:
 
 
 def _parse_date(value: Any) -> Optional[date]:
-    """SAM gives postedDate as 'YYYY-MM-DD' and deadlines as ISO datetimes."""
-    if not value or not isinstance(value, str):
-        return None
-    text = value.strip()
-    try:
-        if "T" in text:
-            # tolerate trailing 'Z' and timezone offsets
-            return datetime.fromisoformat(text.replace("Z", "+00:00")).date()
-        return date.fromisoformat(text[:10])
-    except ValueError:
-        return None
+    """Legacy date projection of a whole-value parsed source timestamp."""
+    from tools.relevance.temporal import display_date
+    return display_date(value)
 
 
 def _parse_amount(award: Any) -> Optional[float]:
@@ -168,6 +160,7 @@ def _parse_contacts(poc: Any) -> list[OpportunityContact]:
 
 def map_notice(notice: dict) -> RawOpportunity:
     """Map one SAM.gov opportunitiesData entry to RawOpportunity."""
+    from tools.relevance.temporal import source_time
     return RawOpportunity(
         source="sam.gov",
         source_id=notice.get("noticeId") or notice.get("solicitationNumber") or "",
@@ -183,6 +176,9 @@ def map_notice(notice: dict) -> RawOpportunity:
         estimated_value=_parse_amount(notice.get("award")),
         api_url=notice.get("uiLink") or None,
         contacts=_parse_contacts(notice.get("pointOfContact")),
+        temporal_evidence={kind: source_time(notice.get(field), field='raw_payload.' + field,
+                              source_id=notice.get('noticeId') or notice.get('solicitationNumber') or '')
+                           for kind, field in (('deadline', 'responseDeadLine'), ('posted', 'postedDate'))},
         raw_payload=notice,
     )
 

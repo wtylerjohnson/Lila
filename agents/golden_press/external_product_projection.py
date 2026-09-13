@@ -415,7 +415,12 @@ def build_external_product_document(
             from agents.reports.links import build_sam_notice_link
             row["source_url"] = build_sam_notice_link(row["source_id"]).url
         evidence_date = (leadgen.get("evidence_dates") or {}).get(row["source_id"])
-        if evidence_date:
+        clock = (leadgen.get("evidence_clocks") or {}).get(row["source_id"])
+        if clock is not None:
+            row["source_as_of"] = clock.get("source_as_of")
+            row["source_clock_status"] = clock.get("status")
+            row["source_clock_coverage"] = f"{clock['known']} of {clock['total']} evidence acquisition times recorded"
+        elif evidence_date:
             row["source_as_of"] = min(d for d in (row.get("source_as_of"), evidence_date) if d)
         row["lead_rows"] = children.get(row["source_id"], [])
         reviewed = next((c for c in row["lead_rows"] if c.get("research")), None)

@@ -1,0 +1,167 @@
+{
+  "plan_sha256": "205f5a65df1587d4d32f39a89f31642b45e5ee8251a7782717462c93f9453481",
+  "passed": 20,
+  "failed": 0,
+  "cases": [
+    {
+      "id": "supplier-master",
+      "expected": "candidate",
+      "passed": true,
+      "actual_screen_state": "SUPPORTED_CAPABILITY_AWAITING_JUDGMENT",
+      "actual_verdict": "model_review_required",
+      "score": 3
+    },
+    {
+      "id": "vendor-master",
+      "expected": "candidate",
+      "passed": true,
+      "actual_screen_state": "SUPPORTED_CAPABILITY_AWAITING_JUDGMENT",
+      "actual_verdict": "model_review_required",
+      "score": 3
+    },
+    {
+      "id": "ap-full",
+      "expected": "candidate",
+      "passed": true,
+      "actual_screen_state": "SUPPORTED_CAPABILITY_AWAITING_JUDGMENT",
+      "actual_verdict": "model_review_required",
+      "score": 3
+    },
+    {
+      "id": "ap-bound",
+      "expected": "candidate",
+      "passed": true,
+      "actual_screen_state": "SUPPORTED_CAPABILITY_AWAITING_JUDGMENT",
+      "actual_verdict": "model_review_required",
+      "score": 3
+    },
+    {
+      "id": "ap-unbounded",
+      "expected": "no_candidate",
+      "passed": true,
+      "actual_screen_state": "WEAK_MATCH_NO_SUPPORTED_FIT",
+      "actual_verdict": "discard",
+      "score": 0
+    },
+    {
+      "id": "patient",
+      "expected": "no_candidate",
+      "passed": true,
+      "actual_screen_state": "WEAK_MATCH_NO_SUPPORTED_FIT",
+      "actual_verdict": "discard",
+      "score": 0
+    },
+    {
+      "id": "projector",
+      "expected": "no_candidate",
+      "passed": true,
+      "actual_screen_state": "WEAK_MATCH_NO_SUPPORTED_FIT",
+      "actual_verdict": "discard",
+      "score": 0
+    },
+    {
+      "id": "api-general",
+      "expected": "no_candidate",
+      "passed": true,
+      "actual_screen_state": "WEAK_MATCH_NO_SUPPORTED_FIT",
+      "actual_verdict": "discard",
+      "score": 0
+    },
+    {
+      "id": "duplicate-alias",
+      "expected": "one_core_score",
+      "passed": true,
+      "actual_screen_state": "SUPPORTED_CAPABILITY_AWAITING_JUDGMENT",
+      "actual_verdict": "model_review_required",
+      "score": 3
+    },
+    {
+      "id": "split-context",
+      "expected": "no_candidate",
+      "passed": true,
+      "actual_screen_state": "WEAK_MATCH_NO_SUPPORTED_FIT",
+      "actual_verdict": "discard",
+      "score": 0
+    },
+    {
+      "id": "title-only",
+      "expected": "text_incomplete",
+      "passed": true,
+      "actual_screen_state": "TEXT_INCOMPLETE",
+      "actual_verdict": "unscreened",
+      "score": 0
+    },
+    {
+      "id": "attachment-failed",
+      "expected": "attachment_unavailable",
+      "passed": true,
+      "actual_screen_state": "ATTACHMENT_UNAVAILABLE",
+      "actual_verdict": "unscreened",
+      "score": 0
+    },
+    {
+      "id": "positive-attachment-failed",
+      "expected": "candidate_with_gap",
+      "passed": true,
+      "actual_screen_state": "SUPPORTED_CAPABILITY_AWAITING_JUDGMENT",
+      "actual_verdict": "model_review_required",
+      "score": 3
+    },
+    {
+      "id": "award",
+      "expected": "historical",
+      "passed": true,
+      "actual_screen_state": "HISTORICAL_MARKET_EVIDENCE",
+      "actual_verdict": "discard",
+      "score": 3
+    },
+    {
+      "id": "off-scope",
+      "expected": "excluded_scope",
+      "passed": true,
+      "actual_screen_state": "VERIFIED_SCOPE_EXCLUSION",
+      "actual_verdict": "discard",
+      "score": 3
+    },
+    {
+      "id": "alias-record-kill",
+      "expected": "excluded",
+      "passed": true,
+      "actual_screen_state": "VERIFIED_EXCLUSION",
+      "actual_verdict": "discard",
+      "score": 0
+    },
+    {
+      "id": "naics-only",
+      "expected": "no_candidate",
+      "passed": true,
+      "actual_screen_state": "WEAK_MATCH_NO_SUPPORTED_FIT",
+      "actual_verdict": "discard",
+      "score": 0
+    },
+    {
+      "id": "sanctions-generic",
+      "expected": "no_candidate",
+      "passed": true,
+      "actual_screen_state": "WEAK_MATCH_NO_SUPPORTED_FIT",
+      "actual_verdict": "discard",
+      "score": 0
+    },
+    {
+      "id": "bank-equivalent",
+      "expected": "candidate",
+      "passed": true,
+      "actual_screen_state": "SUPPORTED_CAPABILITY_AWAITING_JUDGMENT",
+      "actual_verdict": "model_review_required",
+      "score": 3
+    },
+    {
+      "id": "risk-equivalent",
+      "expected": "candidate",
+      "passed": true,
+      "actual_screen_state": "SUPPORTED_CAPABILITY_AWAITING_JUDGMENT",
+      "actual_verdict": "model_review_required",
+      "score": 3
+    }
+  ]
+}

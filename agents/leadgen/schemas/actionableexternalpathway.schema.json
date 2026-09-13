@@ -89,9 +89,28 @@
           "title": "Record Hash"
         },
         "retrieved_at": {
-          "format": "date-time",
-          "title": "Retrieved At",
-          "type": "string"
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retrieved At"
+        },
+        "source_acquisition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceAcquisition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "source_name": {
           "minLength": 1,
@@ -122,7 +141,6 @@
         "kind",
         "source_name",
         "source_url",
-        "retrieved_at",
         "excerpt"
       ],
       "title": "EvidenceRef",
@@ -230,6 +248,88 @@
         "name"
       ],
       "title": "PublishedContact",
+      "type": "object"
+    },
+    "SourceAcquisition": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "enum": [
+            "sam_notice_depth",
+            "horizon_fact_bank",
+            "none"
+          ],
+          "title": "Basis",
+          "type": "string"
+        },
+        "binding_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Binding Sha256",
+          "type": "string"
+        },
+        "component": {
+          "enum": [
+            "notice_description",
+            "notice_payload",
+            "horizon_fact",
+            "subaward_record"
+          ],
+          "title": "Component",
+          "type": "string"
+        },
+        "input_types": {
+          "default": [],
+          "items": {
+            "enum": [
+              "text",
+              "non_text",
+              "missing"
+            ],
+            "type": "string"
+          },
+          "title": "Input Types",
+          "type": "array"
+        },
+        "original_field": {
+          "title": "Original Field",
+          "type": "string"
+        },
+        "raw_values": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Raw Values",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "known",
+            "missing",
+            "invalid",
+            "date_only",
+            "unknown_timezone",
+            "conflict",
+            "untrusted"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "version": {
+          "const": "assess.source-acquisition.v1",
+          "default": "assess.source-acquisition.v1",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "basis",
+        "component",
+        "original_field",
+        "binding_sha256"
+      ],
+      "title": "SourceAcquisition",
       "type": "object"
     }
   },

@@ -223,9 +223,12 @@ def render_html(receipt: PressLeadGenReceipt) -> str:
                 ("Decision trace ID", lead.decision_trace_id),
                 ("Decision note", trace.notes if trace else None),
             ])
+            from agents.assess.source_clock import acquired_at
             evidence = "".join(
                 f'<li>{_link(item.source_url, item.evidence_id)} · '
-                f'{_text(item.excerpt)}</li>' for item in pathway.evidence
+                f'{_text(item.excerpt)}<br>Source acquisition: '
+                f'{_text(acquired_at(item).isoformat()) if acquired_at(item) else "Collection time not established"}'
+                f'{" · Original timestamp: " + _text(item.source_acquisition.raw_values[0]) if item.source_acquisition and acquired_at(item) else ""}</li>' for item in pathway.evidence
             )
             contacts = "; ".join(" · ".join(filter(None, (c.name, c.title, c.email, c.phone)))
                                  for c in pathway.published_contacts)

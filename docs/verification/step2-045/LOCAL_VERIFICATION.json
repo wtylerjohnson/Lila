@@ -1,0 +1,200 @@
+{
+  "schema": "lila.step2.local-verification.v1",
+  "work_id": "REPAIR-STEP2-IMPLEMENT-045",
+  "at_utc": "2026-09-11T23:10:18.212704+00:00",
+  "status": "LOCAL_VERIFIED_FOR_FABLE_REVIEW_NOT_STEP2_ACCEPTANCE",
+  "accepted_step1": "600a3e210844610a8f407fc0684d40c104bf8134",
+  "tested_code_commit": "1fe59864ac6c68bc887b7e963b1056aac7620598",
+  "core_commit": "9d6e0672df076e92012c4980bbebfb18e98d458d",
+  "separate_C1_contract_commit": "1fe59864ac6c68bc887b7e963b1056aac7620598",
+  "candidate_files_sha256": {
+    "agents/decisions/triage.py": "545da69fe62f25bfbec151adcf48bf610b2770ee101778744aec200ce86dc448",
+    "agents/reports/composer.py": "af79b5a345aff46aa9e633318bcb65196e1e0abdbd8dbb9fceaf2cf474e6b1f2",
+    "clients/apexanalytix/capability_taxonomy.json": "b6c1b9fb5d90cf9f974b6772e1552bc6723c4f71bca969f0fc27068d6e46c2b6",
+    "docs/CONTRACT_SURFACES.md": "9542d368aee035de0fe0f6154178c61fda421511d6c829093f9c7c055ec8a0c7",
+    "docs/CONVENTIONS.md": "8bf3d5bfc3852bcafbabd50c0cf415be8f494c04f15fc24766bfd43b392e7641",
+    "run_searches.py": "12c42a5a8f3e7a75622ac5e2389120f6ae278299c96a6d1db8dc957e280a466a",
+    "tests/test_capability_alignment.py": "5caa5eae89fda0c1bcd8265ca543024d8918f6262a1d5008b796a2372d517acb",
+    "tests/test_client_relevance_alias_contract.py": "941f818623e2aea3b8f9f76b78d0221ab0e24e875a024cc8580e97fb7664c0c9",
+    "tests/test_sam_attachment_text.py": "b425fa5f40e63c36f3b3d0ecaa303746c0544b9d418630433f86f0566ace5ceb",
+    "tests/test_triage_prefilter.py": "1e6dd86c9523cc80bbfc6e6afc8e13251f43e8bd33ef91f5f4f2d82aabace476",
+    "tools/relevance/audit_saved_screen.py": "a0509e2961a344886129c75b330253335957044d1544a52595ba258147a1e19a",
+    "tools/relevance/engine.py": "665fa13d2a2c53ef44ed536cd3471a9c13d20cc559a6d6e6fab694d172fec61b",
+    "tools/relevance/screening.py": "a62a62018f1f38de4216c8445beab4800f0778157eea22eb007dbdb8d9937cb8",
+    "tools/relevance/taxonomy.py": "6b9908829ad1766af0b8f5072f1db129ead318e09a951e4b6e62b514f9528746"
+  },
+  "tests": {
+    "full_offline_strict": {
+      "passed": 5456,
+      "skipped": 40,
+      "warnings": 18,
+      "seconds": 125.8,
+      "exit_code": 0,
+      "command": "LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 python -m pytest tests/ -q -rs",
+      "explicit_skips": [
+        "SKIPPED [1] tests/test_apex_search_benchmark.py:115: PIVOT not positively identified in this store slice; collection job, not a screen defect",
+        "SKIPPED [1] tests/test_apex_search_benchmark.py:115: DIA RMIC not positively identified in this store slice; collection job, not a screen defect",
+        "SKIPPED [1] tests/test_apex_search_benchmark.py:115: HHS VMO not positively identified in this store slice; collection job, not a screen defect",
+        "SKIPPED [1] tests/test_apex_search_benchmark.py:115: DHA TCRS not positively identified in this store slice; collection job, not a screen defect",
+        "SKIPPED [1] tests/test_apex_search_benchmark.py:127: PIVOT not positively identified in this store slice",
+        "SKIPPED [1] tests/test_apex_search_benchmark.py:127: DIA RMIC not positively identified in this store slice",
+        "SKIPPED [1] tests/test_apex_search_benchmark.py:127: HHS VMO not positively identified in this store slice",
+        "SKIPPED [1] tests/test_apex_search_benchmark.py:127: DHA TCRS not positively identified in this store slice",
+        "SKIPPED [1] tests/test_apex_search_benchmark.py:172: VHA award not in this machine's store slice",
+        "SKIPPED [1] tests/test_cross_client_leakage.py:73: fewer than two pressed clients on this checkout",
+        "SKIPPED [1] tests/test_hhs_sbcx_forecast.py:240: set LILA_RUN_LIVE_SOURCE_TESTS=1 for the bounded official probe",
+        "SKIPPED [1] tests/test_motion_title_strategy.py:86: red_hat pack not on this machine",
+        "SKIPPED [1] tests/test_operating_repair.py:135: real Arista operating input is not versioned; run local acceptance separately",
+        "SKIPPED [6] tests/test_source_accepted_wave2.py:282: live smoke is opt-in: set LILA_LIVE_SMOKE=1",
+        "SKIPPED [6] tests/test_source_connector_wave3.py:181: set LILA_LIVE_SOURCE_HEALTH=1 for opt-in official endpoint probes",
+        "SKIPPED [1] tests/test_source_ed_forecast.py:396: live smoke is opt-in: set LILA_LIVE_SMOKE=1",
+        "SKIPPED [1] tests/test_source_fpds_atom.py:360: live smoke only when LILA_LIVE_SMOKE is set",
+        "SKIPPED [1] tests/test_source_gsa_elibrary.py:278: live smoke is opt-in: set LILA_LIVE_SMOKE=1",
+        "SKIPPED [1] tests/test_source_navy_nawcad_lraf.py:81: live smoke is opt-in: set LILA_LIVE_SMOKE=1",
+        "SKIPPED [1] tests/test_source_navy_nawcwd_lraf.py:94: live smoke is opt-in: set LILA_LIVE_SMOKE=1",
+        "SKIPPED [1] tests/test_source_nih_reporter.py:284: live smoke is opt-in: LILA_LIVE_SMOKE=1",
+        "SKIPPED [1] tests/test_source_oasis_plus_holders.py:296: live smoke is opt-in: LILA_LIVE_SMOKE=1",
+        "SKIPPED [1] tests/test_source_omb_apportionment.py:294: live smoke is opt-in: set LILA_LIVE_SMOKE=1",
+        "SKIPPED [1] tests/test_source_sba_mentor_protege.py:293: live smoke is opt-in: set LILA_LIVE_SMOKE=1",
+        "SKIPPED [1] tests/test_source_sba_sbs.py:242: live smoke is opt-in: set LILA_LIVE_SMOKE=1",
+        "SKIPPED [1] tests/test_source_sec_procurement_forecast.py:85: live smoke is opt-in: set LILA_LIVE_SMOKE=1",
+        "SKIPPED [1] tests/test_source_state_forecast.py:402: live smoke is opt-in: set LILA_LIVE_SMOKE=1",
+        "SKIPPED [1] tests/test_targeting_hardening.py:150: riverbed pack not on this machine",
+        "SKIPPED [1] tests/test_targeting_hardening.py:150: thinklogical pack not on this machine",
+        "SKIPPED [1] tests/test_targeting_hardening.py:150: varonis pack not on this machine"
+      ]
+    },
+    "focused": {
+      "passed": 142,
+      "exit_code": 0,
+      "scope": "Nine files listed in REVIEW.md, including accepted Step1 hardening"
+    },
+    "prespecified_acceptance": {
+      "passed": 20,
+      "failed": 0,
+      "plan_sha256": "205f5a65df1587d4d32f39a89f31642b45e5ee8251a7782717462c93f9453481"
+    },
+    "existing_operator_review": {
+      "passed": 56,
+      "failed": 0,
+      "blocking_findings": [],
+      "receipt_sha256": "5d7f7452efb86b88aee4f9085e873505146fd9283e49c7af66ba96afff4f197f",
+      "scope": "Bounded offline supporting review, not Fable acceptance"
+    }
+  },
+  "local_log_sha256": {
+    "full-suite.log": "77dcfa4bf55b6c732e3d6221e19423a9ca349e2062c9a1f0edc2d5bbdffa1578",
+    "targeted.log": "54fe3ca60bb9b3f3a69b58e8286ceb81605b18cfe3e0263d1749af6482a0d510",
+    "replay.log": "8b04bf7047ea7530460ccd1cfc0a0746080f0c59802a3eb180a1e4dce40ca137",
+    "PRESPECIFIED_ACCEPTANCE.json": "5d1376052412ccfa6c9658a12b4e95c63799e21a2f38baff91a1e0bb88852de6",
+    "PRESERVATION.json": "bd8b89877cc77b2e8ba73292d8da1f1922ba7fff657d607f1d24b87e3034b95c"
+  },
+  "saved_development_audit": {
+    "input_sha256": "6ce0ca8907f38f544aa59a3530ee614ac345c61fdacf7ef007284d570b0c6e73",
+    "baseline_sha256": "71aa20ad5e001af97703f881ab18e19e99c9418637fe6ce2e9898b6602c760e2",
+    "candidate_census": 356,
+    "model_candidates": 0,
+    "dispositions": {
+      "discard": 355,
+      "unscreened": 1
+    },
+    "screen_states": {
+      "WEAK_MATCH_NO_SUPPORTED_FIT": 305,
+      "HISTORICAL_MARKET_EVIDENCE": 50,
+      "TEXT_INCOMPLETE": 1
+    },
+    "stage_changed_ids": [
+      "0189a998394f44d8b21050c3fa9b7775",
+      "069f0f51da5e4ee994eed35301b409af",
+      "0817db124a424e0b840dacb2e18cdd7b",
+      "0a894f023a514e43a26544a431fd8977",
+      "1808812b2e3341b897fb71f765a81b89",
+      "1ae5f94204e14e96b29cead80eb966a8",
+      "1d94baaac263447ea258ddd6cee3ca4f",
+      "35ac4e5dc8dc414b81d81ee99cd9d409",
+      "393d20561c7c4cdb8a1bb5478d9d83bc",
+      "3ee5183c6bf9416b9e7cafb52eb9a6c1",
+      "42124a4aa46747438cf58562af27d675",
+      "47407e65e923472fadd6659b2398f5b9",
+      "4917caa217b2457b9ff44860cff49bf1",
+      "4ab4c41e844742c1a2c9e536a4ed923a",
+      "4b4f853e88264f1c928370fb38e51625",
+      "4baf030e1c9046a3a798a6603f09e7e0",
+      "5bde4980c2d64ce2ad916ca03862f7d4",
+      "63065f37b6b6417c804f7f0821fb2684",
+      "64d14d8bc3d04b3787390041d55e4bf4",
+      "662ad458aa6a49048e5d9c4acc7429ff",
+      "67ed15d004834164b507fa732bd7470c",
+      "6b774343842d48598530b576493d4dcb",
+      "707826d40d854e72b0c2defd148ff747",
+      "72e57616cb02448c808a629cc4a361ce",
+      "769eda2e77f5485bbf862083c1014f1c",
+      "7b2d416bed4e4a7a9893d081ff6712d1",
+      "80699668e8254f03aad488e9c6f65fdc",
+      "8228b6292faa47a1aea591e30793056e",
+      "876257ba0e19489a8828ce78672a4ea1",
+      "8852bd4685e24aeaa87ce08ec9e0175e",
+      "89c3f298a8344deebc839499d7b2014d",
+      "93aabb33e3d4429c8acb6f147ab1b005",
+      "94fcc7507c6e4325a6b18e18c09edca0",
+      "997374a5aeb143ce93749e094b8f0490",
+      "a179d3b70fa7444b874b1b5176c71d06",
+      "b85202c7246845e6bdd82b4fc838b024",
+      "b9bdf958b61c43a49f5554eaa70875e8",
+      "b9e2aa0d17b741bdbce319e99ff7b01a",
+      "bfab973738d44fa2a9ccdacaca7df86f",
+      "c2a36e72617448978a77154ea1152e4e",
+      "c353b08d2e1e467b82950f1040b9f98a",
+      "c83f7f78ffd042d29d14c093355b3874",
+      "e0bf3b3d219e4b82bf7dc93173b7aa9d",
+      "e7fe415baa5b4f6da002fba6a86ca5e3",
+      "f0fd2dc370a84cb7bd58a8b9e27db03a",
+      "f204a03eb96046cfa82f3723d8645ed9",
+      "f2d3e2c8fcac4364923417df4bfb680c",
+      "f308944445d84e34bac35f2c34e30d3e",
+      "f766218fc8934bba942274e146d754ad",
+      "fad23b6b8e544c3ba6deb83800789c12"
+    ],
+    "disposition_changed_ids": [
+      "4802b3a2e0e64fe98e923d2b92516ad7"
+    ],
+    "limits": [
+      "Development replay of frozen inputs, not a fresh capture or independent holdout.",
+      "No LLM judgment, qualification or engagement-scope re-adjudication.",
+      "Accumulated-store term yield is not the final daily-extract population.",
+      "Positive matches are review candidates, not verified false negatives or leads."
+    ]
+  },
+  "capability_definition": {
+    "retrieval_mappings": 14,
+    "supported": 10,
+    "exploratory": 4,
+    "canonical_core_terms": 9,
+    "reviewed_aliases": 12,
+    "company_source_files": 3
+  },
+  "preservation": {
+    "protected_inputs": {
+      "cases/apex-discovery-calibration-004/capture_lock.FINAL.json": "658bbbff0e994d757c411787bfb7671621a8e53759dbc3dcf5ec92fa4ae6e3b0",
+      "cases/apex-discovery-calibration-005/capture_lock.FINAL.json": "137cb5e2b994ed372db1528a8b31862e81555792a44c9edf2c90e5c6ec3f55a5",
+      "cases/apex-discovery-calibration-005/lila/capture/CAPTURE-LILA-005/new_native_sweep.json": "6ce0ca8907f38f544aa59a3530ee614ac345c61fdacf7ef007284d570b0c6e73",
+      "handoffs/STEP1-041/VERIFICATION.json": "94d0632c249a54c63cbf3d1bcd99334c1bf5c9492eaf4a85720a6bac6b5b8b14"
+    },
+    "ignored_fixtures_verified": 31,
+    "capability_source_files_verified": 3,
+    "frozen_cases_written": false,
+    "production_written": false
+  },
+  "report_lints": "Existing report lint and rendering regression tests passed in full suite; no new live client report was pressed.",
+  "fable_acceptance": false,
+  "step3_started": false,
+  "production_merge": false,
+  "limitations": [
+    "Synthetic cases are known development fixtures, not independent holdouts.",
+    "Frozen356 audit produced no new model candidate or verified recovered opportunity.",
+    "Matching and source binding do not prove buyer-request entailment; that remains Step3.",
+    "Supplied text completeness and attachment caps remain explicit.",
+    "Full local suite used31 ignored baseline fixtures absent from this review branch; cloud parity is not asserted.",
+    "Original frozen-case files and local logs are not in this repository; hashes here are producer receipts."
+  ]
+}

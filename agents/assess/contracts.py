@@ -21,6 +21,8 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator
 
+from agents.assess.source_clock import SourceAcquisition, acquired_at, clock_instant
+
 
 class _FrozenContract(BaseModel):
     """Immutable base for every validated Assess boundary object.
@@ -99,13 +101,26 @@ class EvidenceRef(_FrozenContract):
     kind: EvidenceKind
     source_name: str = Field(min_length=1)
     source_url: HttpUrl
-    retrieved_at: datetime
+    retrieved_at: Optional[datetime] = None
+    source_acquisition: Optional[SourceAcquisition] = None
     excerpt: str = Field(min_length=1)
     observed_date: Optional[date] = None
     effective_date: Optional[date] = None
     record_hash: Optional[str] = None
     primary_source: bool = False
     supports: tuple[EvidenceUse, ...] = Field(default_factory=tuple)
+
+    @model_validator(mode="after")
+    def _acquisition_matches_source(self):
+        # None is archival schema1, not permission to claim acquisition in v2.
+        if self.source_acquisition is not None:
+            if self.source_acquisition.binding_sha256 != self.record_hash:
+                raise ValueError("source acquisition is not bound to this evidence record")
+            expected = clock_instant(self.source_acquisition)
+            if expected != self.retrieved_at or (self.retrieved_at is not None and (
+                    self.retrieved_at.tzinfo is None or self.retrieved_at.utcoffset() is None)):
+                raise ValueError("retrieved_at must equal the supported source acquisition or be null")
+        return self
 
 
 class LiveClassification(str, Enum):
@@ -239,6 +254,8 @@ class LiveSolicitation(_FrozenContract):
             reviewed_at = self.requirement_reviewed_at
             if reviewed_at.tzinfo is None or reviewed_at.utcoffset() is None:
                 raise ValueError("requirement review timestamp must be timezone-aware")
+            if reviewed_evidence.retrieved_at is None:
+                raise ValueError("requirement review acquisition chronology is unknown")
             if reviewed_at < reviewed_evidence.retrieved_at:
                 raise ValueError("requirement review cannot predate its evidence")
             if reviewed_at > self.verified_at:
@@ -263,6 +280,8 @@ class LiveSolicitation(_FrozenContract):
                 raise ValueError("attachment review timestamp must be timezone-aware")
             if attachment_reviewed_at > self.verified_at:
                 raise ValueError("attachment review cannot postdate verification")
+            if any(e.retrieved_at is None for e in self.authoritative_evidence):
+                raise ValueError("attachment review acquisition chronology is unknown")
             if attachment_reviewed_at < max(
                     evidence.retrieved_at
                     for evidence in self.authoritative_evidence):
@@ -304,6 +323,8 @@ class LiveSolicitation(_FrozenContract):
                     for trace in self.fit_trace):
                 raise ValueError(
                     "bid-now fit trace must cite requirement evidence")
+            if any(e.retrieved_at is None for e in requirement_evidence):
+                raise ValueError("bid-now requirement acquisition is unknown")
             if any(evidence.retrieved_at > self.verified_at
                    for evidence in requirement_evidence):
                 raise ValueError(
@@ -511,16 +532,27 @@ class AssessRun(_FrozenContract):
                         self.scope, self.as_of):
                 raise ValueError(
                     "Assess ledgers must share run, client, profile, scope, and as-of")
+        all_evidence = [e for record in self.live.records for e in record.authoritative_evidence]
+        all_evidence += [e for item in self.horizon.items for e in (*item.evidence, *item.counterevidence)]
+        all_evidence += [e for item in self.partners.items for e in item.evidence]
+        if self.run_id.startswith("assess:v1:") and any(e.source_acquisition is not None for e in all_evidence):
+            raise ValueError("legacy v1 Assess run cannot contain v2 source acquisition")
+        if self.run_id.startswith("assess:v2:") and any(e.source_acquisition is None for e in all_evidence):
+            raise ValueError("v2 Assess evidence requires explicit source acquisition provenance")
+        if self.run_id.startswith("assess:v2:"):
+            for item in (*self.horizon.items, *self.partners.items):
+                if item.status == IntelligenceStatus.APPROVED and any(acquired_at(e) is None for e in item.evidence):
+                    raise ValueError("approved intelligence requires known source acquisition")
         if any(record.verified_at > self.as_of
-               or any(evidence.retrieved_at > self.as_of
+               or any(evidence.retrieved_at is not None and evidence.retrieved_at > self.as_of
                       for evidence in record.authoritative_evidence)
                for record in self.live.records):
             raise ValueError("live evidence or verification postdates run as-of")
-        if any(evidence.retrieved_at > self.as_of
+        if any(evidence.retrieved_at is not None and evidence.retrieved_at > self.as_of
                for thesis in self.horizon.items
                for evidence in (*thesis.evidence, *thesis.counterevidence)):
             raise ValueError("Horizon evidence postdates run as-of")
-        if any(evidence.retrieved_at > self.as_of
+        if any(evidence.retrieved_at is not None and evidence.retrieved_at > self.as_of
                for partner in self.partners.items
                for evidence in partner.evidence):
             raise ValueError("partner evidence postdates run as-of")
@@ -567,6 +599,18 @@ class AssessRun(_FrozenContract):
         if (checked.approval_status != GateStatus.APPROVED
                 or not checked.approved_by or not checked.approved_at
                 or checked.requires_human_review is not True):
+            return False
+        # Old snapshots remain readable; their timestamp alone cannot grant a
+        # new freshness-sensitive release or approval.
+        required = [e for r in checked.live.records
+                    if r.requirement_reviewed_at or r.attachment_reviewed_at
+                    or r.classification == LiveClassification.BID_NOW
+                    for e in r.authoritative_evidence]
+        required += [e for t in checked.horizon.items if t.status == IntelligenceStatus.APPROVED
+                     for e in (*t.evidence, *t.counterevidence)]
+        required += [e for p in checked.partners.items if p.status == IntelligenceStatus.APPROVED
+                     for e in p.evidence]
+        if any(acquired_at(e) is None for e in required):
             return False
         return (not checked.blocking_sources()
                 or checked.partial_release_approved)

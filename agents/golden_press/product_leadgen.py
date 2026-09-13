@@ -5,6 +5,7 @@ is disclosed without discarding the independently usable market assessment.
 """
 from __future__ import annotations
 
+from agents.assess.source_clock import acquisition_summary
 from collections import Counter
 from pathlib import Path
 from tools.slug import client_slug
@@ -51,12 +52,9 @@ def build_leadgen_companion(client_name: str, root: Path, *, evidence_pack=None)
     from agents.leadgen.quality_baseline import check_reviewed_quality
     quality = check_reviewed_quality(receipt, book)
     run = envelope["run"]
-    evidence_dates = {
-        row["notice_id"]: min(dates) if dates else None
-        for row in run["live"]["records"]
-        for dates in [[e["retrieved_at"] for e in row["authoritative_evidence"]
-                       if e.get("retrieved_at")]]
-    }
+    evidence_clocks = {row["notice_id"]: acquisition_summary(row["authoritative_evidence"])
+                       for row in run["live"]["records"]}
+    evidence_dates = {key: clock["source_as_of"] for key, clock in evidence_clocks.items()}
     card = score_pack(payload) if receipt.parents else None
     return {
         "status": "complete",
@@ -66,6 +64,7 @@ def build_leadgen_companion(client_name: str, root: Path, *, evidence_pack=None)
         "lead_count": len(receipt.leads),
         "tiers": dict(Counter(lead.lead_tier.value for lead in receipt.leads)),
         "evidence_dates": evidence_dates,
+        "evidence_clocks": evidence_clocks,
         "assessment": envelope,
         "receipt": payload,
         "reviewed_cases": book.model_dump(mode="json"),
@@ -98,7 +97,7 @@ def restore_assessment_population(pack, companion: dict, *, conn=None):
                 response_deadline=row.get("response_deadline"),
                 description=row.get("requirement_excerpt"),
                 url=next((e.get("source_url") for e in evidence if e.get("source_url")), None),
-                retrieved_at=min((e["retrieved_at"] for e in evidence if e.get("retrieved_at")), default=None),
+                retrieved_at=acquisition_summary(evidence)["source_as_of"],
                 source_fields={"classification": row.get("classification"),
                                "recommendation": row.get("recommendation"),
                                "assess_run_id": run.get("run_id")})
