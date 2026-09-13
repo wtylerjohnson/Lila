@@ -206,3 +206,44 @@ def test_raw_apfs_fields_migration_keeps_store_identity_without_market_event(mon
     assert list(initial)==list(revised)==[current.source_id]
     assert revised[current.source_id]['first_seen']=='2026-09-12'
     assert revised[current.source_id]['source_fields']
+
+
+@pytest.mark.parametrize('bad',['{','[]','null','42','"text"'])
+@pytest.mark.parametrize('seam',['raw','typed','persist','html','markdown'])
+def test_discovery_context_requires_object_at_boundaries(monkeypatch,tmp_path,bad,seam):
+    run,d,index=build(monkeypatch)
+    subject=run.research.items[0].model_copy(update={'discovery_context_json':bad})
+    altered=run.model_copy(update={'research':run.research.model_copy(update={'items':(subject,*run.research.items[1:])})})
+    with pytest.raises(ValueError):
+        if seam=='raw':AssessRun.model_validate(altered.model_dump(mode='json'))
+        elif seam=='typed':coerce_assess_run(altered)
+        elif seam=='persist':persist_assess_run(altered,BINDING,d,index,state_dir=tmp_path)
+        else:
+            receipt=run_press(assess=run)
+            parents=tuple(p.model_copy(update={'research_subject':subject}) if p.subject_id==subject.subject_id else p for p in receipt.parents)
+            altered_receipt=receipt.model_copy(update={'parents':parents})
+            (render_html if seam=='html' else render_markdown)(altered_receipt)
+
+@pytest.mark.parametrize('field,value', [('evidence_id','forged'),('source_name','forged'),('tier','notice'),('supports',['requirement']),('supports',['funding']),('supports',['access'])])
+def test_research_evidence_cannot_gain_authority(monkeypatch,field,value):
+    run,_,_=build(monkeypatch)
+    raw=run.model_dump(mode='json');raw['research']['items'][0]['evidence'][0][field]=value
+    with pytest.raises(ValueError):AssessRun.model_validate(raw)
+
+@pytest.mark.parametrize('field',['title','description','component','set_aside','anticipated_award'])
+def test_apfs_mapped_fields_cannot_contradict_raw(monkeypatch,field):
+    from agents.assess.research_subjects import canonical,digest
+    run,_,_=build(monkeypatch)
+    raw=next(s for s in run.research.items if s.source_kind=='forecast').model_dump(mode='json')
+    row=json.loads(raw['source_payload_json']);row[field]='Forged source content'
+    raw['source_payload_json']=canonical(row);raw['source_sha256']=digest(row)
+    with pytest.raises(ValueError,match='mapped field disagrees'):ResearchSubject.model_validate(raw)
+
+def test_award_posture_cannot_be_promoted_and_conflicting_dates_unknown(monkeypatch):
+    from agents.assess.research_subjects import source_posture
+    run,_,_=build(monkeypatch)
+    raw=run.model_dump(mode='json');award=next(s for s in raw['research']['items'] if s['source_kind']=='award')
+    award['source_posture']='historical_award'
+    with pytest.raises(ValueError,match='posture'):AssessRun.model_validate(raw)
+    assert source_posture('award',{'period_of_performance':{'start_date':'2025-01-01','end_date':'2027-01-01'},'end_date':'2028-01-01'},NOW)=='award_timing_unknown'
+    assert source_posture('award',{'period_of_performance':{'start_date':'2028-01-01','end_date':'2027-01-01'}},NOW)=='award_timing_unknown'

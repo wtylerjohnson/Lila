@@ -536,6 +536,7 @@ def run_press(
 
 def render_markdown(receipt: PressLeadGenReceipt) -> str:
     """Operator-facing press summary. Internal review copy only."""
+    receipt = PressLeadGenReceipt.model_validate(receipt.model_dump(mode="json"))
 
     lines = [
         f"# Press Lead Gen receipt · {receipt.client_name}",
@@ -564,7 +565,7 @@ def render_markdown(receipt: PressLeadGenReceipt) -> str:
             if parent.research is not None:
                 lines.extend([parent.research.rationale, parent.research.next_ask, parent.research.route])
             for target in parent.targets:
-                lines.append(f"[{target.name} — {target.role}]({target.source_url}): {target.next_ask}. {target.authority_boundary}")
+                lines.append(f"[{target.name} / {target.role}]({target.source_url}): {target.next_ask}. {target.authority_boundary}")
             lines.extend(["", f"## Research: {subject.title}", "",
                           f"Source: [{subject.source_record_id}]({subject.source_url})",
                           subject.next_ask, subject.route_hypothesis,

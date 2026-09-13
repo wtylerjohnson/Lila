@@ -6,7 +6,7 @@ No reviewer, future event, live identity or buying motion is manufactured.
 """
 from __future__ import annotations
 import hashlib
-from datetime import date
+from datetime import date, datetime, timezone
 import json
 from urllib.parse import urlsplit, unquote
 from agents.assess.source_clock import acquisition_clock
@@ -33,6 +33,11 @@ def _locator(kind, row):
             raw = row.get('source_fields') or {}
             if source_id != str(raw.get('apfs_number') or raw.get('id') or ''):
                 raise ValueError('forecast published identity disagrees with source row')
+            from tools.api.forecasts.dhs_apfs import map_record
+            mapped = map_record(raw, retrieved_at=datetime(1970,1,1,tzinfo=timezone.utc)).model_dump(mode="json")
+            for field,value in mapped.items():
+                if field not in {'retrieved_at','first_seen','last_seen','record_hash'} and row.get(field) != value:
+                    raise ValueError(f'forecast mapped field disagrees with original APFS source: {field}')
             expected = f"/record/{raw.get('id')}/public-print/"
             if urlsplit(str(url)).hostname != 'apfs-cloud.dhs.gov' or urlsplit(str(url)).path != expected:
                 raise ValueError('forecast URL disagrees with captured record ID')
@@ -65,6 +70,10 @@ def _locator(kind, row):
 
 
 def validate_subject(subject):
+    if subject.discovery_context_json is not None:
+        context=json.loads(subject.discovery_context_json)
+        if not isinstance(context,dict):
+            raise ValueError('research discovery context must be a JSON object')
     if subject.reviewed_overlay_json is not None:
         from agents.assess.reviewed_cases import ReviewedSubject
         overlay = ReviewedSubject.model_validate_json(subject.reviewed_overlay_json)
@@ -80,7 +89,12 @@ def validate_subject(subject):
         raise ValueError('research subject identity disagrees with source')
     kind=EvidenceKind.AWARD if subject.source_kind=='award' else EvidenceKind.AGENCY_FORECAST
     expected_clock=acquisition_clock(row.get('retrieved_at'),basis='none',component='research_record',field='source_row.retrieved_at',binding=subject.source_sha256)
+    if len(subject.evidence) != 1:
+        raise ValueError('research subject requires its single original source record')
     for e in subject.evidence:
+        expected_tier=EvidenceTier.MARKET if subject.source_kind=='award' else EvidenceTier.PROGRAM
+        if e.evidence_id != 'ev:research:v1:'+subject.source_sha256 or e.tier != expected_tier or e.supports != (EvidenceUse.BUYER,) or e.source_name != system or e.observed_date is not None or e.effective_date is not None:
+            raise ValueError('research source evidence cannot acquire additional authority')
         if e.source_acquisition != expected_clock or e.retrieved_at is not None:
             raise ValueError('research acquisition must retain the exact untrusted source claim')
         if e.kind != kind or str(e.source_url)!=url or e.record_hash!=subject.source_sha256 or e.excerpt!=text or not e.primary_source:
@@ -89,13 +103,16 @@ def validate_subject(subject):
 
 def source_posture(kind, row, as_of=None):
     if kind == 'forecast':return 'forecast_plan'
-    end=(row.get('period_of_performance') or {}).get('end_date') or row.get('end_date') or row.get('completion')
-    start=(row.get('period_of_performance') or {}).get('start_date') or row.get('start_date')
+    period=row.get('period_of_performance') or {}
     try:
-        end_date=date.fromisoformat(str(end)[:10])
-        if as_of is None:return 'award_timing_unknown'
+        ends={date.fromisoformat(str(v)[:10]) for v in (period.get('end_date'),row.get('end_date'),row.get('completion')) if v}
+        starts={date.fromisoformat(str(v)[:10]) for v in (period.get('start_date'),row.get('start_date')) if v}
+        if as_of is None or len(ends)!=1 or len(starts)>1:return 'award_timing_unknown'
+        end_date=next(iter(ends))
+        start_date=next(iter(starts)) if starts else None
+        if start_date and start_date>end_date:return 'award_timing_unknown'
         if end_date<as_of.date():return 'historical_award'
-        if not start or date.fromisoformat(str(start)[:10])>as_of.date():return 'award_timing_unknown'
+        if start_date is None or start_date>as_of.date():return 'award_timing_unknown'
         return 'current_period_award'
     except (TypeError,ValueError):return 'award_timing_unknown'
 

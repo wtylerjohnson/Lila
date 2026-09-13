@@ -150,6 +150,8 @@ def _section(number: int, anchor: str, title: str, subtitle: str, body: str) -> 
 
 def render_html(receipt: PressLeadGenReceipt) -> str:
     """Render the receipt without discovery, enrichment, or I/O."""
+    from .press import PressLeadGenReceipt
+    receipt = PressLeadGenReceipt.model_validate(receipt.model_dump(mode="json"))
     parents = {p.assessment_id: p for p in receipt.parents}
     parent_anchors = {p.assessment_id: f"parent-{i}"
                       for i, p in enumerate(receipt.parents)}

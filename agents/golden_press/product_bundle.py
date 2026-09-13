@@ -147,8 +147,28 @@ def _require_output_retention(root: Path, slug: str, pack, leadgen: Optional[dic
     prior_quality = previous.parent / "quality_baseline.json"
     if prior_quality.exists() and leadgen is not None:
         baseline = json.loads(prior_quality.read_text())
+        prior_ids=set(baseline.get("retained_research_subject_ids", []))
+        current_ids=set((leadgen.get("quality_baseline") or {}).get("retained_research_subject_ids", []))
+        for sid in sorted(prior_ids-current_ids):
+            problems.append(f"research assessment history removed: {sid}")
         current_cases = {c["record"]["notice_id"]: c
                          for c in (leadgen.get("reviewed_cases") or {}).get("cases", [])}
+        current_subjects={c["subject_id"]:c for c in (leadgen.get("reviewed_cases") or {}).get("subjects", [])}
+        for subject in (baseline.get("reviewed_cases") or {}).get("subjects", []):
+            sid=subject["subject_id"]
+            newer=current_subjects.get(sid)
+            if newer is None:
+                problems.append(f"reviewed research history removed: {sid}")
+                continue
+            for field in ("rationale","buyer_requirement","fit_hypothesis","route","why_now","next_ask","open_questions","evidence"):
+                if (subject.get("research") or {}).get(field) and not (newer.get("research") or {}).get(field):
+                    problems.append(f"reviewed research detail removed: {sid} / {field}")
+            newer_targets={t["name"]:t for t in newer.get("targets", [])}
+            for target in subject.get("targets", []):
+                retained=newer_targets.get(target["name"],{})
+                for field in ("role","organization","source_kind","source_url","email","phone","route","reason_to_contact","next_ask","authority_boundary","evidence"):
+                    if target.get(field) and not retained.get(field):
+                        problems.append(f"reviewed research target removed: {sid} / {target['name']} / {field}")
         for case in (baseline.get("reviewed_cases") or {}).get("cases", []):
             rid = case["record"]["notice_id"]
             newer = current_cases.get(rid)
