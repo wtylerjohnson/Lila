@@ -1,0 +1,65 @@
+{
+  "schema": "lila-benchmark.repair-plan-lock.v1",
+  "plan_id": "CALIBRATION-005-REPAIR-1-7",
+  "work_id": "COORD-LOCK-REPAIR-PLAN-040",
+  "status": "APPROVED_LOCKED",
+  "locked_at_utc": "2026-09-11T15:10:30.994802+00:00",
+  "approved_by": "Tyler",
+  "approval_source": "Direct user message in coordinator thread 01a082f7-baad-74d2-9466-dcb649b818ce",
+  "approval_verbatim": "this is the plan - lock it an we will go 1-7",
+  "source_brief": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/CALIBRATION_005_PRIORITIZED_FIXES.md",
+  "source_brief_sha256": "80d02eb190fb9eded30e559064d9e33023a2e207557666b19e009dc99a21e5c2",
+  "execution_order": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "sequence_rule": "Execute steps1 through7 in this exact order. This direct user sequence supersedes the brief's grouped Recommended implementation sequence. Each step retains its detailed scope and acceptance criteria from the approved brief.",
+  "steps": [
+    {
+      "number": 1,
+      "title": "Require evidence behind Research Picture opportunity claims",
+      "acceptance_criteria_ref": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/CALIBRATION_005_PRIORITIZED_FIXES.md section 1"
+    },
+    {
+      "number": 2,
+      "title": "Align retrieval vocabulary and the capability gate; audit false negatives",
+      "acceptance_criteria_ref": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/CALIBRATION_005_PRIORITIZED_FIXES.md section 2"
+    },
+    {
+      "number": 3,
+      "title": "Match buyer requirements, not procurement boilerplate",
+      "acceptance_criteria_ref": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/CALIBRATION_005_PRIORITIZED_FIXES.md section 3"
+    },
+    {
+      "number": 4,
+      "title": "Preserve full deadlines and separate the relevant clocks",
+      "acceptance_criteria_ref": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/CALIBRATION_005_PRIORITIZED_FIXES.md section 4"
+    },
+    {
+      "number": 5,
+      "title": "Make scorer states explain the evidence correctly",
+      "acceptance_criteria_ref": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/CALIBRATION_005_PRIORITIZED_FIXES.md section 5"
+    },
+    {
+      "number": 6,
+      "title": "Evaluate the product surface that answers the intended question",
+      "acceptance_criteria_ref": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/CALIBRATION_005_PRIORITIZED_FIXES.md section 6"
+    },
+    {
+      "number": 7,
+      "title": "Collect review evidence where it can change the decision",
+      "acceptance_criteria_ref": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/CALIBRATION_005_PRIORITIZED_FIXES.md section 7"
+    }
+  ],
+  "workflow": "Investigate -> report -> patch in an isolated build revision -> verify; retain existing capability and source boundaries.",
+  "evidence_preservation": "Case004 and case005 locks, captures, source bytes, reviewer submissions and initial scores remain unchanged; benchmark changes use a separate version.",
+  "production_boundary": "No production patch, merge or deployment in this plan-lock action; preserve opportunity assessment, Market Map and qualification gates.",
+  "team_boundary": "Reuse existing registered team; no new tasks, agents, sandbox rebuild or live competitive query in this action.",
+  "next_step": 1,
+  "implementation_started": false
+}

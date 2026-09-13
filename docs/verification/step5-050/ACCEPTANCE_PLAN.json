@@ -1,0 +1,250 @@
+{
+  "work_id": "REPAIR-STEP5-BASELINE-050",
+  "status": "PRE_PATCH_ACCEPTANCE_PROPOSAL",
+  "accepted_product_base": "ca6620dd9a4387b5145e49588a878ca3efb925e4",
+  "cases": [
+    {
+      "id": "scope_negative_unknown_time",
+      "input": "Original substantive audiovisual-only requirement; supported scope exclusion; timing unknown",
+      "objective": "actionable_buying_now",
+      "expected": "not_relevant; preserve timing unknown",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "fit_unknown_action",
+      "input": "Original supplier controls requirement; current action unknown",
+      "objective": "actionable_buying_now",
+      "expected": "unknown; fit remains supported",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "expired_response",
+      "input": "Verified response expired, continuation unknown",
+      "objective": "respond_to_this_notice",
+      "expected": "not_relevant for this response; broader market/continuation unknown",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "expired_broader_action",
+      "input": "Same expired response with continuation unknown",
+      "objective": "actionable_buying_now",
+      "expected": "unknown; closure of one response does not decide all possible actions",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "insufficient_evidence",
+      "input": "Missing/unreadable/discovery-only/non-substantive source",
+      "objective": "actionable_buying_now",
+      "expected": "unknown; no unsupported negative or affirmative credit",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "all_affirmative",
+      "input": "Independently supported fit/current action/route and all required affirmative gates",
+      "objective": "actionable_buying_now",
+      "expected": "eligible for relevant credit, separately subject to identity/provenance gates",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "unsupported_negative",
+      "input": "Reviewer false/grade0 contradicts substantive positive source or lacks scoped support",
+      "objective": "actionable_buying_now",
+      "expected": "refuse or unknown, never decisive rejection",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "binding_adversaries",
+      "input": "Blank/missing quote, unknown evidence ID, cross-notice source/citation, changed raw evidence, stale packet hash",
+      "objective": "any",
+      "expected": "refuse or unknown; preserve reason",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "supported_negative_matrix",
+      "input": "Same independently supported scope exclusion with timing and other unrelated states true/false/unknown",
+      "objective": "actionable_buying_now",
+      "expected": "negative objective decision stable; preserve all states",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "counting",
+      "input": "Duplicates, known/retrieved/injected/unresolved identities, one reviewer unknown, disagreement, unfilled slots and rank21",
+      "objective": "fixed first20 native discovery",
+      "expected": "fixed denominator20, no replacement; separate reviewer/agreed counts, no automatic winner/novelty/tie",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "source_certification_failure",
+      "input": "V4 incomplete native census",
+      "objective": "source-certified comparison",
+      "expected": "certification failure, no comparable score; never zero-quality finding",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "claim_bound_negative",
+      "input": "Negative claim has exact subject/span/source/brief/objective plus independently validated substantive support",
+      "expected": "May decide failed required criterion despite unrelated unknowns; retain proof and unknown dimensions",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "untrusted_supported_flag",
+      "input": "Reviewer writes supported=true or grade0 without independently validated claim support",
+      "expected": "Cannot create decisive proof; refuse or retain unknown",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "conflicting_support_receipt",
+      "input": "Claim value/subject disagrees with independently checked support record",
+      "expected": "Refuse/unknown; never negative credit",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "changed_support_policy",
+      "input": "Support receipt hash/policy/objective/brief changes",
+      "expected": "Reject stale binding",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "route_unknown",
+      "input": "Fit and action supported but plausible route unresolved",
+      "expected": "No affirmative relevance credit; preserve unresolved route",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "route_positive_qualification_open",
+      "input": "Plausible independently supported route with honest unresolved qualification question",
+      "expected": "Grade2 credible investigation may remain eligible if all required affirmative criteria hold",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "all_material_affirmatives",
+      "input": "Valid grade2/3 rationale plus fit/current action/plausible route/evidence and resolved native identity/provenance",
+      "expected": "Credit exactly once per family; maintain separate review counts",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "negative_assertion_discovery",
+      "input": "Evidence contains discovery snippet and reviewer false or grade0",
+      "expected": "No decisive original-requirement rejection",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "positive_assertion_discovery",
+      "input": "Same source, reviewer all true",
+      "expected": "No affirmative credit",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "cross_card_ref",
+      "input": "Generated reference points to another neutral card",
+      "expected": "Refuse; retain existing v3 control",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "cross_subject_inside_card",
+      "input": "Reference belongs to cardA but original passage identifies noticeB",
+      "expected": "Require validated subject relation for predicate; otherwise refuse/unknown",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "unreadable_not_empty",
+      "input": "Source acquisition failure versus verified complete source without supporting clause",
+      "expected": "Both remain separately named gaps; neither proves disqualification by absence",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "objective_expiry_alternatives",
+      "input": "Response expired; continuation supported versus unknown versus independently disproved",
+      "expected": "Response objective closed; broader-action objective evaluated against declared alternative branches, never inferred permanent irrelevance",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "negative_preserves_unknown_status",
+      "input": "Known decisive scope exclusion with timing unknown",
+      "expected": "not_relevant objective plus timing unknown; result completion/support status does not erase unresolved dimensions",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "disagreement_supported_negative_vs_unknown",
+      "input": "One reviewer has supported exclusion and other remains unknown",
+      "expected": "Keep per-reviewer decisions and disagreement; agreed subtotal cannot manufacture adjudication",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "different_evidence_same_decision",
+      "input": "Both reviewers support same predicates from different admissible passages",
+      "expected": "Retain evidence differences; do not require identical rationale strings for substantive agreement",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "zero_credit_uncertainty",
+      "input": "No confirmed families, unresolved cards/identity/provenance remain",
+      "expected": "No automatic winner, tie, market-empty or possible-yield claim",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "old_packet_rejected",
+      "input": "Existing v3/v4/frozen005 schema supplied to v5 without objective/support state",
+      "expected": "Refuse explicit migration requirement; do not silently reinterpret or overwrite historical score",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "portable_exact_commit",
+      "input": "Code/tests/docs available in one published committed tree; fresh checkout lacks local case files",
+      "expected": "Synthetic tests and CLI runnable offline; remote SHA verified separately",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "portable_relocation",
+      "input": "Identical synthetic package relocated under another temporary root",
+      "expected": "Resolve relative manifests safely; preserve semantics and hashes; altered bytes/traversal refused",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "role_label_boundary",
+      "input": "Native role known_excluded_identity absent but exclusion is already valid",
+      "expected": "Do not fabricate native role or assume absence of evidence; separate producer diagnostic extension",
+      "post_patch_status": "NOT_RUN_V5_NOT_IMPLEMENTED"
+    }
+  ],
+  "classification_order": [
+    "Validate custody/source-policy and claim-to-source bindings first. Certification failure is not a scored negative.",
+    "Use independently supported decisive negative for the declared objective, retaining unrelated unknown dimensions.",
+    "Hold unknown when unresolved material evidence can alter the objective or alleged support is insufficient/contradicted.",
+    "Credit relevant only when all required affirmative predicates and grade/identity/retrieval gates are satisfied."
+  ],
+  "evidence_contract": {
+    "binding": "Exact subject/source/passage/quote/span/raw snapshot/brief/objective/policy digests.",
+    "authority": "Keep original substantive/discovery/missing/unreadable states; no dropped trust metadata.",
+    "semantic_support": "Independent source-grounded support assessment bound to claim/value; no self-authentication from grade or supported flag. Unestablished support remains unknown.",
+    "limits": "No claim of automatic general entailment; real support receipt issuers/policy must be specified before real use."
+  },
+  "affirmative_gates": [
+    "grade >=2 with evidence-bound rationale",
+    "fit supported",
+    "current buying/action supported for objective",
+    "plausible route/required eligibility supported",
+    "substantive original evidence sufficient",
+    "resolved family identity",
+    "retrieved_new_run or known_independently_retrieved"
+  ],
+  "preserve": [
+    "first20 fixed denominator",
+    "all duplicate/unfilled/native slots and rank21 exclusion",
+    "known independently retrieved counts, novelty withheld",
+    "injected/unresolved identity/provenance separately",
+    "raw reviewer decisions and evidence",
+    "disagreement and agreed subtotal distinct; no invented adjudication",
+    "no automatic winner/tie/empty-market inference",
+    "v4 source certification failure outside quality score"
+  ],
+  "scope_exclusions": [
+    "No v1-v4 or frozen004/005 modification/rescore",
+    "No root strict Assess/source-clock P1 duplication",
+    "No LeadRow/release/qualification work",
+    "S3-SURFACE-005 and S3-DIAG-006 Step6",
+    "Native S3-ROLE-007 label requires separate diagnostic extension"
+  ],
+  "portable_package": "PORTABLE_V5_REVIEW_PROPOSAL.md",
+  "next_owner": "Coordinator implements after baseline review, then local checks and one exact CoS/Fable review before Step6."
+}

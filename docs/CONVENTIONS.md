@@ -2144,3 +2144,18 @@ nullable clock/provenance fields; leadgen contract version is unchanged because
 archival row acceptance is preserved. Existing Horizon refusal, strict requirement,
 attachment, BID_NOW and coverage thresholds are not relaxed. Deadline policy is not
 migrated by this amendment.
+
+## Offline benchmark v5 (Step5-050)
+
+`tools/benchmark_v5` extends the fixed20 native-capture harness as a separate
+portable tool. It has no release/acquisition integration. Caller-owned external
+input/prepared anchors and a pinned support-registry snapshot bind each exact
+claim to a named independent original-source assessment. Hashes establish binding,
+not language entailment. Supported scope/route/action negatives can decide an
+objective while unknown dimensions remain visible. Evidence insufficiency and
+unsupported assertions remain unknown. Old v3/v4 packets require explicit migration.
+
+See `docs/verification/step5-050/REVIEW.md` for the narrow JSON-record adapter,
+trust/role/correction policy, exact command templates and proof limits. New tests
+are standard-library unittest cases; preserved legacy comparator snapshots remain
+byte-identical and never supply v5 classification. No frozen case is re-scored.

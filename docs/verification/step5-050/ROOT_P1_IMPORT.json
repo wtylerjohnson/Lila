@@ -1,0 +1,405 @@
+{
+  "work_id": "REPAIR-STEP5-IMPORT-ROOT-P1-050",
+  "status": "EXACT_LOCAL_IMPORT_COMPLETE",
+  "at_utc": "2026-09-13T01:37:27.057433+00:00",
+  "source_repository": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/strict-assess-source-clock-001",
+  "target_repository": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment",
+  "branch": "codex/step5-evidence-states",
+  "before_sha": "ca6620dd9a4387b5145e49588a878ca3efb925e4",
+  "requested_candidate_sha": "dbc2458de359e25077cffadf2b7889e350ab6802",
+  "source_parent_sha": "ca6620dd9a4387b5145e49588a878ca3efb925e4",
+  "acceptance_receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/ROOT-SOURCE-CLOCK-001/LOCAL_CANDIDATE_ACCEPTANCE.json",
+  "acceptance_sha256": "30f290db4c6c0c6973fd87310e069be641cbf6f3de83ed7bd822d27736ac5695",
+  "producer_receipt": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/strict-assess-source-clock-001/docs/verification/S4-SOURCE-CLOCK-001/FINAL_VERIFICATION.json",
+  "producer_committed_receipt_sha256": "6058f131da87ce8dc403f194589e7df52eff161157b4555dfb832ef1de7f7a7c",
+  "producer_tested_committed_and_working_hashes": {
+    "agents/assess/contracts.py": true,
+    "agents/assess/ledger.py": true,
+    "agents/assess/live_report.py": true,
+    "agents/assess/reviewed_cases.py": true,
+    "agents/assess/source_clock.py": true,
+    "agents/golden_press/external_product_projection.py": true,
+    "agents/golden_press/external_product_render.py": true,
+    "agents/golden_press/product_leadgen.py": true,
+    "agents/leadgen/from_assess.py": true,
+    "agents/leadgen/press_html.py": true,
+    "agents/leadgen/qualify.py": true,
+    "agents/leadgen/schemas/actionableexternalpathway.schema.json": true,
+    "agents/leadgen/schemas/leadrow.schema.json": true,
+    "agents/reports/facts.py": true,
+    "docs/CONTRACT_SURFACES.md": true,
+    "docs/CONVENTIONS.md": true,
+    "tests/fixtures/assess_source_clock_legacy_leads.json": true,
+    "tests/test_assess_ledger.py": true,
+    "tests/test_assess_reapproval_identity.py": true,
+    "tests/test_assess_refresh.py": true,
+    "tests/test_assess_source_clock.py": true,
+    "tests/test_leadgen_from_assess.py": true,
+    "tests/test_live_report_truth.py": true,
+    "tests/test_reviewed_case_projection.py": true
+  },
+  "source_commit_changed_paths": [
+    "agents/assess/contracts.py",
+    "agents/assess/ledger.py",
+    "agents/assess/live_report.py",
+    "agents/assess/reviewed_cases.py",
+    "agents/assess/source_clock.py",
+    "agents/golden_press/external_product_projection.py",
+    "agents/golden_press/external_product_render.py",
+    "agents/golden_press/product_leadgen.py",
+    "agents/leadgen/from_assess.py",
+    "agents/leadgen/press_html.py",
+    "agents/leadgen/qualify.py",
+    "agents/leadgen/schemas/actionableexternalpathway.schema.json",
+    "agents/leadgen/schemas/leadrow.schema.json",
+    "agents/reports/facts.py",
+    "docs/CONTRACT_SURFACES.md",
+    "docs/CONVENTIONS.md",
+    "docs/verification/S4-SOURCE-CLOCK-001/BEFORE_AFTER.json",
+    "docs/verification/S4-SOURCE-CLOCK-001/BROWSER.json",
+    "docs/verification/S4-SOURCE-CLOCK-001/FINAL_VERIFICATION.json",
+    "docs/verification/S4-SOURCE-CLOCK-001/KICKOFF.json",
+    "docs/verification/S4-SOURCE-CLOCK-001/PRESERVATION.json",
+    "docs/verification/S4-SOURCE-CLOCK-001/PRE_PATCH_REPORT.md",
+    "docs/verification/S4-SOURCE-CLOCK-001/RESULT.md",
+    "docs/verification/S4-SOURCE-CLOCK-001/SAVED_INPUT_COMPATIBILITY.json",
+    "docs/verification/S4-SOURCE-CLOCK-001/browser-source-clock.png",
+    "docs/verification/S4-SOURCE-CLOCK-001/browser_check.py",
+    "docs/verification/S4-SOURCE-CLOCK-001/synthetic-source-clock.html",
+    "tests/fixtures/assess_source_clock_legacy_leads.json",
+    "tests/test_assess_ledger.py",
+    "tests/test_assess_reapproval_identity.py",
+    "tests/test_assess_refresh.py",
+    "tests/test_assess_source_clock.py",
+    "tests/test_leadgen_from_assess.py",
+    "tests/test_live_report_truth.py",
+    "tests/test_reviewed_case_projection.py"
+  ],
+  "untracked_files_before": {
+    "docs/verification/step5-050/ACCEPTANCE_PLAN.json": {
+      "sha256": "8246a6bfb7cf2fa2e8bb11df5a6443fec195bd0a6c79dc8164b92eba98b8016c",
+      "bytes": 12323
+    },
+    "docs/verification/step5-050/ASSIGNMENT.md": {
+      "sha256": "24c112cddfeeef49fd279f5f924f7b30a2d0927dcef6f74d7be6e74a8aafd30f",
+      "bytes": 4745
+    },
+    "docs/verification/step5-050/AUTHORITY.json": {
+      "sha256": "7e5e915b87bbdeee54bff35a2523e4c9e94b86d5c541ebb5d619e6e956cf2189",
+      "bytes": 1841
+    },
+    "docs/verification/step5-050/BASELINE_BINDINGS.json": {
+      "sha256": "f760fa9098280bcca4fed54acec67b7502134784f0977bafb38de0c42adf92bf",
+      "bytes": 626
+    },
+    "docs/verification/step5-050/PRE_PATCH_REPORT.INITIAL.md": {
+      "sha256": "2b85af05b0c56d2df823195af99806cd83e3d507be1ac3e4788d4dc227285cbf",
+      "bytes": 4019
+    },
+    "docs/verification/step5-050/PRE_PATCH_REPORT.md": {
+      "sha256": "d9caa41f1b276c232fa1600a4fbaec3d119ee31fe5872c956828c2820252afb5",
+      "bytes": 4670
+    },
+    "docs/verification/step5-050/REPAIR_PLAN.LOCKED.json": {
+      "sha256": "17c2905d6eaee80f4e58eb39c7cc3cbf662ceae28c364e86ddaca4981edc67aa",
+      "bytes": 3479
+    },
+    "docs/verification/step5-050/TRUST_REVIEW_REPORT.md": {
+      "sha256": "1ecf292cb20eb321fe5fcd8a1c6426a62d33432b1fb453ada28586a16de79bca",
+      "bytes": 11329
+    },
+    "docs/verification/step5-050/TRUST_REVIEW_VERIFICATION.json": {
+      "sha256": "a67aedf2bde1cb177ff9ecb608a5fb71062559b65dc8cbba7801f4485571ba25",
+      "bytes": 3315
+    },
+    "docs/verification/step5-050/WEEKEND_BUILD_PLAN.md": {
+      "sha256": "71a4c7c11ee575596357e5e0fcfb66a75d2c855b4761040042732c8cad26bfc5",
+      "bytes": 20172
+    },
+    "tools/benchmark_v5/__init__.py": {
+      "sha256": "0266850b20c540062a0b7b208dc5a6623d3de575af60d79afcbc6e14fafaf520",
+      "bytes": 86
+    },
+    "tools/benchmark_v5/__main__.py": {
+      "sha256": "ae33afc7e2d2802f63840a3ff8758aaf9b37b7bc4ce6649ebfa0dc92d41118d9",
+      "bytes": 1753
+    },
+    "tools/benchmark_v5/custody.py": {
+      "sha256": "dc6b94f7cc4cc442523fbb060add6c1eca0f854d9f5615ce43afd09ac654b6e0",
+      "bytes": 16659
+    },
+    "tools/benchmark_v5/io.py": {
+      "sha256": "2347e245ab6bafd5ba2c72effdcfad83e5e886cd7e217d19e5160d835eb3c6de",
+      "bytes": 2764
+    },
+    "tools/benchmark_v5/legacy/v3/discovery_score.py": {
+      "sha256": "5b0b8d7fad96241ee7e4177cfbb6395fd6b61661610d1c041b03a63a5cd33bc5",
+      "bytes": 25822
+    },
+    "tools/benchmark_v5/legacy/v4/discovery_score.py": {
+      "sha256": "654e75829bb5e5bf547edf931f4ca3e1c871daa9831a627d75295e67baf1d90a",
+      "bytes": 3623
+    },
+    "tools/benchmark_v5/legacy/v4/native_source_policy.py": {
+      "sha256": "0984b1e8ea0d8d573a06cc9d503d8dcc4d4d8c3b9a1fb328f7584dab6edee471",
+      "bytes": 9802
+    },
+    "tools/benchmark_v5/scorer.py": {
+      "sha256": "a819b3835a99c4c6bc4aef2bda2b5337197dd82bdb2f18a42d1dfcab8f104fb9",
+      "bytes": 8706
+    },
+    "tools/benchmark_v5/support.py": {
+      "sha256": "cdb4da42e3ebea328c81a60939aaf79d315ed16f84d4bef2c265d62869da2fc3",
+      "bytes": 10389
+    },
+    "tools/benchmark_v5/synthetic.py": {
+      "sha256": "071f35c612ca1835e812c7e9b75b2fbf094a5658504276aeadfc52af9859e40a",
+      "bytes": 15681
+    }
+  },
+  "untracked_import_path_collisions": [],
+  "tracked_dirty_before": false,
+  "method_planned": "git fetch --no-tags exact local object; git merge --ff-only exact candidate",
+  "p1_status": "OPEN pending combined exact-SHA Fable review and acceptance",
+  "step6": "PENDING",
+  "no_tests_or_product_probes": true,
+  "immediate_pre_import_files": {
+    "docs/verification/step5-050/ACCEPTANCE_PLAN.json": {
+      "sha256": "8246a6bfb7cf2fa2e8bb11df5a6443fec195bd0a6c79dc8164b92eba98b8016c",
+      "bytes": 12323
+    },
+    "docs/verification/step5-050/ASSIGNMENT.md": {
+      "sha256": "24c112cddfeeef49fd279f5f924f7b30a2d0927dcef6f74d7be6e74a8aafd30f",
+      "bytes": 4745
+    },
+    "docs/verification/step5-050/AUTHORITY.json": {
+      "sha256": "7e5e915b87bbdeee54bff35a2523e4c9e94b86d5c541ebb5d619e6e956cf2189",
+      "bytes": 1841
+    },
+    "docs/verification/step5-050/BASELINE_BINDINGS.json": {
+      "sha256": "f760fa9098280bcca4fed54acec67b7502134784f0977bafb38de0c42adf92bf",
+      "bytes": 626
+    },
+    "docs/verification/step5-050/PRE_PATCH_REPORT.INITIAL.md": {
+      "sha256": "2b85af05b0c56d2df823195af99806cd83e3d507be1ac3e4788d4dc227285cbf",
+      "bytes": 4019
+    },
+    "docs/verification/step5-050/PRE_PATCH_REPORT.md": {
+      "sha256": "d9caa41f1b276c232fa1600a4fbaec3d119ee31fe5872c956828c2820252afb5",
+      "bytes": 4670
+    },
+    "docs/verification/step5-050/REPAIR_PLAN.LOCKED.json": {
+      "sha256": "17c2905d6eaee80f4e58eb39c7cc3cbf662ceae28c364e86ddaca4981edc67aa",
+      "bytes": 3479
+    },
+    "docs/verification/step5-050/TRUST_REVIEW_REPORT.md": {
+      "sha256": "1ecf292cb20eb321fe5fcd8a1c6426a62d33432b1fb453ada28586a16de79bca",
+      "bytes": 11329
+    },
+    "docs/verification/step5-050/TRUST_REVIEW_VERIFICATION.json": {
+      "sha256": "a67aedf2bde1cb177ff9ecb608a5fb71062559b65dc8cbba7801f4485571ba25",
+      "bytes": 3315
+    },
+    "docs/verification/step5-050/WEEKEND_BUILD_PLAN.md": {
+      "sha256": "71a4c7c11ee575596357e5e0fcfb66a75d2c855b4761040042732c8cad26bfc5",
+      "bytes": 20172
+    },
+    "tools/benchmark_v5/__init__.py": {
+      "sha256": "0266850b20c540062a0b7b208dc5a6623d3de575af60d79afcbc6e14fafaf520",
+      "bytes": 86
+    },
+    "tools/benchmark_v5/__main__.py": {
+      "sha256": "ae33afc7e2d2802f63840a3ff8758aaf9b37b7bc4ce6649ebfa0dc92d41118d9",
+      "bytes": 1753
+    },
+    "tools/benchmark_v5/custody.py": {
+      "sha256": "dc6b94f7cc4cc442523fbb060add6c1eca0f854d9f5615ce43afd09ac654b6e0",
+      "bytes": 16659
+    },
+    "tools/benchmark_v5/io.py": {
+      "sha256": "2347e245ab6bafd5ba2c72effdcfad83e5e886cd7e217d19e5160d835eb3c6de",
+      "bytes": 2764
+    },
+    "tools/benchmark_v5/legacy/v3/discovery_score.py": {
+      "sha256": "5b0b8d7fad96241ee7e4177cfbb6395fd6b61661610d1c041b03a63a5cd33bc5",
+      "bytes": 25822
+    },
+    "tools/benchmark_v5/legacy/v4/discovery_score.py": {
+      "sha256": "654e75829bb5e5bf547edf931f4ca3e1c871daa9831a627d75295e67baf1d90a",
+      "bytes": 3623
+    },
+    "tools/benchmark_v5/legacy/v4/native_source_policy.py": {
+      "sha256": "0984b1e8ea0d8d573a06cc9d503d8dcc4d4d8c3b9a1fb328f7584dab6edee471",
+      "bytes": 9802
+    },
+    "tools/benchmark_v5/scorer.py": {
+      "sha256": "a819b3835a99c4c6bc4aef2bda2b5337197dd82bdb2f18a42d1dfcab8f104fb9",
+      "bytes": 8706
+    },
+    "tools/benchmark_v5/support.py": {
+      "sha256": "cdb4da42e3ebea328c81a60939aaf79d315ed16f84d4bef2c265d62869da2fc3",
+      "bytes": 10389
+    },
+    "tools/benchmark_v5/synthetic.py": {
+      "sha256": "071f35c612ca1835e812c7e9b75b2fbf094a5658504276aeadfc52af9859e40a",
+      "bytes": 15681
+    }
+  },
+  "import_command": [
+    "git",
+    "merge",
+    "--ff-only",
+    "dbc2458de359e25077cffadf2b7889e350ab6802"
+  ],
+  "import_exit_code": 0,
+  "import_stdout": "Updating ca6620d..dbc2458\nFast-forward\n agents/assess/contracts.py                         |  52 ++-\n agents/assess/ledger.py                            |  90 ++++-\n agents/assess/live_report.py                       |   6 +-\n agents/assess/reviewed_cases.py                    |  33 +-\n agents/assess/source_clock.py                      | 110 ++++++\n agents/golden_press/external_product_projection.py |   7 +-\n agents/golden_press/external_product_render.py     |   3 +-\n agents/golden_press/product_leadgen.py             |  13 +-\n agents/leadgen/from_assess.py                      |  11 +-\n agents/leadgen/press_html.py                       |   5 +-\n agents/leadgen/qualify.py                          |  15 +\n .../schemas/actionableexternalpathway.schema.json  | 108 +++++-\n agents/leadgen/schemas/leadrow.schema.json         | 108 +++++-\n agents/reports/facts.py                            |  18 +-\n docs/CONTRACT_SURFACES.md                          |  41 +++\n docs/CONVENTIONS.md                                |  40 +++\n .../S4-SOURCE-CLOCK-001/BEFORE_AFTER.json          |  31 ++\n docs/verification/S4-SOURCE-CLOCK-001/BROWSER.json |  15 +\n .../S4-SOURCE-CLOCK-001/FINAL_VERIFICATION.json    | 132 ++++++++\n docs/verification/S4-SOURCE-CLOCK-001/KICKOFF.json | 177 ++++++++++\n .../S4-SOURCE-CLOCK-001/PRESERVATION.json          |  15 +\n .../S4-SOURCE-CLOCK-001/PRE_PATCH_REPORT.md        |  52 +++\n docs/verification/S4-SOURCE-CLOCK-001/RESULT.md    |  36 ++\n .../SAVED_INPUT_COMPATIBILITY.json                 |  24 ++\n .../S4-SOURCE-CLOCK-001/browser-source-clock.png   | Bin 0 -> 164284 bytes\n .../S4-SOURCE-CLOCK-001/browser_check.py           |  45 +++\n .../synthetic-source-clock.html                    | 103 ++++++\n .../fixtures/assess_source_clock_legacy_leads.json | 183 ++++++++++\n tests/test_assess_ledger.py                        |   2 +-\n tests/test_assess_reapproval_identity.py           |   8 +-\n tests/test_assess_refresh.py                       |   2 +-\n tests/test_assess_source_clock.py                  | 371 +++++++++++++++++++++\n tests/test_leadgen_from_assess.py                  |   5 +\n tests/test_live_report_truth.py                    |   2 +-\n tests/test_reviewed_case_projection.py             |   4 +-\n 35 files changed, 1810 insertions(+), 57 deletions(-)\n create mode 100644 agents/assess/source_clock.py\n create mode 100644 docs/verification/S4-SOURCE-CLOCK-001/BEFORE_AFTER.json\n create mode 100644 docs/verification/S4-SOURCE-CLOCK-001/BROWSER.json\n create mode 100644 docs/verification/S4-SOURCE-CLOCK-001/FINAL_VERIFICATION.json\n create mode 100644 docs/verification/S4-SOURCE-CLOCK-001/KICKOFF.json\n create mode 100644 docs/verification/S4-SOURCE-CLOCK-001/PRESERVATION.json\n create mode 100644 docs/verification/S4-SOURCE-CLOCK-001/PRE_PATCH_REPORT.md\n create mode 100644 docs/verification/S4-SOURCE-CLOCK-001/RESULT.md\n create mode 100644 docs/verification/S4-SOURCE-CLOCK-001/SAVED_INPUT_COMPATIBILITY.json\n create mode 100644 docs/verification/S4-SOURCE-CLOCK-001/browser-source-clock.png\n create mode 100644 docs/verification/S4-SOURCE-CLOCK-001/browser_check.py\n create mode 100644 docs/verification/S4-SOURCE-CLOCK-001/synthetic-source-clock.html\n create mode 100644 tests/fixtures/assess_source_clock_legacy_leads.json\n create mode 100644 tests/test_assess_source_clock.py\n",
+  "import_stderr": "",
+  "after_sha": "dbc2458de359e25077cffadf2b7889e350ab6802",
+  "completed_at_utc": "2026-09-13T01:37:45.793882+00:00",
+  "branch_after": "codex/step5-evidence-states",
+  "preservation_checked_at_utc": "2026-09-13T01:38:09.644827+00:00",
+  "preserved_files_after": {
+    "docs/verification/step5-050/ACCEPTANCE_PLAN.json": {
+      "exists": true,
+      "sha256": "8246a6bfb7cf2fa2e8bb11df5a6443fec195bd0a6c79dc8164b92eba98b8016c"
+    },
+    "docs/verification/step5-050/ASSIGNMENT.md": {
+      "exists": true,
+      "sha256": "24c112cddfeeef49fd279f5f924f7b30a2d0927dcef6f74d7be6e74a8aafd30f"
+    },
+    "docs/verification/step5-050/AUTHORITY.json": {
+      "exists": true,
+      "sha256": "7e5e915b87bbdeee54bff35a2523e4c9e94b86d5c541ebb5d619e6e956cf2189"
+    },
+    "docs/verification/step5-050/BASELINE_BINDINGS.json": {
+      "exists": true,
+      "sha256": "f760fa9098280bcca4fed54acec67b7502134784f0977bafb38de0c42adf92bf"
+    },
+    "docs/verification/step5-050/PRE_PATCH_REPORT.INITIAL.md": {
+      "exists": true,
+      "sha256": "2b85af05b0c56d2df823195af99806cd83e3d507be1ac3e4788d4dc227285cbf"
+    },
+    "docs/verification/step5-050/PRE_PATCH_REPORT.md": {
+      "exists": true,
+      "sha256": "d9caa41f1b276c232fa1600a4fbaec3d119ee31fe5872c956828c2820252afb5"
+    },
+    "docs/verification/step5-050/REPAIR_PLAN.LOCKED.json": {
+      "exists": true,
+      "sha256": "17c2905d6eaee80f4e58eb39c7cc3cbf662ceae28c364e86ddaca4981edc67aa"
+    },
+    "docs/verification/step5-050/TRUST_REVIEW_REPORT.md": {
+      "exists": true,
+      "sha256": "1ecf292cb20eb321fe5fcd8a1c6426a62d33432b1fb453ada28586a16de79bca"
+    },
+    "docs/verification/step5-050/TRUST_REVIEW_VERIFICATION.json": {
+      "exists": true,
+      "sha256": "a67aedf2bde1cb177ff9ecb608a5fb71062559b65dc8cbba7801f4485571ba25"
+    },
+    "docs/verification/step5-050/WEEKEND_BUILD_PLAN.md": {
+      "exists": true,
+      "sha256": "71a4c7c11ee575596357e5e0fcfb66a75d2c855b4761040042732c8cad26bfc5"
+    },
+    "tools/benchmark_v5/__init__.py": {
+      "exists": true,
+      "sha256": "0266850b20c540062a0b7b208dc5a6623d3de575af60d79afcbc6e14fafaf520"
+    },
+    "tools/benchmark_v5/__main__.py": {
+      "exists": true,
+      "sha256": "ae33afc7e2d2802f63840a3ff8758aaf9b37b7bc4ce6649ebfa0dc92d41118d9"
+    },
+    "tools/benchmark_v5/custody.py": {
+      "exists": true,
+      "sha256": "dc6b94f7cc4cc442523fbb060add6c1eca0f854d9f5615ce43afd09ac654b6e0"
+    },
+    "tools/benchmark_v5/io.py": {
+      "exists": true,
+      "sha256": "2347e245ab6bafd5ba2c72effdcfad83e5e886cd7e217d19e5160d835eb3c6de"
+    },
+    "tools/benchmark_v5/legacy/v3/discovery_score.py": {
+      "exists": true,
+      "sha256": "5b0b8d7fad96241ee7e4177cfbb6395fd6b61661610d1c041b03a63a5cd33bc5"
+    },
+    "tools/benchmark_v5/legacy/v4/discovery_score.py": {
+      "exists": true,
+      "sha256": "654e75829bb5e5bf547edf931f4ca3e1c871daa9831a627d75295e67baf1d90a"
+    },
+    "tools/benchmark_v5/legacy/v4/native_source_policy.py": {
+      "exists": true,
+      "sha256": "0984b1e8ea0d8d573a06cc9d503d8dcc4d4d8c3b9a1fb328f7584dab6edee471"
+    },
+    "tools/benchmark_v5/scorer.py": {
+      "exists": true,
+      "sha256": "a819b3835a99c4c6bc4aef2bda2b5337197dd82bdb2f18a42d1dfcab8f104fb9"
+    },
+    "tools/benchmark_v5/support.py": {
+      "exists": true,
+      "sha256": "cdb4da42e3ebea328c81a60939aaf79d315ed16f84d4bef2c265d62869da2fc3"
+    },
+    "tools/benchmark_v5/synthetic.py": {
+      "exists": true,
+      "sha256": "071f35c612ca1835e812c7e9b75b2fbf094a5658504276aeadfc52af9859e40a"
+    }
+  },
+  "preexisting_untracked_files_missing": [],
+  "preexisting_untracked_hash_changes": [],
+  "preexisting_untracked_byte_identical": true,
+  "new_untracked_files_since_snapshot": [],
+  "untracked_files_after": [
+    "docs/verification/step5-050/ACCEPTANCE_PLAN.json",
+    "docs/verification/step5-050/ASSIGNMENT.md",
+    "docs/verification/step5-050/AUTHORITY.json",
+    "docs/verification/step5-050/BASELINE_BINDINGS.json",
+    "docs/verification/step5-050/PRE_PATCH_REPORT.INITIAL.md",
+    "docs/verification/step5-050/PRE_PATCH_REPORT.md",
+    "docs/verification/step5-050/REPAIR_PLAN.LOCKED.json",
+    "docs/verification/step5-050/TRUST_REVIEW_REPORT.md",
+    "docs/verification/step5-050/TRUST_REVIEW_VERIFICATION.json",
+    "docs/verification/step5-050/WEEKEND_BUILD_PLAN.md",
+    "tools/benchmark_v5/__init__.py",
+    "tools/benchmark_v5/__main__.py",
+    "tools/benchmark_v5/custody.py",
+    "tools/benchmark_v5/io.py",
+    "tools/benchmark_v5/legacy/v3/discovery_score.py",
+    "tools/benchmark_v5/legacy/v4/discovery_score.py",
+    "tools/benchmark_v5/legacy/v4/native_source_policy.py",
+    "tools/benchmark_v5/scorer.py",
+    "tools/benchmark_v5/support.py",
+    "tools/benchmark_v5/synthetic.py"
+  ],
+  "tracked_status_after": "",
+  "imported_tested_file_hashes_match": {
+    "agents/assess/contracts.py": true,
+    "agents/assess/ledger.py": true,
+    "agents/assess/live_report.py": true,
+    "agents/assess/reviewed_cases.py": true,
+    "agents/assess/source_clock.py": true,
+    "agents/golden_press/external_product_projection.py": true,
+    "agents/golden_press/external_product_render.py": true,
+    "agents/golden_press/product_leadgen.py": true,
+    "agents/leadgen/from_assess.py": true,
+    "agents/leadgen/press_html.py": true,
+    "agents/leadgen/qualify.py": true,
+    "agents/leadgen/schemas/actionableexternalpathway.schema.json": true,
+    "agents/leadgen/schemas/leadrow.schema.json": true,
+    "agents/reports/facts.py": true,
+    "docs/CONTRACT_SURFACES.md": true,
+    "docs/CONVENTIONS.md": true,
+    "tests/fixtures/assess_source_clock_legacy_leads.json": true,
+    "tests/test_assess_ledger.py": true,
+    "tests/test_assess_reapproval_identity.py": true,
+    "tests/test_assess_refresh.py": true,
+    "tests/test_assess_source_clock.py": true,
+    "tests/test_leadgen_from_assess.py": true,
+    "tests/test_live_report_truth.py": true,
+    "tests/test_reviewed_case_projection.py": true
+  },
+  "imported_producer_receipt_sha256": "6058f131da87ce8dc403f194589e7df52eff161157b4555dfb832ef1de7f7a7c",
+  "conflict": false,
+  "step5_files_staged_or_committed": false,
+  "new_commit_created": false,
+  "push_performed": false,
+  "new_worktree_or_worker": false,
+  "production_touched": false,
+  "tests_or_full_regression_run": false,
+  "next_action": "Coordinator owns combined Step5+P1 tests and one published exact-SHA Fable handoff; operator checkpoints."
+}

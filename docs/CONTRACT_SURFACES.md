@@ -810,3 +810,18 @@ strict refusal remain; shared USAspending evidence now explicitly lacks acquisit
 instead of borrowing as_of. Source receipts do not authenticate themselves or weaken
 source/hash/coverage gates. No external schema migration, mutable data rewrite, new
 acquisition collector, deadline-policy change or CRM work is included.
+
+### Separately versioned benchmark v5 (Step5-050)
+
+Explicit isolated tool contract under locked weekend repair authority. New case,
+packet, support receipt, registry and result schemas use v5. Every scored predicate
+binds a frozen objective/action/route scope, canonical original source/passages and
+exact external receipt admission. No reviewer flag, grade, citation or local seal
+creates authority. Supported evidence insufficiency is a knowledge gap, never a
+standalone negative business verdict. Conflicts aggregate before decisive negatives.
+
+This does not change frozen benchmark v1-v4 semantics, product gate settings or
+release behavior. The parent root S4-SOURCE-CLOCK-001 extension remains separately
+reviewable. Combined local verification and one exact-SHA Fable review precede
+Step6. See `docs/verification/step5-050/REVIEW.md` and
+`tests/test_benchmark_v5_states.py` for the contract and its bounded proof.
