@@ -855,7 +855,9 @@ proposed future equal-effort budget is not a frozen or executed benchmark.
 Explicit isolated contract extension under the accepted Step6 lineage and locked
 weekend auto-passthrough. `sam_notice_detail.fetch_notice_resources` adds internal
 original-response custody and explicit collection state. Recognized inventories
-must reject any conflicting original notice ID. Current cache reuse rebinds the
+reject conflicts in explicit opportunityId/noticeId/notice_id keys. The original
+052 code does not inspect notice URLs; follow-up 053 extends that scope with
+parsed original-notice link paths. Current cache reuse rebinds the
 original response and projected inventory. Existing trusted Assess review and
 schema2 identities are unchanged; no generic discovery hash grants authority.
 

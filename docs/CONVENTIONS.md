@@ -2199,8 +2199,11 @@ reconciliation. Unknown JSON shapes remain unknown, not zero files.
 File extraction retains the acquired bytes/hash/clock even when parsing fails.
 `collection_status` distinguishes captured discovery text, lookup failure,
 unreadable, inaccessible, invalid identity and not fetched. Successful caches
-bind the original resource metadata, raw bytes, text bytes and aware acquisition
-clock. Legacy/unbound/changed cache entries require a new bounded attempt; failed
+check the original resource metadata, raw object hash, text object hash and an
+aware local acquisition clock. Text is not independently re-derived from raw
+bytes on a cache hit; a coherent rewrite of text and its hashes can pass. Cache
+clocks are unauthenticated local fields. Legacy/unbound/changed cache entries
+require a new bounded attempt; failed
 refresh cannot return their text as freshly collected. Same-resource changes
 that leave all inventory metadata unchanged are not continuously detected.
 PDF limits remain bounded extraction, not a full-document completeness claim.
