@@ -875,7 +875,7 @@ def _search_summary(slug: str, *, searches: Optional[dict] = None,
     if isinstance(gi, dict) and not gi.get("error") and gi:
         n = sum(len(v) for v in gi.values() if isinstance(v, list))
         if n:
-            parts.append(f"{n} legislative docs (funding proof)")
+            parts.append(f"{n} legislative docs (document context)")
     for key, noun in (("grants_gov", "grant programs"),
                       ("sbir_gov", "SBIR topics"),
                       ("gdelt", "global news hits")):

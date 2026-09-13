@@ -30,7 +30,7 @@ def test_held_assessment_remains_visible_without_becoming_ranked_lead(monkeypatc
         market_map=_market_map(), graph_payload=graph, evidence_pack=_pack(),
         profile={}, client_name="Acme", slug="acme", as_of="2026-09-08", leadgen=receipt)
     assert len(doc.slots[4].records) == 2
-    assert doc.slots[4].coverage["qualified"] == 1
+    assert doc.slots[4].coverage["qualified"] == 0  # serialized graph has no current source authority
     assert doc.slots[4].records[1]["lead_status"] == "HOLD"
     assert len(doc.slots[0].records) == 0  # qualification alone is not seller readiness
     from agents.reports import report_assets

@@ -2507,7 +2507,7 @@ def test_active_award_corridor_fills_best_fit_without_claiming_a_bid(
                           / "signal_board_content.json").read_text())
     assert len(content["best_fit"]) == 1
     card = content["best_fit"][0]
-    assert "ACTIVE AWARD CORRIDOR" in card["account"]
+    assert "AWARD CONTEXT" in card["account"]
     assert "CLIENT FOOTPRINT" in card["account"]
     assert "SOLICITATION" not in json.dumps(card).upper()
     assert card["evidence"] == [{

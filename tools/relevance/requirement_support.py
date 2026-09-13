@@ -201,7 +201,43 @@ def requirement_support(record: dict, taxonomy, *, verdict=None) -> dict:
 
 def family_diagnostic(notices: list[dict], screenings: dict) -> dict:
     """Unique evidence-bearing families by term/field, separate from term_yield."""
-    from agents.decisions.triage import _notice_thread_key
+    from agents.decisions.triage import _notice_thread_key, _latest_notice_threads
+    # The lexical table is a view of the complete census, not its source.
+    # A zero-span amendment can supersede every positive member of a family.
+    representatives, suppression, _ = _latest_notice_threads(notices)
+    selected = {
+        (str(row.get('source') or 'sam.gov'), *_notice_thread_key(row, index)): row
+        for index, row in enumerate(representatives)
+    }
+    census = {}
+    for index, notice in enumerate(notices):
+        sid = str(notice.get('source_id') or notice.get('id') or f'idx-{index}')
+        key = (str(notice.get('source') or 'sam.gov'), *_notice_thread_key(notice, index))
+        representative = selected.get(key, notice)
+        representative_id = str(representative.get('source_id') or representative.get('id') or sid)
+        raw = representative.get('raw_payload') or {}
+        family = census.setdefault(key, {
+            'family': list(key), 'representative_id': representative_id,
+            'order_status': raw.get('triage_thread_order_status', 'single_record'),
+            'notice_ids': [], 'members': [],
+        })
+        evidence = screenings[sid]
+        support = evidence.get('requirement_support') or {}
+        edge = evidence.get('consolidation') or suppression.get(sid) or {}
+        family['notice_ids'].append(sid)
+        family['members'].append({
+            'source_id': sid, 'raw_rank': index + 1,
+            'record_sha256': support.get('record_sha256'),
+            'notice_type': evidence.get('notice_type_evidence'),
+            'posted_date': notice.get('posted_date'),
+            'response_deadline': notice.get('response_deadline'),
+            'screen_state': evidence.get('screen_state'), 'stage': evidence.get('stage'),
+            'requirement_state': support.get('state'),
+            'requested_support': support.get('requested_support'),
+            'span_count': len(support.get('spans') or []),
+            'superseded_by': edge.get('superseded_by'),
+            'suppression_reason': edge.get('reason'),
+        })
     groups = {}
     for index, notice in enumerate(notices):
         sid = str(notice.get('source_id') or notice.get('id') or f'idx-{index}')
@@ -228,6 +264,12 @@ def family_diagnostic(notices: list[dict], screenings: dict) -> dict:
     rows = []
     for row in groups.values():
         row['buckets'] = sorted(row['buckets'])
+        family = census[tuple(row['family'])]
+        row['matched_notice_ids'] = row['notice_ids']
+        row['notice_ids'] = list(family['notice_ids'])
+        row['members'] = family['members']
+        row['representative_id'] = family['representative_id']
+        row['order_status'] = family['order_status']
         rows.append(row)
     term_fields = {}
     for row in rows:
@@ -240,7 +282,9 @@ def family_diagnostic(notices: list[dict], screenings: dict) -> dict:
             entry[bucket + '_families'].add(tuple(row['family']))
     counts = [{key: len(value) if isinstance(value, set) else value for key, value in entry.items()}
               for entry in term_fields.values()]
-    return {'version': VERSION, 'population': 'supplied_notice_census', 'families_by_term_field': rows,
+    return {'version': VERSION, 'population': 'supplied_notice_census',
+            'family_census_version': 'native-family-census.v1',
+            'families': list(census.values()), 'families_by_term_field': rows,
             'term_field_counts': counts,
             'unique_lexical_families': len({tuple(r['family']) for r in rows}),
             'limitation': 'Overlapping field buckets are not additive totals; historical spans are retained.'}

@@ -835,7 +835,7 @@ def _decision_sentence_receipts(alerts: list, start_index: int) -> list[str]:
             for row in alert["client_history_records"][:6])
         out.append(
             '<div class="gaps">'
-            f'<div class="g-lab">DISPLACEMENT ALERT · {i:02d} · '
+            f'<div class="g-lab">COMPETITOR SOURCE CONTEXT · {i:02d} · '
             f'{esc(alert["competitor"])} · {esc(alert["agency"])}</div>'
             f'<div class="g-list">{link} · '
             f'{esc(alert["context"].replace("_", " "))}</div>'
@@ -1015,7 +1015,7 @@ def render_decision_band(idx: int, s: dict, prose: dict) -> str:
                       else f"{scanned:,} stored notices screened")
         out.append(
             '<div class="gaps"><div class="g-lab">'
-            'DISPLACEMENT · NONE</div><div class="g-list">'
+            'COMPETITOR SOURCE CONTEXT · NONE</div><div class="g-list">'
             f'No sole-source intent or award names a rival inside a '
             f'client-history account: {esc(store_note)}, plus the cited '
             f'pack records, matched with the shared brand-name guards.'
@@ -1031,7 +1031,7 @@ def render_decision_band(idx: int, s: dict, prose: dict) -> str:
             "trailing_months", R2_WINDOW["trailing_months"])
         parts = []
         if excluded:
-            parts.append(f"{excluded} older displacement record(s) "
+            parts.append(f"{excluded} older competitor-context record(s) "
                          "excluded" + (f", oldest {oldest}" if oldest
                                        else ""))
         if window_undated:
@@ -1039,7 +1039,7 @@ def render_decision_band(idx: int, s: dict, prose: dict) -> str:
                          "usable date and were not evaluated")
         out.append(
             '<div class="gaps"><div class="g-lab">'
-            'RECEIPT · DISPLACEMENT WINDOW</div><div class="g-list">'
+            'RECEIPT · SOURCE TIMING WINDOW</div><div class="g-list">'
             + esc("; ".join(parts))
             + esc(f" · window: period end on/after the press date or "
                   f"action within the trailing {months} months.")

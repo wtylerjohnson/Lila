@@ -2159,3 +2159,27 @@ See `docs/verification/step5-050/REVIEW.md` for the narrow JSON-record adapter,
 trust/role/correction policy, exact command templates and proof limits. New tests
 are standard-library unittest cases; preserved legacy comparator snapshots remain
 byte-identical and never supply v5 classification. No frozen case is re-scored.
+
+## Step6 native source admission and family identity (051)
+
+Separately identified contract change under the locked weekend plan. Current notice
+graph qualification and native action projection rebind the actual selected source,
+profile, taxonomy and immutable Assess/review/depth at the ordinary reader. Saved
+graph/registry flags and legacy discovery matches cannot establish current authority.
+`source_fields.notice_source_v1` transports original evidence only. `NoticeReadContext`
+revalidates original inputs and passes current admission explicitly through graph,
+Market Map and external projection. Missing context yields zero qualified rows while
+preserving raw assessments and contextual source facts.
+
+The shared notice-family owner uses source/agency/office/full solicitation with
+posting fallback and conservative original chronology. Full supplied members and
+retained store siblings precede filtering; closed or zero-match representatives
+suppress older positives without replacing native slots. Compact term diagnostics
+retain zero-match members and full-census suppression counts. Research-only parents
+remain visible without a default invented live-bid child. Award/document context does
+not itself establish displacement or funding. No immutable identity migration,
+operator-gate change, external eight-slot change, CRM or frozen-case rescore occurs.
+See `docs/verification/step6-051/REVIEW.md` for exact changed contracts, limitations
+and executable verification commands; `FUTURE_MEASUREMENT_CONTRACT.json` separately
+predeclares retrieval, native recommendations and seller-action measurements. The
+proposed future equal-effort budget is not a frozen or executed benchmark.

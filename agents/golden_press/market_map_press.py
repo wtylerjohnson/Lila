@@ -368,6 +368,8 @@ def press_market_map(
     profile: Optional[dict] = None,
     inputs: Optional[dict] = None,
     log: Callable[[str], None] = print,
+    notice_context=None,
+    graph: Optional[dict] = None,
 ) -> dict:
     """Project, render, validate, write. Pure consumption of a built pack.
 
@@ -391,7 +393,7 @@ def press_market_map(
 
     profile = profile or {}
     if inputs is None:
-        inputs = capture_inputs(profile=profile, slug=slug, pack=pack)
+        inputs = capture_inputs(profile=profile, slug=slug, pack=pack, root=root, graph=graph)
     elif "rival_footprint" not in inputs:
         # A sidecar captured before the rival lane joined the capture must
         # not silently trigger a live read inside the projection: the
@@ -401,7 +403,7 @@ def press_market_map(
         inputs = dict(inputs)
         inputs["rival_footprint"] = load_cached(slug) if slug else {}
     doc = build_market_map(pack, profile=profile, slug=slug, as_of=stamp,
-                           inputs=inputs)
+                           inputs=inputs, notice_context=notice_context)
     ids = EditIds()
     display = " ".join(str(pack.client_name or client).split())
     html = build_document(

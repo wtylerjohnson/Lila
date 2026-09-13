@@ -69,34 +69,19 @@ def is_solicitable(record: Any) -> bool:
 
 
 def dedupe_by_title_agency(records: list) -> tuple[list, list]:
-    """(kept, dropped) collapsing notices that share a title and agency.
-
-    Keeps the strongest leverage rank in each group, then the earliest
-    deadline, so a collapsed group is represented by its most actionable
-    member rather than by whichever row happened to sort first.
-    """
-    groups: dict[tuple, list] = {}
-    passthrough = []
-    for record in records:
-        if getattr(record, "lane", None) != "L1_notice":
-            passthrough.append(record)
-            continue
-        key = (" ".join(str(getattr(record, "title", "") or "").split()).casefold(),
-               " ".join(str(getattr(record, "agency", "") or "").split()).casefold())
-        groups.setdefault(key, []).append(record)
-    kept, dropped = [], []
-    for key, group in groups.items():
-        if len(group) == 1:
-            kept.append(group[0])
-            continue
-        group.sort(key=lambda r: (
-            getattr(r, "notice_leverage_rank", None) or 99,
-            str(getattr(r, "response_deadline", "") or "9999"),
-            str(getattr(r, "record_id", "")),
-        ))
-        kept.append(group[0])
-        dropped.extend(group[1:])
-    return passthrough + kept, dropped
+    """Compatibility name; structured identity and source chronology now own dedupe."""
+    from tools.relevance.notice_family import resolve
+    notices = [r for r in records if getattr(r, "lane", None) == "L1_notice"]
+    dictionaries = [r.model_dump(mode="json") for r in notices]
+    selected = set()
+    for family in resolve(dictionaries):
+        index = family["representative_ordinal"]
+        selected.add(id(notices[index]))
+        notices[index].source_fields = dict(notices[index].source_fields,
+            notice_family_v1={k: v for k, v in family.items() if k != "representative"})
+    kept = [r for r in records if getattr(r, "lane", None) != "L1_notice" or id(r) in selected]
+    dropped = [r for r in notices if id(r) not in selected]
+    return kept, dropped
 
 
 def enrich_from_store(records: Iterable, *,

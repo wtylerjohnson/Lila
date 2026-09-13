@@ -1,0 +1,130 @@
+{
+  "work_id": "REPAIR-STEP6-BASELINE-051",
+  "kind": "PRE_PATCH_PROPOSAL_REQUIRES_COORDINATOR_CANDIDATE_AND_REVIEW",
+  "accepted_baseline_sha": "497b7f3b1bdef6a58081918fd0e4d62b66fa7d76",
+  "implementation_owner": "Existing coordinator",
+  "integration_owner": "Root",
+  "historical_cases": "Frozen004/005 and historical harnesses unchanged; no outcomes reinterpreted",
+  "measurement_contract": {
+    "version": "step6.measurement.proposed.v1",
+    "run_fields": ["work_id", "case_id", "company_brief_hash", "scope_hash", "dossier_hash", "code_sha", "native_job_id", "query_started_at", "capture_completed_at", "budget_deadline", "completion_status", "failure_reason", "literal_query", "expanded_queries", "searched_fields", "filters", "ordering_contract", "source_cutoff", "source_acquisition_times", "source_index_vintage", "cache_receipts", "feature_flags", "model_and_prompt_versions", "account_tier", "paid_cost", "operator_effort", "raw_capture_hashes", "ui_api_export_hashes", "semantic_parity_disposition"],
+    "retrieval_diagnostics": {
+      "artifact": "retrieval_diagnostics.json",
+      "population": "Entire supplied retrieval census in original native order, including duplicate postings, irrelevant/discarded, unresolved and failed lanes",
+      "fields": ["raw_rank", "source_id", "original_record_hash", "source_lane", "engagement_scope", "collection_status", "collection_cap", "retrieved_count", "total_available", "candidate_disposition", "screening_reason", "requirement_support_state", "fit_assessment_state", "evidence_state", "family_identity", "identity_basis", "representative_id", "family_members_in_original_order", "member_status", "posted_clock", "acquired_clock", "superseded_by", "suppression_reason", "source_passage_refs"],
+      "diagnostics": ["raw noise rate within examined population", "missing or rejected known reference cases with reasons", "false-negative investigations without relabeling the benchmark output", "family and posting count reconciliation", "source failures and unknown denominators"],
+      "limits": "No union-as-market denominator or total-market recall claim; unknown completeness stays unknown. Overlapping term/field counts are not additive."
+    },
+    "qualified_recommendations": {
+      "artifact": "native_qualified_recommendations.json",
+      "population": "Only evidence-qualified native opportunity recommendations at capture, before any analyst reranking",
+      "fields": ["native_rank", "native_surface", "surface_version", "original_source_rank", "family_id", "source_ids", "requirement_decision_ref", "current_action_decision_ref", "route_decision_ref", "scope_decision_ref", "source_acquisition_ref", "qualification_state", "source_links", "record_hash"],
+      "capture": "Snapshot first20 immediately and first100/all if fewer inside predeclared budget; preserve duplicates and native slots; no backfill, replacement rerun or rescue rerank",
+      "zero_rule": "Zero qualified means zero; unfilled slots stay unfilled. Incomplete/timeout is preserved as incomplete, never scored as zero.",
+      "exclude_from_counts": ["raw retrieval hits", "screen-only pursue labels", "forecasts", "historical awards", "research signals", "parent-only research", "HOLD/WATCH children", "context/market map rows"]
+    },
+    "seller_action_quality": {
+      "artifact": "seller_action_quality.json",
+      "fields": ["parent_id", "child_id_if_any", "lead_tier", "who_to_contact", "contact_source_role", "why_now", "what_to_sell", "route", "specific_ask", "linked_proof", "communication_permission", "qualification_gaps", "evidence_state", "source_clock", "assessment_clock"],
+      "per_claim_contract": "Each contact, requirement, current event, offering fit, route and ask carries supported/unknown/contradicted status and its own exact evidence references; one supported dimension cannot certify another.",
+      "count_rule": "Report parents, research parents, children, WATCH/HOLD and evidence-qualified seller actions separately. No seller-ready target count or forced quota. No outreach as validation."
+    },
+    "prospective_effort": {
+      "mode": "Separately labeled same-brief workflow unless coordinator verifies exact-search semantics",
+      "proposal_to_freeze_before_future_run": true,
+      "per_product_wall_minutes": 60,
+      "per_product_active_analyst_minutes_max": 60,
+      "analyst_clock": "Included in the same 60-minute wall window; record active minutes and source/tool actions. No unreported research beyond the cap.",
+      "preparation": "Shared hash-locked brief, source policy, known-case list and exclusions prepared prospectively; record preparation time separately and disclose any asymmetric product-specific preparation.",
+      "source_policy": "Same permitted public original-source classes and cutoff; preserve attempted/failed/empty/unread source states, exact source/passage authority and source clocks. Disclose different native indexes, features, paid costs, latency and required manual research.",
+      "parity": "Unsupported phrase/field/filter/ranking parity yields NOT_COMPARABLE_EXACT_SEARCH. Same-brief workflow results cannot be advertised as identical-query results.",
+      "baseline_effort": "Offline investigation and synthetic tests only. No live query clock started; original investigation active time was not instrumented and is not fabricated."
+    }
+  },
+  "acceptance_cases": [
+    {
+      "id": "S6-GATE-01",
+      "baseline": "run03/RESULTS.json",
+      "pairs": ["explicit requested work versus incidental boilerplate", "requested work versus explicit negation", "current authorized action versus cancelled/inactive record retaining future deadline", "recognized eligible access versus unknown or display-form restriction"],
+      "consumer_path": ["triage", "Research Picture revalidation", "Golden graph classifier and qualifier", "external slot5 and priority projection", "native UI"],
+      "expected": "Unsupported cases never become evidence-qualified or direct-eligible. Positive source-bound controls remain available without bypassing independent route/action/clock gates."
+    },
+    {
+      "id": "S6-FAMILY-02",
+      "baseline": "run02/RESULTS.json#FAMILY-IDENTITY",
+      "pairs": ["verified amendments same/changed title", "independent umbrella calls same title", "different office/agency/lane", "newer closed or no-term member versus older positive/live member", "missing structured identity"],
+      "consumer_path": ["triage._latest_notice_threads", "evidence_pack_v2.canonicalize_requirement_families", "notice_join.dedupe_by_title_agency", "market_map_projection family consumers", "Assess/export/LeadRow representative URLs"],
+      "expected": "Verified amendment family renders once with all original members/statuses/evidence. Independent calls remain distinct. No title/prefix-only identity. Current representative selection and native ordering are explicit and stable.",
+      "integration_dependency": "Preserve NETSCOUT e321ad7 representative URL selection for Global Entry and Law Manager and all 25 posting identities/23 parents; root owns import."
+    },
+    {
+      "id": "S3-DIAG-006",
+      "baseline": "run02/RESULTS.json#S3-DIAG-006",
+      "pairs": ["latest no-term versus explicit term negation", "latest unresolved versus authoritative current", "full census versus positive subset"],
+      "expected": "Compact diagnostic carries all family members including zero-span latest members, suppression edges and count reconciliation; superseded positives never count as current unique. S3-ROLE-007 remains disclosed unless a separately evidenced narrow label correction is tested."
+    },
+    {
+      "id": "S3-SURFACE-005",
+      "baseline": "run02/RESULTS.json#S3-SURFACE-005-AWARD",
+      "pairs": ["capability mention plus current PoP versus exact documented follow-on/funding decision", "expired versus current award date", "C1 source mention versus non-C1 best-fit/action label"],
+      "consumer_path": ["composer.select_award_best_fit", "composer.compose_content", "facts._buyer_map_facts", "facts._funded_demand_facts", "ui._search_summary", "reached report/render consumers"],
+      "expected": "Record-only facts and research questions survive; unsupported displacement, current funding, refresh, eligibility and response instructions do not. Existing C1 current-source rebind controls stay green."
+    },
+    {
+      "id": "S6-EMPTY-AND-ORDER",
+      "baseline": "run02/RESULTS.json#EXTERNAL-NATIVE-PRIORITIES",
+      "pairs": ["zero versus all-held", "mixed qualified plus irrelevant raw", "forecast-only versus qualified notice", "complete LeadGen with no ready children versus genuinely qualified child"],
+      "expected": "Raw remains inspectable without filling qualified slots. Preserve native order and duplicate/unfilled positions. All eight slots, full assessment population and Market Map remain intact. Labeled research/forecast priorities are counted in their own population."
+    },
+    {
+      "id": "S6-COVERAGE-STATES",
+      "baseline": "run02/RESULTS.json#KNOWN-EMPTY-VS-UNKNOWN",
+      "pairs": ["missing/unreadable/failed inventory versus recognized known-empty", "empty rows without census versus reconciled complete-zero", "partial extraction versus full reviewed evidence"],
+      "expected": "Native JSON/UI/report show explicit gaps, caps and unknown denominators; known empty is not inferred from failure. Existing authoritative evidence gates remain. No Step7 acquisition/cache/inventory implementation here."
+    },
+    {
+      "id": "N-DHS-06",
+      "saved_fixture": "saved-fixtures/SAVED_NOTICE_CENSUS.json and bundle/native-leadgen",
+      "synthetic_analogue": "run02/RESULTS.json#N-DHS-06-MOTION",
+      "expected": ["Retain all25 source reasons and23 parents", "Rejected cannabis cybersecurity boilerplate is not positive fit", "screen-only no-core is distinct from reviewed no_fit and unread/unknown", "research/discard alone never establishes live_bid or a qualified recommendation", "UI JSON scorecard agree on zero seller-ready for historical saved fixture", "Keep HOLD when evidence is missing; do not force REJECT or SELLER_READY"],
+      "scope": "Original saved f0f7aec evidence is regression input, not current497 native execution or new market proof"
+    },
+    {
+      "id": "N-DHS-12",
+      "saved_fixture": "saved-fixtures/bundle/evidence/headline-source-validation.json, horizon-source-qa.json, horizon-budget-primary.json, netscout.horizon.json",
+      "synthetic_analogue": "run02/RESULTS.json#N-DHS-12-FACTS and UI-DIAGNOSTIC-ORDER-AND-FUNDING",
+      "expected": ["NCCS original March6 RFI stays historical; later documented program activity remains separate and does not reopen that response", "SAIC Sep14 PoP end never implies NETSCOUT refresh or funded follow-on", "DHS aggregate remainder cannot become IT expiring Sep30 or addressable NETSCOUT value", "KEV historical and future publication dates retain chronology", "Empty Horizon explains limited fact bank; zero-record summaries do not claim substantive screening"],
+      "scope": "Only the two assigned gaps; NCCS attachment acquisition and all other gap implementations retain their named owners"
+    },
+    {
+      "id": "S6-SELLER-PROOF",
+      "controls": "run02/CONTROL_RECEIPT.json",
+      "pairs": ["source-supported requirement alone versus all required evidence legs", "published contact versus verified route", "bare expiry versus current supported renewal decision", "missing required coverage versus complete bound evidence"],
+      "expected": "Who/why-now/what/route/ask/proof retain independent evidence and qualification states. No contact implies permission. Unsupported stays unknown/HOLD; positive bounded renewal control remains T2 only under unchanged gates."
+    },
+    {
+      "id": "S6-CLOCK-AND-HISTORY",
+      "controls": "run02/CONTROL_RECEIPT.json",
+      "expected": "Reapproval changes assessment clock only; source acquisition and immutable IDs remain. Unknown timestamps stay unknown. Schema1 history reads without new authority, schema2 revalidates and downgrade/relabel attacks fail. Assigned root strict P1 remains closed; do not duplicate root implementation."
+    },
+    {
+      "id": "S6-RESEARCH-PARENT-READER-COMPOSITE",
+      "status": "PROSPECTIVE_PUBLISHED_CONTRACT_DEPENDENCY",
+      "authority": "handoffs/STEP6-051/RESEARCH_SUBJECT_CONSUMER_ADDENDUM.json",
+      "schema_fields": "Not guessed; use eventual published ResearchSubject/native Assess v3 contract from existing NETSCOUT owner",
+      "expected": "Final composite collection -> serialization -> fact/research bank -> native Assess -> export -> parent-only LeadGen/report preserves facts, targets, route limits, unknown continuation, questions and next research ask with no child. Research parent populations stay separate from qualified recommendation and seller-action counts. No fabricated live_bid, current event/window, qualification, freshness, access or permission. Preserve native order, family history and v1/v2 read/anti-relabel controls.",
+      "owner": "NETSCOUT implements schema; root combines accepted6/7 and published research changes; Step6 owns reader tests against published contract only"
+    }
+  ],
+  "fable_review_plan": {
+    "dispatch": "One coordinator/CoS-routed review of exact published Step6 candidate before Step7",
+    "candidate_binding": "Require full remote SHA, branch, clean/archived dirty state and exact archive hashes; local origin path is not remote publication proof",
+    "portable_inputs": ["probe_baseline.py", "intake_saved_fixtures.py", "saved-fixtures plus original source hashes", "PRE-PATCH-REPORT.md", "ACCEPTANCE_PLAN.json", "SOURCE_RECEIPTS.json", "PRIOR_FOLLOWUPS.preserved.json", "canonical weekend plan and source notes", "exact focused and required regression commands"],
+    "baseline_replay": "python probe_baseline.py CHECKOUT NEW_OUTPUT_DIRECTORY --controls --expected-sha=PUBLISHED_FULL_SHA",
+    "assertions": "Baseline script records desired-contract booleans rather than failing on product defects. Candidate acceptance must inspect/assert every declared negative and positive outcome, not use script exit zero as proof.",
+    "consumer_tests": "Add real native JSON/projection/render assertions and bounded fixture bundle path checks; preserve evidence/assessment/Market Map/eight slots. Report helper-only, native function, rendered artifact, browser, full suite and authentic-source scopes separately.",
+    "environment": "Record Python/dependency versions, missing fixtures, skips, errors and transport attempts. Missing input means unavailable proof, never reconstruct an authentic fixture or assert cloud/local parity.",
+    "later_composite": "Root integrates separate NETSCOUT research and Step7 sources after their accepted contracts; complete prospective reader acceptance then. No draft import or duplicate root tests in this baseline."
+  },
+  "stop": "Operator writes receipts/status, sends one completion handoff and checkpoints. No polling, patch, live capture, Step7 or Tyler approval request."
+}

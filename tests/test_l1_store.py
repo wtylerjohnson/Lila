@@ -137,6 +137,8 @@ def test_dedupe_collapses_the_same_notice_posted_repeatedly(store):
     for i in range(4):
         _insert(store, f"dup{i}", title="Broad Agency Announcement",
                 desc="network monitoring", agency="DEPT OF X")
+        store.execute("UPDATE notices SET sol_number=?, office=?, posted=? WHERE notice_id=?",
+                      ("BAA-1", "Office", f"2026-08-0{i+1}", f"dup{i}"))
     recs, _, receipt = run_l1_from_store(CAPS, conn=store)
     assert len(recs) == 1
     assert receipt["deduped_away"] == 3

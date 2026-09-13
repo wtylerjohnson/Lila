@@ -47,7 +47,7 @@ ROUTE_RELATIONSHIPS = (
 WINDOW_STATES = ("live", "fy_only", "unstated", "stated_past")
 SERVICE_FITS = ("direct", "adjacent", "unrelated", "ambiguous")
 PROVENANCE_TYPES = ("measured", "cited", "inferred")
-CLASSIFIER_VERSION = "evidence-route-v2-graph-contract"
+CLASSIFIER_VERSION = "evidence-route-v3-native-notices"
 
 _ROOT = Path(__file__).resolve().parents[2]
 
@@ -488,20 +488,8 @@ def classify_evidence(record: dict, ctx: dict, *, fit: Optional[dict] = None,
                 "evidence_basis": "verified event record"}
 
     if lane == "L1_notice":
-        if fit["service_fit"] == "unrelated":
-            return {"evidence_class": "excluded",
-                    "evidence_basis": fit["fit_basis"]}
-        if window["window_state"] == "live":
-            return {"evidence_class": "current_opportunity",
-                    "evidence_basis": window["window_basis"]}
-        if window["window_state"] == "unstated":
-            return {"evidence_class": "ambiguous",
-                    "evidence_basis": "notice carries no response date; "
-                                      "held out of live pursuits until "
-                                      "resolved"}
-        return {"evidence_class": "excluded",
-                "evidence_basis": window["window_basis"] +
-                    "; never a live pursuit"}
+        return {"evidence_class": "excluded" if fit["service_fit"] == "unrelated" or window["window_state"] == "stated_past" else "ambiguous",
+                "evidence_basis": "notice discovery only; current native source admission required"}
 
     if lane == "L2_entity_award":
         recipient = record.get("recipient")
@@ -581,43 +569,8 @@ def classify_route(record: dict, ctx: dict) -> dict:
                 "no traceable route evidence on this record"}
 
     if lane == "L1_notice":
-        text = " ".join(str(record.get(k) or "")
-                        for k in ("title", "description"))
-        m = _INCUMBENT_RE.search(text)
-        set_aside = str(record.get("set_aside") or "").strip()
-        code = set_aside.casefold().replace("total_small_business", "sba")
-        restricted = None
-        for key, label in _RESTRICTED_ACCESS.items():
-            if code == key or key in code.split():
-                restricted = label
-                break
-        certs = {str(c).casefold()
-                 for c in (ctx.get("client_certifications") or [])}
-        if restricted and not (certs & _cert_tokens(code)):
-            if m:
-                return {"route_relationship": "named_partner_teaming",
-                        "commercial_route": "named_partner_teaming",
-                        "eligible_route": True,
-                        "route_basis":
-                            f"access rule '{restricted}' bars direct "
-                            f"pursuit; incumbent text names "
-                            f"'{m.group(1).strip()}': partner or "
-                            "subcontract route"}
-            return {"route_relationship": "possible_subcontracting",
-                    "commercial_route": "possible_subcontracting",
-                    "eligible_route": False,
-                    "route_basis": f"access rule '{restricted}' bars "
-                                   "direct pursuit for this client"}
-        if m:
-            return {"route_relationship": "incumbent",
-                    "commercial_route": "incumbent",
-                    "eligible_route": True,
-                    "route_basis": "notice text names the incumbent: "
-                                   f"'{m.group(1).strip()}'"}
-        return {"route_relationship": "direct",
-                "commercial_route": "direct", "eligible_route": True,
-                "route_basis": "open access rule; direct response "
-                               "available"}
+        from agents.golden_press.notice_bridge import access_decision
+        return access_decision(record, ctx.get("client_certifications") or [])
 
     if lane == "L4_forecast":
         return {"route_relationship": "direct",
@@ -710,7 +663,7 @@ def build_context(client_name: str, slug: str, *,
         "client_certifications":
             list(route_facts.get("certifications") or []) or
             [c for c in (profile.get("certifications") or [])],
-        "as_of": as_of or str((pack or {}).get("generated_at") or "")[:10],
+        "as_of": as_of or str((pack or {}).get("generated_at") or ""),
     }
 
 
@@ -752,4 +705,35 @@ def classify_record(record: dict, ctx: dict) -> dict:
             else "inferred", "record_scope", fit["fit_basis"],
             "service_fit_v2"),
     }
+    return out
+
+
+def apply_native_admission(record: dict, notice_context=None, *, recheck=True) -> dict:
+    """A cache or supplied positive overlay never replaces the current read boundary."""
+    if record.get("lane") != "L1_notice":
+        return dict(record)
+    from agents.golden_press.notice_bridge import NoticeReadContext
+    decision = (notice_context.decision(record, recheck=recheck) if isinstance(notice_context, NoticeReadContext)
+                else {"version": "native-notice-admission-v1", "admitted": False,
+                      "gaps": ["Current native source read context is unavailable"]})
+    out = dict(record)
+    out.pop("qualified", None)
+    out["notice_admission"] = decision
+    out["evidence_class"] = "current_opportunity" if decision["admitted"] else "ambiguous"
+    out["evidence_basis"] = ("current original source, bound requirement approval, action, acquisition and access"
+                             if decision["admitted"] else "; ".join(decision["gaps"]))
+    if decision["admitted"]:
+        source = notice_context.sources[record["record_id"]]
+        raw = source.get("raw_payload") or {}
+        out.update(title=source.get("title"), agency=source.get("agency"),
+                   office=source.get("office") or raw.get("office"),
+                   url=source.get("api_url") or source.get("url") or raw.get("url"),
+                   notice_type=source.get("notice_type") or raw.get("type"),
+                   response_deadline=decision["temporal"]["deadline"]["selected"]["raw"],
+                   service_fit="direct", fit_basis="source-bound approved requested capability span",
+                   window_state="live", window_basis="current aware source response window")
+        out.update(decision["route"])
+    else:
+        out.update(eligible_route=False, commercial_route="unknown", route_relationship="unknown",
+                   route_basis="current source access not established", qualification_state="held_for_source_review")
     return out

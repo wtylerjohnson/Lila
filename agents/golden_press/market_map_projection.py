@@ -1383,54 +1383,29 @@ def _v2_opportunity(row: dict, targets: tuple) -> Opportunity:
         coverage=value_coverage)
 
 
-def attach_v2_targets(opportunities: tuple, payload: dict) -> tuple:
-    """Make the V2 qualified set authoritative and attach its targets.
-
-    When the sidecar is present, its ordered qualified records define the
-    opportunity population.  Existing projection rows are reused where ids
-    match; missing qualified rows are constructed; legacy rows absent from V2
-    are removed.  This makes opportunity removal cascade to targets and keeps
-    published contacts, approved enrichments, and enrichment candidates
-    distinct in the attached provenance.
-    """
-    if not payload:
-        return tuple(opportunities)
-    qualified = payload.get("qualified_opportunity_records") or []
-    existing = {_clean(row.identifier): row for row in opportunities}
+def attach_v2_targets(opportunities: tuple, payload: dict, *, notice_context=None) -> tuple:
+    """Fresh graph membership only; serialized or missing sidecars are diagnostics."""
+    from agents.golden_press.notice_bridge import NoticeReadContext
+    if not isinstance(notice_context, NoticeReadContext) or not notice_context.accepts_graph(payload):
+        return ()
+    records = {r.get("record_id"): r for r in payload.get("records") or []}
     groups = payload.get("target_groups") or {}
     attached = []
-    for row in qualified:
+    for row in payload.get("qualified_opportunity_records") or []:
         identifier = _clean(row.get("record_id") or row.get("notice_id"))
-        if not identifier:
+        original = records.get(identifier)
+        if original is None or not notice_context.decision(original, recheck=False)["admitted"]:
             continue
         family = _clean(row.get("requirement_family"))
-        targets = tuple(dict(target) for target in (groups.get(family) or [])
-                        if _clean(target.get("opportunity_record_id")) in {
-                            "", identifier})
-        opportunity = existing.get(identifier)
-        if opportunity is None:
-            opportunity = _v2_opportunity(row, targets)
-        else:
-            published_contacts = tuple({
-                "name": _clean(target.get("name")),
-                "email": _clean(target.get("email")),
-                "phone": _clean(target.get("phone")),
-                "title": _clean(target.get("title") or target.get("role")),
-                "source_class": _clean(target.get("source_kind")),
-                "source": _clean(target.get("provenance")),
-            } for target in targets
-                if target.get("source_kind") == "published_contact"
-                and (_clean(target.get("name")) or
-                     _clean(target.get("email")) or
-                     _clean(target.get("phone"))))
-            opportunity = replace(
-                opportunity, linked_targets=targets,
-                contacts=(published_contacts or opportunity.contacts))
-        attached.append(opportunity)
-    return tuple(attached)
+        targets = tuple(dict(target) for target in groups.get(family) or []
+                        if _clean(target.get("opportunity_record_id")) == identifier)
+        # Rebuild current representative facts; same-ID legacy rows cannot retain stale prose.
+        attached.append(_v2_opportunity(row, targets))
+    return tuple(attached) if notice_context.unchanged() else ()
 
 
-def capture_inputs(*, profile: dict, slug: str = "", pack: Any = None) -> dict:
+def capture_inputs(*, profile: dict, slug: str = "", pack: Any = None,
+                   root: Any = None, graph: Any = None) -> dict:
     """Every press-time store read, performed ONCE and returned as data.
 
     The projection consuming this is pure, so a press that saves this
@@ -1446,7 +1421,7 @@ def capture_inputs(*, profile: dict, slug: str = "", pack: Any = None) -> dict:
     candidates: dict = {}
     try:
         from tools.notice_store import connect as _connect
-        conn = _connect()
+        conn = _connect(Path(root) / "data" / "state" / "notice_store" / "notices.db") if root is not None else _connect()
         try:
             candidates = fetch_store_candidates(
                 conn, exact_terms=terms, naics_boundary=naics_boundary,
@@ -1464,11 +1439,11 @@ def capture_inputs(*, profile: dict, slug: str = "", pack: Any = None) -> dict:
                 (profile.get("capability_terms") or {}).get("excluded") or []),
             "targets_payload": load_target_observations(slug),
             "rival_footprint": load_cached(slug) if slug else {},
-            "evidence_pack_v2": _load_evidence_pack_v2(slug)}
+            "evidence_pack_v2": graph if graph is not None else _load_evidence_pack_v2(slug)}
 
 
 def build_market_map(pack: Any, *, profile: dict, slug: str = "",
-                     as_of: str = "", inputs: Any = _LIVE
+                     as_of: str = "", inputs: Any = _LIVE, notice_context=None
                      ) -> FederalMarketMapDocument:
     """The whole projection, assembled before narrative and before render."""
     from agents.golden_press.prime_posture import derive_posture
@@ -1522,36 +1497,9 @@ def build_market_map(pack: Any, *, profile: dict, slug: str = "",
             o for o in extra if o.key not in have)
     except Exception:                                     # noqa: BLE001
         pass
-    # FAMILY COLLAPSE ACROSS LANES. The store lane dedupes its own rows,
-    # but a requirement can arrive once from the pack and once from the
-    # store under different posting numbers, and the two PIVOT postings
-    # rendered as twins exactly that way. One requirement is one row; the
-    # duplicate's identifier survives on the kept row.
+    # Source-bound family membership is resolved before qualification by the
+    # shared native reader. Legacy title resemblance never establishes identity.
     families_raw = len(opportunities)
-    by_family: dict = {}
-    ordered: list = []
-    for opp in opportunities:
-        fam = _family(getattr(opp, "title", "")) or opp.key
-        held = by_family.get(fam)
-        if held is None:
-            by_family[fam] = opp
-            ordered.append(fam)
-            continue
-        keep, drop = held, opp
-        # Prefer the row that is more actionable: contacts, then value,
-        # then a stated response date.
-        def _rank(o: Any) -> tuple:
-            return (1 if o.contacts else 0, 1 if o.value else 0,
-                    1 if _clean(o.response_date) else 0)
-        if _rank(opp) > _rank(held):
-            keep, drop = opp, held
-        extra_id = _clean(getattr(drop, "identifier", ""))
-        if extra_id and extra_id != _clean(keep.identifier)                 and not _HEX.match(extra_id):
-            suffix = f" Also posted as {extra_id}."
-            if suffix not in (keep.fit or ""):
-                keep = replace(keep, fit=(keep.fit or "").rstrip() + suffix)
-        by_family[fam] = keep
-    opportunities = tuple(by_family[f] for f in ordered)
     # THE CLOCK RULES EVERY WORD (grading round 1, fatal). A press dated
     # 2026-08-07 carried "Reply ... before responses close" on nine records
     # whose windows had already closed, because personalisation never
@@ -1648,7 +1596,7 @@ def build_market_map(pack: Any, *, profile: dict, slug: str = "",
 
     opportunities = tuple(sorted(opportunities, key=_opp_rank))
     opportunities = attach_v2_targets(
-        opportunities, captured.get("evidence_pack_v2") or {})
+        opportunities, captured.get("evidence_pack_v2") or {}, notice_context=notice_context)
     routes = _teaming(pack, profile, opportunities)
     contacts = _contacts(pack, slug or _norm(company.client_name),
                          opportunities, routes,
@@ -1697,6 +1645,11 @@ def build_market_map(pack: Any, *, profile: dict, slug: str = "",
             "competitor_source": competitor_source(profile),
             "notice_store": dict(getattr(pack, "notice_store", None) or {}),
             "model_calls": 0,
+            "native_notice_context": (notice_context.receipt() if notice_context is not None else
+                                      {"gaps": ["No current native source read context"]}),
+            "diagnostic_candidates": [dict(identifier=o.identifier, source_kind=o.source_kind,
+                title=o.title, response_date=o.response_date, fit=o.fit,
+                source_urls=[getattr(e, "source_url", "") for e in o.evidence]) for o in pack_kept],
         })
 
 
@@ -1764,6 +1717,15 @@ def fetch_store_candidates(conn, *, exact_terms: Any,
     terms = sorted({_clean(t).casefold() for t in (exact_terms or [])
                     if len(_clean(t)) >= 4})
     out: dict = {}
+    def with_siblings(candidates):
+        from tools.relevance.notice_family import store_siblings, identity, original
+        found = [row for group in candidates.values() for row in group]
+        siblings = store_siblings(conn, found)
+        for term, group in candidates.items():
+            keys = {identity(original(row)) for row in group}
+            ids = {row["notice_id"] for row in group}
+            group.extend(row for row in siblings if row["notice_id"] not in ids and identity(original(row)) in keys)
+        return candidates
     naics = [str(code) for code in (naics_boundary or ()) if _clean(code)]
     psc = [str(code) for code in (psc_boundary or ()) if _clean(code)]
 
@@ -1784,7 +1746,7 @@ def fetch_store_candidates(conn, *, exact_terms: Any,
         boundary = " OR ".join(boundary_parts)
         rows = conn.execute(
             f"SELECT notice_id, title, notice_type, sol_number, deadline, "
-            f"posted, naics, set_aside, "
+            f"posted, naics, set_aside, agency, subtier, active, "
             f"poc_name, poc_email, poc_phone, poc_title, "
             f"poc_secondary_name, poc_secondary_email, poc_secondary_phone, "
             f"poc_secondary_title, description_prefix, "
@@ -1798,12 +1760,12 @@ def fetch_store_candidates(conn, *, exact_terms: Any,
             for term in terms:
                 if phrase_matches(term, text):
                     out.setdefault(term, []).append(dict(row))
-        return out
+        return with_siblings(out)
 
     for term in terms:
         rows = conn.execute(
             f"SELECT notice_id, title, notice_type, sol_number, deadline, "
-            f"posted, naics, set_aside, "
+            f"posted, naics, set_aside, agency, subtier, active, "
             f"poc_name, poc_email, poc_phone, poc_title, "
             f"poc_secondary_name, poc_secondary_email, poc_secondary_phone, "
             f"poc_secondary_title, description_prefix, "
@@ -1813,7 +1775,7 @@ def fetch_store_candidates(conn, *, exact_terms: Any,
             (f"%{term}%", *(f"%{s}%" for s in shaping))).fetchall()
         if rows:
             out[term] = [dict(row) for row in rows]
-    return out
+    return with_siblings(out)
 
 
 def store_opportunities(source, *, exact_terms: Any = (), limit: int = 40,
@@ -1846,9 +1808,23 @@ def store_opportunities(source, *, exact_terms: Any = (), limit: int = 40,
         candidates = fetch_store_candidates(source, exact_terms=exact_terms)
     else:
         candidates = dict(source or {})
+    from tools.relevance.notice_family import resolve
+    census = {}
+    for group in candidates.values():
+        for row in group:
+            census.setdefault(row["notice_id"], dict(row))
+    families = resolve(list(census.values()))
+    family_by_id = {sid: family for family in families for sid in family["member_ids"]}
     best: dict = {}
     for term in sorted(candidates):
         for row in candidates[term]:
+            family = family_by_id[row["notice_id"]]
+            if family["order_status"] != "ordered" or family["representative_id"] != row["notice_id"]:
+                if rejected_out is not None:
+                    rejected_out.append({"identifier": row["notice_id"], "title": row["title"],
+                        "kind": NOTICE, "reason": "superseded or unresolved family chronology",
+                        "reason_class": "family_suppression", "family": family})
+                continue
             key = _clean(row["sol_number"]) or _clean(row["title"])
             if not key:
                 continue
@@ -1901,33 +1877,9 @@ def store_opportunities(source, *, exact_terms: Any = (), limit: int = 40,
                             "reason_class": _clean(why.get("reason_class"))
                             or "rejected_out_of_frame"})
                     continue
-            entry = best.setdefault(key.casefold(), {"row": row, "terms": set()})
+            entry = best.setdefault(row["notice_id"], {"row": row, "terms": set(), "notice_family": family})
             entry["terms"].add(term)
             entry.setdefault("family", _clean(verdict.get("family")))
-    # SECOND PASS: collapse by requirement family. A solicitation number is
-    # the better key when it exists, but a posting without one is still the
-    # same requirement, and TCRS arrived twice on exactly that gap.
-    families: dict = {}
-    for entry in best.values():
-        fam = _family(entry["row"]["title"]) or _clean(
-            entry["row"]["sol_number"]).casefold()
-        held = families.get(fam)
-        if held is None:
-            entry.setdefault("also", set())
-            families[fam] = entry
-            continue
-        held["terms"] |= entry["terms"]
-        # The duplicate's identifier survives ON the kept row, so one
-        # requirement posted twice renders once and still names both ids.
-        other = (_clean(entry["row"]["sol_number"])
-                 or _clean(entry["row"]["notice_id"]))
-        if other:
-            held.setdefault("also", set()).add(other)
-        # keep the posting that carries a solicitation number, then the newer
-        if (not _clean(held["row"]["sol_number"])
-                and _clean(entry["row"]["sol_number"])):
-            held["row"] = entry["row"]
-    best = families
     out = []
     for entry in sorted(best.values(), key=lambda e: -len(e["terms"])):
         row, terms = entry["row"], entry["terms"]
@@ -1974,7 +1926,7 @@ def store_opportunities(source, *, exact_terms: Any = (), limit: int = 40,
             response_past=bool(deadline and _clean(as_of)
                                and deadline < _clean(as_of)[:10]))
         out.append(Opportunity(
-            key=opportunity_key(NOTICE, ref.source_id),
+            key=opportunity_key(NOTICE, row["notice_id"]),
             identifier=ref.source_id, source_kind=NOTICE,
             title=_title(row["title"]), agency=_clean(row["org"]),
             office=_clean(row["office"]),
@@ -1983,11 +1935,9 @@ def store_opportunities(source, *, exact_terms: Any = (), limit: int = 40,
             response_date=deadline,
             fit=(f"Matches {', '.join(sorted(terms)[:3])}."
                  + (f" Also posted as {', '.join(also)}." if also else "")),
-            motion=_clean(routing.get("motion")) or SHAPE,
-            action=("Respond to shape the requirement before it is "
-                    "finalised."),
-            access_route=_clean(routing.get("access_note"))
-            or "Reply to the published point of contact.",
+            motion=MONITOR,
+            action="Verify the original requirement, current response instruction and eligible access.",
+            access_route="Research context; current source admission required.",
             contacts=contacts, evidence=(ref,),
             coverage=(complete("published contact")
                       if contacts else research_next(

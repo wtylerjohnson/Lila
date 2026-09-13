@@ -87,23 +87,9 @@ def _normalized_text(value: Any) -> str:
 
 
 def _notice_thread_key(notice: dict, index: int) -> tuple[str, ...]:
-    """Return a conservative amendment-thread identity.
-
-    Solicitation numbers are not globally unique.  Different agencies (and
-    occasionally different offices inside one agency) reuse short identifiers
-    such as ``RFI-01``.  Amendment consolidation therefore requires the
-    solicitation, agency, and issuing office to agree.  If agency/office
-    identity is absent, fail open to the notice id instead of discarding an
-    unrelated record.
-    """
-    normalized = _solicitation_id(notice).upper()
-    if normalized not in _EMPTY_SOLICITATIONS:
-        raw = _raw_payload(notice)
-        agency = _normalized_text(raw.get("agency") or notice.get("agency"))
-        office = _normalized_text(raw.get("office") or notice.get("office"))
-        if agency and office:
-            return ("solicitation", normalized, agency, office, str(notice.get('source') or 'sam.gov'))
-    return ("notice", _source_id(notice, f"idx-{index}"))
+    """Shared source/agency/office/full-solicitation identity, never title similarity."""
+    from tools.relevance.notice_family import identity
+    return identity(notice, index)
 
 
 def _notice_lineage(notice: dict) -> list[dict[str, Any]]:
@@ -641,7 +627,8 @@ def deterministic_prefilter(
             post_solicitation_candidates
         ),
         "model_candidates": len(candidates),
-        "superseded_revisions": superseded_count,
+        "superseded_revisions": _count,
+        "positive_candidate_superseded_revisions": superseded_count,
         "cross_post_duplicates": cross_post_count,
         "model_candidate_reasons": dict(sorted(candidate_reasons.items())),
         "deterministic_discards": sum(v["verdict"] == "discard" for v in ruled.values()),

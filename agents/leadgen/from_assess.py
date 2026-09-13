@@ -388,8 +388,8 @@ def _drafts_for_parent(
         if motion is None:
             traces.append(_parent_trace(
                 run, parent,
-                "HOLD: buying motion could not be formed without inventing "
-                "a buyer or clock",
+                "HOLD: retain parent research; no supported buying motion, "
+                "buyer or clock establishes an actionable child",
             ))
             continue
         pathway = _pathway_from_parent(kind, subject, unit)
@@ -734,6 +734,12 @@ def _buying_motion(
     row_class = _clean(unit.get("row_class"))
     motion_kind = _ROW_TO_MOTION.get(row_class.casefold())
     if motion_kind is None:
+        if (kind == AssessmentSubjectKind.LIVE_SOLICITATION
+                and subject.classification not in {
+                    LiveClassification.BID_NOW, LiveClassification.AMENDMENT}):
+            # A market-research or unscreened census member is still a parent.
+            # Its presence, a contact, or MONITOR is not a live buying event.
+            return None
         motion_kind = (
             CommercialMotionKind.LIVE_BID
             if kind == AssessmentSubjectKind.LIVE_SOLICITATION

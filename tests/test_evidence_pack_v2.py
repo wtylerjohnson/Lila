@@ -35,10 +35,12 @@ def test_requirement_family_collapses_lifecycle_postings():
          "agency": "Department of State", "window_state": "live",
          "response_deadline": "2026-09-25", "contact_email": "co@state.gov"},
     ]
+    for i, row in enumerate(rows):
+        row.update(solicitation="LANG-01", office="Acquisition", posted_date=f"2026-08-0{i+1}")
     kept = canonicalize_requirement_families(rows)
     assert len(kept) == 1
     assert kept[0]["canonical_record_id"] == "sol-1"
-    assert kept[0]["family_member_ids"] == ["sol-1", "ss-1"]
+    assert kept[0]["family_member_ids"] == ["ss-1", "sol-1"]
 
 
 def test_vertical_target_path_keeps_sources_distinct_and_removal_cascades():
@@ -102,7 +104,7 @@ def test_vertical_target_path_keeps_sources_distinct_and_removal_cascades():
         "target_groups": groups,
     }
     attached = attach_v2_targets(projected, payload)
-    assert [len(row.linked_targets) for row in attached] == [2, 2, 1]
+    assert attached == (), "saved target groups cannot authorize current opportunities"
 
     payload_without_second = {
         **payload,
@@ -111,13 +113,12 @@ def test_vertical_target_path_keeps_sources_distinct_and_removal_cascades():
         ],
     }
     without_second = attach_v2_targets(projected, payload_without_second)
-    assert [row.identifier for row in without_second] == ["jtg-1", "jtg-3"]
-    assert {target["opportunity_record_id"]
-            for row in without_second for target in row.linked_targets} == {
-                "jtg-1", "jtg-3"}
+    assert without_second == ()
+    # Group construction still retains each exact opportunity/source association.
+    assert {r["opportunity_record_id"] for rows in groups.values() for r in rows} == {"jtg-1", "jtg-2", "jtg-3"}
 
 
-def test_v2_population_is_authoritative_and_constructs_missing_rows():
+def test_unbound_v2_population_is_withheld_and_pure_translation_retains_source_fields():
     qualified = [{
         "record_id": "qualified-1",
         "requirement_family": "family-qualified",
@@ -175,12 +176,13 @@ def test_v2_population_is_authoritative_and_constructs_missing_rows():
         "target_groups": groups,
     })
 
-    assert [row.identifier for row in attached] == ["qualified-1"]
-    assert attached[0].evidence[0].source_url == \
-        "https://sam.gov/opp/qualified-1/view"
-    assert {row["source_kind"] for row in attached[0].linked_targets} == {
+    assert attached == ()
+    from agents.golden_press.market_map_projection import _v2_opportunity
+    translated = _v2_opportunity(qualified[0], tuple(groups["family-qualified"]))
+    assert translated.evidence[0].source_url == "https://sam.gov/opp/qualified-1/view"
+    assert {row["source_kind"] for row in translated.linked_targets} == {
         "published_contact", "apollo_enrichment", "enrichment_candidate"}
-    assert [row["name"] for row in attached[0].contacts] == ["Pat Published"]
+    assert [row["name"] for row in translated.contacts] == ["Pat Published"]
 
 
 def test_moved_record_receipt_has_before_after_counts():

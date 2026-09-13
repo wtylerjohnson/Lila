@@ -319,9 +319,20 @@ def build_external_product_document(
     slug: str,
     as_of: str,
     leadgen: Optional[dict] = None,
+    notice_context=None,
 ) -> ExternalProductDocument:
     """Assign the certified graph and preserved research to eight slots."""
 
+    from agents.golden_press.notice_bridge import NoticeReadContext
+    if not isinstance(notice_context, NoticeReadContext) or not notice_context.accepts_graph(graph_payload):
+        saved = {str(r.get("record_id") or r.get("notice_id")): r
+                 for r in graph_payload.get("qualified_opportunity_records") or []}
+        diagnostic_rows = [dict(r, lane=r.get("lane") or "L1_notice") if str(r.get("record_id")) in saved else dict(r)
+                           for r in graph_payload.get("records") or []]
+        known = {str(r.get("record_id")) for r in diagnostic_rows}
+        diagnostic_rows.extend(dict(r, lane="L1_notice") for sid, r in saved.items() if sid not in known)
+        graph_payload = dict(graph_payload, records=diagnostic_rows,
+            qualified_opportunities=[], qualified_opportunity_records=[])
     profile = profile or {}
     contract_slots = load_external_product_slots()
     graph_rows = list(graph_payload.get("records") or [])

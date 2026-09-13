@@ -131,10 +131,10 @@ def test_closed_notice_is_never_a_live_pursuit(ctx):
               "set_aside": ""}
     row = er.classify_record(closed, ctx)
     assert row["evidence_class"] == "excluded"
-    assert "never a live pursuit" in row["evidence_basis"]
+    assert "current native source admission required" in row["evidence_basis"]
     live = dict(closed, response_deadline="2026-09-30")
     assert er.classify_evidence(live, ctx)["evidence_class"] == \
-        "current_opportunity"
+        "ambiguous"
     undated = dict(closed, response_deadline="")
     assert er.classify_evidence(undated, ctx)["evidence_class"] == \
         "ambiguous"
@@ -157,7 +157,7 @@ def test_aerobics_and_generic_instructor_records_fail_fit(ctx):
                 "response_deadline": "2026-09-30", "set_aside": ""}
     row = er.classify_record(language, ctx)
     assert row["service_fit"] == "direct"
-    assert row["evidence_class"] == "current_opportunity"
+    assert row["evidence_class"] == "ambiguous"
 
 
 def test_pack_derived_semantic_pairs_preserve_real_jtg_wording(ctx):
@@ -174,7 +174,7 @@ def test_pack_derived_semantic_pairs_preserve_real_jtg_wording(ctx):
         }
         row = er.classify_record(record, ctx)
         assert row["service_fit"] == "direct", row["fit_basis"]
-        assert row["evidence_class"] == "current_opportunity"
+        assert row["evidence_class"] == "ambiguous"
 
     aerobics = {
         "lane": "L1_notice", "title": "Aerobics Instructor Services",
@@ -203,8 +203,8 @@ def test_indian_set_aside_requires_eligible_route(ctx):
               "description": "language services",
               "response_deadline": "2026-09-30", "set_aside": "IEE"}
     row = er.classify_record(record, ctx)
-    assert row["evidence_class"] == "current_opportunity"
-    assert row["commercial_route"] == "possible_subcontracting"
+    assert row["evidence_class"] == "ambiguous"
+    assert row["commercial_route"] == "restricted_route_needed"
     assert row["eligible_route"] is False
 
     certified = dict(ctx, client_certifications=[
@@ -232,14 +232,14 @@ def test_access_restricted_stays_partner_route_never_direct(ctx):
                              "language translation services since 2021.",
               "response_deadline": "2026-09-17", "set_aside": "SDVOSBS"}
     row = er.classify_record(sdvosb, ctx)
-    assert row["evidence_class"] == "current_opportunity"  # class intact
-    assert row["route_relationship"] == "named_partner_teaming"
-    assert "bars direct pursuit" in row["route_basis"]
+    assert row["evidence_class"] == "ambiguous"  # class intact
+    assert row["route_relationship"] == "unknown"
+    assert not row["eligible_route"]
 
     open_route = er.classify_route(
         dict(sdvosb, set_aside=""), ctx)
-    assert open_route["route_relationship"] == "incumbent"
-    assert "Nexus Universal" in open_route["route_basis"]
+    assert open_route["route_relationship"] == "unknown"
+    assert not open_route["eligible_route"]
 
     # small-business set-aside with the client's own certification: direct
     sba = er.classify_route(
@@ -267,6 +267,8 @@ def test_canonical_requirement_survives_once(ctx):
          "response_deadline": "2026-09-01", "evidence_class":
              "current_opportunity"},
     ]
+    for i, row in enumerate(rows[:2]):
+        row.update(solicitation="WSNC-01", office="Acquisition", posted_date=f"2026-08-0{i+1}")
     kept = dedupe_requirements(rows)
     assert len(kept) == 2
     families = {r["requirement_family"] for r in kept}
