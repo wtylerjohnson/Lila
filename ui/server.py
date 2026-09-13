@@ -5958,11 +5958,15 @@ def api_outreach_add():
     name = body.get("person_name")
     if not isinstance(name, str) or not name.strip():
         return jsonify({"error": "person_name is required"}), 400
-    extras = {k: body.get(k) for k in ("agency", "title", "client", "email", "phone")}
+    extras = {k: body.get(k) for k in ("agency", "title", "client", "email", "phone", "source_url", "source_note", "authority_boundary")}
     if any(v is not None and not isinstance(v, str) for v in extras.values()):
-        return jsonify({"error": "agency, title, client, email and phone must be strings"}), 400
+        return jsonify({"error": "contact details and provenance must be strings"}), 400
     agency = extras.pop("agency")
-    return jsonify(_outreach().add_manual(name.strip(), agency, **extras))
+    try:
+        entry = _outreach().add_manual(name.strip(), agency, **extras)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify(entry)
 
 
 @app.post("/api/outreach/override")

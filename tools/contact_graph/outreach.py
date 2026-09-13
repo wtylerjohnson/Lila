@@ -291,12 +291,23 @@ class OutreachList:
 
     def add_manual(self, person_name: str, agency: Optional[str],
                    *, title: Optional[str] = None, client: Optional[str] = None,
-                   email: Optional[str] = None, phone: Optional[str] = None) -> dict:
+                   email: Optional[str] = None, phone: Optional[str] = None,
+                   source_url: Optional[str] = None, source_note: Optional[str] = None,
+                   authority_boundary: Optional[str] = None) -> dict:
         """Operator adds a name by hand (also lifts any tombstone).
 
         client tags the entry to a client slug so client-scoped views can
         show their own prospecting adds; known channels land as manual
         overrides, exactly as if typed into the rail afterwards."""
+        provenance={"source_url":source_url,"source_note":source_note,"authority_boundary":authority_boundary}
+        if any(v is not None and not isinstance(v,str) for v in provenance.values()):
+            raise ValueError("contact provenance fields must be strings")
+        provenance={k:v.strip() for k,v in provenance.items() if v and v.strip()}
+        if provenance.get("source_url"):
+            from urllib.parse import urlsplit
+            parts=urlsplit(provenance["source_url"])
+            if parts.scheme not in {"http","https"} or not parts.hostname or parts.username or parts.password:
+                raise ValueError("source_url must be an HTTP or HTTPS source URL")
         person_name = _s(person_name)
         agency = _s(agency) or None
         nn = normalize_name(person_name)
@@ -307,6 +318,9 @@ class OutreachList:
                               if t != [nn, _s(agency).lower()]]
             existing = next((e for e in doc["entries"] if e["id"] == eid), None)
             if existing:
+                for key,value in provenance.items():
+                    if not existing.get(key) or (key=="source_note" and existing[key]=="manual add"):
+                        existing[key]=value
                 if _s(client) and not existing.get("client"):
                     existing["client"] = _s(client)  # a client-view re-add claims it
                 for k, v in (("email", _s(email)), ("phone", _s(phone))):
@@ -322,6 +336,7 @@ class OutreachList:
             for k, v in (("email", _s(email)), ("phone", _s(phone))):
                 if v:
                     entry["overrides"][k] = v
+            entry.update(provenance)
             doc["entries"].append(entry)
             self._save(doc)
         return entry
