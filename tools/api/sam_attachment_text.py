@@ -200,40 +200,91 @@ def extract_public_attachment_text(
     name = str(attachment.get("name") or resource_id)
     allowed, reason = _public_file(attachment)
     if not allowed:
+        status = ("identity_mismatch" if reason == "invalid resource id" else
+                  "not_fetched" if "exceeds" in reason or "invalid attachment size" in reason
+                  else "inaccessible")
         return {"resource_id": resource_id, "name": name, "text": "",
-                "sha256": "", "error": reason, "from_cache": False}
+                "sha256": "", "error": reason, "from_cache": False,
+                "collection_status": status, "authority": "discovery_only"}
+    binding = hashlib.sha256(json.dumps(
+        {k: attachment.get(k) for k in (
+            "resource_id", "name", "type", "source_url", "size",
+            "access_level", "access_status", "export_controlled", "explicit_access")},
+        sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     cache = _cache_dir() / f"{resource_id}.json"
     if cache.exists():
-        result = json.loads(cache.read_text())
-        result["from_cache"] = True
-        return result
+        try:
+            result = json.loads(cache.read_text())
+            if _text_capture_valid(result, resource_id, binding):
+                result["from_cache"] = True
+                return result
+        except (OSError, ValueError, TypeError):
+            pass
+    result = {"resource_id": resource_id, "name": name, "text": "",
+              "sha256": "", "error": "", "from_cache": False,
+              "collection_status": "lookup_failed", "authority": "discovery_only",
+              "attachment_binding_sha256": binding,
+              "source_url": RESOURCE_DOWNLOAD_URL_TPL.format(resource_id=resource_id),
+              "request_started_at": datetime.now(timezone.utc).isoformat()}
     try:
+        from tools.api.sam_capture import retain_bytes
         payload = _download_bytes(
             resource_id, deadline_monotonic=deadline_monotonic)
+        result.update(
+            raw_capture=retain_bytes(_cache_dir(), payload),
+            sha256=hashlib.sha256(payload).hexdigest(),
+            retrieved_at=datetime.now(timezone.utc).isoformat(),
+            collection_status="unreadable")
         text = _text_from_bytes(
             name, payload, deadline_monotonic=deadline_monotonic)
         if not text:
             raise ValueError("attachment yielded no readable text")
-        result = {
-            "resource_id": resource_id,
-            "name": name,
-            "text": text,
-            "sha256": hashlib.sha256(payload).hexdigest(),
-            "retrieved_at": datetime.now(timezone.utc).isoformat(
-                timespec="seconds"),
-            "source_url": RESOURCE_DOWNLOAD_URL_TPL.format(
-                resource_id=resource_id),
-            "error": "",
-        }
+        result.update(
+            text=text, text_capture=retain_bytes(_cache_dir(), text.encode("utf-8")),
+            text_sha256=hashlib.sha256(text.encode("utf-8")).hexdigest(),
+            text_locator={"surface": "extracted_text", "unit": "unicode_characters",
+                          "start": 0, "end": len(text)},
+            extraction_limits={"max_text_characters": MAX_ATTACHMENT_TEXT_CHARS,
+                               "max_pdf_pages": MAX_PDF_PAGES,
+                               "completeness": "bounded_extraction_not_full_document_proof"},
+            collection_status="captured_discovery_only")
         _cache_dir().mkdir(parents=True, exist_ok=True)
         from tools.artifacts import atomic_write_json
         atomic_write_json(cache, result)
         result["from_cache"] = False
         return result
     except Exception as exc:  # noqa: BLE001 - one file never sinks a sweep
-        return {"resource_id": resource_id, "name": name, "text": "",
-                "sha256": "", "error": str(exc)[:300],
-                "from_cache": False}
+        result.update(text="", error=str(exc)[:300])
+        if getattr(getattr(exc, "response", None), "status_code", None) in (401, 403):
+            result["collection_status"] = "inaccessible"
+        return result
+
+
+def _text_capture_valid(result: dict, resource_id: str, binding: str) -> bool:
+    from tools.api.sam_capture import read_retained
+    if not isinstance(result, dict):
+        return False
+    try:
+        if (result.get("resource_id") != resource_id
+                or result.get("attachment_binding_sha256") != binding
+                or result.get("collection_status") != "captured_discovery_only"
+                or result.get("authority") != "discovery_only"
+                or result.get("source_url") != RESOURCE_DOWNLOAD_URL_TPL.format(resource_id=resource_id)):
+            return False
+        raw = read_retained(_cache_dir(), result["raw_capture"])
+        text_bytes = read_retained(_cache_dir(), result["text_capture"])
+        text = text_bytes.decode("utf-8")
+        clock = datetime.fromisoformat(result["retrieved_at"].replace("Z", "+00:00"))
+        return (clock.utcoffset() is not None and clock <= datetime.now(timezone.utc)
+                and result.get("text") == text and bool(text.strip())
+                and len(text) <= MAX_ATTACHMENT_TEXT_CHARS
+                and result.get("sha256") == hashlib.sha256(raw).hexdigest()
+                and result.get("text_sha256") == hashlib.sha256(text_bytes).hexdigest()
+                and result.get("text_locator") == {
+                    "surface": "extracted_text", "unit": "unicode_characters",
+                    "start": 0, "end": len(text)})
+    except (KeyError, TypeError, ValueError, OSError):
+        return False
 
 
 def attachment_priority(attachment: dict) -> tuple:

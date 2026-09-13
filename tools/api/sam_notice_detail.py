@@ -100,13 +100,30 @@ def _attachments(payload: Any) -> Optional[list[dict]]:
     return found or None
 
 
-def _attachment_inventory(payload: Any) -> tuple[Optional[list[dict]], bool]:
+def _resource_identity_matches(payload: Any, notice_id: str) -> bool:
+    stack = [payload]
+    while stack:
+        item = stack.pop()
+        if isinstance(item, dict):
+            for key in ("opportunityId", "noticeId", "notice_id"):
+                if key in item and item[key] not in (None, "", notice_id):
+                    return False
+            stack.extend(item.values())
+        elif isinstance(item, list):
+            stack.extend(item)
+    return True
+
+
+def _attachment_inventory(payload: Any, notice_id: str | None = None
+                          ) -> tuple[Optional[list[dict]], bool]:
     """Return ``(items, schema_recognized)`` for the known resources shapes.
 
     An HTTP 200 with an unfamiliar JSON object is not evidence of zero
     attachments. Confirmed zero requires a recognized container whose walk
     yields no attachment rows.
     """
+    if notice_id is not None and not _resource_identity_matches(payload, notice_id):
+        return None, False
     containers: list[list] = []
     if isinstance(payload, list):
         containers.append(payload)
@@ -197,7 +214,9 @@ def _timestamp(value: Any) -> Optional[datetime]:
 
 
 def _resource_cache_age(payload: dict) -> Optional[float]:
-    retrieved = _timestamp(payload.get("retrieved_at"))
+    capture = payload.get("raw_capture")
+    stamp = capture.get("received_at") if isinstance(capture, dict) else payload.get("retrieved_at")
+    retrieved = _timestamp(stamp)
     if retrieved is None:
         return None
     return (datetime.now(timezone.utc) - retrieved).total_seconds()
@@ -220,8 +239,13 @@ def fetch_notice_resources(notice_id: str, *, timeout_seconds: float = 15.0) -> 
     cache = _cache_dir() / f"{notice_id}.resources.json"
     cached = None
     if cache.exists():
-        cached = json.loads(cache.read_text())
-        if _resource_cache_fresh(cached):
+        try:
+            cached = json.loads(cache.read_text())
+            if not isinstance(cached, dict) or cached.get("id") != notice_id:
+                cached = None
+        except (ValueError, OSError):
+            cached = None
+        if cached is not None and _resource_cache_fresh(cached) and _resource_capture_valid(cached):
             cached["from_cache"] = True
             cached["stale_cache"] = False
             return cached
@@ -232,15 +256,32 @@ def fetch_notice_resources(notice_id: str, *, timeout_seconds: float = 15.0) -> 
         "resources_checked": False,
         "resources_schema": None,
         "errors": [],
+        "collection_status": "lookup_failed",
+        "authority": "discovery_only",
     }
+    def capture(response, raw, complete):
+        from tools.api.sam_capture import retain_bytes
+        out["raw_capture"] = {
+            **retain_bytes(_cache_dir(), raw), "complete": complete,
+            "http_status": response.status_code,
+            "source_url": RESOURCES_URL_TPL.format(id=notice_id),
+            "received_at": datetime.now(timezone.utc).isoformat(),
+            "representation": "decoded_http_entity_bytes",
+        }
+
     try:
         payload = get_json(
             RESOURCES_URL_TPL.format(id=notice_id),
             timeout=max(0.25, min(15.0, timeout_seconds)),
             headers=RESOURCES_HEADERS, retries=1,
+            response_observer=capture, max_response_bytes=2 * 1024 * 1024,
         )
-        attachments, recognized = _attachment_inventory(payload)
+        if not _resource_identity_matches(payload, notice_id):
+            out["collection_status"] = "identity_mismatch"
+            raise ValueError("resources notice identity mismatch")
+        attachments, recognized = _attachment_inventory(payload, notice_id)
         if not recognized:
+            out["collection_status"] = "unrecognized_inventory"
             raise ValueError("unrecognized resources schema")
         out.update({
             "attachments": attachments,
@@ -248,6 +289,7 @@ def fetch_notice_resources(notice_id: str, *, timeout_seconds: float = 15.0) -> 
             "resources_schema": "recognized_v1",
             "attachment_inventory_count": len(attachments or []),
             "attachment_inventory_hash": _manifest_hash(attachments or []),
+            "collection_status": "inventory_captured" if attachments else "confirmed_empty",
         })
         _cache_dir().mkdir(parents=True, exist_ok=True)
         from tools.artifacts import atomic_write_json
@@ -261,11 +303,35 @@ def fetch_notice_resources(notice_id: str, *, timeout_seconds: float = 15.0) -> 
                 f"resources refresh failed; using stale inventory: {exc}")
             cached["from_cache"] = True
             cached["stale_cache"] = True
+            cached["collection_status"] = "stale_inventory"
+            cached["refresh_attempt"] = out
             return cached
         out["errors"].append(f"resources fetch failed: {exc}")
     out["from_cache"] = False
     out["stale_cache"] = False
     return out
+
+
+def _resource_capture_valid(cached: dict) -> bool:
+    """Current cache reuse needs its original response and exact projection."""
+    from tools.api.sam_capture import read_retained
+    try:
+        capture = cached["raw_capture"]
+        if capture.get("complete") is not True or capture.get("http_status") != 200:
+            return False
+        if capture.get("source_url") != RESOURCES_URL_TPL.format(id=cached["id"]):
+            return False
+        received = datetime.fromisoformat(capture["received_at"].replace("Z", "+00:00"))
+        if received.utcoffset() is None or received > datetime.now(timezone.utc):
+            return False
+        raw = read_retained(_cache_dir(), capture)
+        items, recognized = _attachment_inventory(json.loads(raw), cached["id"])
+        return (recognized and cached.get("attachments") == items
+                and cached.get("resources_checked") is True
+                and cached.get("attachment_inventory_count") == len(items or [])
+                and cached.get("attachment_inventory_hash") == _manifest_hash(items or []))
+    except (KeyError, TypeError, ValueError, OSError):
+        return False
 
 
 def fetch_notice_depth(notice_id: str, api_key: str | None = None,
@@ -334,7 +400,7 @@ def fetch_notice_depth(notice_id: str, api_key: str | None = None,
                     RESOURCES_URL_TPL.format(id=notice_id), timeout=30.0,
                     headers=RESOURCES_HEADERS, retries=1,
                 )
-                attachments, recognized = _attachment_inventory(res)
+                attachments, recognized = _attachment_inventory(res, notice_id)
                 if recognized:
                     data["attachments"] = attachments
                     data["resources_checked"] = True
@@ -390,7 +456,7 @@ def fetch_notice_depth(notice_id: str, api_key: str | None = None,
     try:  # best-effort, keyless, never fatal
         res = get_json(RESOURCES_URL_TPL.format(id=notice_id), timeout=30.0,
                        headers=RESOURCES_HEADERS, retries=1)
-        attachments, recognized = _attachment_inventory(res)
+        attachments, recognized = _attachment_inventory(res, notice_id)
         if recognized:
             out["attachments"] = attachments
             out["resources_checked"] = True

@@ -2183,3 +2183,38 @@ See `docs/verification/step6-051/REVIEW.md` for exact changed contracts, limitat
 and executable verification commands; `FUTURE_MEASUREMENT_CONTRACT.json` separately
 predeclares retrieval, native recommendations and seller-action measurements. The
 proposed future equal-effort budget is not a frozen or executed benchmark.
+
+## Step7 decision-changing collection (052)
+
+The existing public SAM inventory and file collectors now preserve original
+HTTP entity/file bytes as internal content-addressed `objects/<sha256>.bin`
+artifacts. Atomic no-overwrite publication and read-time hashes bind those bytes;
+this is observed custody, not independent source truth. The shared HTTP helper
+adds optional `response_observer` and `max_response_bytes`; existing callers keep
+their original behavior. Public inventories use one attempt, a 2MiB response cap,
+and retain partial/error bodies separately from complete recognized responses.
+Explicit response notice-ID conflicts refuse the inventory, including depth
+reconciliation. Unknown JSON shapes remain unknown, not zero files.
+
+File extraction retains the acquired bytes/hash/clock even when parsing fails.
+`collection_status` distinguishes captured discovery text, lookup failure,
+unreadable, inaccessible, invalid identity and not fetched. Successful caches
+bind the original resource metadata, raw bytes, text bytes and aware acquisition
+clock. Legacy/unbound/changed cache entries require a new bounded attempt; failed
+refresh cannot return their text as freshly collected. Same-resource changes
+that leave all inventory metadata unchanged are not continuously detected.
+PDF limits remain bounded extraction, not a full-document completeness claim.
+
+`run_searches._enrich_sam_public_attachments` retains every listed file's status
+and stop reason, plus a versioned `attachment_collection_v1` with notice,
+inventory, per-file Unicode character offsets and source/text hashes. Existing
+bundle fingerprints and historic artifacts remain compatible. Three-file and
+150,000-character bundle limits remain. Dossier research validates the new
+locator binding before exposing per-file passages, marks prompt truncation,
+and remains `discovery_only`. It does not populate trusted source depth or
+approve a requirement, inventory, current opportunity or lead. New sidecar
+hashes are internal custody, not general entailment or source authentication.
+
+See docs/verification/step7-052/REVIEW.md for protocol, changes, commands and proof
+limits. No APFS mapper, ResearchSubject schema3, gate settings, eight-slot schema,
+CRM or frozen benchmark artifact was changed by this amendment.

@@ -849,3 +849,28 @@ See `docs/verification/step6-051/REVIEW.md` for exact changed contracts, limitat
 and executable verification commands; `FUTURE_MEASUREMENT_CONTRACT.json` separately
 predeclares retrieval, native recommendations and seller-action measurements. The
 proposed future equal-effort budget is not a frozen or executed benchmark.
+
+## Step7 discovery collection and file locator extension (052)
+
+Explicit isolated contract extension under the accepted Step6 lineage and locked
+weekend auto-passthrough. `sam_notice_detail.fetch_notice_resources` adds internal
+original-response custody and explicit collection state. Recognized inventories
+must reject any conflicting original notice ID. Current cache reuse rebinds the
+original response and projected inventory. Existing trusted Assess review and
+schema2 identities are unchanged; no generic discovery hash grants authority.
+
+`sam_attachment_text.extract_public_attachment_text` adds raw/text capture
+locators, resource-metadata binding, aware collection clock, parse limits and
+separate states. Original byte retention precedes parsing. `run_searches` carries
+all file attempts and stops, while `attachment_collection_v1` maps exact Unicode
+character intervals into the retained combined text and original file extraction.
+Dossier research verifies notice/inventory/file/text/offset binding before
+attribution, remains discovery_only, and preserves legacy research readability.
+The original-source and explicit human review gates remain controlling. An
+attachment-only buying statement cannot become strict Assess/LeadRow authority
+from this collector or its dossier context.
+
+The change is verified by tests/test_step7_evidence_collection.py plus existing
+collector/dossier/Assess/Step6 suites. Saved original IHS SOW/Q&A replay is separate
+from the actual public acquisition receipt, synthetic tests and Fable verdict.
+No comparable-result claim, frozen rescore, NETSCOUT composite or operating merge.
