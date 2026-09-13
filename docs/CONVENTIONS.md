@@ -2078,3 +2078,29 @@ tests/test_research_picture_hardening.py tests/test_research_picture_semantics.p
 All fixture results are bounded synthetic/native-function proof, not real captured
 lead yield or cloud-suite parity. Source002 retains its separate endpoint and I/O
 cost limitations and is included in combined verification/Fable scope.
+
+
+Step4 parser edge hardening: numeric offset hours/minutes are validated before
+stdlib conversion, so malformed offsets cannot normalize into evidence. Negative
+zero offsets are retained as unknown timezone under this conservative policy.
+Non-text temporal fields remain invalid with their original typed raw value in
+the receipt and a safe string display; they do not crash registry construction.
+Attached malformed suffixes on response date tokens cannot borrow a valid prefix.
+
+
+Step4 support-review closures (R049-01 through R049-05): response-instruction v3
+keeps explicit English-month/ISO date plus clock/zone expressions, including UTC,
+GMT, numeric offsets and AM/PM. An unsupported explicit clock or zone is unresolved,
+not silently reduced to a date. Full original passages are scanned before a cited
+clause is accepted; an uncited conflicting current instruction for the same
+submission blocks support. Questions are a separate action group, so their dates
+do not invalidate an independently supported proposal instruction. Archived scope
+is excluded from competing current instructions; full/narrow citations retain the
+same check. Standalone current instruction headings support LF/CRLF lines with or
+without colons; embedded occurrences of current do not override historical scope.
+This is bounded grammar, not universal natural-language temporal entailment.
+
+Equivalent original aware instants reconcile across local midnight before a
+matching top-level display date is recognized as derived. Genuinely conflicting
+original values remain a conflict. Raw/source fields and supplied offsets remain
+intact in the receipt.

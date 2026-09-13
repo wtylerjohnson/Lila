@@ -33,10 +33,15 @@ def source_time(value, *, field='', source_id='') -> dict:
         out.update(date_value=day.isoformat(), precision='date')
         if m['hour'] is None:
             return out | {'parse_status': 'date_only'}
+        offset = m['offset']
+        if offset and offset != 'Z':
+            digits = offset[1:].replace(':', '')
+            if int(digits[:2]) > 23 or (len(digits) > 2 and int(digits[2:]) > 59):
+                return out | {'parse_status': 'invalid', 'date_value': None, 'precision': None}
         parsed = datetime.fromisoformat(text.replace('Z', '+00:00'))
         out.update(precision='fraction' if m['fraction'] else 'second' if m['second'] else 'minute',
                    offset_text=m['offset'])
-        if parsed.tzinfo is None:
+        if parsed.tzinfo is None or (offset and offset.startswith('-') and set(offset[1:].replace(':', '')) == {'0'}):
             return out | {'parse_status': 'unknown_timezone'}
         out.update(parse_status='aware', instant_utc=parsed.astimezone(timezone.utc).isoformat(),
                    offset_minutes=int(parsed.utcoffset().total_seconds() / 60))
@@ -75,8 +80,11 @@ def record_time(row: dict, kind: str) -> dict:
     derived = []
     for claim in claims:
         if (claim['original_field'] == projection and claim['parse_status'] == 'date_only'
-                and originals and all(x['parse_status'] in {'aware', 'date_only', 'unknown_timezone'}
-                                      and x['date_value'] == claim['date_value'] for x in originals)):
+                and originals and any(x['date_value'] == claim['date_value'] for x in originals)
+                and (all(x['parse_status'] in {'aware', 'date_only', 'unknown_timezone'}
+                         and x['date_value'] == claim['date_value'] for x in originals)
+                     or (all(x['parse_status'] == 'aware' for x in originals)
+                         and len({x['instant_utc'] for x in originals}) == 1))):
             derived.append(claim['original_field'])
     independent = [x for x in claims if x['original_field'] not in derived]
     keys = {(x['parse_status'], x['instant_utc'] or str(x['raw']).strip()) for x in independent}

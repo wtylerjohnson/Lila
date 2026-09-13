@@ -382,3 +382,105 @@ def test_D01_full_native_mapper_projection_uses_exact_instant(adapter, passage):
     out, data = picture(row, passage=passage)
     assert_surfaces(out, data, 'confirmed_opportunity')
     assert out.top_opportunities[0].deadline == '2026-09-12T12:00:01-04:00'
+
+
+@pytest.mark.parametrize('value,status', [
+    ('2026-09-14T17:00+01:99', 'invalid'),
+    ('2026-09-14T17:00+24:00', 'invalid'),
+    ('2026-09-14T17:00-00:00', 'unknown_timezone'),
+    (42, 'invalid'), (['2026-09-14T17:00Z'], 'invalid'),
+    ({'value': '2026-09-14T17:00Z'}, 'invalid'),
+])
+def test_invalid_offset_and_nontext_metadata_withhold_without_registry_crash(value, status):
+    out, data = picture(ROW | {'response_deadline': value})
+    assert_surfaces(out, data, 'research_signal')
+    assert out.evidence_registry['N1'].temporal_evidence['deadline']['selected']['raw'] == value
+    assert out.top_opportunities[0].temporal_status['response_window'] == 'unknown_' + status
+
+
+@pytest.mark.parametrize('value', ['2026-09-14T17:00Zgarbage', '2026-09-14garbage',
+                                 'September 14, 2026xyz', '2026-09-14T17:00+01:99'])
+def test_malformed_prose_date_cannot_borrow_a_valid_prefix(value):
+    out, data = picture(ROW | {'description': SOW + ' Submit proposals by ' + value + '.'})
+    assert_surfaces(out, data, 'research_signal')
+    assert not out.top_opportunities[0].action_evidence[0]['supported']
+
+
+@pytest.mark.parametrize('clock,expected', [
+    ('at 12:00 UTC', 'research_signal'),
+    ('at 08:00-04:00', 'research_signal'),
+    ('at 12:00', 'research_signal'),
+    ('at noon UTC', 'research_signal'),
+    ('at 17:00 UTC', 'confirmed_opportunity'),
+    ('at 13:00-04:00', 'confirmed_opportunity'),
+    ('at 5:00 PM UTC', 'confirmed_opportunity'),
+    ('at 17:00 EST', 'research_signal'),
+])
+def test_R049_01_english_prose_keeps_explicit_clock_and_zone(clock, expected):
+    at = datetime(2026, 9, 14, 15, tzinfo=timezone.utc)
+    row = ROW | {'retrieved_at': '2026-09-14T14:00Z',
+                 'description': SOW + ' Submit proposals by September 14, 2026 ' + clock + '.'}
+    out, data = picture(row, at=at)
+    assert_surfaces(out, data, expected, at)
+    expression = out.top_opportunities[0].action_evidence[0]['clauses'][0]['dates'][0]
+    assert clock in expression['raw']
+    if expected == 'confirmed_opportunity':
+        assert expression['instant_utc'] == '2026-09-14T17:00:00+00:00'
+
+
+@pytest.mark.parametrize('narrow', [False, True])
+@pytest.mark.parametrize('other,expected', [
+    ('Submit proposals by 2026-09-14T12:00:00Z.', 'research_signal'),
+    ('Send responses by 2026-09-14T18:00:00Z.', 'research_signal'),
+    ('Submit questions by 2026-09-14T12:00:00Z.', 'confirmed_opportunity'),
+    ('Submit questions by 2026-09-14T16:00:00Z.', 'confirmed_opportunity'),
+    ('Archived instructions: Submit proposals by 2026-09-14T12:00:00Z.', 'confirmed_opportunity'),
+])
+def test_R049_02_same_action_conflicts_cannot_hide_outside_citation(narrow, other, expected):
+    at = datetime(2026, 9, 14, 15, tzinfo=timezone.utc)
+    good = 'Submit proposals by 2026-09-14T17:00:00Z.'
+    text = SOW + ' Current instructions: ' + good + ' ' + other
+    out, data = picture(ROW | {'retrieved_at': '2026-09-14T14:00Z', 'description': text},
+                        at=at, action_quote=good if narrow else text)
+    assert_surfaces(out, data, expected, at)
+    if expected == 'research_signal':
+        assert any('Conflicting or unresolved' in g for g in out.top_opportunities[0].action_evidence[0]['gaps'])
+
+
+def test_R049_02_two_explicit_actions_in_one_sentence_keep_their_dates_separate():
+    at = datetime(2026, 9, 14, 15, tzinfo=timezone.utc)
+    text = SOW + ' Submit proposals by 2026-09-14T17:00Z and submit questions by 2026-09-14T12:00Z.'
+    out, data = picture(ROW | {'retrieved_at': '2026-09-14T14:00Z', 'description': text}, at=at,
+                        action_quote='Submit proposals by 2026-09-14T17:00Z')
+    assert_surfaces(out, data, 'confirmed_opportunity', at)
+
+
+def test_R049_04_equivalent_original_instants_reconcile_before_display_date():
+    at = datetime(2026, 9, 14, 1, tzinfo=timezone.utc)
+    row = ROW | {'description': SOW + ' Submit proposals.', 'response_deadline': '2026-09-13',
+                 'retrieved_at': '2026-09-14T00:30Z',
+                 'raw_payload': {'deadline': '2026-09-13T23:30:00-02:00', 'responseDeadLine': '2026-09-14T01:30:00Z'}}
+    out, data = picture(row, at=at)
+    assert_surfaces(out, data, 'confirmed_opportunity', at)
+    evidence = out.evidence_registry['N1'].temporal_evidence['deadline']
+    assert evidence['derived_display_fields'] == ['response_deadline']
+    assert not evidence['conflict'] and len(evidence['claims']) == 3
+    row['raw_payload']['responseDeadLine'] = '2026-09-14T02:30:00Z'
+    out, data = picture(row, at=at)
+    assert_surfaces(out, data, 'research_signal', at)
+    assert out.evidence_registry['N1'].temporal_evidence['deadline']['conflict']
+
+
+@pytest.mark.parametrize('current', ['Current instructions', 'Current instructions:', '  Current instructions  '])
+@pytest.mark.parametrize('newline', ['\n', '\r\n'])
+def test_R049_05_newline_heading_resets_archived_scope(current, newline):
+    text = SOW + '\nArchived instructions:\nSubmit proposals by September 1, 2025.\n' + current + '\n' + ACTION
+    text = text.replace('\n', newline)
+    out, data = picture(ROW | {'description': text}, action_quote=ACTION)
+    assert_surfaces(out, data, 'confirmed_opportunity')
+
+
+def test_R049_05_embedded_current_word_is_not_a_heading_override():
+    text = SOW + '\nArchived instructions:\nThe current instructions\n' + ACTION
+    out, data = picture(ROW | {'description': text}, action_quote=ACTION)
+    assert_surfaces(out, data, 'research_signal')
