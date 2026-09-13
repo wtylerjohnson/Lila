@@ -2159,3 +2159,19 @@ See `docs/verification/step5-050/REVIEW.md` for the narrow JSON-record adapter,
 trust/role/correction policy, exact command templates and proof limits. New tests
 are standard-library unittest cases; preserved legacy comparator snapshots remain
 byte-identical and never supply v5 classification. No frozen case is re-scored.
+
+## APFS scope identity and Lead Gen family links (2026-09-12)
+
+- Forecast-child agency filtering appends the APFS adapter's source-bound
+  canonical department/component names. Exact source, official HTTPS host and
+  federal parent bind the expansion; slash-delimited component roots and
+  DHS HQ/CISA map through the existing agency catalog. Raw APFS fields remain
+  unchanged. Generic aliases, operator scope and capability gates are unchanged.
+- The pure Lead Gen mapper selects the primary NOTICE URL matching the family's
+  representative notice ID, retaining all authoritative evidence in original
+  order. Missing exact current evidence still withholds the child; the pathway
+  validator remains authoritative. Additional HOLD children are retained research
+  receipts, never seller-ready proof.
+- Regression owners: tests/test_netscout_dhs_scope.py and the amendment-pathway
+  tests in tests/test_leadgen_from_assess.py. Census retention, capability matches,
+  requirement qualification and release readiness remain separate claims.

@@ -23,6 +23,7 @@ import time
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
+from urllib.parse import urlparse
 
 from agents.schemas import ForecastRecord, RawOpportunity
 from tools.api._http import get_json
@@ -121,6 +122,35 @@ def map_record(rec: dict, retrieved_at: Optional[datetime] = None) -> ForecastRe
         ),
         forecast_status=_display(rec.get("current_state")),
     )
+
+
+def scope_identity(record: ForecastRecord) -> str:
+    """Expand source-bound APFS organization codes only for agency screening.
+
+    Keep the record's original fields. Generic agency aliases deliberately do
+    not include ambiguous abbreviations such as ICE or DHS (Human Services).
+    APFS supplies a known federal parent and slash-delimited component paths.
+    """
+    from tools.agencies import AGENCIES
+
+    parsed = urlparse(record.url)
+    if (record.source != "dhs_apfs"
+            or parsed.scheme != "https"
+            or parsed.hostname != "apfs-cloud.dhs.gov"
+            or record.agency.casefold() not in {
+                "dhs", "department of homeland security"}):
+        return ""
+    parent = next(a for a in AGENCIES if a["abbr"] == "DHS")
+    parts = [part.strip().casefold()
+             for part in (record.component or "").split("/")]
+    component = parts[0] if parts else ""
+    if component == "dhs hq":
+        component = parts[1] if len(parts) > 1 else ""
+    child = next((a for a in AGENCIES
+                  if a.get("parent") == "DHS"
+                  and component in {a["abbr"].casefold(),
+                                    a["name"].casefold()}), None)
+    return " ".join([parent["name"], *([child["name"]] if child else [])])
 
 
 @register_source

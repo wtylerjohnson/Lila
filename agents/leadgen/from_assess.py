@@ -833,6 +833,14 @@ def _live_pathway(
     evidence = tuple(record.authoritative_evidence)
     if not evidence:
         return None
+    current = next((item for item in evidence
+                    if item.tier == EvidenceTier.NOTICE
+                    and item.kind == EvidenceKind.NOTICE
+                    and item.primary_source
+                    and (_notice_from_url(item.source_url) or "").casefold()
+                    == record.notice_id.strip().casefold()), None)
+    if current is None:
+        return None
     contactability = (
         Contactability.PUBLISHED_POC if contacts
         else Contactability.ORGANIZATION_ONLY
@@ -841,7 +849,7 @@ def _live_pathway(
         return ActionableExternalPathway(
             pathway_id=f"pw:{record.record_id}:{PathwayKind.SAM_NOTICE.value}",
             kind=PathwayKind.SAM_NOTICE,
-            source_url=str(evidence[0].source_url),
+            source_url=str(current.source_url),
             evidence=list(evidence),
             notice_id=record.notice_id,
             published_contacts=contacts,
