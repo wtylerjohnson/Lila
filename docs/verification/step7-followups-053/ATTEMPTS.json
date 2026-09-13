@@ -1,0 +1,85 @@
+{
+  "attempts": [
+    {
+      "file": "boundaries-01.log",
+      "sha256": "af0101dc2a763a25c76454984e6ee9e3839ce33565ca7ab525c294e7bf0f7b7c",
+      "result": "See original log"
+    },
+    {
+      "file": "boundaries-02.log",
+      "sha256": "c86371f99d5d76269486151b7bbb86c72d8fb7b4c5e0f8fb953012ac5f51d258",
+      "result": "See original log"
+    },
+    {
+      "file": "focused-01.log",
+      "sha256": "3728f47863eab64ece61034600112ae4849e5cef0850ceb864bad3dc2b4ecede",
+      "result": "1 failed, 84 passed in 1.33s"
+    },
+    {
+      "file": "focused-02.log",
+      "sha256": "4a4a69a5d02db23c0c96380fa084d9e50eb9a06e434c18c21527e09eaaa8b0f6",
+      "result": "86 passed in 1.07s"
+    },
+    {
+      "file": "focused-03.log",
+      "sha256": "5bb12cc6731370da89f8783f4e727e5b52158aaa351e228d2c8eadec6df8ec0e",
+      "result": "1 failed, 244 passed in 2.23s"
+    },
+    {
+      "file": "focused-04.log",
+      "sha256": "9c70a276128453247457c1940d93f6323ba5d41001219298d16aa197766deee1",
+      "result": "1 failed, 244 passed in 2.20s"
+    },
+    {
+      "file": "focused-05.log",
+      "sha256": "90d466e92ab8905fa8d9b9f6d9327b174e74ab127b91b4f88ade3e7d9e56b631",
+      "result": "245 passed in 1.78s"
+    },
+    {
+      "file": "full-01.log",
+      "sha256": "d1ceb7e36b7faae51a351d59aaf73c2cdca6e0fb141357e6d98e68f086fdba1e",
+      "result": "5 failed, 5903 passed, 40 skipped, 20 warnings, 26 subtests passed in 115.64s (0:01:55)"
+    },
+    {
+      "file": "full-02.log",
+      "sha256": "a621da5ad496cc868cc07ab6486cf49b671f6ebda9a6b4268541144409c076c7",
+      "result": "5908 passed, 40 skipped, 20 warnings, 26 subtests passed in 120.51s (0:02:00)"
+    },
+    {
+      "file": "ihs-replay-01.log",
+      "sha256": "3d70d60e83277fff437fae8e34bb4cd16dbe741aa0ec266d46caef231da3b2d7",
+      "result": "See original log"
+    },
+    {
+      "file": "ihs-replay-02.log",
+      "sha256": "091b9b517a9f3913c8532bd3848ed0dd7df889ec848bfc09bbfa32daa0bfb957",
+      "result": "See original log"
+    },
+    {
+      "file": "pdf-standard-environment.log",
+      "sha256": "ba195f682b374dd026a9d98b72afd84f763a4f99c81f96f6ddacf23c51825edd",
+      "result": "1 passed in 4.17s"
+    },
+    {
+      "file": "regression-corrections-01.log",
+      "sha256": "f3f6e70f730ae4597e93a2abf7773848c3a3c486a724f12a1bf6e50e67cdd63d",
+      "result": "1 failed, 4 passed in 120.58s (0:02:00)"
+    },
+    {
+      "file": "regression-corrections-02.log",
+      "sha256": "902612f55eb7b706758c4e5fbc99220d64ccaca090030aca007d9e54dfc949f5",
+      "result": "1 failed, 4 passed in 120.61s (0:02:00)"
+    },
+    {
+      "file": "regression-corrections-03.log",
+      "sha256": "3bc5c8a40d34a5bd5250a854461e9aceaf70fa1a6711212327d71f123a072e21",
+      "result": "1 failed, 4 passed in 120.57s (0:02:00)"
+    }
+  ],
+  "corrections": [
+    "Legacy stale-cache fixture split into validated-stale positive and unbound-legacy refusal.",
+    "Saved IHS has five files: four active and one withdrawn. Four inventories contain withdrawn files; three have a withdrawn item in the former first-three selection.",
+    "Four Step4 native projection controls used invalid synthetic-SOW ids; corrected only the resource id to valid synthetic hex without weakening assertions.",
+    "OS-denied-network full run failed one nested Chrome sandbox smoke; temporary-profile wrappers also timed out. They were discarded; the standard Chrome smoke passed. Final full run uses Python DNS/socket guards, not an OS-wide network policy."
+  ]
+}

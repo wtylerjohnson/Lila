@@ -1,0 +1,28 @@
+{
+  "cwd": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step7-followups-053",
+  "focused": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 /Users/wtjohnson/Lila/.venv/bin/python -m pytest tests/test_step7_followups.py tests/test_step7_evidence_collection.py tests/test_sam_attachment_text.py tests/test_dossiers.py tests/test_native_notice_bridge.py tests/test_native_surface_contract.py tests/test_assess_source_clock.py tests/test_assess_ledger.py tests/test_external_notice_authority.py tests/test_step6_material_source.py tests/test_triage_prefilter.py -q -p no:cacheprovider",
+    "log": "focused-05.log",
+    "passed": 245,
+    "scope": "same runtime/repair-test bytes; subsequent one-line Step4 fixture correction separately verified and included in full final run"
+  },
+  "full": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step7-followups-053/docs/verification/step7-followups-053/offline_guard LILA_TEST_NETWORK_GUARD_LOG=/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/outputs/step7-followups-053/network-attempts-final.jsonl LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 /Users/wtjohnson/Lila/.venv/bin/python -m pytest tests/ -q -rs -p no:cacheprovider --junitxml=/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/outputs/step7-followups-053/full-02.xml",
+    "log": "full-02.log",
+    "junit": "full-02.xml",
+    "exit_code": 0,
+    "passed": 5908,
+    "skipped": 40,
+    "warnings": 20,
+    "subtests": 26,
+    "seconds": 120.51
+  },
+  "saved_source_replay": {
+    "driver": "replay_ihs.py",
+    "result": "ihs-replay-02/RESULT.json"
+  },
+  "default_locator_probe": {
+    "driver": "../step7-052/probe_text_boundaries.py",
+    "result": "boundaries-02/RESULT.json"
+  }
+}

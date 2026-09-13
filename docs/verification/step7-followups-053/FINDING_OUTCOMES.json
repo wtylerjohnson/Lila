@@ -1,0 +1,113 @@
+{
+  "work_id": "REPAIR-STEP7-FOLLOWUPS-053",
+  "tested_code_sha": "c4ec68c14aa58059d95de8440ee4765efcced9d3",
+  "independent_recheck": "NOT_LAUNCHED",
+  "root_acceptance_of_repairs": false,
+  "items": [
+    {
+      "id": "F-03",
+      "local_status": "LOCAL_REPAIR_VERIFIED",
+      "tests": [
+        "test_original_notice_link_conflicts_reject",
+        "test_saved_21_sam_inventories_preserve_identity_and_exclude_withdrawn"
+      ],
+      "fable_recheck_pending": true
+    },
+    {
+      "id": "F-04",
+      "local_status": "LOCAL_REPAIR_VERIFIED",
+      "tests": [
+        "test_depth_cache_identity_and_structure"
+      ],
+      "fable_recheck_pending": true
+    },
+    {
+      "id": "F-05",
+      "local_status": "LOCAL_REPAIR_VERIFIED",
+      "tests": [
+        "test_malformed_cache_refetches_without_notice_failure",
+        "test_failed_refresh_only_returns_valid_bound_stale_inventory"
+      ],
+      "fable_recheck_pending": true
+    },
+    {
+      "id": "F-06",
+      "local_status": "LOCAL_REPAIR_VERIFIED",
+      "tests": [
+        "test_failed_refresh_only_returns_valid_bound_stale_inventory",
+        "test_only_bound_stale_inventory_retains_refresh_failure_and_relevance_refusal"
+      ],
+      "fable_recheck_pending": true
+    },
+    {
+      "id": "F-22",
+      "local_status": "LOCAL_REPAIR_VERIFIED",
+      "tests": [
+        "test_redirect_receipt_records_actual_origin_and_rejects_conflicts"
+      ],
+      "fable_recheck_pending": true
+    },
+    {
+      "id": "F-10",
+      "local_status": "LOCAL_REPAIR_VERIFIED",
+      "tests": [
+        "test_withdrawn_history_is_retained_but_not_counted",
+        "test_saved_21_sam_inventories_preserve_identity_and_exclude_withdrawn"
+      ],
+      "fable_recheck_pending": true
+    },
+    {
+      "id": "F-11",
+      "local_status": "LOCAL_REPAIR_VERIFIED",
+      "tests": [
+        "test_ineligible_files_do_not_consume_slots"
+      ],
+      "fable_recheck_pending": true
+    },
+    {
+      "id": "F-07",
+      "local_status": "LOCAL_REPAIR_VERIFIED",
+      "tests": [
+        "test_stage_deadline_stamps_all_remaining_files_and_preserves_acquired_bytes",
+        "test_nonstage_timeout_has_specific_phase"
+      ],
+      "fable_recheck_pending": true
+    },
+    {
+      "id": "F-08",
+      "local_status": "LOCAL_REPAIR_VERIFIED",
+      "tests": [
+        "test_empty_bundle_tail_keeps_valid_context"
+      ],
+      "fable_recheck_pending": true
+    },
+    {
+      "id": "F-01",
+      "local_status": "LOCAL_REPAIR_VERIFIED",
+      "tests": [
+        "test_retention_failure_keeps_only_diagnostics",
+        "test_exclusive_create_fallback_and_conflict_quarantine",
+        "test_fallback_concurrent_publications_are_complete"
+      ],
+      "fable_recheck_pending": true
+    },
+    {
+      "id": "F-02",
+      "local_status": "DOCUMENTATION_CORRECTED_COHERENT_REWRITE_LIMIT_RETAINED",
+      "tests": [
+        "test_coherent_text_rewrite_is_documented_internal_consistency_limit"
+      ],
+      "fable_recheck_pending": true
+    },
+    {
+      "id": "F-15",
+      "local_status": "DISCRIMINATING_PROOF_ADDED",
+      "tests": [
+        "test_collected_attachment_text_cannot_supply_strict_notice_requirement",
+        "test_collected_attachment_context_preserves_independently_supported_bid_now"
+      ],
+      "fable_recheck_pending": true
+    }
+  ],
+  "remaining_ten_and_prior_residuals": "Retained unchanged in ROOT_FOLLOWUPS.json; no blanket closure."
+}
