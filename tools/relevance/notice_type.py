@@ -3,7 +3,7 @@ from __future__ import annotations
 
 
 HISTORICAL_LABELS = frozenset({
-    "award notice", "award", "a", "awards", "award notification", "awarded",
+    "award notice", "award", "a", "awards", "award notification", "awarded", "award synopsis", "awarded contract",
 })
 _CURRENT_LABELS = {
     "solicitation": "solicitation", "o": "solicitation",

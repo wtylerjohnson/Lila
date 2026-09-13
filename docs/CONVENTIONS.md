@@ -1987,3 +1987,44 @@ tests/test_truth_purges.py -q` offline. The browser test uses a temporary profil
 and blocks page network requests. The positive Step1 test fixture now names the
 actual current Apex taxonomy and a canonical supplier-risk request, making its
 additional Step3 vocabulary predicate explicit while preserving identity tests.
+
+
+### Step4 source-time values and amendment chronology (2026-09-13)
+
+`tools/relevance/temporal.py` owns strict whole-value ISO parsing. It accepts an
+ISO calendar date or a date with T/space, hour:minute, optional seconds and up to
+six fractional digits, and a supplied Z or numeric offset. `source_time` retains
+exact input, original field/record identity, supplied precision and offset,
+normalized UTC instant, parse status and a separate local display date. Missing,
+invalid, date-only and offsetless values never establish a precise action instant.
+No host timezone or fabricated end-of-day is used by this value contract.
+
+API `responseDeadLine`/`postedDate` and canonical CSV `deadline`/`posted` produce
+additive RawOpportunity `temporal_evidence`; existing date fields remain compatibility
+projections. The CSV/store raw text is unchanged. `record_time` recomputes evidence
+from original raw fields, ignoring supplied cached temporal objects. A top-level
+legacy date equal to its raw source's display date is a derived projection, not
+an independent conflicting timestamp. Competing original values still conflict;
+equal aware instants reconcile across offsets. Invalid suffixes cannot borrow a
+valid ten-character prefix. This does not migrate strict Assess or report date
+contracts or change the query's calendar inclusion floor.
+
+Triage thread v2 uses uniquely supported full posting chronology. Same-day aware
+amendments retain time; differing date-only days support calendar ordering among
+date-only records. Equal, missing, mixed-precision, offsetless or conflicting
+posting times keep an explicit unresolved order, all original lineage and no
+current model candidate for that family. Input order is a display fallback only;
+source IDs do not establish chronology. The original CSV attachment-selection
+priority helper remains a retrieval heuristic and is not used as current-action
+or source-clock authority. Current-buying assessment is source-recomputed.
+
+The attributed historical label set adds `Award Synopsis` and `Awarded Contract`
+to the six previously reviewed exact aliases. J&A, justification and other
+unknown types remain investigation contexts; no blanket substring exclusion or
+current buying inference is added.
+
+Verify the combined Step4 policy with `LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1
+python -m pytest tests/test_source_temporal_values.py tests/test_step4_temporal_evidence.py
+tests/test_triage_prefilter.py tests/test_notice_type_evidence.py -q` using the
+configured runtime. Source002 read integrity remains separately identified by
+its original commit and tests; Step4 temporal edits must preserve those helpers.

@@ -255,7 +255,7 @@ def test_cross_post_lineage_includes_prior_revisions_from_each_solicitation():
 
     assert [row["source_id"] for row in candidates] == ["N-BASE-NEW"]
     assert ruled["N-BASE-OLD"]["screen"] == (
-        "deterministic-solicitation-thread-v1")
+        "deterministic-solicitation-thread-v2")
     assert ruled["N-334"]["screen"] == "deterministic-sam-cross-post-v1"
     lineage = candidates[0]["raw_payload"]["triage_notice_lineage"]
     assert [(row["source_id"], row["solicitation_id"])

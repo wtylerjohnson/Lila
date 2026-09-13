@@ -540,13 +540,9 @@ _COLS = {
 
 
 def _parse_dt(value: str) -> Optional[date]:
-    v = (value or "").strip()
-    if len(v) >= 10:
-        try:
-            return date.fromisoformat(v[:10])
-        except ValueError:
-            return None
-    return None
+    """Legacy date projection, separate from exact source temporal evidence."""
+    from tools.relevance.temporal import display_date
+    return display_date(value)
 
 
 def _posted_order(value: str) -> float:
@@ -583,6 +579,7 @@ def iter_rows(fh: Iterable[str]) -> Iterable[dict]:
 
 
 def _to_opportunity(r: dict) -> RawOpportunity:
+    from tools.relevance.temporal import source_time
     contacts = []
     if r.get("poc_name") or r.get("poc_email"):
         contacts.append(OpportunityContact(
@@ -601,6 +598,9 @@ def _to_opportunity(r: dict) -> RawOpportunity:
         set_aside=r.get("set_aside") or None,
         posted_date=_parse_dt(r.get("posted", "")),
         response_deadline=_parse_dt(r.get("deadline", "")),
+        temporal_evidence={kind: source_time(r.get(field), field='raw_payload.' + field,
+                              source_id=r.get('notice_id') or r.get('solicitation') or '')
+                           for kind, field in (('deadline', 'deadline'), ('posted', 'posted'))},
         estimated_value=None,
         api_url=r.get("url") or None,
         contacts=contacts,

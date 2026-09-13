@@ -186,17 +186,14 @@ def _latest_notice_threads(
         if len(rows) == 1:
             selected.append(rows[0])
             continue
-        latest_index, latest = max(
-            rows,
-            key=lambda item: (
-                str(item[1].get("posted_date") or ""),
-                str(item[1].get("source_id") or item[1].get("id") or ""),
-            ),
-        )
+        from tools.relevance.temporal import latest_posting
+        latest_position, order_status = latest_posting([r for _, r in rows])
+        latest_index, latest = rows[latest_position]
         representative = dict(latest)
         raw = latest.get("raw_payload")
         representative["raw_payload"] = (
             dict(raw) if isinstance(raw, dict) else {})
+        representative["raw_payload"]["triage_thread_order_status"] = order_status
         representative["raw_payload"]["triage_thread_members"] = [
             str(row.get("source_id") or row.get("id") or "")
             for _index, row in rows
@@ -216,14 +213,16 @@ def _latest_notice_threads(
             if source_id == selected_id:
                 continue
             superseded[source_id] = {
-                "verdict": "discard",
-                "reason": f"superseded SAM revision; screened latest notice {selected_id}",
-                "screen": "deterministic-solicitation-thread-v1",
-                "superseded_by": selected_id,
+                "verdict": "discard" if order_status == 'ordered' else "unscreened",
+                "reason": (f"superseded SAM revision; screened latest notice {selected_id}" if order_status == 'ordered'
+                           else "Amendment chronology unresolved; retain source research before current action"),
+                "screen": "deterministic-solicitation-thread-v2",
+                "order_status": order_status,
+                "superseded_by": selected_id if order_status == 'ordered' else None,
             }
 
     selected.sort(key=lambda item: item[0])
-    return [notice for _index, notice in selected], superseded, len(superseded)
+    return [notice for _index, notice in selected], superseded, sum(v['superseded_by'] is not None for v in superseded.values())
 
 
 def _primary_poc_email(notice: dict) -> str:
@@ -606,8 +605,16 @@ def deterministic_prefilter(
     # Consolidate against the complete census, before positive selection can
     # make an older requirement leapfrog a later withdrawal/negative amendment.
     _latest, all_superseded, _count = _latest_notice_threads(notices)
+    uncertain = {sid for row in _latest if row.get('raw_payload', {}).get('triage_thread_order_status') == 'unresolved'
+                 for sid in row['raw_payload']['triage_thread_members']}
     for notice in list(candidates):
         sid = _source_id(notice)
+        if sid in uncertain:
+            candidates.remove(notice)
+            ruled[sid] = {'verdict': 'unscreened', 'reason': 'Amendment chronology unresolved; current action withheld',
+                          'screen': 'deterministic-solicitation-thread-v2', 'screen_state': 'AMENDMENT_ORDER_UNRESOLVED'}
+            screening_records[sid].update(screen_state='AMENDMENT_ORDER_UNRESOLVED', stage='source_research')
+            continue
         if sid in all_superseded and all_superseded[sid]['superseded_by'] in ruled:
             candidates.remove(notice)
             ruled[sid] = all_superseded[sid]
