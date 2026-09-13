@@ -2221,3 +2221,37 @@ hashes are internal custody, not general entailment or source authentication.
 See docs/verification/step7-052/REVIEW.md for protocol, changes, commands and proof
 limits. No APFS mapper, ResearchSubject schema3, gate settings, eight-slot schema,
 CRM or frozen benchmark artifact was changed by this amendment.
+
+## Step7 follow-up repair (053)
+
+The same inventory owner checks explicit notice IDs and parsed notice paths in
+href/downloadUrl/resourceUrl/uri/source_url fields. File resource IDs are not
+notice IDs. Captures distinguish requested URL, actual final URL and redirect
+chain; parsed hosts must be sam.gov or its subdomains and notice paths must match.
+These checks occur on receipt, after HTTP redirects; they are not a pre-contact
+redirect firewall. Fresh and stale cache reuse both validate retained bytes,
+origin, projection, current-file hash and aware acquisition clock. Unknown,
+foreign, malformed and legacy cache entries cannot become validated stale data.
+Depth cache records must match the requested id before supplying description.
+
+Withdrawal flags/dates/file existence survive projection. Withdrawn attachments
+remain in withdrawn_attachments and original bytes, outside active count/hash and
+selection. The collector applies public eligibility and type filtering before
+assigning three file slots. Receipts distinguish type filter, file cap, stage,
+download/extraction deadlines and bundle text exhaustion. Empty bundle tails
+are not appended; earlier bound passages remain usable discovery context.
+
+Content-addressed writers and readers share per-object advisory locks. Hardlink
+publication remains the normal path; exclusive creation under that lock supports
+filesystems without hardlinks. Readers use the shared lock to avoid partial bytes.
+Conflicting existing objects move to a uniquely named quarantine entry; they are
+not deleted. Local retention_failed preserves diagnostic_inventory/diagnostic_text
+without resources_checked, captured text or promotion authority. A failed optional
+cache-index write is recorded separately when both objects were already retained.
+These are cooperative process guarantees, not protection from arbitrary filesystem
+writers, independent text derivation, source authentication or signed clocks.
+
+See docs/verification/step7-followups-053 for exact regression and saved-source
+proof. No production cache migration occurs here. Previous captures missing the
+new URL/lifecycle fields refetch on use; root owns bounded operating cache warming.
+The remaining ten Fable findings and prior residuals remain separately recorded.

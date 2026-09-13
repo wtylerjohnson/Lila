@@ -876,3 +876,21 @@ The change is verified by tests/test_step7_evidence_collection.py plus existing
 collector/dossier/Assess/Step6 suites. Saved original IHS SOW/Q&A replay is separate
 from the actual public acquisition receipt, synthetic tests and Fable verdict.
 No comparable-result claim, frozen rescore, NETSCOUT composite or operating merge.
+
+### Step7 follow-up contract repair (053, root assigned)
+
+The isolated 053 diff extends original notice identity checks to parsed notice
+paths in response links and adds requested/final/redirect-chain custody fields.
+Both fresh and stale public inventory reuse require the validated projection;
+depth caches reject foreign or malformed records before reuse. Withdrawn files
+remain historical inventory and original bytes, outside active counts/hashes and
+download slots. This intentionally changes prior live-file hashes when withdrawn
+rows were previously counted; no saved approval, cache or frozen case is migrated.
+
+File receipts add explicit stop reasons and local retention_failed with diagnostic
+data only. Validated/captured evidence is withheld on retention failure. Eligibility
+precedes the existing file cap; an empty text-budget slice never creates a passage.
+Strict Assess, LeadRow and operator approval schemas/gates remain unchanged.
+The 053 tests separately cover cache/notice identity, storage concurrency, file
+selection, native receipt propagation and discriminating strict-Assess controls.
+Internal hashes still do not prove coherent-cache-rewrite resistance or source truth.

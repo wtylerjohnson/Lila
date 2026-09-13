@@ -120,7 +120,7 @@ def native_collection(tmp_path,monkeypatch, notice_id="a"*32, term="network visi
     return rows[0],stats,inventory,texts
 
 
-def test_native_unicode_file_locators_and_all_inventory_states_reach_dossier(tmp_path,monkeypatch):
+def test_native_unicode_file_locators_and_selected_inventory_states_reach_dossier(tmp_path,monkeypatch):
     from agents.decisions.dossier import _attachment_research_context
     row,stats,inventory,texts=native_collection(tmp_path,monkeypatch)
     raw=row['raw_payload'];context=_attachment_research_context(row,{'id':'a'*32,'resources_checked':True,'attachment_inventory_hash':inventory})
@@ -149,18 +149,56 @@ def test_dossier_rejects_changed_locator_receipt_even_if_rehashed(tmp_path,monke
     assert _attachment_research_context(row,{'id':'a'*32,'attachment_inventory_hash':inventory})['status']=='unavailable'
 
 
-def test_collected_attachment_text_cannot_supply_strict_notice_requirement(tmp_path,monkeypatch):
+@pytest.mark.parametrize('copied_review', [False, True])
+def test_collected_attachment_text_cannot_supply_strict_notice_requirement(tmp_path,monkeypatch,copied_review):
     from agents.assess.contracts import LiveClassification
-    from tests.test_assess_ledger import _sweep,_build
+    from agents.assess.ledger import build_assess_run
+    from tests.test_assess_ledger import _sweep,_build,_depth_record,_profile,BINDING,NOW
     row,stats,inventory,texts=native_collection(tmp_path,monkeypatch,notice_id='N1',term='packet capture')
     sweep=_sweep();original=sweep['results']['sam.gov'][0]
     original['source_id']=row['source_id']
     original['raw_payload'].update(row['raw_payload'])
+    original['title']='Lawn maintenance'
+    original['raw_payload']['description_snippet']='Lawn maintenance'
+    depth=_depth_record()
+    depth['source_depth']['description']='The contractor shall provide lawn maintenance.'
+    sweep['results']['dossiers']={'depth_records':[depth]}
     run,diagnostics,index=_build(sweep)
     parent=next(r for r in run.live.records if r.notice_id==row['source_id'])
+    if copied_review:
+        reviews={'schema_version':1,'client':'Testco','binding':dict(BINDING),'reviews':[{
+            'notice_id':'N1','evidence_id':parent.authoritative_evidence[-1].evidence_id,
+            'excerpt':row['raw_payload']['text'].split('\n\n')[0],
+            'capability_terms':['packet capture'],'decision':'approved',
+            'attachment_inventory_count':parent.attachment_inventory_count,
+            'attachment_inventory_hash':parent.attachment_inventory_hash,
+            'attachments_reviewed':True,'reviewed_by':'operator','reviewed_at':NOW.isoformat()}]}
+        run,_,_=build_assess_run('Testco',sweep,_profile(),BINDING,
+            requirement_reviews_payload=reviews,as_of=NOW)
+        parent=next(r for r in run.live.records if r.notice_id=='N1')
     assert parent.classification!=LiveClassification.BID_NOW
     assert parent.requirement_reviewed_at is None
+    assert not parent.requirement_excerpt
     assert parent.attachment_gap
+    assert 'Café data' not in parent.model_dump_json()
+
+
+def test_collected_attachment_context_preserves_independently_supported_bid_now(tmp_path,monkeypatch):
+    import copy
+    from agents.assess.contracts import LiveClassification
+    from tests.test_assess_ledger import _sweep,_depth_record,_build_with_requirement_review
+    row,_,_,_=native_collection(tmp_path,monkeypatch,notice_id='N1',term='packet capture')
+    plain=_sweep();plain['results']['dossiers']={'depth_records':[_depth_record()]}
+    enriched=copy.deepcopy(plain)
+    enriched['results']['sam.gov'][0]['raw_payload'].update(row['raw_payload'])
+    records=[]
+    for sweep in [plain,enriched]:
+        run,_,_=_build_with_requirement_review(sweep)
+        records.append(next(r for r in run.live.records if r.notice_id=='N1'))
+    assert all(r.classification==LiveClassification.BID_NOW for r in records)
+    assert records[0].requirement_excerpt==records[1].requirement_excerpt
+    assert records[0].recommendation==records[1].recommendation
+    assert 'Café data' not in records[1].model_dump_json()
 
 
 def test_invalid_resource_is_identity_gap_without_network(monkeypatch):
