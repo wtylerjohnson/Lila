@@ -175,7 +175,8 @@ def bucket_forecasts(
                                "score": round(relevance_score, 2),
                                "naics_lane_match": in_lane,
                                "keyword_hits": sorted(hits),
-                               "adjacent_hits": sorted(adjacent)})
+                               "adjacent_hits": sorted(adjacent),
+                               "match_spans": [span.model_dump(mode="json") for span in verdict.spans] if taxonomy is not None else []})
         elif in_lane:
             lane_only.append(rec)
         else:

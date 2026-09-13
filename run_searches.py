@@ -875,7 +875,12 @@ def _collect_forecast_child(
                     provenance, detail
                 ),
             }
-        preliminary_rows = [item["record"] for item in preliminary]
+        from tools.api.forecasts.research import discover_forecasts
+        discoveries = discover_forecasts(rows, profile, taxonomy=taxonomy, engagement_scope=engagement_scope)
+        preliminary_rows = list({
+            (item["record"].source, item["record"].source_id): item["record"]
+            for item in [*preliminary, *discoveries]
+        }.values())
         try:
             enriched = list(enrich_matched(preliminary_rows))
         except Exception as exc:  # noqa: BLE001 - base listing remains useful
@@ -1773,9 +1778,12 @@ def main() -> int:
         else:
             gaps = gaps_for(scope_query_agencies, args.client)
         screen = screen_line(buckets, len(recs), "agency", gaps=gaps)
-        cur = [record_payload(m["record"])
-               | {"reasons": m["reasons"], "score": m["score"]}
-               for m in matched]
+        from tools.api.forecasts.research import (
+            discover_forecasts, serialize_forecast_match, serialize_research,
+        )
+        cur = [serialize_forecast_match(m) for m in matched]
+        research = [serialize_research(item) for item in discover_forecasts(
+            recs, profile, taxonomy=forecast_taxonomy, engagement_scope=sam_engagement_scope)]
         returned_sources = [
             row for row in source_attempts
             if row["status"] in {"success", "partial"}]
@@ -1845,7 +1853,9 @@ def main() -> int:
                 else "The declared default forecast boundary was incomplete."
             ),
         )
-        payload = {"matched": cur, "total_records": len(recs), "delta": delta,
+        payload = {"matched": cur, "research_candidates": research,
+                   "research_schema_version": 1,
+                   "total_records": len(recs), "delta": delta,
                    "events": events, "screen_line": screen,
                    "sources": source_rows,
                    "coverage_contract": coverage_contract,

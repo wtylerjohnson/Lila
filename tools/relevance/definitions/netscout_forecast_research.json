@@ -1,0 +1,106 @@
+{
+  "client_name": "netscout",
+  "version": 1,
+  "updated": "2026-09-12",
+  "core": [
+    {
+      "term": "network tap",
+      "mode": "stemmed",
+      "evidence_ids": [
+        "netscout-packet"
+      ],
+      "aliases": [
+        {
+          "phrase": "port mirroring",
+          "context_any": [
+            "network",
+            "traffic"
+          ]
+        }
+      ]
+    },
+    {
+      "term": "packet broker",
+      "evidence_ids": [
+        "netscout-packet"
+      ]
+    },
+    {
+      "term": "packet capture",
+      "evidence_ids": [
+        "netscout-capture"
+      ]
+    },
+    {
+      "term": "passive network collection",
+      "evidence_ids": [
+        "netscout-capture"
+      ],
+      "aliases": [
+        {
+          "phrase": "passive collection",
+          "context_any": [
+            "network",
+            "ACNA"
+          ]
+        },
+        {
+          "phrase": "network analyzer",
+          "context_any": [
+            "cybersecurity"
+          ],
+          "note": "Capability-family investigation only; kit configuration remains unverified."
+        }
+      ]
+    },
+    {
+      "term": "network detection and response",
+      "evidence_ids": [
+        "netscout-ndr"
+      ],
+      "aliases": [
+        {
+          "phrase": "monitor network traffic",
+          "context_any": [
+            "Indicators of Activity",
+            "Indicators of Compromise",
+            "intrusion"
+          ]
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "netscout-packet",
+      "url": "https://www.netscout.com/product/packet-flow-switches-and-taps",
+      "reviewed_at": "2026-09-12T23:36:40Z",
+      "basis": "{\"excerpt\": \"The NETSCOUT nGenius\\u00ae packet flow switch (PFS) and TAPs family enables multiple IT groups to aggregate, replicate, and manage the flows of traffic\", \"scope\": \"capability-family research; not procurement conformity\", \"source_capture_sha256\": \"8f93e39e79740aaf7b8c3abd14b1afb3aa4f35f347ca7bceecf193cc04d66dd9\", \"source_evidence_id\": \"NETSCOUT-PRODUCT-08\", \"source_section\": \"Features / Scalable Network Visibility, second body paragraph\"}"
+    },
+    {
+      "evidence_id": "netscout-ndr",
+      "url": "https://www.netscout.com/product/cyber-intelligence",
+      "reviewed_at": "2026-09-12T23:36:40Z",
+      "basis": "{\"excerpt\": \"NETSCOUT combines Omnis CyberStream and Omnis Cyber Intelligence into a scalable, investigation-focused Network Detection and Response (NDR) solution powered by deep packet inspection (DPI).\", \"scope\": \"capability-family research; not procurement conformity\", \"source_capture_sha256\": \"8f93e39e79740aaf7b8c3abd14b1afb3aa4f35f347ca7bceecf193cc04d66dd9\", \"source_evidence_id\": \"NETSCOUT-PRODUCT-04\", \"source_section\": \"Overview / Faster, Smarter Incident Response Starts with the Right Data, first body paragraph\"}"
+    },
+    {
+      "evidence_id": "netscout-capture",
+      "url": "https://www.netscout.com/product/isng-platform",
+      "reviewed_at": "2026-09-12T23:36:40Z",
+      "basis": "{\"excerpt\": \"Powered by deep packet inspection at scale, NETSCOUT\\u2019s Adaptive Service Intelligence (ASI) turns raw traffic into Smart Data\", \"scope\": \"capability-family research; not procurement conformity\", \"source_capture_sha256\": \"8f93e39e79740aaf7b8c3abd14b1afb3aa4f35f347ca7bceecf193cc04d66dd9\", \"source_evidence_id\": \"NETSCOUT-PRODUCT-02\", \"source_section\": \"Overview / Assure Performance and User Experience with Enhanced Observability, second body paragraph\"}"
+    }
+  ],
+  "retrieval_mappings": [
+    {
+      "term": "Gigamon",
+      "disposition": "exploratory",
+      "reason": "Named competitor renewal; retrieval for research only, never NETSCOUT fit or displacement permission."
+    },
+    {
+      "term": "CoreLight",
+      "disposition": "exploratory",
+      "reason": "Named competitor renewal; retrieval for research only, never NETSCOUT fit or displacement permission."
+    }
+  ],
+  "exclude": []
+}

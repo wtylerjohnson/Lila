@@ -350,10 +350,11 @@ def build_fact_bank(results: dict, triage: Optional[dict] = None, *,
         # only capability-relevant lines are citable horizon facts; lane-only
         # matches (broad-NAICS noise like Oracle maintenance in 541519) stay
         # in the screen count and never become quotable "stated intent"
-        for m in (fc.get("matched") or [])[:10]:
-            if not any(str(x).startswith("keywords")
-                       for x in (m.get("reasons") or [])):
-                continue
+        capability_matches = [m for m in (fc.get("matched") or [])
+                              if m.get("keyword_hits") or any(
+                                  str(x).startswith("keywords:")
+                                  for x in (m.get("reasons") or []))]
+        for m in capability_matches[:10]:
             r = m.get("record") or m
             identity = str(r.get("source") or "")
             source_label = forecast_source_label(identity)
