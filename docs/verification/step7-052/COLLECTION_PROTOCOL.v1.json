@@ -1,0 +1,75 @@
+{
+  "schema": "lila.step7.equal-evidence-collection.v1",
+  "work_id": "REPAIR-STEP7-BASELINE-052",
+  "declared_at_utc": "2026-09-13T13:51:45.832344+00:00",
+  "version": "prospective-supplement-001",
+  "scope": "Saved005 selected first20 families, development only; no recapture/rescore or competitive claim.",
+  "selected_card_keys": {
+    "LILA": [
+      "K-b37d49c3b90382d05ade",
+      "K-85895910ea7d4513b2ad",
+      "K-b0247cdd10c62fb02a42",
+      "K-8211d3a4cfe8b7f0c748",
+      "K-c3d444c152a4c86885d7",
+      "K-fb3608034caaed7e1296",
+      "K-abbc52f09052b0398eb4",
+      "K-829b16d7b735af349262",
+      "K-095aac2ddef3a04f08cf",
+      "K-9f239ad3422e5ccfbe09",
+      "K-dababefd9cc59e6409e5",
+      "K-8071d7814b888cdba20c",
+      "K-62649797d732e23b6258",
+      "K-e16836becb533fe44650",
+      "K-4ded6de38a2007297353",
+      "K-af06f2ab176a5c69af19",
+      "K-cbbd6471ef734efdc9ef"
+    ],
+    "GovTribe": [
+      "K-b3683f67c12f893252e5",
+      "K-45693b2a864b55c21cc4"
+    ]
+  },
+  "shared_source_order": "neutral card key ascending; all family members retained; duplicates share evidence, never add slots",
+  "budgets": {
+    "per_unique_family": {
+      "supplemental_wall_seconds": 120,
+      "public_inventory_attempts_per_member": 1,
+      "max_family_members_fetched": 3,
+      "max_attachment_files": 3,
+      "max_bytes_per_file": 5242880,
+      "max_text_chars_per_file": 50000,
+      "max_pdf_pages_per_file": 100
+    },
+    "per_product": {
+      "max_unique_families": 20,
+      "max_supplemental_wall_seconds": 2400
+    },
+    "local_census": "one shared complete local daily-export scan and read-only store lookup for all selected identities; same pass and vintage for both products"
+  },
+  "stop_rules": [
+    "Every family receives original identity/description/status/family and attachment-inventory review under the same limits.",
+    "Fetch supplemental public resources only when local evidence does not resolve a material requirement/status/inventory question. Obvious scope mismatch stops with cited original requirement; no need to exhaust allowance.",
+    "Unresolved scope uses original linked SOW/PWS first, then original amendment/status. Never broaden to a new opportunity search.",
+    "Stop at source resolution, per-family deadline/file cap, restricted access or one failed attempt; retain exact gap and next action.",
+    "Changed sources mint new separately identified evidence; frozen packets, judgments and scores remain unchanged."
+  ],
+  "source_authority": "Public original SAM notice/resources/files plus existing local export/store. No credentials, paid enrichment, GovTribe mirror authentication or LaCie restore.",
+  "states": [
+    "confirmed_empty",
+    "lookup_failed",
+    "unrecognized_inventory",
+    "not_fetched",
+    "unreadable",
+    "identity_mismatch",
+    "inaccessible",
+    "captured_discovery_only"
+  ],
+  "promotion_policy": "Raw bytes, locators, hashes, exact text offsets and clocks enable review; collection is discovery_only and does not itself approve Assess/LeadRow requirement evidence.",
+  "missing_clocks": "filename date and filesystem observations are local export/read clocks; upstream acquisition/publication remain unknown unless independently supplied.",
+  "inputs": {
+    "pool.json": "7fec67f2b3aa876cdfcf04779ebb77c5bcdf6245c68f797ac7c90157591d5a37",
+    "capture.json": "48dde25f81e37f6568f54172cb73e431b46accd5de44753713d6bb886c189b1e",
+    "review-v4/PRIVATE_key.json": "1d38764a7c2189580d3da9b056920119ed43759c0c298ac92125b087d89a03af",
+    "capture_lock.FINAL.json": "137cb5e2b994ed372db1528a8b31862e81555792a44c9edf2c90e5c6ec3f55a5"
+  }
+}
