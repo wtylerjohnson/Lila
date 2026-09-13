@@ -440,3 +440,41 @@ def test_mapper_does_not_import_targeting_or_apollo():
         joined = " ".join(modules).casefold()
         for token in forbidden:
             assert token not in joined
+
+
+@pytest.mark.parametrize("current_url", [
+    "https://sam.gov/opp/Current/view",
+    "https://sam.gov/workspace/contract/opp/Current/view",
+    "https://sam.gov/api/notice?noticeId=Current",
+])
+def test_family_pathway_selects_exact_current_url_retaining_older_evidence(current_url):
+    from agents.leadgen.from_assess import _live_pathway
+    old = _evidence(eid="old", notice_id="Old")
+    current = _evidence(eid="current", url=current_url)
+    record = _live_research(notice_id="Current").model_copy(update={
+        "authoritative_evidence": (old, current),
+    })
+    pathway = _live_pathway(record, [])
+    assert pathway is not None
+    assert str(pathway.source_url) == current_url
+    assert pathway.notice_id == "Current"
+    assert pathway.evidence == (old, current)
+    assert record.authoritative_evidence == (old, current)
+
+
+@pytest.mark.parametrize("bad_current", [
+    {"notice_id": "Current-suffix"},
+    {"notice_id": "Current", "primary": False},
+    {"notice_id": "Current", "tier": EvidenceTier.PROGRAM},
+    {"url": "https://example.gov/opp/Current/view"},
+    {"url": "http://sam.gov/opp/Current/view"},
+])
+def test_family_pathway_does_not_invent_or_relax_current_evidence(bad_current):
+    from agents.leadgen.from_assess import _live_pathway
+    record = _live_research(notice_id="Current").model_copy(update={
+        "authoritative_evidence": (
+            _evidence(eid="old", notice_id="Old"),
+            _evidence(eid="bad", **bad_current),
+        ),
+    })
+    assert _live_pathway(record, []) is None

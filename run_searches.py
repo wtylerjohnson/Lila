@@ -743,6 +743,7 @@ def _collect_forecast_child(
 
     from tools.api.forecasts import match_forecasts
     from tools.agencies import matches_record as matches_scope_agency
+    from tools.api.forecasts.dhs_apfs import scope_identity as apfs_scope_identity
 
     try:
         market_rows = list(source.forecasts())
@@ -791,6 +792,9 @@ def _collect_forecast_child(
                                 getattr(row, "agency", None),
                                 getattr(row, "component", None),
                                 getattr(row, "office", None),
+                                (apfs_scope_identity(row)
+                                 if getattr(source, "name", None) == "dhs_apfs"
+                                 else ""),
                             )
                         ),
                         selected,
