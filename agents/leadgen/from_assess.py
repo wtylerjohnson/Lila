@@ -162,6 +162,9 @@ def draft_lead_rows(
 
     for parent, item in zip(parents, subjects):
         kind, subject = item
+        if kind == AssessmentSubjectKind.RESEARCH_SUBJECT:
+            traces.append(_parent_trace(run, parent, "Research subject preserved without a child: buying decision, clock and eligible seller route remain to be established"))
+            continue
         if kind == AssessmentSubjectKind.PARTNER_LINK:
             traces.append(_parent_trace(
                 run, parent,
@@ -209,7 +212,7 @@ def coerce_assess_run(assess: AssessRun | Mapping[str, Any]) -> AssessRun:
     if payload is not assess and "schema_version" in assess:
         version = assess["schema_version"]
         from agents.assess.ledger import _contains_acquisition
-        if type(version) is not int or version not in (1, 2):
+        if type(version) is not int or version not in (1, 2, 3):
             raise ValueError("unsupported Assess envelope version")
         if not str(payload.get("run_id", "")).startswith(f"assess:v{version}:"):
             raise ValueError("Assess envelope version disagrees with its run identity")
@@ -255,6 +258,8 @@ def _index_subjects(
         items.append((AssessmentSubjectKind.DEVELOPING_THESIS, thesis))
     for partner in run.partners.items:
         items.append((AssessmentSubjectKind.PARTNER_LINK, partner))
+    if run.research is not None:
+        items.extend((AssessmentSubjectKind.RESEARCH_SUBJECT, subject) for subject in run.research.items)
     return items
 
 
@@ -267,6 +272,17 @@ def _parent_from_subject(
         return _parent_from_live(run, subject)
     if kind == AssessmentSubjectKind.DEVELOPING_THESIS:
         return _parent_from_thesis(run, subject)
+    if kind == AssessmentSubjectKind.RESEARCH_SUBJECT:
+        from agents.assess.reviewed_cases import ReviewedSubject
+        overlay = ReviewedSubject.model_validate_json(subject.reviewed_overlay_json) if subject.reviewed_overlay_json else None
+        return OpportunityAssessment(
+            assessment_id=compose_assessment_id(run.run_id,kind.value,subject.subject_id),
+            assess_run_id=run.run_id, client_name=run.client_name,
+            profile_version=run.profile_version, scope=run.scope, as_of=run.as_of,
+            subject_kind=kind, subject_id=subject.subject_id, title=subject.title,
+            agency=subject.agency, research_subject=subject,
+            research=overlay.research if overlay else None,
+            targets=overlay.targets if overlay else ())
     return _parent_from_partner(run, subject)
 
 

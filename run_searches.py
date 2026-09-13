@@ -1990,10 +1990,15 @@ def main() -> int:
         # notices cross-reference from the LOCAL sam.gov slice, never the API
         from tools.api.incumbent_buyers import build_buyer_map
         bm = build_buyer_map(profile, sam_notices=None)
+        from tools.api.research_awards import enrich_buyer_research
+        bm = enrich_buyer_research(bm, profile, scope_agencies)
+        research_receipt = bm.get("research_award_details") or {}
+        research_note = (f"; optional award research selected {research_receipt.get('selected_rows',0)}, "
+                         f"requests {research_receipt.get('detail_requests',0)}, counts {research_receipt.get('counts',{})}")
         skipped = bm.get("skipped_terms") or []
         return bm, (f"{len(bm.get('buyers') or [])} buying offices, "
                     f"{len(bm.get('displacement_windows') or [])} displacement "
-                    f"windows; calls {bm.get('calls')}"
+                    f"windows; calls {bm.get('calls')}" + research_note
                     + (f"; BUDGET HIT, {len(skipped)} term(s) skipped: "
                        f"{', '.join(skipped[:4])}" if skipped else ""))
 

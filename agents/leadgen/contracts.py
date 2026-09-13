@@ -18,10 +18,11 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, model_validator, model_serializer
 
 from agents.assess.contracts import (
     AssessScope,
+    ResearchSubject,
     LifecycleStage,
     LiveClassification,
     LiveRecommendation,
@@ -74,9 +75,25 @@ class OpportunityAssessment(_FrozenContract):
     dossier_schema_version: str | None = None
     identity_status: str | None = None
     lead_ids: tuple[str, ...] = Field(default_factory=tuple)
+    research_subject: ResearchSubject | None = None
+    research: LeadResearch | None = None
+    targets: tuple[LeadTarget, ...] = ()
+
+    @model_serializer(mode="wrap")
+    def legacy_parent_serialization(self, handler):
+        value=handler(self)
+        if self.research_subject is None and self.research is None and not self.targets:
+            for name in ("research_subject", "research", "targets"):
+                value.pop(name, None)
+        return value
 
     @model_validator(mode="after")
     def _parent_identity_is_coherent(self) -> OpportunityAssessment:
+        if self.subject_kind == AssessmentSubjectKind.RESEARCH_SUBJECT:
+            if self.research_subject is None or self.research_subject.subject_id != self.subject_id or self.notice_id or self.lead_ids:
+                raise ValueError("research parent requires exact subject and zero live children")
+        elif self.research_subject is not None:
+            raise ValueError("research subject cannot be relabeled as a legacy parent")
         require_aware(self.as_of, "opportunity assessment as_of")
         require_unique(self.lead_ids, "opportunity assessment lead_ids")
         if (self.subject_kind == AssessmentSubjectKind.LIVE_SOLICITATION

@@ -121,6 +121,7 @@ def map_record(rec: dict, retrieved_at: Optional[datetime] = None) -> ForecastRe
             else None
         ),
         forecast_status=_display(rec.get("current_state")),
+        source_fields=dict(rec),
     )
 
 

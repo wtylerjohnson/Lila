@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator, model_serializer
 
 from agents.assess.contracts import LiveClassification, LiveSolicitation
 from agents.leadgen.targets import LeadResearch, LeadTarget
@@ -30,15 +30,44 @@ class ReviewedCase(BaseModel):
         return self
 
 
+class ReviewedSubject(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    subject_id: str
+    source_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    research: LeadResearch
+    targets: tuple[LeadTarget, ...] = ()
+
+
 class ReviewedCases(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
-    schema_version: Literal["reviewed_cases.v1"] = "reviewed_cases.v1"
+    schema_version: Literal["reviewed_cases.v1", "reviewed_cases.v2"] = "reviewed_cases.v1"
     client_name: str = Field(min_length=1)
     scope_designator: str = "all"
     cases: tuple[ReviewedCase, ...] = ()
+    subjects: tuple[ReviewedSubject, ...] = ()
+
+    @model_validator(mode="before")
+    @classmethod
+    def versioned_subjects(cls, value):
+        if isinstance(value, dict) and value.get("schema_version", "reviewed_cases.v1") == "reviewed_cases.v1" and "subjects" in value:
+            raise ValueError("typed subjects require reviewed_cases.v2")
+        return value
+
+    @model_serializer(mode="wrap")
+    def legacy_serialization(self, handler):
+        value = handler(self)
+        if self.schema_version == "reviewed_cases.v1":
+            value.pop("subjects", None)
+        return value
+
 
     @model_validator(mode="after")
     def unique_notices(self):
+        if self.subjects and self.schema_version != "reviewed_cases.v2":
+            raise ValueError("typed subjects require reviewed_cases.v2")
+        subject_ids = [c.subject_id for c in self.subjects]
+        if len(subject_ids) != len(set(subject_ids)):
+            raise ValueError("duplicate reviewed subject IDs")
         ids = [c.record.notice_id for c in self.cases]
         if len(ids) != len(set(ids)):
             raise ValueError("duplicate reviewed notice IDs")
@@ -123,6 +152,6 @@ def supplement_live(live, book: ReviewedCases, scope_designator: str):
     for case in book.cases:
         # Discovery owns existing records; research never overwrites its status.
         records.setdefault(case.record.notice_id,
-            current_case_record(case.record) if live.run_id.startswith("assess:v2:") else case.record)
+            current_case_record(case.record) if live.run_id.startswith(("assess:v2:", "assess:v3:")) else case.record)
     return type(live).model_validate({
         **live.model_dump(mode="python"), "records": tuple(records.values())})

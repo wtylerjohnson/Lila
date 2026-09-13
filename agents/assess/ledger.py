@@ -54,8 +54,8 @@ from agents.assess.contracts import (
 
 _ROOT = Path(__file__).resolve().parents[2]
 _DEFAULT_STATE = _ROOT / "data" / "state" / "assess_runs"
-_SCHEMA_VERSION = 2
-_SUPPORTED_SCHEMAS = (1, 2)
+_SCHEMA_VERSION = 3
+_SUPPORTED_SCHEMAS = (1, 2, 3)
 _UNSET = object()
 _LOG = logging.getLogger(__name__)
 
@@ -1984,6 +1984,7 @@ def _run_projection(
     projection_inputs: dict[str, str],
     diagnostics: tuple[str, ...],
     posting_index: dict[str, str],
+    research=None,
 ) -> dict:
     """Canonical, persistable basis for the immutable Assess run id."""
     return {
@@ -2003,6 +2004,7 @@ def _run_projection(
         "projection_inputs": dict(sorted(projection_inputs.items())),
         "diagnostics": list(sorted(set(diagnostics))),
         "posting_index": dict(sorted(posting_index.items())),
+        **({"research": research.model_dump(mode="json", exclude={"run_id"})} if research is not None else {}),
     }
 
 
@@ -2148,6 +2150,8 @@ def build_assess_run(
             horizon_payload.get("approved_at"), require_timezone=True)
         if horizon_approved_at:
             valid_observation_times.append(horizon_approved_at)
+    if reviewed_cases is not None:
+        valid_observation_times.extend(overlay.research.reviewed_at for overlay in reviewed_cases.subjects)
     as_of = max(valid_observation_times)
     if as_of != base_as_of:
         (live, posting_index, accepted_notices, live_gap_list,
@@ -2165,6 +2169,14 @@ def build_assess_run(
         profile_version=profile_version, as_of=as_of)
     diagnostics.extend(partner_diagnostics)
 
+    from agents.assess.research_subjects import build_research_ledger
+    research, research_diagnostics = build_research_ledger(
+        searches, profile, run_id=provisional_run_id, client_name=client_name,
+        profile_version=profile_version, scope=scope, as_of=as_of)
+    if reviewed_cases is not None:
+        from agents.assess.research_subjects import apply_reviewed_subjects
+        research = apply_reviewed_subjects(research, reviewed_cases, _scope_designator(scope))
+    diagnostics.extend(research_diagnostics)
     diagnostics.extend(extra_diagnostics)
     coverage = build_source_coverage(
         searches, horizon_payload=horizon_payload,
@@ -2201,7 +2213,7 @@ def build_assess_run(
         partial_release_approved=partial_release_approved,
         requires_human_review=True, projection_inputs=projection_inputs,
         diagnostics=diagnostics_out,
-        posting_index=posting_index,
+        posting_index=posting_index, research=research,
     )
     run_id = _run_identity(client_name, binding, projection)
 
@@ -2213,12 +2225,14 @@ def build_assess_run(
     live = _rebind(live, LiveSolicitationLedger)
     horizon = _rebind(horizon, OpportunityThesisLedger)
     partners = _rebind(partners, PartnerOpportunityLedger)
+    from agents.assess.contracts import ResearchSubjectLedger
+    research = _rebind(research, ResearchSubjectLedger)
 
     run = AssessRun(
         run_id=run_id, client_name=client_name,
         profile_version=profile_version, scope=scope, as_of=as_of,
         coverage=coverage,
-        live=live, horizon=horizon, partners=partners,
+        live=live, horizon=horizon, partners=partners, research=research,
         approval_status=gate, approved_by=approved_by,
         approved_at=approved_at,
         partial_release_approved=partial_release_approved,
@@ -2363,7 +2377,7 @@ def persist_assess_run(
     identity_projection = _run_projection(
         as_of=run.as_of, scope=run.scope,
         profile_version=run.profile_version,
-        live=run.live, horizon=run.horizon, partners=run.partners,
+        live=run.live, horizon=run.horizon, partners=run.partners, research=run.research,
         coverage=run.coverage, approval_status=run.approval_status,
         approved_by=run.approved_by, approved_at=run.approved_at,
         partial_release_approved=run.partial_release_approved,
@@ -2372,18 +2386,21 @@ def persist_assess_run(
         diagnostics=canonical_diagnostics,
         posting_index=canonical_posting_index,
     )
-    if _run_identity(run.client_name, binding, identity_projection) != run.run_id:
+    version = int(run.run_id.split(":")[1][1:]) if run.run_id.startswith(("assess:v1:","assess:v2:","assess:v3:")) else _SCHEMA_VERSION
+    if version == 1:
+        identity_projection = _legacy_projection(identity_projection)
+    if _run_identity(run.client_name, binding, identity_projection, schema_version=version) != run.run_id:
         raise AssessLedgerError(
             "Assess run id does not match its persisted evidence projection")
     artifact = {
-        "schema_version": _SCHEMA_VERSION,
+        "schema_version": version,
         "binding": binding,
         "projection_inputs": canonical_projection_inputs,
         "identity": {
             "algorithm": "sha256-canonical-json-v1",
             "projection_sha256": _digest(identity_projection),
         },
-        "run": run.model_dump(mode="json"),
+        "run": _legacy_projection(run.model_dump(mode="json")) if version == 1 else run.model_dump(mode="json"),
         "diagnostics": list(canonical_diagnostics),
         "posting_index": canonical_posting_index,
     }
@@ -2400,7 +2417,7 @@ def persist_assess_run(
         _atomic_json(path, artifact)
     pointer = root / f"{_scope_designator(run.scope)}.current.json"
     pointer_payload = {
-        "schema_version": _SCHEMA_VERSION,
+        "schema_version": version,
         "run_id": run.run_id,
         "artifact": path.name,
         "artifact_sha256": _digest(artifact),
@@ -2476,7 +2493,7 @@ def load_current_assess_run(
         expected_projection = _run_projection(
             as_of=run.as_of, scope=run.scope,
             profile_version=run.profile_version,
-            live=run.live, horizon=run.horizon, partners=run.partners,
+            live=run.live, horizon=run.horizon, partners=run.partners, research=run.research,
             coverage=run.coverage, approval_status=run.approval_status,
             approved_by=run.approved_by, approved_at=run.approved_at,
             partial_release_approved=run.partial_release_approved,

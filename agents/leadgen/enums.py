@@ -120,6 +120,8 @@ class LeadReadiness(str, Enum):
 class AssessmentSubjectKind(str, Enum):
     """Parent subject grain. These are Assess ledger records, not leads."""
 
+    RESEARCH_SUBJECT = "research_subject"
+
     LIVE_SOLICITATION = "live_solicitation"
     DEVELOPING_THESIS = "developing_thesis"
     PARTNER_LINK = "partner_link"

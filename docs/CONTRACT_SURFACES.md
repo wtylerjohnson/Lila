@@ -825,3 +825,14 @@ release behavior. The parent root S4-SOURCE-CLOCK-001 extension remains separate
 reviewable. Combined local verification and one exact-SHA Fable review precede
 Step6. See `docs/verification/step5-050/REVIEW.md` and
 `tests/test_benchmark_v5_states.py` for the contract and its bounded proof.
+
+
+### Assess research subjects (2026-09-13, root-directed schema 3 extension)
+
+New immutable Assess writes use schema3 and assess:v3 identities. ResearchSubjectLedger preserves observed awards and forecasts with original source system/IDs/URL, canonical source payload/hash, exact source-bound evidence, source posture, discovery boundary receipt, unanswered questions and next research ask. It does not weaken LiveSolicitation or OpportunityThesis. Source acquisition for research_record is basis none only: missing remains missing, other captured claims remain untrusted and retrieved_at null. Existing accepted SAM/Horizon clocks retain their semantics.
+
+Raw, typed, envelope and persisted legacy v1/v2 research relabels are refused, including research_record inside legacy evidence. Original v1/v2 population serialization and pointer identity remain readable. Research fields participate in schema3 immutable projection. ReviewedCases.v2 adds subject/source-hash-bound reviewed overlays with existing LeadResearch/LeadTarget; v1 remains notice-only. Overlay edits change run identity, never source identity/acquisition.
+
+The ordinary forecast producer retains restricted functional/competitor research separately from eligible matches. Operator scope and exclusions take precedence; off-code research explicitly reports the original boundary and cannot qualify a direct bid. APFS source_fields preserves original fields without changing source IDs or store event semantics. Optional buyer-map award detail lookup is bounded to10 exact client-description matches, exposes invalid/failed/not-run outcomes, and never changes buyer-map success or infers renewal.
+
+LeadGen projects research_subject parents with zero children, visible source/ask/questions/targets and raw Show work. No buying motion, timeframe, seller route or communication permission is invented. Existing notice quality checks remain required. Research parent-only quality is checked separately. Eight Market Map slots, opportunity assessment and live/Horizon/partner meanings remain intact. Root owns final combined Step6/7 review and actual operating cutover.

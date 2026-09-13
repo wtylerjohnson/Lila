@@ -5,6 +5,12 @@ from agents.assess.reviewed_cases import ReviewedCases
 def case_projection(run, book: ReviewedCases, projection):
     if book.client_name.casefold() != run.client_name.casefold():
         raise ValueError("reviewed cases belong to a different client")
+    from agents.assess.research_subjects import canonical
+    research = {s.subject_id:s for s in run.research.items} if run.research else {}
+    for overlay in book.subjects:
+        subject=research.get(overlay.subject_id)
+        if subject is None or subject.reviewed_overlay_json != canonical(overlay.model_dump(mode="json")):
+            raise ValueError("reviewed research differs from current Assess; refresh it first")
     live = {r.notice_id: r for r in run.live.records}
     rows = list(projection.get("rows") or [])
     for case in book.cases:

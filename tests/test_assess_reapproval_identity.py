@@ -44,7 +44,7 @@ def test_identical_reapproval_keeps_current_run_and_pointer_identity(
     refreshed = refresh_current_assess_run_if_active(
         "Testco", sweep_path=seed["sweep_path"], state_dir=seed["state_dir"],
         review_dir=seed["review_dir"])
-    assert refreshed.startswith("refreshed assess:v2:")
+    assert refreshed.startswith("refreshed assess:v3:")
 
     pointer = current_assess_pointer_path(
         "Testco", "all", state_dir=seed["state_dir"])
@@ -67,7 +67,7 @@ def test_identical_reapproval_keeps_current_run_and_pointer_identity(
         "Testco", sweep_path=seed["sweep_path"], state_dir=seed["state_dir"],
         review_dir=seed["review_dir"])
 
-    assert refreshed_again.startswith("refreshed assess:v2:")
+    assert refreshed_again.startswith("refreshed assess:v3:")
     assert second == first
     assert approval_file.read_bytes() == approval_before
     assert approval_file.stat().st_mtime_ns == approval_mtime_before
@@ -116,7 +116,7 @@ def test_transient_optional_manifest_failure_keeps_current_identity(
         partial_release_approved=None)
     assert refresh_current_assess_run_if_active(
         "Testco", sweep_path=seed["sweep_path"], state_dir=seed["state_dir"],
-        review_dir=seed["review_dir"]).startswith("refreshed assess:v2:")
+        review_dir=seed["review_dir"]).startswith("refreshed assess:v3:")
 
     pointer = current_assess_pointer_path(
         "Testco", "all", state_dir=seed["state_dir"])
@@ -139,7 +139,7 @@ def test_transient_optional_manifest_failure_keeps_current_identity(
         partial_release_approved=None)
     assert refresh_current_assess_run_if_active(
         "Testco", sweep_path=seed["sweep_path"], state_dir=seed["state_dir"],
-        review_dir=seed["review_dir"]).startswith("refreshed assess:v2:")
+        review_dir=seed["review_dir"]).startswith("refreshed assess:v3:")
 
     assert approval_file.read_bytes() == approval_before
     assert pointer.read_bytes() == pointer_before

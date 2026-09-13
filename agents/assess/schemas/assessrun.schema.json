@@ -1,0 +1,1463 @@
+{
+  "$defs": {
+    "AssessScope": {
+      "description": "The operator-owned collection boundary for one Assess run.",
+      "properties": {
+        "agencies": {
+          "items": {
+            "$ref": "#/$defs/ScopeAgency"
+          },
+          "title": "Agencies",
+          "type": "array"
+        },
+        "mode": {
+          "$ref": "#/$defs/ScopeMode",
+          "default": "all"
+        }
+      },
+      "title": "AssessScope",
+      "type": "object"
+    },
+    "CoverageStatus": {
+      "enum": [
+        "complete",
+        "partial",
+        "failed",
+        "not_registered"
+      ],
+      "title": "CoverageStatus",
+      "type": "string"
+    },
+    "EvidenceKind": {
+      "enum": [
+        "notice",
+        "agency_forecast",
+        "award",
+        "budget",
+        "legislation",
+        "regulation",
+        "agency_announcement",
+        "watchdog",
+        "subaward",
+        "vehicle",
+        "news",
+        "web_lead"
+      ],
+      "title": "EvidenceKind",
+      "type": "string"
+    },
+    "EvidenceRef": {
+      "description": "One immutable source-backed observation used by an Assess record.",
+      "properties": {
+        "effective_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Effective Date"
+        },
+        "evidence_id": {
+          "minLength": 1,
+          "title": "Evidence Id",
+          "type": "string"
+        },
+        "excerpt": {
+          "minLength": 1,
+          "title": "Excerpt",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/EvidenceKind"
+        },
+        "observed_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observed Date"
+        },
+        "primary_source": {
+          "default": false,
+          "title": "Primary Source",
+          "type": "boolean"
+        },
+        "record_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Record Hash"
+        },
+        "retrieved_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retrieved At"
+        },
+        "source_acquisition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceAcquisition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_name": {
+          "minLength": 1,
+          "title": "Source Name",
+          "type": "string"
+        },
+        "source_url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Source Url",
+          "type": "string"
+        },
+        "supports": {
+          "items": {
+            "$ref": "#/$defs/EvidenceUse"
+          },
+          "title": "Supports",
+          "type": "array"
+        },
+        "tier": {
+          "$ref": "#/$defs/EvidenceTier"
+        }
+      },
+      "required": [
+        "evidence_id",
+        "tier",
+        "kind",
+        "source_name",
+        "source_url",
+        "excerpt"
+      ],
+      "title": "EvidenceRef",
+      "type": "object"
+    },
+    "EvidenceStrength": {
+      "enum": [
+        "early",
+        "moderate",
+        "strong"
+      ],
+      "title": "EvidenceStrength",
+      "type": "string"
+    },
+    "EvidenceTier": {
+      "enum": [
+        "notice",
+        "program",
+        "market",
+        "discovery"
+      ],
+      "title": "EvidenceTier",
+      "type": "string"
+    },
+    "EvidenceUse": {
+      "enum": [
+        "requirement",
+        "timing",
+        "funding",
+        "buyer",
+        "capability",
+        "access",
+        "incumbent",
+        "counterevidence"
+      ],
+      "title": "EvidenceUse",
+      "type": "string"
+    },
+    "GateStatus": {
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "title": "GateStatus",
+      "type": "string"
+    },
+    "IntelligenceStatus": {
+      "enum": [
+        "proposed",
+        "research_needed",
+        "approved",
+        "retired",
+        "invalidated"
+      ],
+      "title": "IntelligenceStatus",
+      "type": "string"
+    },
+    "LifecycleStage": {
+      "enum": [
+        "early_signal",
+        "funded_intent",
+        "acquisition_planning",
+        "market_research",
+        "presolicitation",
+        "live_solicitation",
+        "award",
+        "recompete"
+      ],
+      "title": "LifecycleStage",
+      "type": "string"
+    },
+    "LiveClassification": {
+      "enum": [
+        "bid_now",
+        "market_research",
+        "presolicitation",
+        "special_notice",
+        "amendment",
+        "awarded_or_closed",
+        "excluded",
+        "unscreened"
+      ],
+      "title": "LiveClassification",
+      "type": "string"
+    },
+    "LiveRecommendation": {
+      "enum": [
+        "pursue",
+        "monitor",
+        "no_bid",
+        "research",
+        "none"
+      ],
+      "title": "LiveRecommendation",
+      "type": "string"
+    },
+    "LiveSolicitation": {
+      "description": "One authoritative notice record in the live-solicitation census.",
+      "properties": {
+        "agency": {
+          "minLength": 1,
+          "title": "Agency",
+          "type": "string"
+        },
+        "attachment_gap": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attachment Gap"
+        },
+        "attachment_inventory_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attachment Inventory Count"
+        },
+        "attachment_inventory_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attachment Inventory Hash"
+        },
+        "attachment_inventory_valid": {
+          "default": false,
+          "title": "Attachment Inventory Valid",
+          "type": "boolean"
+        },
+        "attachment_reviewed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attachment Reviewed At"
+        },
+        "attachment_reviewed_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attachment Reviewed By"
+        },
+        "attachments": {
+          "items": {
+            "$ref": "#/$defs/NoticeAttachment"
+          },
+          "title": "Attachments",
+          "type": "array"
+        },
+        "attachments_checked": {
+          "default": false,
+          "title": "Attachments Checked",
+          "type": "boolean"
+        },
+        "authoritative_evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "minItems": 1,
+          "title": "Authoritative Evidence",
+          "type": "array"
+        },
+        "classification": {
+          "$ref": "#/$defs/LiveClassification"
+        },
+        "component": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Component"
+        },
+        "exclusion_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exclusion Reason"
+        },
+        "fit_trace": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Fit Trace",
+          "type": "array"
+        },
+        "notice_id": {
+          "minLength": 1,
+          "title": "Notice Id",
+          "type": "string"
+        },
+        "office": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Office"
+        },
+        "recommendation": {
+          "$ref": "#/$defs/LiveRecommendation",
+          "default": "none"
+        },
+        "record_id": {
+          "minLength": 1,
+          "title": "Record Id",
+          "type": "string"
+        },
+        "requirement_excerpt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Requirement Excerpt"
+        },
+        "requirement_review_evidence_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Requirement Review Evidence Id"
+        },
+        "requirement_reviewed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Requirement Reviewed At"
+        },
+        "requirement_reviewed_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Requirement Reviewed By"
+        },
+        "response_deadline": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Response Deadline"
+        },
+        "solicitation_number": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Solicitation Number"
+        },
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "verified_at": {
+          "format": "date-time",
+          "title": "Verified At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "record_id",
+        "notice_id",
+        "title",
+        "agency",
+        "classification",
+        "authoritative_evidence",
+        "verified_at"
+      ],
+      "title": "LiveSolicitation",
+      "type": "object"
+    },
+    "LiveSolicitationLedger": {
+      "properties": {
+        "as_of": {
+          "format": "date-time",
+          "title": "As Of",
+          "type": "string"
+        },
+        "client_name": {
+          "title": "Client Name",
+          "type": "string"
+        },
+        "profile_version": {
+          "title": "Profile Version",
+          "type": "string"
+        },
+        "records": {
+          "items": {
+            "$ref": "#/$defs/LiveSolicitation"
+          },
+          "title": "Records",
+          "type": "array"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "scope": {
+          "$ref": "#/$defs/AssessScope"
+        }
+      },
+      "required": [
+        "run_id",
+        "client_name",
+        "profile_version",
+        "scope",
+        "as_of"
+      ],
+      "title": "LiveSolicitationLedger",
+      "type": "object"
+    },
+    "NoticeAttachment": {
+      "properties": {
+        "media_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Media Type"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "resource_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resource Id"
+        },
+        "source_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Url"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "NoticeAttachment",
+      "type": "object"
+    },
+    "OpportunityThesis": {
+      "description": "A falsifiable prediction about the next federal procurement event.",
+      "properties": {
+        "agency": {
+          "minLength": 1,
+          "title": "Agency",
+          "type": "string"
+        },
+        "component": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Component"
+        },
+        "counterevidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "title": "Counterevidence",
+          "type": "array"
+        },
+        "estimated_value_range": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Estimated Value Range"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        },
+        "evidence_strength": {
+          "$ref": "#/$defs/EvidenceStrength"
+        },
+        "falsifier": {
+          "minLength": 1,
+          "title": "Falsifier",
+          "type": "string"
+        },
+        "incumbent": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Incumbent"
+        },
+        "inference_chain": {
+          "minLength": 1,
+          "title": "Inference Chain",
+          "type": "string"
+        },
+        "lifecycle_stage": {
+          "$ref": "#/$defs/LifecycleStage"
+        },
+        "likely_acquisition_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Likely Acquisition Path"
+        },
+        "monitoring_cadence": {
+          "minLength": 1,
+          "title": "Monitoring Cadence",
+          "type": "string"
+        },
+        "office": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Office"
+        },
+        "predicted_event": {
+          "minLength": 1,
+          "title": "Predicted Event",
+          "type": "string"
+        },
+        "program": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Program"
+        },
+        "projected_window": {
+          "$ref": "#/$defs/ProjectedWindow"
+        },
+        "status": {
+          "$ref": "#/$defs/IntelligenceStatus",
+          "default": "proposed"
+        },
+        "thesis_id": {
+          "minLength": 1,
+          "title": "Thesis Id",
+          "type": "string"
+        },
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "watch_trigger": {
+          "minLength": 1,
+          "title": "Watch Trigger",
+          "type": "string"
+        }
+      },
+      "required": [
+        "thesis_id",
+        "title",
+        "predicted_event",
+        "agency",
+        "lifecycle_stage",
+        "projected_window",
+        "evidence",
+        "inference_chain",
+        "falsifier",
+        "watch_trigger",
+        "monitoring_cadence",
+        "evidence_strength"
+      ],
+      "title": "OpportunityThesis",
+      "type": "object"
+    },
+    "OpportunityThesisLedger": {
+      "properties": {
+        "as_of": {
+          "format": "date-time",
+          "title": "As Of",
+          "type": "string"
+        },
+        "client_name": {
+          "title": "Client Name",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/OpportunityThesis"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "profile_version": {
+          "title": "Profile Version",
+          "type": "string"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "scope": {
+          "$ref": "#/$defs/AssessScope"
+        }
+      },
+      "required": [
+        "run_id",
+        "client_name",
+        "profile_version",
+        "scope",
+        "as_of"
+      ],
+      "title": "OpportunityThesisLedger",
+      "type": "object"
+    },
+    "PartnerDirection": {
+      "enum": [
+        "prime_to_sub",
+        "sub_to_prime",
+        "joint_venture",
+        "channel_reseller",
+        "vehicle_access"
+      ],
+      "title": "PartnerDirection",
+      "type": "string"
+    },
+    "PartnerOpportunity": {
+      "description": "A specific evidence-backed access path linked to Assess intelligence.",
+      "properties": {
+        "client_needs_partner": {
+          "minLength": 1,
+          "title": "Client Needs Partner",
+          "type": "string"
+        },
+        "direction": {
+          "$ref": "#/$defs/PartnerDirection"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        },
+        "linked_assess_ids": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Linked Assess Ids",
+          "type": "array"
+        },
+        "next_validation_step": {
+          "minLength": 1,
+          "title": "Next Validation Step",
+          "type": "string"
+        },
+        "partner_id": {
+          "minLength": 1,
+          "title": "Partner Id",
+          "type": "string"
+        },
+        "partner_name": {
+          "minLength": 1,
+          "title": "Partner Name",
+          "type": "string"
+        },
+        "partner_needs_client": {
+          "minLength": 1,
+          "title": "Partner Needs Client",
+          "type": "string"
+        },
+        "risks": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Risks",
+          "type": "array"
+        },
+        "role_hypothesis": {
+          "minLength": 1,
+          "title": "Role Hypothesis",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/IntelligenceStatus",
+          "default": "proposed"
+        },
+        "vehicle_or_channel": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Vehicle Or Channel"
+        }
+      },
+      "required": [
+        "partner_id",
+        "partner_name",
+        "linked_assess_ids",
+        "direction",
+        "role_hypothesis",
+        "client_needs_partner",
+        "partner_needs_client",
+        "evidence",
+        "next_validation_step"
+      ],
+      "title": "PartnerOpportunity",
+      "type": "object"
+    },
+    "PartnerOpportunityLedger": {
+      "properties": {
+        "as_of": {
+          "format": "date-time",
+          "title": "As Of",
+          "type": "string"
+        },
+        "client_name": {
+          "title": "Client Name",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/PartnerOpportunity"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "profile_version": {
+          "title": "Profile Version",
+          "type": "string"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "scope": {
+          "$ref": "#/$defs/AssessScope"
+        }
+      },
+      "required": [
+        "run_id",
+        "client_name",
+        "profile_version",
+        "scope",
+        "as_of"
+      ],
+      "title": "PartnerOpportunityLedger",
+      "type": "object"
+    },
+    "ProjectedWindow": {
+      "properties": {
+        "end": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "start": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start"
+        }
+      },
+      "required": [
+        "label"
+      ],
+      "title": "ProjectedWindow",
+      "type": "object"
+    },
+    "ResearchSubject": {
+      "additionalProperties": false,
+      "description": "Observed award or forecast to investigate; never a buying prediction.",
+      "properties": {
+        "agency": {
+          "title": "Agency",
+          "type": "string"
+        },
+        "communication_permission": {
+          "const": "none",
+          "default": "none",
+          "title": "Communication Permission",
+          "type": "string"
+        },
+        "component": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Component"
+        },
+        "discovery_context_json": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Discovery Context Json"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        },
+        "next_ask": {
+          "minLength": 1,
+          "title": "Next Ask",
+          "type": "string"
+        },
+        "open_questions": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Open Questions",
+          "type": "array"
+        },
+        "reviewed_overlay_json": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reviewed Overlay Json"
+        },
+        "route_hypothesis": {
+          "default": "Acquisition route remains to be established",
+          "title": "Route Hypothesis",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "assess.research-subject.v1",
+          "default": "assess.research-subject.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_kind": {
+          "enum": [
+            "award",
+            "forecast"
+          ],
+          "title": "Source Kind",
+          "type": "string"
+        },
+        "source_payload_json": {
+          "title": "Source Payload Json",
+          "type": "string"
+        },
+        "source_posture": {
+          "enum": [
+            "forecast_plan",
+            "historical_award",
+            "current_period_award",
+            "award_timing_unknown"
+          ],
+          "title": "Source Posture",
+          "type": "string"
+        },
+        "source_record_id": {
+          "title": "Source Record Id",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        },
+        "source_system": {
+          "title": "Source System",
+          "type": "string"
+        },
+        "source_url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Source Url",
+          "type": "string"
+        },
+        "status": {
+          "const": "research_needed",
+          "default": "research_needed",
+          "title": "Status",
+          "type": "string"
+        },
+        "subject_id": {
+          "title": "Subject Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "subject_id",
+        "source_kind",
+        "source_posture",
+        "source_system",
+        "source_record_id",
+        "source_url",
+        "title",
+        "agency",
+        "source_payload_json",
+        "source_sha256",
+        "evidence",
+        "open_questions",
+        "next_ask"
+      ],
+      "title": "ResearchSubject",
+      "type": "object"
+    },
+    "ResearchSubjectLedger": {
+      "properties": {
+        "as_of": {
+          "format": "date-time",
+          "title": "As Of",
+          "type": "string"
+        },
+        "client_name": {
+          "title": "Client Name",
+          "type": "string"
+        },
+        "items": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ResearchSubject"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "profile_version": {
+          "title": "Profile Version",
+          "type": "string"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "scope": {
+          "$ref": "#/$defs/AssessScope"
+        }
+      },
+      "required": [
+        "run_id",
+        "client_name",
+        "profile_version",
+        "scope",
+        "as_of"
+      ],
+      "title": "ResearchSubjectLedger",
+      "type": "object"
+    },
+    "ScopeAgency": {
+      "properties": {
+        "abbr": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Abbr"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "ScopeAgency",
+      "type": "object"
+    },
+    "ScopeMode": {
+      "enum": [
+        "all",
+        "agency"
+      ],
+      "title": "ScopeMode",
+      "type": "string"
+    },
+    "SourceAcquisition": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "enum": [
+            "sam_notice_depth",
+            "horizon_fact_bank",
+            "none"
+          ],
+          "title": "Basis",
+          "type": "string"
+        },
+        "binding_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Binding Sha256",
+          "type": "string"
+        },
+        "component": {
+          "enum": [
+            "notice_description",
+            "notice_payload",
+            "horizon_fact",
+            "subaward_record",
+            "research_record"
+          ],
+          "title": "Component",
+          "type": "string"
+        },
+        "input_types": {
+          "default": [],
+          "items": {
+            "enum": [
+              "text",
+              "non_text",
+              "missing"
+            ],
+            "type": "string"
+          },
+          "title": "Input Types",
+          "type": "array"
+        },
+        "original_field": {
+          "title": "Original Field",
+          "type": "string"
+        },
+        "raw_values": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Raw Values",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "known",
+            "missing",
+            "invalid",
+            "date_only",
+            "unknown_timezone",
+            "conflict",
+            "untrusted"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "version": {
+          "const": "assess.source-acquisition.v1",
+          "default": "assess.source-acquisition.v1",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "basis",
+        "component",
+        "original_field",
+        "binding_sha256"
+      ],
+      "title": "SourceAcquisition",
+      "type": "object"
+    },
+    "SourceCoverage": {
+      "properties": {
+        "lane": {
+          "$ref": "#/$defs/SourceLane"
+        },
+        "note": {
+          "default": "",
+          "title": "Note",
+          "type": "string"
+        },
+        "records_screened": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Records Screened",
+          "type": "integer"
+        },
+        "required": {
+          "default": false,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/CoverageStatus"
+        },
+        "total_available": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Total Available"
+        }
+      },
+      "required": [
+        "source",
+        "lane",
+        "status"
+      ],
+      "title": "SourceCoverage",
+      "type": "object"
+    },
+    "SourceLane": {
+      "enum": [
+        "live",
+        "horizon",
+        "partner"
+      ],
+      "title": "SourceLane",
+      "type": "string"
+    }
+  },
+  "description": "The complete Assess result. Release always requires a human decision.",
+  "properties": {
+    "approval_status": {
+      "$ref": "#/$defs/GateStatus",
+      "default": "pending"
+    },
+    "approved_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Approved At"
+    },
+    "approved_by": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Approved By"
+    },
+    "as_of": {
+      "format": "date-time",
+      "title": "As Of",
+      "type": "string"
+    },
+    "client_name": {
+      "title": "Client Name",
+      "type": "string"
+    },
+    "coverage": {
+      "items": {
+        "$ref": "#/$defs/SourceCoverage"
+      },
+      "title": "Coverage",
+      "type": "array"
+    },
+    "horizon": {
+      "$ref": "#/$defs/OpportunityThesisLedger"
+    },
+    "live": {
+      "$ref": "#/$defs/LiveSolicitationLedger"
+    },
+    "partial_release_approved": {
+      "default": false,
+      "title": "Partial Release Approved",
+      "type": "boolean"
+    },
+    "partners": {
+      "$ref": "#/$defs/PartnerOpportunityLedger"
+    },
+    "profile_version": {
+      "title": "Profile Version",
+      "type": "string"
+    },
+    "requires_human_review": {
+      "const": true,
+      "default": true,
+      "title": "Requires Human Review",
+      "type": "boolean"
+    },
+    "research": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ResearchSubjectLedger"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "scope": {
+      "$ref": "#/$defs/AssessScope"
+    }
+  },
+  "required": [
+    "run_id",
+    "client_name",
+    "profile_version",
+    "scope",
+    "as_of",
+    "live",
+    "horizon",
+    "partners"
+  ],
+  "title": "AssessRun",
+  "type": "object"
+}

@@ -226,7 +226,7 @@ def project_live_ledger(
             raise AssessLedgerError("reviewed cases do not match the report scope")
         reviewed_by_id = {
             case.record.notice_id: case.model_copy(update={"record": current_case_record(case.record)})
-            if ledger.run_id.startswith("assess:v2:") else case for case in book.cases}
+            if ledger.run_id.startswith(("assess:v2:", "assess:v3:")) else case for case in book.cases}
 
     notices: list[LiveReportNotice] = []
     reviewed_research: list[ReviewedCase] = []

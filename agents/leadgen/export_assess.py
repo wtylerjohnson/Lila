@@ -374,6 +374,7 @@ def _envelope(
     scope_designator: str,
     note: str,
 ) -> dict[str, Any]:
+    from agents.assess.ledger import _legacy_projection
     return {
         "export_kind": EXPORT_KIND,
         "read_only": True,
@@ -382,7 +383,7 @@ def _envelope(
         "client_name": run.client_name,
         "scope_designator": scope_designator,
         "note": note,
-        "run": run.model_dump(mode="json"),
+        "run": _legacy_projection(run.model_dump(mode="json")) if run.run_id.startswith("assess:v1:") else run.model_dump(mode="json"),
     }
 
 

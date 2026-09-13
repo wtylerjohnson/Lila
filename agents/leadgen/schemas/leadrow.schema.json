@@ -914,7 +914,8 @@
             "notice_description",
             "notice_payload",
             "horizon_fact",
-            "subaward_record"
+            "subaward_record",
+            "research_record"
           ],
           "title": "Component",
           "type": "string"

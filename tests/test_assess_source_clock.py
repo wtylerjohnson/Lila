@@ -186,7 +186,7 @@ def legacy_artifact(tmp_path):
     run, diagnostics, index = _build_with_requirement_review(sweep_with_depth())
     path=persist_assess_run(run,BINDING,diagnostics,index,state_dir=tmp_path)
     payload=json.loads(path.read_text()); root=path.parent
-    raw=_legacy_projection(payload['run'])
+    raw=_legacy_projection(payload['run']); raw.pop('research', None)
     for record in raw['live']['records']:
         for e in record['authoritative_evidence']:
             if e['retrieved_at'] is None: e['retrieved_at']=NOW.isoformat()
@@ -356,12 +356,12 @@ def test_explicit_legacy_run_relabel_cannot_carry_v2_acquisition(form,tmp_path):
     from agents.leadgen.from_assess import coerce_assess_run
     run,d,index=_build(sweep_with_depth())
     assert coerce_assess_run(run)==run
-    raw=run.model_dump(mode='json'); legacy_id=raw['run_id'].replace('assess:v2:','assess:v1:')
+    raw=run.model_dump(mode='json'); legacy_id='assess:v1:'+raw['run_id'].rsplit(':',1)[-1]; raw.pop('research', None)
     raw['run_id']=legacy_id
     for lane in ('live','horizon','partners'):raw[lane]['run_id']=legacy_id
     if form=='raw': payload=raw
     elif form=='typed':
-        payload=run.model_copy(update={'run_id':legacy_id,**{lane:getattr(run,lane).model_copy(
+        payload=run.model_copy(update={'run_id':legacy_id,'research':None,**{lane:getattr(run,lane).model_copy(
             update={'run_id':legacy_id}) for lane in ('live','horizon','partners')}})
     else:
         persist_assess_run(run,BINDING,d,index,state_dir=tmp_path)

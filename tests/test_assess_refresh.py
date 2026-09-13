@@ -377,4 +377,4 @@ class TestPointerRefreshRollbackRace:
             state_dir=seed["state_dir"],
             review_dir=seed["review_dir"],
         )
-        assert outcome.startswith("refreshed assess:v2:")
+        assert outcome.startswith("refreshed assess:v3:")

@@ -21,7 +21,7 @@ class SourceAcquisition(BaseModel):
     status: Literal["known", "missing", "invalid", "date_only", "unknown_timezone",
                     "conflict", "untrusted"]
     basis: Literal["sam_notice_depth", "horizon_fact_bank", "none"]
-    component: Literal["notice_description", "notice_payload", "horizon_fact", "subaward_record"]
+    component: Literal["notice_description", "notice_payload", "horizon_fact", "subaward_record", "research_record"]
     original_field: str
     raw_values: tuple[str, ...] = ()
     input_types: tuple[Literal["text", "non_text", "missing"], ...] = ()
@@ -31,6 +31,8 @@ class SourceAcquisition(BaseModel):
     def coherent(self):
         if len(self.input_types) != len(self.raw_values):
             raise ValueError("original source clock types must be retained")
+        if self.component == "research_record" and self.basis != "none":
+            raise ValueError("research record acquisition remains untrusted")
         expected = _status(self.raw_values, self.basis, self.input_types)
         if self.status != expected:
             raise ValueError("source acquisition status disagrees with original clock values")

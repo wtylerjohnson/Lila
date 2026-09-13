@@ -2175,3 +2175,7 @@ byte-identical and never supply v5 classification. No frozen case is re-scored.
 - Regression owners: tests/test_netscout_dhs_scope.py and the amendment-pathway
   tests in tests/test_leadgen_from_assess.py. Census retention, capability matches,
   requirement qualification and release readiness remain separate claims.
+
+### Native research preservation (2026-09-13)
+
+Use tools.api.forecasts.research for separate discovery; use agents.assess.research_subjects for pure source-to-investigation projection. Source facts and research interpretation remain separate. Never use an award end or forecast release as a response deadline, cumulative obligations as pipeline, or an exploratory competitor token as client fit. Native parents may have zero children. Keep original v1/v2 serialized fields absent where they did not exist; schema3 owns the new research lane and its source-clock checks. Regenerate LeadGen schemas with python -m agents.leadgen.schema_export and Assess schemas with python -m agents.assess.schema_export.

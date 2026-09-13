@@ -558,6 +558,18 @@ def render_markdown(receipt: PressLeadGenReceipt) -> str:
             f"- {bucket.lead_tier.value} ({posture}): "
             f"{len(bucket.lead_ids)}"
         )
+    for parent in receipt.parents:
+        if parent.research_subject is not None:
+            subject = parent.research_subject
+            if parent.research is not None:
+                lines.extend([parent.research.rationale, parent.research.next_ask, parent.research.route])
+            for target in parent.targets:
+                lines.append(f"[{target.name} — {target.role}]({target.source_url}): {target.next_ask}. {target.authority_boundary}")
+            lines.extend(["", f"## Research: {subject.title}", "",
+                          f"Source: [{subject.source_record_id}]({subject.source_url})",
+                          subject.next_ask, subject.route_hypothesis,
+                          *[f"- {q}" for q in subject.open_questions],
+                          "No actionable child; communication permission none."])
     lines.extend(["", "## Steps", ""])
     for step in receipt.steps:
         extra = f" · {step.artifact}" if step.artifact else ""

@@ -19,7 +19,7 @@ from enum import Enum
 from typing import Literal, Optional
 from urllib.parse import parse_qs, unquote, urlparse
 
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator, model_serializer
 
 from agents.assess.source_clock import SourceAcquisition, acquired_at, clock_instant
 
@@ -505,6 +505,46 @@ class GateStatus(str, Enum):
     REJECTED = "rejected"
 
 
+class ResearchSubject(_FrozenContract):
+    """Observed award or forecast to investigate; never a buying prediction."""
+    model_config = ConfigDict(frozen=True, extra="forbid")
+    schema_version: Literal["assess.research-subject.v1"] = "assess.research-subject.v1"
+    subject_id: str
+    source_kind: Literal["award", "forecast"]
+    source_posture: Literal["forecast_plan", "historical_award", "current_period_award", "award_timing_unknown"]
+    source_system: str
+    source_record_id: str
+    source_url: HttpUrl
+    title: str
+    agency: str
+    component: Optional[str] = None
+    source_payload_json: str
+    reviewed_overlay_json: Optional[str] = None
+    discovery_context_json: Optional[str] = None
+    source_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    evidence: tuple[EvidenceRef, ...] = Field(min_length=1)
+    status: Literal["research_needed"] = "research_needed"
+    open_questions: tuple[str, ...] = Field(min_length=1)
+    next_ask: str = Field(min_length=1)
+    route_hypothesis: str = "Acquisition route remains to be established"
+    communication_permission: Literal["none"] = "none"
+
+    @model_validator(mode="after")
+    def _source_identity(self):
+        from agents.assess.research_subjects import validate_subject
+        validate_subject(self)
+        return self
+
+
+class ResearchSubjectLedger(_FrozenContract):
+    run_id: str
+    client_name: str
+    profile_version: str
+    scope: AssessScope
+    as_of: datetime
+    items: tuple[ResearchSubject, ...] = ()
+
+
 class AssessRun(_FrozenContract):
     """The complete Assess result. Release always requires a human decision."""
 
@@ -517,15 +557,34 @@ class AssessRun(_FrozenContract):
     live: LiveSolicitationLedger
     horizon: OpportunityThesisLedger
     partners: PartnerOpportunityLedger
+    research: Optional[ResearchSubjectLedger] = None
     approval_status: GateStatus = GateStatus.PENDING
     approved_by: Optional[str] = None
     approved_at: Optional[datetime] = None
     partial_release_approved: bool = False
     requires_human_review: Literal[True] = True
 
+    @model_validator(mode="before")
+    @classmethod
+    def _version_bound_research(cls, value):
+        if isinstance(value, dict):
+            identity = str(value.get("run_id", ""))
+            if identity.startswith(("assess:v1:", "assess:v2:")) and "research" in value:
+                raise ValueError("legacy Assess version cannot contain research")
+            if identity.startswith("assess:v3:") and not value.get("research"):
+                raise ValueError("v3 Assess requires its research ledger")
+        return value
+
+    @model_serializer(mode="wrap")
+    def _versioned_serialization(self, handler):
+        value = handler(self)
+        if not self.run_id.startswith("assess:v3:") and self.research is None:
+            value.pop("research", None)
+        return value
+
     @model_validator(mode="after")
     def _run_identity_and_gate_are_consistent(self) -> "AssessRun":
-        for ledger in (self.live, self.horizon, self.partners):
+        for ledger in (self.live, self.horizon, self.partners, *((self.research,) if self.research is not None else ())):
             if (ledger.run_id, ledger.client_name, ledger.profile_version,
                     ledger.scope, ledger.as_of) != (
                         self.run_id, self.client_name, self.profile_version,
@@ -535,11 +594,30 @@ class AssessRun(_FrozenContract):
         all_evidence = [e for record in self.live.records for e in record.authoritative_evidence]
         all_evidence += [e for item in self.horizon.items for e in (*item.evidence, *item.counterevidence)]
         all_evidence += [e for item in self.partners.items for e in item.evidence]
+        if self.research is not None:
+            if not self.run_id.startswith("assess:v3:"):
+                raise ValueError("research requires v3 Assess identity")
+            ids = [item.subject_id for item in self.research.items]
+            if len(ids) != len(set(ids)):
+                raise ValueError("duplicate research subject identity")
+            from agents.assess.ledger import _agency_is_in_scope
+            for item in self.research.items:
+                from agents.assess.research_subjects import source_posture
+                import json
+                if item.source_posture != source_posture(item.source_kind, json.loads(item.source_payload_json), self.as_of):
+                    raise ValueError("research source posture disagrees with run cutoff")
+                if not _agency_is_in_scope(" ".join(filter(None,(item.agency,item.component))), self.scope):
+                    raise ValueError("research subject outside Assess scope")
+                if any(e.retrieved_at is not None and e.retrieved_at > self.as_of for e in item.evidence):
+                    raise ValueError("research evidence postdates run as-of")
+            all_evidence += [e for item in self.research.items for e in item.evidence]
+        if self.run_id.startswith(("assess:v1:", "assess:v2:")) and any(e.source_acquisition is not None and e.source_acquisition.component == "research_record" for e in all_evidence):
+            raise ValueError("legacy Assess version cannot contain research source components")
         if self.run_id.startswith("assess:v1:") and any(e.source_acquisition is not None for e in all_evidence):
             raise ValueError("legacy v1 Assess run cannot contain v2 source acquisition")
-        if self.run_id.startswith("assess:v2:") and any(e.source_acquisition is None for e in all_evidence):
+        if self.run_id.startswith(("assess:v2:", "assess:v3:")) and any(e.source_acquisition is None for e in all_evidence):
             raise ValueError("v2 Assess evidence requires explicit source acquisition provenance")
-        if self.run_id.startswith("assess:v2:"):
+        if self.run_id.startswith(("assess:v2:", "assess:v3:")):
             for item in (*self.horizon.items, *self.partners.items):
                 if item.status == IntelligenceStatus.APPROVED and any(acquired_at(e) is None for e in item.evidence):
                     raise ValueError("approved intelligence requires known source acquisition")

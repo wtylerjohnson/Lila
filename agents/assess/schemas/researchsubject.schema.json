@@ -1,16 +1,5 @@
 {
   "$defs": {
-    "Contactability": {
-      "description": "Whether a published route to a buyer or holder exists.\n\nEnrichment and Apollo are not contactability. A Target-door lock is\na permission state, not proof that nobody is published.",
-      "enum": [
-        "published_poc",
-        "organization_only",
-        "enrichment_required",
-        "not_contactable"
-      ],
-      "title": "Contactability",
-      "type": "string"
-    },
     "EvidenceKind": {
       "enum": [
         "notice",
@@ -170,86 +159,6 @@
       "title": "EvidenceUse",
       "type": "string"
     },
-    "PathwayKind": {
-      "description": "Public, already-published route a seller can use.",
-      "enum": [
-        "sam_notice",
-        "agency_forecast",
-        "published_poc",
-        "vehicle_ordering",
-        "industry_day",
-        "official_rulemaking"
-      ],
-      "title": "PathwayKind",
-      "type": "string"
-    },
-    "PublishedContact": {
-      "additionalProperties": false,
-      "description": "A government-published POC. Not an Apollo or invented person.",
-      "properties": {
-        "email": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Email"
-        },
-        "name": {
-          "minLength": 1,
-          "title": "Name",
-          "type": "string"
-        },
-        "phone": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Phone"
-        },
-        "source_url": {
-          "anyOf": [
-            {
-              "format": "uri",
-              "maxLength": 2083,
-              "minLength": 1,
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Source Url"
-        },
-        "title": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Title"
-        }
-      },
-      "required": [
-        "name"
-      ],
-      "title": "PublishedContact",
-      "type": "object"
-    },
     "SourceAcquisition": {
       "additionalProperties": false,
       "properties": {
@@ -335,24 +244,19 @@
     }
   },
   "additionalProperties": false,
-  "description": "One evidence-bound public pathway. Not a live solicitation census row.",
+  "description": "Observed award or forecast to investigate; never a buying prediction.",
   "properties": {
-    "contactability": {
-      "$ref": "#/$defs/Contactability",
-      "default": "organization_only"
+    "agency": {
+      "title": "Agency",
+      "type": "string"
     },
-    "evidence": {
-      "items": {
-        "$ref": "#/$defs/EvidenceRef"
-      },
-      "minItems": 1,
-      "title": "Evidence",
-      "type": "array"
+    "communication_permission": {
+      "const": "none",
+      "default": "none",
+      "title": "Communication Permission",
+      "type": "string"
     },
-    "kind": {
-      "$ref": "#/$defs/PathwayKind"
-    },
-    "notice_id": {
+    "component": {
       "anyOf": [
         {
           "type": "string"
@@ -362,24 +266,97 @@
         }
       ],
       "default": null,
-      "title": "Notice Id"
+      "title": "Component"
     },
-    "pathway_id": {
-      "minLength": 1,
-      "title": "Pathway Id",
-      "type": "string"
+    "discovery_context_json": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Discovery Context Json"
     },
-    "published_contacts": {
+    "evidence": {
       "items": {
-        "$ref": "#/$defs/PublishedContact"
+        "$ref": "#/$defs/EvidenceRef"
       },
-      "title": "Published Contacts",
+      "minItems": 1,
+      "title": "Evidence",
       "type": "array"
     },
+    "next_ask": {
+      "minLength": 1,
+      "title": "Next Ask",
+      "type": "string"
+    },
+    "open_questions": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Open Questions",
+      "type": "array"
+    },
+    "reviewed_overlay_json": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Reviewed Overlay Json"
+    },
+    "route_hypothesis": {
+      "default": "Acquisition route remains to be established",
+      "title": "Route Hypothesis",
+      "type": "string"
+    },
     "schema_version": {
-      "const": "leadgen.contracts.v1",
-      "default": "leadgen.contracts.v1",
+      "const": "assess.research-subject.v1",
+      "default": "assess.research-subject.v1",
       "title": "Schema Version",
+      "type": "string"
+    },
+    "source_kind": {
+      "enum": [
+        "award",
+        "forecast"
+      ],
+      "title": "Source Kind",
+      "type": "string"
+    },
+    "source_payload_json": {
+      "title": "Source Payload Json",
+      "type": "string"
+    },
+    "source_posture": {
+      "enum": [
+        "forecast_plan",
+        "historical_award",
+        "current_period_award",
+        "award_timing_unknown"
+      ],
+      "title": "Source Posture",
+      "type": "string"
+    },
+    "source_record_id": {
+      "title": "Source Record Id",
+      "type": "string"
+    },
+    "source_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Source Sha256",
+      "type": "string"
+    },
+    "source_system": {
+      "title": "Source System",
       "type": "string"
     },
     "source_url": {
@@ -388,14 +365,37 @@
       "minLength": 1,
       "title": "Source Url",
       "type": "string"
+    },
+    "status": {
+      "const": "research_needed",
+      "default": "research_needed",
+      "title": "Status",
+      "type": "string"
+    },
+    "subject_id": {
+      "title": "Subject Id",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
     }
   },
   "required": [
-    "pathway_id",
-    "kind",
+    "subject_id",
+    "source_kind",
+    "source_posture",
+    "source_system",
+    "source_record_id",
     "source_url",
-    "evidence"
+    "title",
+    "agency",
+    "source_payload_json",
+    "source_sha256",
+    "evidence",
+    "open_questions",
+    "next_ask"
   ],
-  "title": "ActionableExternalPathway",
+  "title": "ResearchSubject",
   "type": "object"
 }

@@ -18,18 +18,6 @@
       "title": "AssessScope",
       "type": "object"
     },
-    "AssessmentSubjectKind": {
-      "description": "Parent subject grain. These are Assess ledger records, not leads.",
-      "enum": [
-        "research_subject",
-        "live_solicitation",
-        "developing_thesis",
-        "partner_link",
-        "motion_subject"
-      ],
-      "title": "AssessmentSubjectKind",
-      "type": "string"
-    },
     "EvidenceKind": {
       "enum": [
         "notice",
@@ -187,246 +175,6 @@
         "counterevidence"
       ],
       "title": "EvidenceUse",
-      "type": "string"
-    },
-    "LeadResearch": {
-      "additionalProperties": false,
-      "description": "Research priority is independent of qualification and outreach permission.",
-      "properties": {
-        "buyer_requirement": {
-          "minLength": 1,
-          "title": "Buyer Requirement",
-          "type": "string"
-        },
-        "evidence": {
-          "items": {
-            "$ref": "#/$defs/EvidenceRef"
-          },
-          "minItems": 1,
-          "title": "Evidence",
-          "type": "array"
-        },
-        "fit_hypothesis": {
-          "minLength": 1,
-          "title": "Fit Hypothesis",
-          "type": "string"
-        },
-        "next_ask": {
-          "minLength": 1,
-          "title": "Next Ask",
-          "type": "string"
-        },
-        "open_questions": {
-          "items": {
-            "type": "string"
-          },
-          "minItems": 1,
-          "title": "Open Questions",
-          "type": "array"
-        },
-        "priority": {
-          "default": false,
-          "title": "Priority",
-          "type": "boolean"
-        },
-        "rationale": {
-          "minLength": 1,
-          "title": "Rationale",
-          "type": "string"
-        },
-        "reviewed_at": {
-          "format": "date-time",
-          "title": "Reviewed At",
-          "type": "string"
-        },
-        "reviewed_by": {
-          "minLength": 1,
-          "title": "Reviewed By",
-          "type": "string"
-        },
-        "route": {
-          "minLength": 1,
-          "title": "Route",
-          "type": "string"
-        },
-        "status": {
-          "enum": [
-            "technical_qualification",
-            "known_opportunity",
-            "investigation",
-            "deprioritized",
-            "rejected"
-          ],
-          "title": "Status",
-          "type": "string"
-        },
-        "why_now": {
-          "minLength": 1,
-          "title": "Why Now",
-          "type": "string"
-        }
-      },
-      "required": [
-        "status",
-        "rationale",
-        "buyer_requirement",
-        "fit_hypothesis",
-        "route",
-        "why_now",
-        "next_ask",
-        "open_questions",
-        "reviewed_by",
-        "reviewed_at",
-        "evidence"
-      ],
-      "title": "LeadResearch",
-      "type": "object"
-    },
-    "LeadTarget": {
-      "additionalProperties": false,
-      "properties": {
-        "authority_boundary": {
-          "minLength": 1,
-          "title": "Authority Boundary",
-          "type": "string"
-        },
-        "contact_status": {
-          "minLength": 1,
-          "title": "Contact Status",
-          "type": "string"
-        },
-        "email": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Email"
-        },
-        "evidence": {
-          "items": {
-            "$ref": "#/$defs/EvidenceRef"
-          },
-          "minItems": 1,
-          "title": "Evidence",
-          "type": "array"
-        },
-        "name": {
-          "minLength": 1,
-          "title": "Name",
-          "type": "string"
-        },
-        "next_ask": {
-          "minLength": 1,
-          "title": "Next Ask",
-          "type": "string"
-        },
-        "organization": {
-          "minLength": 1,
-          "title": "Organization",
-          "type": "string"
-        },
-        "phone": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Phone"
-        },
-        "reason_to_contact": {
-          "minLength": 1,
-          "title": "Reason To Contact",
-          "type": "string"
-        },
-        "role": {
-          "minLength": 1,
-          "title": "Role",
-          "type": "string"
-        },
-        "route": {
-          "minLength": 1,
-          "title": "Route",
-          "type": "string"
-        },
-        "source_kind": {
-          "enum": [
-            "government_published",
-            "company_published",
-            "apollo"
-          ],
-          "title": "Source Kind",
-          "type": "string"
-        },
-        "source_url": {
-          "format": "uri",
-          "maxLength": 2083,
-          "minLength": 1,
-          "title": "Source Url",
-          "type": "string"
-        }
-      },
-      "required": [
-        "name",
-        "role",
-        "organization",
-        "source_kind",
-        "source_url",
-        "contact_status",
-        "route",
-        "reason_to_contact",
-        "next_ask",
-        "authority_boundary",
-        "evidence"
-      ],
-      "title": "LeadTarget",
-      "type": "object"
-    },
-    "LifecycleStage": {
-      "enum": [
-        "early_signal",
-        "funded_intent",
-        "acquisition_planning",
-        "market_research",
-        "presolicitation",
-        "live_solicitation",
-        "award",
-        "recompete"
-      ],
-      "title": "LifecycleStage",
-      "type": "string"
-    },
-    "LiveClassification": {
-      "enum": [
-        "bid_now",
-        "market_research",
-        "presolicitation",
-        "special_notice",
-        "amendment",
-        "awarded_or_closed",
-        "excluded",
-        "unscreened"
-      ],
-      "title": "LiveClassification",
-      "type": "string"
-    },
-    "LiveRecommendation": {
-      "enum": [
-        "pursue",
-        "monitor",
-        "no_bid",
-        "research",
-        "none"
-      ],
-      "title": "LiveRecommendation",
       "type": "string"
     },
     "ResearchSubject": {
@@ -704,204 +452,43 @@
       "type": "object"
     }
   },
-  "additionalProperties": false,
-  "description": "Parent pointer at one Assess subject.\n\nThis is not ``AssessRun`` and not ``AssessmentResult``. It copies the\nrun / subject identity a LeadRow must cite. Parents may have an empty\n``lead_ids`` list so opportunity identification does not depend on\nlead gen.",
   "properties": {
-    "agency": {
-      "minLength": 1,
-      "title": "Agency",
-      "type": "string"
-    },
     "as_of": {
       "format": "date-time",
       "title": "As Of",
       "type": "string"
     },
-    "assess_run_id": {
-      "minLength": 1,
-      "title": "Assess Run Id",
-      "type": "string"
-    },
-    "assessment_id": {
-      "minLength": 1,
-      "title": "Assessment Id",
-      "type": "string"
-    },
     "client_name": {
-      "minLength": 1,
       "title": "Client Name",
       "type": "string"
     },
-    "dossier_schema_version": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Dossier Schema Version"
-    },
-    "identity_status": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Identity Status"
-    },
-    "lead_ids": {
+    "items": {
+      "default": [],
       "items": {
-        "type": "string"
+        "$ref": "#/$defs/ResearchSubject"
       },
-      "title": "Lead Ids",
+      "title": "Items",
       "type": "array"
     },
-    "lifecycle": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/LifecycleStage"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null
-    },
-    "live_classification": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/LiveClassification"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null
-    },
-    "live_recommendation": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/LiveRecommendation"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null
-    },
-    "notice_id": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Notice Id"
-    },
     "profile_version": {
-      "minLength": 1,
       "title": "Profile Version",
       "type": "string"
     },
-    "requirement_span": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Requirement Span"
-    },
-    "research": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/LeadResearch"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null
-    },
-    "research_subject": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/ResearchSubject"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null
-    },
-    "schema_version": {
-      "const": "leadgen.contracts.v1",
-      "default": "leadgen.contracts.v1",
-      "title": "Schema Version",
+    "run_id": {
+      "title": "Run Id",
       "type": "string"
     },
     "scope": {
       "$ref": "#/$defs/AssessScope"
-    },
-    "solicitation_number": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Solicitation Number"
-    },
-    "subject_id": {
-      "minLength": 1,
-      "title": "Subject Id",
-      "type": "string"
-    },
-    "subject_kind": {
-      "$ref": "#/$defs/AssessmentSubjectKind"
-    },
-    "targets": {
-      "default": [],
-      "items": {
-        "$ref": "#/$defs/LeadTarget"
-      },
-      "title": "Targets",
-      "type": "array"
-    },
-    "title": {
-      "minLength": 1,
-      "title": "Title",
-      "type": "string"
     }
   },
   "required": [
-    "assessment_id",
-    "assess_run_id",
+    "run_id",
     "client_name",
     "profile_version",
     "scope",
-    "as_of",
-    "subject_kind",
-    "subject_id",
-    "title",
-    "agency"
+    "as_of"
   ],
-  "title": "OpportunityAssessment",
+  "title": "ResearchSubjectLedger",
   "type": "object"
 }

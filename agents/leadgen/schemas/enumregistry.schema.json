@@ -3,6 +3,7 @@
   "properties": {
     "assessment_subject": {
       "enum": [
+        "research_subject",
         "live_solicitation",
         "developing_thesis",
         "partner_link",
