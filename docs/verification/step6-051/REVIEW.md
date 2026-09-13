@@ -69,6 +69,41 @@ manual-contact provenance; Step6 does not copy that implementation.
 
 ## Verification commands
 
+### Root recovery after interrupted coordinator work
+
+The coordinator's two committed drafts (`23bfb920`, `d767922`) and five-file
+unfinished patch were preserved before recovery changes. The patch's SHA256 is
+`097aef09d5ec8186d8f49e069c18c7b643cb8d00600214550960cb446ceaadcf`.
+The preservation commit is `53b0b0b0117f0855a0214bec6d4ff41083136b8a`.
+The original coordinator checkout remains untouched. This branch is an isolated
+recovery candidate, not the operating version or the accepted NETSCOUT composite.
+
+Review findings LILA-051-R1/R2/R3 and preserved S6-LOCAL-002 are addressed here:
+
+- Saved companion tiers require the current validated Assess run and matching
+  parent/child provenance as well as current notice admission. Stale children
+  remain saved history, with active priority and target authority withheld.
+  Separately reviewed research retains its native reviewed-case targets and ask.
+- Material notice fields and every published contact are projected from the
+  bound original row/depth. Mapped, raw and flattened source contacts are merged
+  conservatively without treating primary/secondary type as a job title.
+  Missing values remain missing; zero remains a published zero. Constructor
+  buyer/value/contact/incumbent/route claims cannot become published facts.
+- The selected assessment retains its place and shows the current family
+  representative, source status and complete supplied member/suppression history.
+  A closed nonselected successor suppresses current action without backfill.
+- Full solicitation identity prevents independent calls from collapsing in
+  legacy triage. Current projection-manifest hashes are also rechecked before a
+  warm context can return current authority. Reference paths remain the existing
+  canonical manifest paths; this is not a new root-selection policy.
+
+External slot/schema contracts, immutable Assess/LeadRow identities, source
+clock provenance, original review evidence, and prior residuals are preserved.
+Synthetic source-shaped probes and offline regression do not establish authentic
+source success, new seller-ready leads, Step7 acceptance or operating rollout.
+The final verification receipt is exported outside the code tree and binds the
+exact tested commit, original probe inputs, loaded source hashes and result logs.
+
 From the candidate checkout, with the project's supported Python environment:
 
 ```sh

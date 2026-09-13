@@ -74,6 +74,8 @@ class NoticeReadContext:
         self.gaps, self.files, self.sources, self.decisions = [], {}, {}, {}
         self.families, self.parents, self.sweep, self.taxonomy = [], {}, {}, None
         self.run_id = None
+        self.current_assess_run = self.current_reviewed_cases = None
+        self._projection_inputs = None
         try:
             self._load()
         except (OSError, ValueError, TypeError, KeyError) as exc:
@@ -104,6 +106,14 @@ class NoticeReadContext:
             except OSError:
                 return False
             if actual != expected:
+                return False
+        if self._projection_inputs is not None:
+            try:
+                current = ledger.assess_projection_input_manifest(
+                    self.client_name, review_dir=self.root / 'data' / 'review')
+            except (OSError, ValueError, TypeError):
+                return False
+            if current != self._projection_inputs:
                 return False
         return True
 
@@ -145,11 +155,18 @@ class NoticeReadContext:
         manifest = ledger.assess_projection_input_manifest(self.client_name, review_dir=review)
         if payload.get('projection_inputs') != manifest:
             raise ValueError('current Assess review or reference inputs changed')
+        self._projection_inputs = deepcopy(manifest)
         # Track the local mutable review inputs as well as canonical comparison.
         for suffix in ('horizon', 'reviewed_cases', 'qualify', 'assess_approval', 'partnering'):
             self._read(review / f'{self.slug}.{suffix}.json', optional=True)
         reviews = self._read(review / f'{self.slug}.live_requirements.json', optional=True)
         run = AssessRun.model_validate(payload['run'])
+        from agents.assess.reviewed_cases import load_cases
+        cases = load_cases(self.client_name, review,
+            expected_sha256=manifest['reviewed_cases_sha256'])
+        if cases.cases and cases.scope_designator != ledger._scope_designator(run.scope):
+            raise ValueError('reviewed cases do not match the current engagement scope')
+        self.current_assess_run, self.current_reviewed_cases = run, cases
         self.run_id = run.run_id
         live, index, _, diagnostics = ledger.adapt_live_ledger(self.sweep, profile,
             run_id=run.run_id, scope=run.scope, profile_version=run.profile_version,
@@ -173,14 +190,49 @@ class NoticeReadContext:
         """Positive display fields come from the bound source, not the input pack."""
         row = self.sources[sid]
         raw = row.get('raw_payload') or {}
+        raw = raw if isinstance(raw, dict) else {}
         depth = ledger._dossier_depth(self.sweep.get('results') or {}).get(sid) or {}
+        if not ledger._depth_matches_posting(depth, sid):
+            depth = {}
+        def scalar(value):
+            if isinstance(value, bool) or not isinstance(value, (str, int, float)):
+                return None
+            return value if not isinstance(value, str) or value.strip() else None
         def value(*keys):
-            return next((d[k] for d in (row, raw) for k in keys
-                         if d.get(k) is not None and isinstance(d[k], (str, int, float))), None)
-        contacts = row.get('contacts') or raw.get('pointOfContact') or []
-        contacts = [c for c in contacts if isinstance(c, dict)] if isinstance(contacts, list) else []
-        primary = next((c for c in contacts if str(c.get('contact_type') or c.get('type') or '').lower() == 'primary'),
-                       contacts[0] if contacts else {})
+            return next((scalar(d.get(k)) for d in (row, raw) for k in keys
+                         if scalar(d.get(k)) is not None), None)
+        # Keep every published contact. A notice contact type is not a job title.
+        source_contacts = []
+        def add_contact(clean):
+            if not any(clean[k] for k in ('name', 'email', 'phone')):
+                return
+            for prior in source_contacts:
+                keys = ('name', 'title', 'email', 'phone')
+                if (any(clean[k] is not None and clean[k] == prior[k]
+                        for k in ('name', 'email', 'phone')) and
+                    all(clean[k] is None or prior[k] is None or clean[k] == prior[k] for k in keys)):
+                    for key in (*keys, 'contact_type'):
+                        prior[key] = prior.get(key) or clean.get(key)
+                    prior['source_slot'] += '+' + clean['source_slot']
+                    return
+            source_contacts.append(clean)
+        contacts = []
+        for field, candidates in (('contacts', row.get('contacts')),
+                                  ('raw.pointOfContact', raw.get('pointOfContact'))):
+            if isinstance(candidates, list):
+                contacts.extend((f'{field}[{i}]', c) for i, c in enumerate(candidates) if isinstance(c, dict))
+        for source_slot, contact in contacts:
+            clean = {field: next((scalar(contact.get(k)) for k in keys
+                                  if scalar(contact.get(k)) is not None), None)
+                     for field, keys in dict(name=('name', 'fullName'), title=('title',),
+                         email=('email',), phone=('phone',), contact_type=('contact_type', 'type')).items()}
+            add_contact(dict(clean, source_slot=source_slot))
+        for prefix, slot in (('poc_', 'primary_contact'), ('poc_secondary_', 'secondary_contact')):
+            clean = {field: value(prefix + field) for field in ('name', 'title', 'email', 'phone')}
+            add_contact(dict(clean, source_slot=slot, contact_type=slot.split('_')[0]))
+        source_contacts.sort(key=lambda c: str(c.get('contact_type') or '').casefold() != 'primary')
+        first = source_contacts[0] if source_contacts else {}
+        second = source_contacts[1] if len(source_contacts) > 1 else {}
         return dict(title=row.get('title'), agency=row.get('agency') or raw.get('agency'),
             sub_agency=value('sub_agency', 'subtier'), office=value('office'),
             description=depth.get('description'),
@@ -189,11 +241,19 @@ class NoticeReadContext:
             set_aside=value('set_aside', 'set_aside_code', 'typeOfSetAside', 'typeOfSetAsideDescription'),
             naics=value('naics_code', 'naics'), psc=value('psc_code', 'psc'),
             ceiling_dollars=value('ceiling_dollars'), estimated_value_range=value('estimated_value_range'),
-            contact_name=primary.get('name') or primary.get('fullName') or value('poc_name'),
-            contact_title=primary.get('title') or value('poc_title'),
-            contact_email=primary.get('email') or value('poc_email'),
-            contact_phone=primary.get('phone') or value('poc_phone'),
-            contact_secondary_email=value('poc_secondary_email'))
+            obligated_dollars=value('obligated_dollars'), recipient=value('recipient'),
+            vehicle=value('vehicle'), parent_award_id=value('parent_award_id'),
+            parent_award_agency=value('parent_award_agency'), vehicle_class=value('vehicle_class'),
+            competition=value('competition'), competition_code=value('competition_code'),
+            contact_name=first.get('name'), contact_title=first.get('title'),
+            contact_email=first.get('email'), contact_phone=first.get('phone'),
+            contact_secondary_name=second.get('name'), contact_secondary_title=second.get('title'),
+            contact_secondary_email=second.get('email'), contact_secondary_phone=second.get('phone'),
+            source_notice_contacts=source_contacts, small_business_poc=value('small_business_poc'),
+            contact_quality='published' if source_contacts else None,
+            contact_use='published notice contact' if source_contacts else None,
+            incumbent_name=None, incumbent_basis=None, route_organization=None,
+            canonical_entity=None, canonical_entity_id=None)
 
     def decision(self, record, *, recheck=True):
         sid = str(record.get('record_id') or '')

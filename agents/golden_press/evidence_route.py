@@ -735,4 +735,12 @@ def apply_native_admission(record: dict, notice_context=None, *, recheck=True) -
                    window_state="stated_past" if decision.get("temporal", {}).get("response_window") == "closed" else "unstated",
                    window_basis="current action clock is not established",
                    route_basis="current source access not established", qualification_state="held_for_source_review")
+    # Replace cached classifier explanations as well as their resulting labels.
+    out["relationship_provenance"] = {
+        field: _provenance("cited" if decision["admitted"] else "inferred",
+            "notice_admission", out[basis], "native_notice_admission_v1")
+        for field, basis in (("evidence_class", "evidence_basis"),
+                             ("commercial_route", "route_basis"),
+                             ("window_state", "window_basis"), ("service_fit", "fit_basis"))
+    }
     return out

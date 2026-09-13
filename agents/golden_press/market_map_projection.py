@@ -1310,7 +1310,8 @@ def _load_evidence_pack_v2(slug: str) -> dict:
 
 def _v2_opportunity_value(row: dict) -> tuple:
     """Return the source-published value without inventing a spend claim."""
-    literal = _clean(row.get("published_value"))
+    value = row.get("published_value")
+    literal = _clean(str(value) if value is not None else "")
     if not literal:
         return (None, "Value not published", research_next(
             missing=("official value",),

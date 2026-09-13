@@ -99,32 +99,32 @@ def build_target_groups(opportunities: list[dict], *,
             "opportunity_record_id": rid,
             "opportunity_title": opp.get("title"),
         }
-        name = str(opp.get("contact_name") or "").strip()
-        email = str(opp.get("contact_email") or "").strip()
-        if name or email:
+        contacts = opp.get("source_notice_contacts")
+        if contacts is None:
+            contacts = [
+                dict(name=opp.get("contact_name"), title=opp.get("contact_title"),
+                     email=opp.get("contact_email"), phone=opp.get("contact_phone"),
+                     source_slot="primary_contact"),
+                dict(name=opp.get("contact_secondary_name"), title=opp.get("contact_secondary_title"),
+                     email=opp.get("contact_secondary_email"), phone=opp.get("contact_secondary_phone"),
+                     source_slot="secondary_contact"),
+            ]
+        for contact in contacts:
+            name = str(contact.get("name") or "").strip()
+            email = str(contact.get("email") or "").strip()
+            phone = str(contact.get("phone") or "").strip()
+            if not (name or email or phone):
+                continue
             rows.append({
                 **common,
                 "role": "published_notice_contact",
-                "title": opp.get("contact_title"),
+                "title": contact.get("title"),
                 "name": name or None, "email": email or None,
-                "phone": str(opp.get("contact_phone") or "").strip() or None,
+                "phone": phone or None,
                 "organization": opp.get("agency"),
                 "source_kind": "published_contact",
                 "contact_state": "sourced",
-                "provenance": f"sam_notice:{rid}:primary_contact",
-                "source_record_id": rid,
-            })
-        sec = str(opp.get("contact_secondary_email") or "").strip()
-        if sec:
-            rows.append({
-                **common,
-                "role": "published_notice_contact",
-                "title": opp.get("contact_title"),
-                "name": None, "email": sec, "phone": None,
-                "organization": opp.get("agency"),
-                "source_kind": "published_contact",
-                "contact_state": "sourced",
-                "provenance": f"sam_notice:{rid}:secondary_contact",
+                "provenance": f"sam_notice:{rid}:{contact['source_slot']}",
                 "source_record_id": rid,
             })
         sb = str(opp.get("small_business_poc") or "").strip()
@@ -418,8 +418,8 @@ def qualify_opportunities(records: list[dict], ctx: dict, *, notice_context=None
             "instrument": row.get("notice_type"),
             "access_rule": row.get("set_aside") or "none stated",
             "response_due": row.get("response_deadline"),
-            "published_value": row.get("ceiling_dollars")
-                               or row.get("estimated_value_range"),
+            "published_value": (row.get("ceiling_dollars") if row.get("ceiling_dollars") is not None
+                                else row.get("estimated_value_range")),
             "evidence_class": row.get("evidence_class"),
             "service_fit": row.get("service_fit"),
             "window_state": row.get("window_state"),

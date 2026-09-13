@@ -179,7 +179,11 @@ def test_family_completeness_preserves_unknown_member_and_no_generated_fallback(
         leadgen={'evidence_clocks':{nid:summary}})
     row=next(r for r in doc.slots[4].records if r['source_id']==nid)
     assert row['source_as_of'] is None
-    assert row['source_clock_coverage'] == '1 of 2 evidence acquisition times recorded'
+    # An unbound display summary cannot substitute for the current native
+    # acquisition census. The independently computed partial summary survives
+    # above; this saved graph has no current source authority.
+    assert row['source_clock_status'] == 'unverified source acquisition'
+    assert 'Source acquisition unavailable' in row['source_clock_coverage']
 
 
 def legacy_artifact(tmp_path):
