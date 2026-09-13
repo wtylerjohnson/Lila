@@ -1,0 +1,138 @@
+{
+  "work_id": "REPAIR-STEP4-IMPLEMENT-049",
+  "status": "LOCAL_VERIFIED_AWAITING_PUBLICATION_AND_FABLE",
+  "at_utc": "2026-09-13T00:56:37.210942+00:00",
+  "tested_code_revision": "625f0e0e6f644dec9e9dab28575a4dc66fad832e",
+  "accepted_step3_base": "cb8448e788cf41d63a8fa1049ac1d9eeecdedf87",
+  "branch": "codex/step4-deadline-clocks",
+  "full_regression": {
+    "tests": 5771,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 40,
+    "passed": 5731,
+    "seconds": 143.102
+  },
+  "full_regression_log": "full-suite-confirmed.log",
+  "full_regression_command": "PYTHONDONTWRITEBYTECODE=1 LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 /Users/wtjohnson/Lila/.venv/bin/python -m pytest tests/ -q -rs -p no:cacheprovider",
+  "targeted_regression": {
+    "tests": 379,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 379,
+    "seconds": 1.975
+  },
+  "workstations_timeout_recheck": {
+    "tests": 52,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 52,
+    "seconds": 16.757
+  },
+  "preceding_same_tree_full_attempt": {
+    "passed": 5730,
+    "failed": 1,
+    "skipped": 40,
+    "failure": "test_workstations_ui.py::test_inflight_creation_cannot_masquerade_as_cancelled timed out waiting for the current scope selector before opening the dialog",
+    "log": "full-suite-final.log",
+    "disposition": "No source changes. Entire workstation file52 passed, then same exact tree full regression passed. Cause not established; original failure retained."
+  },
+  "first_draft_full": {
+    "revision": "f2597147c7b8d1d1679dd683d0861d37328aa772",
+    "passed": 5694,
+    "skipped": 40,
+    "scope": "Earlier draft before five support-review repairs; not final proof"
+  },
+  "logs_sha256": {
+    "workstations-timeout-recheck.xml": "724e1e5c73beb076f4dda0f8f35e45f9cd5d1fac0972c35c7f6de189a74287bc",
+    "full-suite-confirmed.log": "664198c194e8b41c93324a2752aad6638e9d029e7e757561b1c63e6590810a8b",
+    "targeted-final.log": "be93a67b10e169ecf6b23f50c0dbbf6a02020e7c52071213f3dbb30c807c26c2",
+    "full-suite-final.xml": "1809fb523ac83ae0d8e7f4cf81d9424f725f77d68642fa0c3d6cb363bc6ea077",
+    "full-suite-1.log": "044e1f9e5f7f248151cd69243f0bc8a20de72593ba859c534316273a45d8ca5e",
+    "temporal-closure.log": "69d65d2be49cc2d00b35c13de92cc7caff75a4db22e75c4e109fc4bd78f0fbdb",
+    "targeted-final-repaired.log": "a29b3b702858c515bcc5230c456655369e6bfeec125b5442e73bcfde8fc8bab4",
+    "targeted-repaired.log": "4ec78d8c7ef9cc9f46096af67109820e0c257edb55b852a2070730f7b907145c",
+    "targeted-1.xml": "ba0c923f295a0af3c9f8035fa9e9a9ca213d537ac0227d3f5ec902f39746b033",
+    "temporal-first.log": "960067c647730fa92db6e6875794b0610e9cc6ccddc86e8156a14d6185805c24",
+    "full-suite-1.xml": "96aff7b4d9ae069332b68d1878eae2c82eef07058508ca5c13b386f3e18511c0",
+    "full-suite-final.log": "fa8f179da38b049405672ad628c6fc60899b1857ee1318aa25c51cd4105aa765",
+    "targeted-final-repaired.xml": "44044c44a000319b8059c6277ba5735e4a398e240f1d8eeb67d30fe5453a18b8",
+    "targeted-repaired.xml": "225204452ecfda954495da4c8e9528cc20a81df31a8233bf0db95891b23b66e1",
+    "targeted-1.log": "d4fe463581a682244264fe38338dca028b98384071752c6fe16baec3b0e049a6",
+    "temporal-first.xml": "a8403f659e15c361d2e7f4625d44cd46ba21ac4fee395d212a9a83c45ac149e5",
+    "workstations-timeout-recheck.log": "3988eefe4e1e54b0a07f3165295310bd4a2964938fff02061d1a2bb2c3a80bb0",
+    "targeted-final.xml": "3036b2fe9e1d9e834962aa7f5165ae5cde5c84b42d24204635b3dd07999c3db9",
+    "edge-repair-first.log": "7edc079aed6078d7e03bb54f64bcc915c4f38677ecccba8f41aa844557ec571e",
+    "full-suite-confirmed.xml": "27cb68e7b2ed4ad168624a292181e6ee577ead657753c61ed77e3702c093b51b"
+  },
+  "files_sha256": {
+    "agents/decisions/research_evidence.py": "4145666d312e6e3b43ace7426c13d66e57a5077c314ee65e284fd9c933ba8f4a",
+    "agents/decisions/research_picture.py": "b4bb6fa34a38fee1b13002ab9b3360eb9e2a6e34cb0912f41c69e0c135da07e0",
+    "agents/decisions/triage.py": "50fc81dc590e724b03d8cf359c92e4b33a0ef9bde3be6d652ca4a515858d5f03",
+    "agents/schemas.py": "838481a2283a5804f673c9faca4994fb7be89da0001fca4707f06b574a66d38d",
+    "docs/CONTRACT_SURFACES.md": "af57bf6e063a832f6c1ff1ccf67be7fe017c24859b5d37432b2e2edeb6f5bf18",
+    "docs/CONVENTIONS.md": "acb3124bf25510b66ae09edf3f4ab004236340281c26aad24487673a43b465ea",
+    "docs/verification/source-read-integrity-002/LOCAL_VERIFICATION.json": "a4e1ea0b04cf9664fa534f5b4473e197a8732e4eb93e958bf490fbc1fbfb7916",
+    "docs/verification/source-read-integrity-002/PRE_PATCH_REPORT.md": "4a28348f9c824f0ec39583e69d9af9f12e25b952ff1c1840f17d56221c5808ff",
+    "tests/test_sam_extract_source_receipt.py": "4977d9cdbf03a8e9b23f29bba3e02e630442455fd8ec8f7e1b4a50a284c892cd",
+    "tests/test_source_temporal_values.py": "3f5c06d3d05fa37139f983a4c6ebfc25b7eed2e801d13cf9b99dfb2fed115c2c",
+    "tests/test_step4_temporal_evidence.py": "1b88ee354460ccc39bd49d349d540d24f400675d6508900857216d3b89cce222",
+    "tests/test_triage_prefilter.py": "25252197a1ef26db1ce2e738bd0b0594149a9324d26693135ee9f3196b5654c1",
+    "tools/api/sam_extract.py": "8888db3006f832b463b1695b19a385e83c3be91b36e0e8cdfff39927fbd4bd29",
+    "tools/api/sam_gov.py": "5ccf3455485356f80f1f8610480ce1623cf8f6ac638698c01edb5f61ea79ca4c",
+    "tools/relevance/notice_type.py": "9aeab91de1c9fa2e94a23735eb866edb0c46ea555f064daa974041639aba7dea",
+    "tools/relevance/response_action.py": "07ba29e1fbd29f2ae80c863fb358de3ff55fa0f48e98bc8ec5b9a17f9d56173e",
+    "tools/relevance/temporal.py": "77b929f275bf68056cb053b7ad9275646b3d512fa208aff8a15d7d507852c478"
+  },
+  "frozen_hashes": {
+    "cases/apex-discovery-calibration-004/capture_lock.FINAL.json": "658bbbff0e994d757c411787bfb7671621a8e53759dbc3dcf5ec92fa4ae6e3b0",
+    "cases/apex-discovery-calibration-005/capture_lock.FINAL.json": "137cb5e2b994ed372db1528a8b31862e81555792a44c9edf2c90e5c6ec3f55a5",
+    "cases/apex-discovery-calibration-005/lila/capture/CAPTURE-LILA-005/new_native_sweep.json": "6ce0ca8907f38f544aa59a3530ee614ac345c61fdacf7ef007284d570b0c6e73"
+  },
+  "prespecified_cases": 39,
+  "supporting_operator_closure": {
+    "work_id": "REPAIR-STEP4-IMPLEMENT-049",
+    "at_utc": "2026-09-13T00:53:36.886721+00:00",
+    "status": "SUPPORT_CLOSURE_ACCEPTED_NOT_FABLE_ACCEPTANCE",
+    "tested_revision": "625f0e0e6f644dec9e9dab28575a4dc66fad832e",
+    "receipt_sha256": "edc8af466d9364ef26dc12198119f229c4fed7560972cedddc2c2f5592f0bd59",
+    "verification_sha256": "dc1c941ec63167867e46fd071dfe32beb2b9e2644f6090b59893dd3cccdcbe73",
+    "report_sha256": "2640025d451a48d5a1ea02a64532b254e25eeb41cb874ab1d692c7bdc0142fba",
+    "artifacts_verified": 17,
+    "original_findings": {
+      "R049-01": "CLOSED_IN_ASSIGNED_FIXTURES",
+      "R049-02": "CLOSED_IN_ASSIGNED_FIXTURES",
+      "R049-03": "CLOSED_IN_ASSIGNED_FIXTURES",
+      "R049-04": "CLOSED_IN_ASSIGNED_FIXTURES",
+      "R049-05": "CLOSED_IN_ASSIGNED_FIXTURES"
+    },
+    "closure_assertion_groups_passed": 14,
+    "additional_edge_cases_passed": 28,
+    "probe_execution_errors": 0,
+    "prior_artifacts_preserved_reported": 31,
+    "fable_accepted": false,
+    "prior_artifacts_preserved_verified": 31,
+    "source_files_verified": 21
+  },
+  "source002": {
+    "commit": "a75b52ebbfebbc0496f31d8db9854855dac4bba7",
+    "five_integrity_helpers_ast_identical": true,
+    "status": "OPEN_PENDING_COMBINED_STEP4_REVIEW"
+  },
+  "report_lints": "Full suite includes existing report, browser, renderer, lint and press-gate checks; no live client report pressed.",
+  "residuals": [
+    "Bounded source-time, Research Picture/current replay and amendment grammar; not general language entailment. Unknown timezone labels, partial explicit clocks and unsupported language can withhold genuine actions.",
+    "Legacy strict Assess/report date contracts and native attachment-selection priority remain unchanged. S4-SOURCE-CLOCK-001 is a root-owned P1: absent depth acquisition falls back to assessment/approval time and explicit row acquisition is ignored in strict Assess. Family verified_at is assessment time, not acquisition. No strict-Assess source-clock readiness claim.",
+    "Source002 independently checks consumed versus reopened bytes and endpoint metadata. Equal observed reads do not prove every transient mutation was absent or establish cloud filesystem portability. S2-SOURCE-002 awaits combined Fable review.",
+    "Discovery-only attachments have no per-file text offsets or independent trust upgrade. Original notices may independently support mixed records. No trusted Assess bypass is asserted.",
+    "Original Step1 R1-R7 remain canonical. S3-SURFACE-005 and S3-DIAG-006 remain Step6 follow-ups; S3-ROLE-007 remains Step5. No blanket closure of prior residuals.",
+    "Synthetic native function and mocked upstream proof only. No authentic-source success, recovered lead, unused-company recall, seller-readiness, cloud/local full-suite parity, production merge or deployment."
+  ],
+  "fable_accepted": false,
+  "production_merge": false,
+  "frozen_cases_modified": false,
+  "step5_authorized_to_start": false,
+  "final_candidate_only_adds_verification_docs": true
+}

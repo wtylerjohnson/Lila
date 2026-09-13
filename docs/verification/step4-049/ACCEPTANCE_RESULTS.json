@@ -1,0 +1,128 @@
+{
+  "tested_code_revision": "625f0e0e6f644dec9e9dab28575a4dc66fad832e",
+  "status": "39_PRESPECIFIED_CASES_COVERED_BY_PASSING_SYNTHETIC_TESTS",
+  "test_file": "tests/test_step4_temporal_evidence.py",
+  "case_tests": {
+    "D01": [
+      "test_mapper_and_registry_retain_source_time",
+      "test_D01_full_native_mapper_projection_uses_exact_instant"
+    ],
+    "D02": [
+      "test_mapper_and_registry_retain_source_time"
+    ],
+    "D03": [
+      "test_mapper_and_registry_retain_source_time"
+    ],
+    "D04": [
+      "test_mapper_and_registry_retain_source_time"
+    ],
+    "D05": [
+      "test_mapper_and_registry_retain_source_time"
+    ],
+    "D06": [
+      "test_mapper_and_registry_retain_source_time"
+    ],
+    "D07": [
+      "test_mapper_and_registry_retain_source_time"
+    ],
+    "D08": [
+      "test_D08_csv_and_store_preserve_raw_bytes"
+    ],
+    "C01": [
+      "test_timestamp_boundary"
+    ],
+    "C02": [
+      "test_timestamp_boundary"
+    ],
+    "C03": [
+      "test_timestamp_boundary"
+    ],
+    "C04": [
+      "test_C04_equivalent_offsets_are_one_deadline"
+    ],
+    "C05": [
+      "test_C05_freshness_normalizes_same_instant"
+    ],
+    "C09": [
+      "test_C09_trusted_historical_replay_vs_current_presentation"
+    ],
+    "C10": [
+      "test_C10_explicit_clocks_independent_of_host_tz"
+    ],
+    "C11": [
+      "test_C11_separate_clocks_cutoff_and_no_borrowed_observation"
+    ],
+    "C12": [
+      "test_C12_genuine_competing_deadlines_not_a_display_projection"
+    ],
+    "C06": [
+      "test_missing_future_stale_observation"
+    ],
+    "C07": [
+      "test_missing_future_stale_observation"
+    ],
+    "C08": [
+      "test_missing_future_stale_observation"
+    ],
+    "A01": [
+      "test_A01_A02_A03_old_instruction_heading_survives_narrow_citation"
+    ],
+    "A02": [
+      "test_A01_A02_A03_old_instruction_heading_survives_narrow_citation"
+    ],
+    "A03": [
+      "test_A01_A02_A03_old_instruction_heading_survives_narrow_citation"
+    ],
+    "A04": [
+      "test_A04_current_and_mixed_current_positive",
+      "test_A04_duplicate_narrow_quote_is_ambiguous"
+    ],
+    "A05": [
+      "test_A05_A06_prose_deadline_conflict"
+    ],
+    "A06": [
+      "test_A05_A06_prose_deadline_conflict"
+    ],
+    "M01": [
+      "test_same_day_and_next_day_withdrawal_suppress_older_positive"
+    ],
+    "M02": [
+      "test_same_day_and_next_day_withdrawal_suppress_older_positive"
+    ],
+    "M03": [
+      "test_M03_current_extension_binds_only_new_notice"
+    ],
+    "M04": [
+      "test_M04_expired_context_and_independently_bound_continuation"
+    ],
+    "M05": [
+      "test_M05_uncertain_posting_order_does_not_resurrect_old_support"
+    ],
+    "T01": [
+      "test_T01_T02_attributed_explicit_award_labels"
+    ],
+    "T02": [
+      "test_T01_T02_attributed_explicit_award_labels"
+    ],
+    "T03": [
+      "test_T03_T04_unknown_justification_preaward_and_current_types"
+    ],
+    "T04": [
+      "test_T03_T04_unknown_justification_preaward_and_current_types"
+    ],
+    "P01": [
+      "test_native_enrichment_authority_through_every_projection"
+    ],
+    "P02": [
+      "test_native_enrichment_authority_through_every_projection"
+    ],
+    "P03": [
+      "test_native_enrichment_authority_through_every_projection"
+    ],
+    "P04": [
+      "test_native_enrichment_authority_through_every_projection"
+    ]
+  },
+  "fixture_clarification": "C01-C03 use coherent Sep12 boundary prose or no unrelated prose date. The baseline reused Sep14 instruction conflicts with its shifted Sep12 metadata and correctly withholds action despite an open window; it is not used as the valid+1second positive.",
+  "proof_scope": "Synthetic cases; upstream attachment acquisition mocked; not authentic-source or business-outcome proof."
+}

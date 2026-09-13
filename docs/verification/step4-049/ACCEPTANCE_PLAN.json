@@ -1,0 +1,420 @@
+{
+  "work_id": "REPAIR-STEP4-BASELINE-049",
+  "base_sha": "cb8448e788cf41d63a8fa1049ac1d9eeecdedf87",
+  "status": "PROPOSED_ACCEPTANCE_NOT_IMPLEMENTED",
+  "owner": "Existing coordinator implements and executes required targeted/regression checks; operator checkpoints.",
+  "policy": {
+    "deadline_boundary": "Open iff assessment instant < deadline instant. Equality and later are closed.",
+    "unknown_precision": "Missing, invalid, date-only or offsetless deadline remains unknown for precise action. No assumed timezone or end-of-day.",
+    "freshness": "Same UTC day initially; normalize aware instants and reject future observation. Any age-window replacement is a separately declared policy.",
+    "clock_roles": "Explicit query/capture, buying assessment, evidence cutoff, source observation and presentation; historical replay distinct from current presentation.",
+    "source_authority": "Source/passage-bound; attachments remain discovery_only unless independently upgraded under an authorized trust contract.",
+    "frozen_cases": "No changed capture, scoring or source artifacts.",
+    "existing_contracts": "Preserve current display-time rebind, independent original results, strict Assess requirement trust and legacy report date contract until explicitly migrated."
+  },
+  "cases": [
+    {
+      "id": "D01",
+      "group": "parser",
+      "input_or_fixture": "API responseDeadLine and CSV deadline: 2026-09-12T12:00:01-04:00",
+      "post_patch_acceptance": "Retain exact raw field/value and -04:00; normalized instant 2026-09-12T16:00:01Z; precision second; aware; derived display date separate. Same result through mapped registry and projection.",
+      "baseline_observed": "Both typed values become date; API raw ignored by registry; CSV raw conflicts with derived date.",
+      "baseline_receipt": "probe_results.json#/checks/0/observation/1",
+      "contract": "additive temporal schema",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "D02",
+      "group": "parser",
+      "input_or_fixture": "Same instant 2026-09-11T23:30:00-02:00 vs 2026-09-12T01:30:00Z",
+      "post_patch_acceptance": "Same assessment result and normalized instant despite different supplied local dates; preserve offsets.",
+      "baseline_observed": "Different typed dates survive into registry.",
+      "baseline_receipt": "probe_results.json#/checks/0/observation/2",
+      "contract": "timezone normalization",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "D03",
+      "group": "parser",
+      "input_or_fixture": "2026-09-12T16:00:00",
+      "post_patch_acceptance": "unknown_timezone; no guessed timezone or current confirmation",
+      "baseline_observed": "Current picture withholds uncertain deadlines; CSV and non-T API parser accept some malformed suffixes as dates.",
+      "baseline_receipt": "probe_results.json#/checks/0",
+      "contract": "additive temporal schema",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "D04",
+      "group": "parser",
+      "input_or_fixture": "2026-09-12",
+      "post_patch_acceptance": "date precision; unknown exact action deadline; no assumed midnight/end-of-day",
+      "baseline_observed": "Current picture withholds uncertain deadlines; CSV and non-T API parser accept some malformed suffixes as dates.",
+      "baseline_receipt": "probe_results.json#/checks/0",
+      "contract": "additive temporal schema",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "D05",
+      "group": "parser",
+      "input_or_fixture": "None or empty",
+      "post_patch_acceptance": "missing retained; unknown current action",
+      "baseline_observed": "Current picture withholds uncertain deadlines; CSV and non-T API parser accept some malformed suffixes as dates.",
+      "baseline_receipt": "probe_results.json#/checks/0",
+      "contract": "additive temporal schema",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "D06",
+      "group": "parser",
+      "input_or_fixture": "not-a-date, 2026-09-12 garbage, 2026-09-12T99:00:00Z",
+      "post_patch_acceptance": "invalid retained with raw text; whole-value validation; no valid-prefix promotion",
+      "baseline_observed": "Current picture withholds uncertain deadlines; CSV and non-T API parser accept some malformed suffixes as dates.",
+      "baseline_receipt": "probe_results.json#/checks/0",
+      "contract": "additive temporal schema",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "D07",
+      "group": "parser",
+      "input_or_fixture": "2026-09-12 16:00:00+00:00; minute-only, seconds and fractional-seconds forms",
+      "post_patch_acceptance": "Document accepted ISO grammar, normalize aware instants and preserve each supplied precision; invalid variants explicit.",
+      "baseline_observed": "Space-separated aware raw retained but typed date only. Fraction/minute pairs are proposed additional post-patch checks, not executed in this baseline.",
+      "baseline_receipt": "probe_results.json#/checks/0/observation/8",
+      "contract": "parser precision contract",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "D08",
+      "group": "store",
+      "input_or_fixture": "Four CSV ResponseDeadLine values in projection receipts",
+      "post_patch_acceptance": "Exact raw value survives iter_rows and shape_row; mapper-derived display date never rewrites it.",
+      "baseline_observed": "All four raw values survive pure CSV/store shaping.",
+      "baseline_receipt": "projection_probe_results.json#/csv_store_2026-09-12T12:00:01-04:00",
+      "contract": "existing raw preservation",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "C01",
+      "group": "assessment clock",
+      "input_or_fixture": "2026-09-12T14:59:59+00:00 at 2026-09-12T15:00:00Z",
+      "post_patch_acceptance": "research_signal / closed",
+      "baseline_observed": "research_signal",
+      "baseline_receipt": "probe_results.json#/checks/1/observation/deadline_before",
+      "contract": "exclusive closure: assessment < deadline",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "C02",
+      "group": "assessment clock",
+      "input_or_fixture": "2026-09-12T15:00:00+00:00 at 2026-09-12T15:00:00Z",
+      "post_patch_acceptance": "research_signal / closed",
+      "baseline_observed": "research_signal",
+      "baseline_receipt": "probe_results.json#/checks/1/observation/deadline_equal",
+      "contract": "exclusive closure: assessment < deadline",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "C03",
+      "group": "assessment clock",
+      "input_or_fixture": "2026-09-12T15:00:01+00:00 at 2026-09-12T15:00:00Z",
+      "post_patch_acceptance": "confirmed_opportunity with all independent prerequisites",
+      "baseline_observed": "confirmed_opportunity",
+      "baseline_receipt": "probe_results.json#/checks/1/observation/deadline_after",
+      "contract": "exclusive closure: assessment < deadline",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "C04",
+      "group": "assessment clock",
+      "input_or_fixture": "Equivalent raw metadata 2026-09-14T13:00:00-04:00 and top-level 17:00Z",
+      "post_patch_acceptance": "No deadline conflict; confirm with other prerequisites; maintain supplied offsets.",
+      "baseline_observed": "confirmed_opportunity",
+      "baseline_receipt": "probe_results.json#/checks/1/observation/equivalent_deadline_offsets",
+      "contract": "aware equivalence",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "C05",
+      "group": "freshness",
+      "input_or_fixture": "At 2026-09-13T00:30Z compare retrieved 00:15Z vs prior local date 20:15-04:00",
+      "post_patch_acceptance": "Both fresh under same-UTC-day policy; normalize before calendar comparison.",
+      "baseline_observed": "UTC confirms; same instant with -04 offset stays research.",
+      "baseline_receipt": "probe_results.json#/checks/1/observation/same_instant_previous_local_day",
+      "contract": "explicit UTC freshness",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "C06",
+      "group": "freshness",
+      "input_or_fixture": null,
+      "post_patch_acceptance": "Withhold confirmation; record missing/future/stale status independently of attachment/file/sweep timestamps.",
+      "baseline_observed": "research_signal",
+      "baseline_receipt": "probe_results.json#/checks/1/observation/missing_row_clock",
+      "contract": "existing retrieval prerequisite",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "C07",
+      "group": "freshness",
+      "input_or_fixture": "2026-09-12T16:00:00Z",
+      "post_patch_acceptance": "Withhold confirmation; record missing/future/stale status independently of attachment/file/sweep timestamps.",
+      "baseline_observed": "research_signal",
+      "baseline_receipt": "probe_results.json#/checks/1/observation/future_row_clock",
+      "contract": "existing retrieval prerequisite",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "C08",
+      "group": "freshness",
+      "input_or_fixture": "2026-09-11T14:00:00Z",
+      "post_patch_acceptance": "Withhold confirmation; record missing/future/stale status independently of attachment/file/sweep timestamps.",
+      "baseline_observed": "research_signal",
+      "baseline_receipt": "probe_results.json#/checks/1/observation/stale_row_clock",
+      "contract": "existing retrieval prerequisite",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "C09",
+      "group": "clock roles",
+      "input_or_fixture": "Saved picture assessed Sep12 15Z, presented Sep15 15Z with identical independent source snapshot",
+      "post_patch_acceptance": "Explicit historical replay retains labeled Sep12 assessment; explicit current mode rechecks at Sep15 and withholds. Never use saved/model as_of as self-authenticating authority.",
+      "baseline_observed": "Runtime revalidation changes confirmed to research and replaces evidence_as_of.",
+      "baseline_receipt": "probe_results.json#/checks/1/observation/presentation_later",
+      "contract": "new historical replay contract; existing current view retained",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "C10",
+      "group": "clock roles",
+      "input_or_fixture": "Run same fixture with different host TZ and identical explicit UTC assessment/capture/cutoff/observation clocks",
+      "post_patch_acceptance": "Identical decision; display localization separate. Omitted required reference clock produces explicit policy/error, not silent host inference.",
+      "baseline_observed": "Host-TZ matrix not executed; source has host-local search/report defaults and explicit date-only report override.",
+      "baseline_receipt": "SOURCE_RECEIPTS.json",
+      "contract": "new explicit clock contract; report compatibility retained",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "C11",
+      "group": "clock roles",
+      "input_or_fixture": "Query start, first list capture, sweep generated_at, row observation, evidence cutoff and presentation distinct",
+      "post_patch_acceptance": "Preserve identities and causal ordering. Duration is elapsed capture budget; cutoff limits admitted evidence; generation/file timestamp cannot supply row freshness. No changed frozen scorer.",
+      "baseline_observed": "Read-only source trace; no capture/harness run.",
+      "baseline_receipt": "SOURCE_RECEIPTS.json",
+      "contract": "capture and comparison unchanged; future buying-status reference explicit",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "C12",
+      "group": "conflict",
+      "input_or_fixture": "Top/raw genuinely different aware deadlines",
+      "post_patch_acceptance": "Withhold until source-bound authoritative amendment resolves conflict; distinguish raw vs its own derived display date.",
+      "baseline_observed": "Current true metadata conflict already withholds; derived date also wrongly conflicts.",
+      "baseline_receipt": "probe_results.json#/checks/1/observation/conflicting_deadlines",
+      "contract": "deadline lineage",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "A01",
+      "group": "S3-TIME-001",
+      "input_or_fixture": "The contractor shall provide supplier risk management software. Archived instructions: Submit proposals by September 14, 2026.",
+      "post_patch_acceptance": "Withhold through helper, validation, saved native projection and Markdown with valid future metadata and supported SOW.",
+      "baseline_observed": "helper true; confirmed_opportunity through full picture.",
+      "baseline_receipt": "probe_results.json#/checks/2/observation/archived_full",
+      "contract": "scoped instruction temporal context",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "A02",
+      "group": "S3-TIME-001",
+      "input_or_fixture": "The contractor shall provide supplier risk management software. Archived instructions: Submit proposals by September 14, 2026. [cite only Submit proposals]",
+      "post_patch_acceptance": "Withhold through helper, validation, saved native projection and Markdown with valid future metadata and supported SOW.",
+      "baseline_observed": "helper true; confirmed_opportunity through full picture.",
+      "baseline_receipt": "probe_results.json#/checks/2/observation/archived_narrow",
+      "contract": "scoped instruction temporal context",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "A03",
+      "group": "S3-TIME-001",
+      "input_or_fixture": "Historical/Previous/Prior instructions, full and narrow quotes",
+      "post_patch_acceptance": "All remain withheld.",
+      "baseline_observed": "All six remain research_signal; helper false.",
+      "baseline_receipt": "probe_results.json#/checks/2",
+      "contract": "existing negative controls",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "A04",
+      "group": "S3-TIME-001",
+      "input_or_fixture": "Current instructions, full and narrow quotes; mixed archived/current with specific current citation",
+      "post_patch_acceptance": "Confirm current supported instruction. Archived elsewhere must not globally poison current text; duplicate ambiguous short quote must not manufacture current support.",
+      "baseline_observed": "Current full/narrow and mixed current confirm. Duplicate short-quote case is prescribed, not newly executed here.",
+      "baseline_receipt": "probe_results.json#/checks/2/observation/mixed_archived_and_current",
+      "contract": "scoped positive controls",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "A05",
+      "group": "prose conflict",
+      "input_or_fixture": "Submit by 2026-09-12T12:00Z vs metadata17:00Z assessed15:00Z",
+      "post_patch_acceptance": "Withhold conflicting/past action; retain fit/context.",
+      "baseline_observed": "confirmed_opportunity",
+      "baseline_receipt": "probe_results.json#/checks/2/observation/same_day_past_prose",
+      "contract": "full prose timestamp reconciliation",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "A06",
+      "group": "prose conflict",
+      "input_or_fixture": "Prose Sep15 vs metadata Sep14",
+      "post_patch_acceptance": "Retain conflict and source claims; no unsupported open-action confirmation until resolved.",
+      "baseline_observed": "confirmed_opportunity",
+      "baseline_receipt": "probe_results.json#/checks/2/observation/different_future_prose",
+      "contract": "source-bound deadline conflict",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "M01",
+      "group": "S3-SEM-004",
+      "input_or_fixture": "Same solicitation old Z-OLD 09:00Z vs withdrawal A-NEW16:00Z on same day",
+      "post_patch_acceptance": "Select actual latest withdrawal, suppress old candidate, preserve both original records and lineage; never sort chronology by ID.",
+      "baseline_observed": "Selects Z-OLD; old requirement enters model review.",
+      "baseline_receipt": "probe_results.json#/checks/5/observation/same_day_withdrawal",
+      "contract": "posting precision and suppression",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "M02",
+      "group": "S3-SEM-004",
+      "input_or_fixture": "Withdrawal on following day",
+      "post_patch_acceptance": "Preserve latest selection, no candidate, all lineage.",
+      "baseline_observed": "A-NEW selected; no model candidates.",
+      "baseline_receipt": "probe_results.json#/checks/5/observation/next_day_withdrawal",
+      "contract": "existing control",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "M03",
+      "group": "amendment",
+      "input_or_fixture": "Expired prior deadline plus authoritative current extension and current submission instruction",
+      "post_patch_acceptance": "Bind new action/deadline to selected amendment, retain prior deadline as superseded evidence; confirm only new independently valid action.",
+      "baseline_observed": "Direct supported extension confirms. Complete amended native-chain projection is a required post-patch extension, not claimed here.",
+      "baseline_receipt": "probe_results.json#/checks/5/observation/supported_extension",
+      "contract": "amendment lineage",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "M04",
+      "group": "context",
+      "input_or_fixture": "Expired notice with capability fit and possible briefing language; independent current source N2 with current instruction",
+      "post_patch_acceptance": "Retain expired context without open response claim; mere contact/anticipated work cannot establish access. Separate N2 can support its own current action, never lend identity to expired N1.",
+      "baseline_observed": "Expired continuation remains research; independent current N2 confirms.",
+      "baseline_receipt": "probe_results.json#/checks/5/observation/expired_continuation_context",
+      "contract": "action-specific evidence",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "M05",
+      "group": "amendment",
+      "input_or_fixture": "Offsetless/date-only/equal posting timestamps; withdrawal and old positive same family",
+      "post_patch_acceptance": "Expose uncertain order; preserve lineage and conservative hold; never infer host timezone or use ID tie-break as truth of current access.",
+      "baseline_observed": "Existing extract posting helper explicitly assumes UTC for offsetless values; no ambiguous-order dynamic case executed.",
+      "baseline_receipt": "projection_probe_results.json#/posted_order_assumption",
+      "contract": "posting ambiguity policy",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "T01",
+      "group": "S3-TYPE-002",
+      "input_or_fixture": "Award Notice, Award, A, Awards, Award Notification, Awarded",
+      "post_patch_acceptance": "Preserve historical prefilter and no current confirmation.",
+      "baseline_observed": "All six historical, no model candidate; direct picture research_signal.",
+      "baseline_receipt": "probe_results.json#/checks/3",
+      "contract": "existing six aliases",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "T02",
+      "group": "S3-TYPE-002",
+      "input_or_fixture": "Native raw type Award Synopsis / Awarded Contract with baseType Solicitation",
+      "post_patch_acceptance": "Classify the explicit additional award aliases as historical using current source type provenance. No current buying from fit or future deadline.",
+      "baseline_observed": "Both unknown, model candidate true, picture research_signal.",
+      "baseline_receipt": "probe_results.json#/checks/3",
+      "contract": "additional attributed award aliases",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "T03",
+      "group": "S3-TYPE-002",
+      "input_or_fixture": "Justification, Justification and Approval, J&A; planned vs already-awarded narrative",
+      "post_patch_acceptance": "Preserve source label and separate evidence-aware investigation of pre/post-award context. No blanket historical or active label from J&A alone.",
+      "baseline_observed": "Unknown candidates, no confirmed action in either narrative context.",
+      "baseline_receipt": "probe_results.json#/checks/3",
+      "contract": "unknown/evidence-aware lifecycle",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "T04",
+      "group": "S3-TYPE-002",
+      "input_or_fixture": "Unknown label vs Solicitation, Sources Sought, Preaward, Pre-Award, Presolicitation",
+      "post_patch_acceptance": "Unknown/preaward remain investigation candidates; supported solicitation/source-sought positive retained. Type/fit/future date alone cannot establish open action.",
+      "baseline_observed": "Unknown/preaward candidate research; solicitation/source-sought confirms with independent prerequisites.",
+      "baseline_receipt": "probe_results.json#/checks/3",
+      "contract": "existing type controls",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "P01",
+      "group": "S3-AUTH-003",
+      "input_or_fixture": "discovery_only_valid_clock; real enrichment with mocked fetch/extract/quota then real prefilter/registry/validation/native projection/Markdown",
+      "post_patch_acceptance": "Withhold trusted confirmation despite valid row time and aware future deadline; preserve discovery quote and authority.",
+      "baseline_observed": "confirmed_opportunity",
+      "baseline_receipt": "probe_results.json#/checks/4/observation/discovery_only_valid_clock",
+      "contract": "new field/passage authority contract; strict Assess untouched",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "P02",
+      "group": "S3-AUTH-003",
+      "input_or_fixture": "discovery_only_missing_clock; real enrichment with mocked fetch/extract/quota then real prefilter/registry/validation/native projection/Markdown",
+      "post_patch_acceptance": "Withhold independently for missing row retrieval; file retrieval cannot fill it.",
+      "baseline_observed": "research_signal",
+      "baseline_receipt": "probe_results.json#/checks/4/observation/discovery_only_missing_clock",
+      "contract": "new field/passage authority contract; strict Assess untouched",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "P03",
+      "group": "S3-AUTH-003",
+      "input_or_fixture": "mixed_original_sufficient; real enrichment with mocked fetch/extract/quota then real prefilter/registry/validation/native projection/Markdown",
+      "post_patch_acceptance": "Original-notice cited requirement/action independently sufficient: confirm with other gates even when record also contains discovery attachments.",
+      "baseline_observed": "confirmed_opportunity",
+      "baseline_receipt": "probe_results.json#/checks/4/observation/mixed_original_sufficient",
+      "contract": "new field/passage authority contract; strict Assess untouched",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    },
+    {
+      "id": "P04",
+      "group": "S3-AUTH-003",
+      "input_or_fixture": "Mixed source with discovery requirement cited instead of independently sufficient original clause; missing/tampered cached authority",
+      "post_patch_acceptance": "Trust is evaluated for cited passage, never borrowed from another field or saved registry/hash. Rebuild authority from independent original source data.",
+      "baseline_observed": "Not dynamically executed beyond positive original citation and attachment-only negative; required post-patch adversarial extension.",
+      "baseline_receipt": "AUTHORITY_RECEIPT.json",
+      "contract": "passage authority and replay provenance",
+      "post_patch_execution": "NOT_RUN_PRE_PATCH_BASELINE"
+    }
+  ],
+  "validation_order": [
+    "Pure temporal parser and mapper/store parity",
+    "Registry and field authority paired tests",
+    "Full Research Picture, saved native projection and Markdown with fixed explicit clocks",
+    "Amendment lineage and lifecycle aliases/unknown controls",
+    "Coordinator-owned combined-tree checks on exact candidate including separately owned Source002; retain per-SHA proof and no full-suite parity claim from this baseline"
+  ],
+  "proof_limits": [
+    "All runtime inputs are synthetic.",
+    "No actual capture, external provenance authentication, model, server/browser, full suite or strict Assess bypass test.",
+    "Previously observed baseline fixtures are regression cases, not independent holdouts.",
+    "Every post-patch case remains NOT_RUN here."
+  ]
+}
