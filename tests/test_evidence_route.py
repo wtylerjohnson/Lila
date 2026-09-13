@@ -291,7 +291,9 @@ def test_targets_stay_attached_to_their_requirement_family(ctx):
         "fam-a": "Nexus Universal"})
     assert set(groups) == {"fam-a", "fam-b"}
     fam_a_roles = {t["role"] for t in groups["fam-a"]}
-    assert "contracting_officer_or_specialist" in fam_a_roles
+    assert "published_notice_contact" in fam_a_roles
+    # Notice publication does not establish an unprovided job title.
+    assert "contracting_officer_or_specialist" not in fam_a_roles
     assert any(t.get("enrichment_candidate") and
                t["organization"] == "Nexus Universal"
                for t in groups["fam-a"])
