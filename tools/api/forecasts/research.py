@@ -7,12 +7,13 @@ notice, product-conformity finding, partner agreement or seller-ready lead.
 from __future__ import annotations
 
 import json
+import hashlib
 from pathlib import Path
 from urllib.parse import urlsplit
 
 from agents.schemas import CapabilityProfile, ForecastRecord
-from tools.relevance.engine import score_record
-from tools.relevance.taxonomy import CapabilityTaxonomy
+from tools.relevance.engine import score_record, score_text
+from tools.relevance.taxonomy import CapabilityTaxonomy, TaxonomyTerm, KillRule
 from tools.text_match import matching_phrases
 from .matching import _set_aside_ok
 from .store import record_payload
@@ -42,7 +43,7 @@ def discover_forecasts(records: list[ForecastRecord], profile: CapabilityProfile
         scoring_record = record.model_dump(mode="python")
         if record.source == "dhs_apfs":
             from .dhs_apfs import scope_identity
-            scoring_record["agency"] = " ".join(scope_identity(record)) or record.agency
+            scoring_record["agency"] = scope_identity(record) or record.agency
         from tools.relevance.scope import in_scope
         if not in_scope(scoring_record, engagement_scope)[0]:
             continue
@@ -53,20 +54,40 @@ def discover_forecasts(records: list[ForecastRecord], profile: CapabilityProfile
                     f"{record.title} {record.description or ''}", [rule.term])
                 for rule in taxonomy.exclude):
             continue
+        native_verdict = score_record(scoring_record, taxonomy, engagement_scope=engagement_scope) if taxonomy is not None else None
+        excluded_terms = {m.term.casefold() for m in taxonomy.retrieval_mappings if m.disposition == "excluded"} if taxonomy is not None else set()
         hits, spans, exploratory, receipts = set(), [], set(), []
         for vocabulary in definitions:
-            scoring_vocabulary = vocabulary
-            if vocabulary is definition and taxonomy is not None:
-                scoring_vocabulary = vocabulary.model_copy(update={"exclude": taxonomy.exclude})
+            exclusions = list(taxonomy.exclude) if taxonomy is not None else list(vocabulary.exclude)
+            exclusions += [KillRule(term=term, scope="span", reason="Operator excluded retrieval mapping") for term in excluded_terms]
+            scoring_vocabulary = vocabulary.model_copy(update={
+                "exclude": exclusions,
+                "core": [term for term in vocabulary.core if term.term.casefold() not in excluded_terms],
+            })
             verdict = score_record(scoring_record, scoring_vocabulary, engagement_scope=engagement_scope)
             if verdict.relevant:
                 hits.update(verdict.core_terms)
                 spans.extend(s.model_dump(mode="json") for s in verdict.spans if s.tier == "core")
-                receipts.append({"client": vocabulary.client_name, "version": vocabulary.version})
+                receipts.append({"client": vocabulary.client_name, "version": vocabulary.version,
+                                 "definition_sha256": hashlib.sha256(vocabulary.model_dump_json().encode()).hexdigest(),
+                                 "disposition": "capability_research", "terms": verdict.core_terms})
             # Exploratory mappings never contribute capability or score.
             terms = [m.term for m in vocabulary.retrieval_mappings
                      if m.disposition == "exploratory"]
-            exploratory.update(matching_phrases(f"{record.title} {record.description or ''}", terms))
+            exploratory_taxonomy = CapabilityTaxonomy(
+                client_name=profile.client_name, version=1, updated=vocabulary.updated,
+                core=[TaxonomyTerm(term=term, mode="exact_phrase") for term in terms if term.casefold() not in excluded_terms],
+                exclude=exclusions)
+            for field in ("title", "description"):
+                surviving, _ = score_text(getattr(record, field) or "", exploratory_taxonomy)
+                exploratory.update(span.term for span in surviving)
+                for span in surviving:
+                    mapping = next(m for m in vocabulary.retrieval_mappings if m.term == span.term)
+                    receipt = {"client": vocabulary.client_name, "version": vocabulary.version,
+                               "definition_sha256": hashlib.sha256(vocabulary.model_dump_json().encode()).hexdigest(),
+                               "disposition": mapping.disposition, "term": mapping.term, "reason": mapping.reason}
+                    if receipt not in receipts:
+                        receipts.append(receipt)
         if not hits and not exploratory:
             continue
         eligible = _set_aside_ok(record, profile)
@@ -76,6 +97,10 @@ def discover_forecasts(records: list[ForecastRecord], profile: CapabilityProfile
             "capability_terms": sorted(hits), "match_spans": spans,
             "exploratory_terms": sorted(exploratory), "vocabulary": receipts,
             "direct_prime_set_aside_eligible": eligible,
+            "direct_code_boundary": "unknown" if native_verdict is None else "excluded" if native_verdict.excluded_by_code else "not_excluded",
+            "native_boundary_evidence": native_verdict.model_dump(mode="json") if native_verdict is not None else None,
+            "discovery_policy": "research_only_including_explicit_off_code_functions",
+            "qualification_effect": "none; direct qualification is unchanged",
             "route_hypothesis": "OEM or partner research; route unverified" if not eligible else "research; acquisition route unverified",
             "unknowns": ["Current solicitation and status", "Exact product and configuration conformity", "Tool ownership and purchasing authority", "Eligible supplier and permitted OEM role", "Alternatives or complementary products allowed"],
             "communication_permission": "none",

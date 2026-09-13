@@ -20,7 +20,7 @@ PROFILE = CapabilityProfile(client_name='NETSCOUT', naics_codes=['541519'], set_
 def rows():
     return [map_record(r, retrieved_at=CLOCK) for r in RAW]
 
-def ordinary_forecast_producer(monkeypatch, records):
+def ordinary_forecast_producer(monkeypatch, records, taxonomy=None, engagement_scope=None):
     """Execute production closure verbatim, substituting source I/O only."""
     import tools.api.forecasts as api
     enriched = []
@@ -37,7 +37,7 @@ def ordinary_forecast_producer(monkeypatch, records):
     monkeypatch.setattr(api, 'source_is_offline_safe', lambda source: True)
     tree = ast.parse(Path(rs.__file__).read_text())
     fn = next(n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == '_t_forecasts')
-    env = dict(vars(rs)) | dict(args=SimpleNamespace(client='NETSCOUT'), naics=['541519'], strategy=SimpleNamespace(set_aside_angles=[]), cap_terms=[], forecast_taxonomy=None, sam_engagement_scope=None, scope_agencies=[find('DHS')], scope_query_agencies=['DHS'], native_workstation=True)
+    env = dict(vars(rs)) | dict(args=SimpleNamespace(client='NETSCOUT'), naics=['541519'], strategy=SimpleNamespace(set_aside_angles=[]), cap_terms=[], forecast_taxonomy=taxonomy, sam_engagement_scope=engagement_scope, scope_agencies=[find('DHS')], scope_query_agencies=['DHS'], native_workstation=True)
     exec(compile(ast.Module(body=[fn], type_ignores=[]), rs.__file__, 'exec'), env)
     result, _ = env['_t_forecasts']()
     return json.loads(json.dumps(result)), enriched
@@ -92,3 +92,28 @@ def test_exploratory_competitor_does_not_establish_capability():
 def test_generic_context_does_not_kill_separate_real_tool_requirement():
     rec=rows()[0].model_copy(update={'title':'Physical alarm and network monitoring','description':'Replace physical alarm panels. Separately buy network TAPs for packet replication.'})
     assert discover_forecasts([rec],PROFILE)[0]['capability_terms']==['network tap']
+
+
+def test_operator_excluded_core_and_exploratory_terms_take_precedence():
+    from tools.relevance.taxonomy import RetrievalMapping
+    rec=rows()[0].model_copy(update={'title':'Packet capture Gigamon','description':'Gigamon packet capture'})
+    tax=CapabilityTaxonomy(client_name='NETSCOUT',version=1,updated='2026-09-12',retrieval_mappings=[RetrievalMapping(term=t,disposition='excluded',reason='Operator excludes this term') for t in ['Gigamon','packet capture']])
+    assert discover_forecasts([rec],PROFILE,taxonomy=tax)==[]
+    span=tax.model_copy(update={'retrieval_mappings':[], 'exclude':[KillRule(term='Gigamon',scope='span')]})
+    assert discover_forecasts([rec],PROFILE,taxonomy=span)==[]
+    independent=rec.model_copy(update={'description':'Gigamon. '+('Unrelated background. '*25)+'Buy network TAPs.'})
+    assert discover_forecasts([independent],PROFILE,taxonomy=span)[0]['capability_terms']==['network tap']
+
+
+def test_scope_is_hard_and_off_code_research_is_explicit():
+    from tools.relevance.scope import EngagementScope
+    from tools.relevance.taxonomy import CodeUniverse
+    scope=EngagementScope.model_validate({'departments':['VA']})
+    assert discover_forecasts(rows(),PROFILE,engagement_scope=scope)==[]
+    tax=CapabilityTaxonomy(client_name='NETSCOUT',version=2,updated='2026-09-12',core=[TaxonomyTerm(term='packet capture')],code_universe=CodeUniverse(naics=['541519']))
+    rec=rows()[0].model_copy(update={'title':'Packet capture platform','description':'','naics_code':'611430'})
+    found=discover_forecasts([rec],PROFILE,taxonomy=tax)[0]
+    assert found['direct_code_boundary']=='excluded'
+    assert found['native_boundary_evidence']['excluded_by_code'] is True
+    assert found['qualification_effect'].startswith('none')
+    assert discover_forecasts([rec],PROFILE)[0]['direct_code_boundary']=='unknown'
