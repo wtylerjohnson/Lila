@@ -252,18 +252,22 @@ def extract_public_attachment_text(
             name, payload, deadline_monotonic=deadline_monotonic)
         if not text:
             raise ValueError("attachment yielded no readable text")
+        # Extractor output is not necessarily valid Unicode. Encoding failure
+        # is an unreadable source, not a local storage failure.
+        text_bytes = text.encode('utf-8')
         try:
-            result['text_capture'] = retain_bytes(_cache_dir(), text.encode('utf-8'))
+            result['text_capture'] = retain_bytes(_cache_dir(), text_bytes)
         except (OSError, ValueError) as exc:
             retention_errors.append(str(exc)[:300])
         if retention_errors:
-            result.update(collection_status='retention_failed', diagnostic_text=text,
+            result.update(collection_status='retention_failed', diagnostic_text=text[:1000],
+                          diagnostic_text_truncated=len(text) > 1000,
                           retention_errors=retention_errors,
                           error='local retention failed: ' + '; '.join(retention_errors))
             return result
         result.update(
             text=text,
-            text_sha256=hashlib.sha256(text.encode("utf-8")).hexdigest(),
+            text_sha256=hashlib.sha256(text_bytes).hexdigest(),
             text_locator={"surface": "extracted_text", "unit": "unicode_characters",
                           "start": 0, "end": len(text)},
             extraction_limits={"max_text_characters": MAX_ATTACHMENT_TEXT_CHARS,
@@ -281,8 +285,12 @@ def extract_public_attachment_text(
         result["from_cache"] = False
         return result
     except Exception as exc:  # noqa: BLE001 - one file never sinks a sweep
-        result.update(text="", error=str(exc)[:300])
-        if retention_errors:
+        result.update(text="", error=str(exc).encode('utf-8', errors='backslashreplace').decode()[:300])
+        if isinstance(exc, UnicodeError):
+            result.update(collection_status='unreadable', stop_reason='unencodable_extracted_text')
+            if retention_errors:
+                result['retention_errors'] = retention_errors
+        elif retention_errors:
             result.update(collection_status='retention_failed', retention_errors=retention_errors)
         elif isinstance(exc, (TimeoutError, httpx.TimeoutException)):
             stage_expired = (deadline_monotonic is not None

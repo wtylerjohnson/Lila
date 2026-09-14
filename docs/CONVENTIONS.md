@@ -2218,7 +2218,7 @@ reconciliation. Unknown JSON shapes remain unknown, not zero files.
 
 File extraction retains the acquired bytes/hash/clock even when parsing fails.
 `collection_status` distinguishes captured discovery text, lookup failure,
-unreadable, inaccessible, invalid identity and not fetched. Successful caches
+unreadable, inaccessible, invalid identity, not fetched and local retention_failed. Successful caches
 check the original resource metadata, raw object hash, text object hash and an
 aware local acquisition clock. Text is not independently re-derived from raw
 bytes on a cache hit; a coherent rewrite of text and its hashes can pass. Cache
@@ -2263,7 +2263,9 @@ are not appended; earlier bound passages remain usable discovery context.
 
 Content-addressed writers and readers share per-object advisory locks. Hardlink
 publication remains the normal path; exclusive creation under that lock supports
-filesystems without hardlinks. Readers use the shared lock to avoid partial bytes.
+filesystems without hardlinks. Readers use an existing shared lock when accessible;
+read-only or legacy trees use an exact hash-verified read without creating a lock.
+Partial or changed bytes are refused even on the lock-free path.
 Conflicting existing objects move to a uniquely named quarantine entry; they are
 not deleted. Local retention_failed preserves diagnostic_inventory/diagnostic_text
 without resources_checked, captured text or promotion authority. A failed optional
@@ -2273,7 +2275,8 @@ writers, independent text derivation, source authentication or signed clocks.
 
 See docs/verification/step7-followups-053 for exact regression and saved-source
 proof. No production cache migration occurs here. Previous captures missing the
-new URL/lifecycle fields refetch on use; root owns bounded operating cache warming.
+new URL/lifecycle fields need reconciliation; root owns bounded operating cache warming.
+The original053 depth-cache exception is closed by054 below.
 The remaining ten Fable findings and prior residuals remain separately recorded.
 
 ## Native research source rendering (root integration, 2026-09-14)
@@ -2307,3 +2310,48 @@ they do not override current schema3 writes. Step6 current-source admission and
 Step7 discovery-only attachment custody apply alongside that research contract.
 No attachment receipt grants trusted requirement approval, and no research parent
 becomes a seller action without the existing independent qualification evidence.
+
+
+## Merge repair054: retained depth and all-cache migration
+
+Both depth network legs now require retained original bytes and positive requested
+notice identity in every final/redirect URL, with HTTPS SAM hosts. Description
+capture URLs omit API keys. Explicit original-notice query and fragment carriers
+are checked as well as paths; matching IDs are casefolded. Resource IDs remain a
+separate identity. Malformed body links produce an uninspectable-link diagnostic,
+not a proved foreign-notice conflict. Uninspectable acquisition origins are refused.
+These remain response checks after redirects, not a pre-contact redirect firewall.
+
+`sam_depth_capture_v2` requires typed cache fields and validated response custody.
+Legacy description_checked flags are never grandfathered: paid descriptions without
+retained same-notice capture remain historical bytes and return an untrusted gap.
+Only a new verified description acquisition can restore that surface. A missing
+key does not block the independent bounded keyless inventory reconciliation.
+Legacy/lifecycle-missing or invalid inventories are reconciled on use; current
+inventories also reconcile after the existing six-hour resource TTL or a newer
+posting clock. Failed, unknown or stale reconciliation leaves resources_checked
+false, current attachments/count/hash unavailable and an explicit gap.
+
+All prior inventory bindings require migration assessment. On the saved corpus,
+all17 recognized inventories changed hashes, including13 without a withdrawn row,
+because053 retained lifecycle fields omitted by052. An already-empty list may
+retain the same hash; this does not establish new capture lineage or approval.
+Depth migration records before/after count/hash, source trust flags and mandatory
+requirement re-review; no approval is copied. Old cache JSON is retained as opaque
+historical bytes before replacement, and original files remain intact if this
+retention fails. Withdrawn rows are deduped from the original inventory projection,
+excluded from current counts/selection, and persisted with capture and migration
+receipts in run_dossiers source_depth. They are not promoted to ledger evidence.
+
+The producer migration audit uses only root's copied old caches and the saved21
+inventory bodies. Root owns actual operating warming and re-review. Keyless
+reconciliation cannot authenticate an old unbound description. No new live source
+request, signed-origin claim or approval schema change is implied by local proof.
+
+Surrogate extractor output is unreadable, retains any acquired raw bytes, and
+cannot enter diagnostic_text. Diagnostic text after a local retention fault is
+capped at1000 characters with an explicit truncation flag. The real sweep writer
+must remain UTF-8 serializable. Retention-failed inventory refresh uses only a
+fully validated stale fallback; directories and raced conflicting object paths
+are quarantined with a bounded retry, preserving history. These are cooperative
+custody guarantees, not protection from arbitrary continuous filesystem writers.

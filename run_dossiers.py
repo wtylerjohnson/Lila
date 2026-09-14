@@ -5,7 +5,7 @@
 
 Requires a searched artifact with Anthropic triage verdicts. Spends AT MOST
 --budget metered SAM calls (LILA_DEEP_BUDGET, default 8) fetching full notice
-text — most urgent deadlines first, permanent cache so repeat runs are free —
+text, most urgent deadlines first, reusing verified description custody;
 then writes one combined dossier artifact the control room surfaces.
 """
 
@@ -22,6 +22,30 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from tools.env import load_env  # noqa: E402
 
 load_env()
+
+
+def _source_depth_record(notice_id: str, source_url: str, depth: dict) -> dict:
+    """Persist acquisition, lifecycle and migration custody beside dossier analysis."""
+    return {
+        "notice_id": notice_id,
+        "source_url": source_url,
+        "retrieved_at": depth.get("retrieved_at"),
+        "description": depth.get("description"),
+        "attachments": depth.get("attachments"),
+        "withdrawn_attachments": depth.get("withdrawn_attachments") or [],
+        "depth_schema": depth.get("depth_schema"),
+        "description_capture": depth.get("description_capture"),
+        "resources_capture": depth.get("resources_capture"),
+        "migration": depth.get("migration"),
+        "description_checked": bool(depth.get("description_checked")),
+        "resources_checked": bool(depth.get("resources_checked")),
+        "resources_schema": depth.get("resources_schema"),
+        "attachment_inventory_count": depth.get(
+            "attachment_inventory_count"),
+        "attachment_inventory_hash": depth.get(
+            "attachment_inventory_hash"),
+        "errors": depth.get("errors") or [],
+    }
 
 
 def main() -> int:
@@ -99,21 +123,8 @@ def main() -> int:
             print(f"[dossier] {i}/{len(targets)} {nid}: depth via {src}"
                   + (f" · {len(depth.get('attachments') or [])} attachments"
                      if depth.get("attachments") else ""), file=sys.stderr)
-            source_depth = {
-                "notice_id": nid,
-                "source_url": n.get("api_url") or n.get("url"),
-                "retrieved_at": depth.get("retrieved_at"),
-                "description": depth.get("description"),
-                "attachments": depth.get("attachments"),
-                "description_checked": bool(depth.get("description_checked")),
-                "resources_checked": bool(depth.get("resources_checked")),
-                "resources_schema": depth.get("resources_schema"),
-                "attachment_inventory_count": depth.get(
-                    "attachment_inventory_count"),
-                "attachment_inventory_hash": depth.get(
-                    "attachment_inventory_hash"),
-                "errors": depth.get("errors") or [],
-            }
+            source_depth = _source_depth_record(
+                nid, n.get("api_url") or n.get("url"), depth)
             # Persisted even if optional dossier synthesis fails below. One
             # successful metered source fetch must never be discarded because
             # an analysis model is unavailable.

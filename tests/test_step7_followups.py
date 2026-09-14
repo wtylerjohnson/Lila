@@ -117,13 +117,14 @@ def test_depth_cache_identity_and_structure(tmp_path, monkeypatch, saved, can_re
     monkeypatch.setattr(detail.sam_quota, 'note_call', lambda *a: None)
     def fetch(url, **kw):
         calls.append(url)
-        assert can_refresh
+        assert can_refresh or 'resources' in url
         return {'description': 'Current matching text', 'noticeId': NOTICE} if url == detail.DESC_URL else {'attachments': []}
-    monkeypatch.setattr(detail, 'get_json', fetch)
+    from tests.test_dossiers import observed_json
+    monkeypatch.setattr(detail, 'get_json', observed_json(fetch))
     out = detail.fetch_notice_depth(NOTICE, api_key='test-only-key' if can_refresh else None)
     assert out['id'] == NOTICE and out['from_cache'] is False
     assert out['description_checked'] is can_refresh
-    assert len(calls) == (2 if can_refresh else 0)
+    assert len(calls) == (2 if can_refresh else 1)
     assert out['description'] == ('Current matching text' if can_refresh else None)
 
 
