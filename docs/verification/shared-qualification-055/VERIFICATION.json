@@ -1,0 +1,100 @@
+{
+  "work_id": "SHARED-QUALIFICATION-055",
+  "status": "VERIFIED_READY_FOR_ROOT_OPERATING_INTEGRATION",
+  "base_sha": "b9892667bbd9f8036ca62f6bb880ff6e2ce88940",
+  "candidate_sha": "9cef7056bc6cbbb5ea9ef5d67fdaa5675c0fc248",
+  "branch": "codex/shared-qualification-055",
+  "baseline_red": {
+    "initial": 5,
+    "root_review": 5
+  },
+  "focused": {
+    "shared_clock_qualifier_passed": 111,
+    "saved_asset_report_passed": 66
+  },
+  "combined": {
+    "passed": 6138,
+    "skipped": 40,
+    "subtests_passed": 26,
+    "warnings": 22,
+    "failed": 0,
+    "errors": 0,
+    "seconds": 132.49,
+    "offline": true,
+    "strict": true,
+    "browser_checks": "included; outside sandbox after sandbox launch failed",
+    "fixture_bootstrap": "31 hashes verified against accepted baseline;30 copied,1 already identical; no conflicts"
+  },
+  "first_independent_verdict": "CHANGES_REQUIRED on original source hashes; five findings reproduced and patched",
+  "operating_integrated": false,
+  "meeting_input_import": "PROPOSAL_ONLY_CURRENT_LEDGER_REBIND_REQUIRED",
+  "source_audit": "source-audit/SOURCE_AUDIT.md",
+  "fixtures": "FIXTURE_BOOTSTRAP_RECEIPT.json",
+  "residuals": [
+    "Conservative source-language rules are not general semantic entailment.",
+    "Meeting calendar date and opportunity-specific contact authority remain unestablished.",
+    "Retained-source tests do not prove fresh-source availability or recovered live leads."
+  ],
+  "independent_rechecks": [
+    "CHANGES_REQUIRED initial candidate",
+    "CHANGES_REQUIRED recheck01: four additional scope cases, now regression-covered"
+  ],
+  "prior_full": {
+    "candidate_sha": "7c16a9267ff74f4e60bb1dd5eeadebaeef3acbd0",
+    "passed": 6133,
+    "skipped": 40,
+    "subtests_passed": 26,
+    "warnings": 22,
+    "failed": 0,
+    "scope": "predecessor; not final candidate parity"
+  },
+  "independent_review": {
+    "verdict": "PASS_WITH_RESIDUALS",
+    "candidate_sha": "9cef7056bc6cbbb5ea9ef5d67fdaa5675c0fc248",
+    "passed": 20,
+    "failed": 0,
+    "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/SHARED-QUALIFICATION-055/root-code-review/recheck-03/RECEIPT.json",
+    "receipt_sha256": "cebdec7d45c00902d6f0883439b88269c337e77be62682b06cb7d36e57864e14"
+  },
+  "completed_at_utc": "2026-09-14T18:00:20.547423+00:00",
+  "tested_source_sha": "9cef7056bc6cbbb5ea9ef5d67fdaa5675c0fc248",
+  "source_tree_sha": "9f46df85353e4ce92eae0f5f9a41fcf789f099a5",
+  "source_files": {
+    "agents/assess/research_subjects.py": "1f7227f91c43109b0fd8928116d57adef24dcdf59cda734175a509d9a27717f3",
+    "agents/assess/reviewed_cases.py": "3303482221cbe355e4eb4b729313eb5b30c5d784317cebc7583006c881528341",
+    "agents/golden_press/evidence_pack_v2.py": "fdae08ea20ad78621533efbbd32cba88cd6ee37680a4b2404e6077322d357846",
+    "agents/golden_press/external_product_projection.py": "54f6c8eb895f23d836c0ae232118224f1d9734a0c23f7634679d4e9865e4d168",
+    "agents/golden_press/external_product_render.py": "ce0f39fdb0524d8ef1ccbb21b3ba69834fb1ea097d9e504f5c280a7c2b9daaec",
+    "agents/leadgen/press.py": "d590a42a91252ad4404bba34dad00456b93b9a17fccb20677393b9d92e9c10ed",
+    "agents/leadgen/press_html.py": "4ef7c722e18ed6e9ac38bf6f04b251e85b13fa2db5b84c7ded43fb7d187bf457",
+    "agents/leadgen/qualify.py": "6d638ad112e03c70aa02061691971345f1d54fe828526edbf6ea18607361b02e",
+    "agents/leadgen/research_html.py": "bf15068d446c2d7f13f13b353a0dce5be46f7639c0a4fa995700376400aa6c0c",
+    "agents/reports/value_evidence.py": "fd1f7af137a1e0182997e3b7c7ac8c1518c9aec8f1ce8a2d8fc8daa8504867e1",
+    "docs/CONTRACT_SURFACES.md": "6674c3fd83e783ca6a49d947c2de6595e1d02ef9484f759a9d9ce854ee5a1ad5",
+    "docs/verification/shared-qualification-055/PRE_PATCH_REPORT.md": "b8b6ce8b2cc07a8d24a8ca5471f6df02e1795e8b61b1e9b21dfccf01b28eec37",
+    "tests/fixtures/shared_qualification_apfs.json": "9423b0684126229e88483c07977570eff33eeab20044c8927144fd899b2f9b1b",
+    "tests/fixtures/shared_qualification_root_adjacent.json": "19ff0fcbe8991b0fcc9f624e719755d61bfde2bc81672923a294c5d8d35a89a9",
+    "tests/fixtures/shared_qualification_root_multi.json": "05ca2e9d1801dad68d273b1e1724816c9baafb606eab38adacce9388f725be9a",
+    "tests/fixtures/shared_qualification_root_probes.json": "ce2510a17f1e507fc832aa3ed190ccf116037de93cee70c363e711fc5f1aa496",
+    "tests/test_assess_source_clock.py": "ce1edb5e66065dee0ccbac44707afe2818804b282da4a6011a3e84f16308f1c4",
+    "tests/test_leadgen_qualify.py": "4471d9d950434fafb2974b4fc31c881136485e9bdc959dae0c5be058f39ef986",
+    "tests/test_shared_qualification.py": "55af9e0c03048ec66524a9b432de6b68a2eac626f804975ebde1b62a034c818e"
+  },
+  "publication": "Pending reviewed-branch push; root owns main cutover",
+  "review_scope": "Local independent root review, not a new Fable/cloud verdict. All20 recorded adversarial controls pass.",
+  "legacy_residuals": "Accepted Step1/Step3/Step4/Step5/Step6/Step7 source, language, live-yield and proof residuals remain unless specifically closed by055 review.",
+  "artifact_sha256": {
+    "accepted-candidate-full.log": "9cea204cf00591678fd6f58586949baccba84d95890ced212edac555530896a1",
+    "accepted-candidate-full.xml": "d7ce01ae21f3ecea6ae78c20769ff6b88d51003f51e385765682eaa15c748056",
+    "baseline-red.log": "7f87d5f2b1a0f8895b028f8a4cd7ff4c697f8d88bba3f9ba30b6f1babca58bc4",
+    "root-probes-red.log": "1fc687a586236b7964f831fbdbaa3fb22105ebc10d0c00806759ab7ca1eefe72",
+    "root-adjacent-red.log": "7a11b77ce294cde85c5817ebd9be90ff22e4c5fdace44ac5eaaf8a7876e62ccc",
+    "same-requirement-red.log": "f764aab991f5c9a81733607c8aa858b5d8a3fe8a753ee5db7e03a21658d571b4",
+    "common-requirement-final.log": "690c87a848819fb04cc2a10380439586bf1cc46eb957111daebc1f142536ac90",
+    "FIXTURE_BOOTSTRAP_RECEIPT.json": "94ba37e076d66bbe11987774117bec24813aea3042d0aa60a8c4e30ad6a162ba",
+    "RECEIPT.json": "cebdec7d45c00902d6f0883439b88269c337e77be62682b06cb7d36e57864e14",
+    "AUDIT_RECEIPT.json": "899bb7c0e05a8136dc59829c4ed029ee7a7ba4b2a36df0cf97d11921709dc220",
+    "PROPOSAL_RECEIPT.json": "05fdd4eee90270a32d4207a4bf286831ba552a3743a62285657d804bc32497b2"
+  },
+  "audit_location": "LILA-Competitive-Benchmark/handoffs/SHARED-QUALIFICATION-055/"
+}
