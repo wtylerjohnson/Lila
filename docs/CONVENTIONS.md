@@ -2276,6 +2276,27 @@ proof. No production cache migration occurs here. Previous captures missing the
 new URL/lifecycle fields refetch on use; root owns bounded operating cache warming.
 The remaining ten Fable findings and prior residuals remain separately recorded.
 
+## Native research source rendering (root integration, 2026-09-14)
+
+`agents.leadgen.research_html` renders validated ResearchSubject identities with
+the existing canonical award-link builder. Reconciliation here binds the link to
+the exact historical source record; it does not establish a current opportunity,
+acquisition clock or eligible route. A foreign federal URL in a source field is
+refused rather than silently assigned the parent's identity.
+
+Show work displays every original source/context field with a JSON pointer and
+offers each untouched serialized JSON payload as a downloadable data URI. Public
+record links replace URL display values; original URLs, raw values, hashes and
+Assess/LeadGen JSON remain unchanged. The download is evidence transport, not a
+lint exemption: all displayed fields and source anchors pass the existing rules.
+
+Raw email/phone fields carry the existing grade_for(None) C outcome, their source
+subject/kind/field pointer and visible missing-observation/current-role language.
+Neither source retrieval claims nor the replay/report clock becomes an official
+contact sighting. These displayed fields do not create a graph observation,
+LeadTarget, current role or permission. Test owners: test_research_html_sources,
+test_research_subjects, test_research_release_retention and test_leadgen_press.
+
 ## Combined operating candidate, September 14, 2026
 
 The current combined Assess write contract is schema3/assess:v3, including the

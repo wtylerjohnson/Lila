@@ -176,17 +176,18 @@ def render_html(receipt: PressLeadGenReceipt) -> str:
         ])
         if parent.research_subject is not None:
             from .target_html import render_research, render_targets
+            from .research_html import render_source_fields, source_link
             subject = parent.research_subject
             context = json.loads(subject.discovery_context_json) if subject.discovery_context_json else {}
             boundary = "Research only; direct qualification unchanged. Code boundary: " + str(context.get("direct_code_boundary", "unknown"))
             detail += render_research(parent.research) + render_targets(parent.targets)
             detail += ('<div class="receipt-body"><p><b>Research needed</b> · ' + _text(subject.source_posture.replace('_',' ')) + '</p>'
-                       + _link(subject.source_url, subject.source_record_id)
+                       + source_link(subject)
                        + '<p>' + _text(subject.next_ask) + '</p>'
                        + '<p>' + _text(subject.route_hypothesis) + '</p><ul>'
                        + ''.join('<li>' + _text(q) + '</li>' for q in subject.open_questions)
-                       + '</ul><p>' + _text(boundary) + '</p><details><summary>Show work: original source fields and value basis</summary><pre class="mono">'
-                       + escape(subject.source_payload_json) + '</pre><pre class="mono">' + escape(subject.discovery_context_json or '') + '</pre></details></div>')
+                       + '</ul><p>' + _text(boundary) + '</p>'
+                       + render_source_fields(subject, as_of=receipt.as_of.date()) + '</div>')
         parent_rows.append(
             f'<tr id="{parent_anchors[parent.assessment_id]}">'
             f'<td><b>{_text(parent.title)}</b>{detail}</td>'

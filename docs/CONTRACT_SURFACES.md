@@ -906,6 +906,20 @@ The 053 tests separately cover cache/notice identity, storage concurrency, file
 selection, native receipt propagation and discriminating strict-Assess controls.
 Internal hashes still do not prove coherent-cache-rewrite resistance or source truth.
 
+### Research source display repair (root integration, 2026-09-14)
+
+The native LeadGen research renderer applies existing canonical federal-link and
+contact-grade contracts to source fields. Validated historical award identities
+use canonical public record links, without upgrading their acquisition or buying
+status. Grade C is the existing unknown-observation-date outcome; every displayed
+raw contact field states that its current role remains unconfirmed and retains
+its exact source subject/field pointer. Source-field display is not a LeadTarget.
+
+Every source/context field remains inspectable in Show work; byte-exact serialized
+JSON is downloadable there and unchanged in native Assess/LeadGen JSON. This is
+an explicit presentation amendment, not an immutable schema, authority, contact
+graph, gate or external branding change. Existing report lints remain unchanged.
+
 ## Combined operating candidate, September 14, 2026
 
 The current combined Assess write contract is schema3/assess:v3, including the
