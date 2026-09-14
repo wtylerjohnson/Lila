@@ -1,0 +1,40 @@
+{
+  "verdict": "PASS_WITH_RESIDUALS",
+  "reviewer_task": "01a08162-2f14-70a0-bc96-6297c68f4135",
+  "type": "independent local exact-byte review, not Fable cloud",
+  "files": {
+    "agents/assess/research_subjects.py": "e472ab8b8730f26a131535840e3036c408b2e96278956bd385c1539b6c082404",
+    "agents/golden_press/external_product_render.py": "6799c29814bf969a45bae3dad78bd58b196341445dfc894404d4de5b12c05d90",
+    "agents/leadgen/action_sheet.py": "9ccf0ba061ea41ffaa960b1d518b2ba5c73de9024d5e93b09a87f405c93a3472",
+    "agents/leadgen/target_html.py": "a6fef5fc070d400e952118b33784d5db6c2d45c61ce8df55cd8607e475003915",
+    "agents/leadgen/research_html.py": "4514911bf7aecd5ecf04ab0e748e78cf6ef1a3d8abbc5ebed08b57d40515ef90",
+    "agents/leadgen/press_html.py": "5f0ef8ef6af10d3773809fa2aeea07749ae22b8158b5a674f49066ea76b610eb",
+    "agents/golden_press/external_product_projection.py": "357b52d4f96faaedc14219c3101eb0671f88bb2806584b8b1b945e9853462abb",
+    "tests/test_native_action_projection.py": "911689a23eb216a9b0c51810a1e244ad959f4e73907b7b5968ccb03a18d26298"
+  },
+  "tests": {
+    "passed": 72,
+    "warnings": 2,
+    "seconds": 7.35
+  },
+  "findings_closed": [
+    "source-ID HTML escaping",
+    "source/target contact grading",
+    "malformed optional parent contract",
+    "stale graph material in current charts"
+  ],
+  "browser_proof": [
+    "two edit/download/reopen cycles",
+    "stable source links",
+    "six untouched source JSON downloads per artifact",
+    "unique DOM/edit IDs",
+    "no page overflow at1440/390 or print width816"
+  ],
+  "residuals": [
+    "Full offline strict suite and operating integration pending",
+    "No fresh-source run, authentic-source success, lead yield or comparative win",
+    "Print-width and existing print regression are not complete PDF pagination acceptance",
+    "Prose editing is not approved-feedback ingestion or complete reference feature parity",
+    "Prior Step1-7/055/056 residuals retained"
+  ]
+}

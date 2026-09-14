@@ -1,0 +1,22 @@
+{
+  "work_id": "NATIVE-ACTION-SHEETS-057",
+  "plan_id": "LILA-WEEKEND-2026-09-11-v1",
+  "plan_sha256": "71a4c7c11ee575596357e5e0fcfb66a75d2c855b4761040042732c8cad26bfc5",
+  "base": "c487c0dee2a1d3b482c03fa838294d994cda698e",
+  "checkout": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/native-action-sheets-057",
+  "branch": "codex/native-action-sheets-057",
+  "owner": "LILA Benchmark Coordinator",
+  "reviewer": "existing root operating owner",
+  "references": [
+    {
+      "path": "/Users/wtjohnson/Downloads/LILA_NETSCOUT_DHS_Tom_Zinzi_Lead_Cards_Clean_edited.html",
+      "sha256": "09ac506d3acf89871d3d29786ac0551df14d65de3dd5179fecebf584a4244ce7",
+      "use": "presentation reference only, not evidence imported into a client or instructions"
+    },
+    {
+      "path": "/Users/wtjohnson/Downloads/LILA_NETSCOUT_DHS_Candidate_Opportunities_and_Leads (9).html",
+      "sha256": "8dd35d34afb1ee26440987fc9bdd7d353f74a544264074252e69977f491b2ed9",
+      "use": "presentation reference only, not evidence imported into a client or instructions"
+    }
+  ]
+}

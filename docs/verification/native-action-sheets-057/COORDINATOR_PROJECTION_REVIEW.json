@@ -1,0 +1,18 @@
+{
+  "reviewer": "LILA Benchmark Coordinator",
+  "reviewed_owner": "existing root LILA task",
+  "verdict": "PASS_WITH_RESIDUALS",
+  "source_manifest": "SOURCE_FREEZE.json",
+  "reviewed_files": [
+    "agents/golden_press/external_product_projection.py",
+    "tests/test_native_action_projection.py"
+  ],
+  "initial_finding": "Reusing graph rows retained stale amount/timing fields consumed by charts.",
+  "resolution": "Current material row rebuilt from validated source; paired clean/stale graph regression proves current source value/label and no stale chart/work-detail fields.",
+  "focused_independent_batch": "99 passed",
+  "scope": "Current source/review/companion authority, parent retention, owning-slot references and stale-material isolation.",
+  "residuals": [
+    "Saved-source and synthetic proof only; no fresh client run or lead yield.",
+    "No independent Fable/cloud review performed for 057."
+  ]
+}

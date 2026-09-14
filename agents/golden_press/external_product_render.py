@@ -9,6 +9,7 @@ import re
 from typing import Any
 from urllib.parse import urlsplit
 
+from agents.leadgen.action_sheet import ACTION_SHEET_CSS
 from agents.golden_press.external_product_contract import load_external_product_slots
 from agents.golden_press.external_product_projection import ExternalProductDocument
 
@@ -60,6 +61,7 @@ _PRODUCT_CSS = r"""
 .vector-map{min-height:180px}
 .product-reference{color:var(--muted);font-size:11px;font-family:var(--mono);margin-top:10px}
 .product-status{white-space:nowrap}
+.product-record[data-research-subject]{grid-column:1/-1;break-inside:auto;page-break-inside:auto}
 @media(max-width:720px){.product-records,.product-visuals{grid-template-columns:1fr}.product-slot-metrics{grid-template-columns:1fr 1fr}.product-fields{grid-template-columns:1fr}.product-fields dd{margin-bottom:5px}}
 @page{size:letter;margin:.42in}
 @media print{
@@ -157,20 +159,22 @@ def _fields(record: dict) -> str:
 
 
 def _targets(record: dict) -> str:
-    from agents.leadgen.target_html import render_targets, render_research
+    from agents.leadgen.target_html import render_targets, render_research, contact_channel
     if record.get("research") or any(t.get("next_ask") for t in record.get("targets") or []):
-        return render_research(record.get("research")) + render_targets(record.get("targets") or [])
+        return render_research(record.get("research"), edit_key=str(record.get("record_key")) + ":research") + render_targets(record.get("targets") or [])
     rows = []
     for target in record.get("targets") or []:
         name = target.get("name") or target.get("role_needed") or target.get("role")
         organization = target.get("organization") or ""
         source_kind = target.get("source_kind") or "target"
-        contact = target.get("email") or target.get("phone") or ""
+        contact = " · ".join(label + ": " + contact_channel(target[key], target.get("source_url") or record.get("source_url"))
+                             for key, label in (("email", "Email"), ("phone", "Phone")) if target.get(key))
         rows.append(
             '<div class="product-target">'
             f'<span>{esc(source_kind)}</span><strong>{esc(name)}</strong>'
             f'<span>{esc(organization)}</span>'
-            + (f'<span> · {esc(contact)}</span>' if contact else "")
+            + (f'<span> · {contact}</span><p>Grade C: contact observation date not established. Confirm current details.</p>' if contact else "")
+            + ('<span> · ' + _source_link(target) + '</span>' if target.get("source_url") else "")
             + "</div>")
     if not rows:
         return '<div class="product-gap">Target research next: resolve the named roles for this opportunity without substituting a generic inbox or switchboard.</div>'
@@ -207,6 +211,8 @@ def _forecast_pocs(record: dict) -> str:
 def _record(record: dict, *, include_targets: bool = False) -> str:
     if "reference_key" in record:
         return _priority(record)
+    if record.get("research_subject"):
+        return _research_record(record)
     summary = record.get("summary") or record.get("next_action") or ""
     return (
         '<article class="product-record" '
@@ -222,6 +228,32 @@ def _record(record: dict, *, include_targets: bool = False) -> str:
         + _saved_lead_history(record)
         + (_targets(record) if include_targets else "")
         + "</article>")
+
+
+def _research_record(record: dict) -> str:
+    """Render the current source-bound parent supplied by the projection owner."""
+    from datetime import datetime
+    from agents.assess.contracts import ResearchSubject
+    from agents.leadgen.action_sheet import research_subject_brief
+    from agents.leadgen.research_html import (reviewed_context, render_reviewed_context,
+        render_source_fields, render_forecast_contacts, source_link)
+    from agents.leadgen.target_html import render_targets
+    subject = ResearchSubject.model_validate(record["research_subject"])
+    overlay = reviewed_context(subject)
+    research = overlay.research if overlay else None
+    if record.get("research") != (research.model_dump(mode="json") if research else None):
+        raise ValueError("rendered research differs from its source-bound reviewed overlay")
+    as_of = datetime.fromisoformat(record['research_as_of'].replace('Z', '+00:00')).date() if record.get('research_as_of') else None
+    key = str(record.get("record_key"))
+    return ('<article class="product-record" data-research-subject="' + esc(subject.subject_id)
+            + '" id="' + esc(key) + '" data-record-key="' + esc(key) + '">'
+            '<span class="product-record-kind">' + ('Planned purchase / research' if subject.source_kind == 'forecast'
+                                                    else 'Existing contract / research')
+            + '</span><h3>' + esc(subject.title) + '</h3><p>' + esc(subject.agency) + '</p>'
+            + source_link(subject) + research_subject_brief(subject, research=research, as_of=as_of, edit_key=key + ':research')
+            + render_forecast_contacts(subject, as_of=as_of)
+            + render_targets(overlay.targets if overlay else ())
+            + render_reviewed_context(subject) + render_source_fields(subject, as_of=as_of) + '</article>')
 
 
 def _family_history(record: dict) -> str:
@@ -265,23 +297,28 @@ def _saved_lead_history(record: dict) -> str:
 
 
 def _lead_rows(record: dict) -> str:
+    from agents.leadgen.target_html import editable_text
     rows = []
-    for lead in record.get("lead_rows") or []:
+    for index, lead in enumerate(record.get("lead_rows") or []):
         action = lead.get("next_action") or {}
         route = lead.get("seller_path") or {}
         pathway = lead.get("external_pathway") or {}
+        key = str(record.get("record_key")) + ":" + str(lead.get("lead_id") or index)
         fields = {
             "Lead readiness": lead.get("lead_tier"),
             "Route": route.get("kind"),
             "Pathway": pathway.get("kind"),
-            "Next action": action.get("verb"),
-            "Due": action.get("due_at") or action.get("due_date"),
-            "Evidence to complete": action.get("blocked_by"),
+            "Action type": action.get("verb"),
+            "Owner": action.get("owner") or "Confirm the responsible operator",
+            "Due": action.get("due") or "Confirm timing",
+            "Resolve before advancing": action.get("blocked_by"),
+            "Communication permission": action.get("communication_permission") or lead.get("communication_permission") or "none",
         }
         detail = "".join(f"<dt>{esc(k)}</dt><dd>{esc(_display_value(v))}</dd>"
                          for k, v in fields.items() if v)
-        rows.append('<div class="product-target"><dl class="product-fields">'
-                    + detail + '</dl></div>')
+        rows.append('<div class="product-target"><div class="first-question"><h4>What to do next</h4><p>'
+                    + editable_text(action.get("object") or "Confirm the next action from the source assessment.", key + ":object")
+                    + '</p></div><dl class="product-fields">' + detail + '</dl></div>')
     return ('<div class="product-targets"><h4>Lead generation</h4>'
             + "".join(rows) + '</div>') if rows else ""
 
@@ -461,7 +498,7 @@ def render_external_product(doc: ExternalProductDocument) -> tuple[str, str]:
                      "slot per record, and named gaps instead of silent blanks."),
         ids=ids,
     )
-    studio = studio.replace("</style>", _PRODUCT_CSS + "\n</style>", 1)
+    studio = studio.replace("</style>", _PRODUCT_CSS + ACTION_SHEET_CSS + "\n</style>", 1)
     client = _client_export(studio, receipts=details)
     return studio, client
 

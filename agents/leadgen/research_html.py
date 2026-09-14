@@ -94,15 +94,14 @@ def render_source_fields(subject, *, as_of: date) -> str:
                 rendered = (f'<span data-contact="1" data-grade="{grade}" data-source="{source}">'
                             + rendered + '</span><small>Grade C: source observation date unknown. '
                             'Saved field only; current contact role remains unconfirmed.</small>')
-            rows.append(f'<tr><th scope="row" class="mono">{escape(pointer)}</th><td>{rendered}</td></tr>')
+            rows.append(f'<dt class="mono">{escape(pointer)}</dt><dd>{rendered}</dd>')
         blocks.append(
             f'<p><b>{"Original source fields" if kind == "source" else "Saved discovery context"}</b> · '
             f'<a download="{escape(subject.source_sha256)}.{kind}.json" '
             f'data-source-json="{kind}" href="data:application/json;base64,{download}">Download untouched JSON</a></p>'
             '<p>URL fields link to the source record; the download retains the exact original URL and values. '
             'Saved contact text does not establish present responsibility or freshness.</p>'
-            '<table class="data-table source-fields"><thead><tr><th>Original field</th><th>Saved value</th></tr></thead>'
-            '<tbody>' + ''.join(rows) + '</tbody></table>')
+            '<dl class="source-fields">' + ''.join(rows) + '</dl>')
     return ('<details><summary>Show work: original source fields and value basis</summary>'
             f'<p class="mono">Source SHA-256: {escape(subject.source_sha256)}</p>'
             + ''.join(blocks) + '</details>')
@@ -200,9 +199,10 @@ def render_forecast_contact_record(record, *, as_of=None):
         ask = ('Confirm small-business participation and the permitted contract route.'
                if contact.contact_type == 'small_business_coordinator' else
                'Confirm procurement status and the appropriate technical contact.')
+        ask = projected['source_id'] + ': ' + ask
         rows.append(f'<tr data-contact="1" data-grade="{grade}" data-source="{source}"><td><b>' + escape(contact.name or 'Name not published')
                     + '</b><br>' + escape(role) + '</td><td>' + email
-                    + '</td><td>' + phone + '</td><td>' + ask + '</td></tr>')
+                    + '</td><td>' + phone + '</td><td>' + escape(ask) + '</td></tr>')
     stamp = projected['published'].isoformat() if projected['published'] else 'Not established'
     return ('<section class="forecast-pocs"><h4>Published forecast contacts</h4>'
             '<p>Start with the published POCs to confirm current status and the permitted communication route. '

@@ -2355,3 +2355,14 @@ must remain UTF-8 serializable. Retention-failed inventory refresh uses only a
 fully validated stale fallback; directories and raced conflicting object paths
 are quarantined with a bounded retry, preserving history. These are cooperative
 custody guarantees, not protection from arbitrary continuous filesystem writers.
+
+
+## Native action sheets (NATIVE-ACTION-SHEETS-057, September 14, 2026)
+
+The user authorized learning from both supplied DHS report deliverables and implementing the shared improvements for the next press. `agents/leadgen/action_sheet.py` provides source-bound summaries and common sheet styling; `target_html` gives reviewed rationale, buyer requirement, explicitly proposed fit/route, first question and reassessment conditions. The ordinary Press retains every parent in its original assessment order with direct navigation and untouched source downloads. Its existing three-case reviewed priority view now includes exact-bound zero-child research parents. Source research remains separate from qualified leads and outreach permission.
+
+The Market Map uses current immutable Assess/source/review equality and unchanged read-context checks before projecting research parents into their existing owning slot, or the forecast/historical-spend slot when absent from the graph. A detached ID/priority flag cannot supply authority. Eight slot names/order and all gate semantics are unchanged. Source values and date labels retain their meanings; a current source cannot inherit stale graph magnitude or timing. Known business, distinct expansion questions, customer attribution and literal relative timing remain separate.
+
+Native source fields use a readable definition list in Show work and preserve the exact downloadable JSON. New research questions name the original forecast or contract; old saved questions remain intact. Golden preserves `CurrentNextAction.object`, `owner`, `due`, blockers and communication permission, and both available contact channels. An owner label does not imply account-rep assignment; a phone is not labeled mobile without source evidence.
+
+Prose-only stable `data-edit-id` hooks extend the existing Studio editor for research explanations and next actions. Source amounts, dates, contact details, qualification and evidence are not editable through those hooks. Portable edit/download/reopen tests cover the new fields; edited prose is not automatically imported as approved research. Scriptless client export remains scriptless. No source retrieval, paid enrichment, client rerun or new editing runtime is introduced.

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field, is_dataclass
 from copy import deepcopy
+import json
 import re
 from typing import Any, Iterable, Optional
 from urllib.parse import urlsplit
@@ -304,6 +305,130 @@ def _companion_binding(leadgen: dict, context) -> tuple[dict, dict, list[str]]:
         return parents, children, []
     except (ValueError, TypeError, KeyError, AttributeError) as exc:
         return {}, {}, [f"Current lead projection withheld: {exc}"]
+
+
+def _bound_research_parents(leadgen: dict, context, client_name: str) -> tuple[list, list[str]]:
+    """Read current research through the same immutable run as the companion.
+
+    Neither graph IDs nor detached parent flags authorize a reviewed action.
+    Review equality is checked separately because source identity can remain
+    unchanged when an operator changes the review or its target set.
+    """
+    from agents.assess.contracts import AssessRun
+    from agents.leadgen.enums import AssessmentSubjectKind
+    from agents.assess.ledger import _scope_designator
+    from agents.assess.reviewed_cases import ReviewedCases, ReviewedSubject
+    from agents.leadgen.from_assess import coerce_assess_run, _parent_from_subject
+    from agents.leadgen.press import PressLeadGenReceipt
+
+    if not leadgen.get("receipt"):
+        return [], []
+    try:
+        current = getattr(context, "current_assess_run", None)
+        if current is None or context.gaps or not context.unchanged():
+            raise ValueError("Current research source binding is unavailable")
+        current = AssessRun.model_validate(current.model_dump(mode="json"))
+        run = coerce_assess_run(leadgen.get("assessment") or {})
+        receipt = PressLeadGenReceipt.model_validate(leadgen["receipt"])
+        if (context.client_name != client_name or run.client_name != client_name
+                or run.model_dump(mode="json") != current.model_dump(mode="json")
+                or leadgen.get("assess_run_id") != run.run_id
+                or receipt.assess_run_id != run.run_id or receipt.client_name != client_name
+                or receipt.as_of != run.as_of):
+            raise ValueError("Research companion differs from current client or immutable Assess run")
+        subjects = list(run.research.items)
+        if not subjects:
+            return [], []
+        book = getattr(context, "current_reviewed_cases", None)
+        if book is None:
+            raise ValueError("Current reviewed-subject input is unavailable")
+        book = ReviewedCases.model_validate(book.model_dump(mode="json"))
+        if book.client_name != client_name or (book.subjects and book.scope_designator != _scope_designator(run.scope)):
+            raise ValueError("Reviewed subjects differ from current client or scope")
+        reviews = {r.subject_id: r for r in book.subjects}
+        supplied = [p for p in receipt.parents if p.research_subject is not None]
+        if len(supplied) != len(subjects) or len({p.subject_id for p in supplied}) != len(subjects):
+            raise ValueError("Research companion omits or repeats current parents")
+        supplied = {p.subject_id: p for p in supplied}
+        result = []
+        for subject in subjects:
+            overlay = (ReviewedSubject.model_validate_json(subject.reviewed_overlay_json)
+                       if subject.reviewed_overlay_json else None)
+            current_review = reviews.get(subject.subject_id)
+            if ((overlay.model_dump(mode="json") if overlay else None)
+                    != (current_review.model_dump(mode="json") if current_review else None)):
+                raise ValueError("Research overlay or target set differs from current review")
+            native = _parent_from_subject(run, (AssessmentSubjectKind.RESEARCH_SUBJECT, subject))
+            parent = supplied.get(subject.subject_id)
+            excluded = {"dossier_schema_version", "identity_status"}
+            if parent is None or parent.model_dump(exclude=excluded) != native.model_dump(exclude=excluded):
+                raise ValueError("Research parent differs from its current immutable source and review")
+            result.append(native)
+        if not context.unchanged():
+            raise ValueError("Research inputs changed during projection")
+        return result, []
+    except (ValueError, TypeError, KeyError, AttributeError) as exc:
+        return [], [f"Current research projection withheld: {exc}"]
+
+
+def _own_research_parents(parents, owning_groups, claim):
+    """Keep source parents in their existing slot; no child or bid admission.
+
+    An existing row supplies only its owning position and identity. Visible
+    research comes entirely from the validated source parent, never graph prose.
+    Absent graph records are retained in the forecast or historical-spend slot.
+    """
+    from agents.reports.value_evidence import value_evidence
+    result = []
+    for parent in parents:
+        subject = parent.research_subject
+        default_slot = "future-forecasts" if subject.source_kind == "forecast" else "agency-spending"
+        matches = [(slot, row) for slot, rows in owning_groups.items() for row in rows
+                   if row.get("source_id") == subject.source_record_id
+                   and row.get("source_url") == _http_url(str(subject.source_url))
+                   and ((subject.source_kind == "forecast" and slot == "future-forecasts")
+                        or (subject.source_kind == "award" and slot in {
+                            "agency-spending", "competitors", "teaming-opportunities"}))]
+        if matches:
+            slot, row = matches[0]
+        else:
+            slot = default_slot
+            row = {"record_key": _record_key("research-subject", subject.subject_id)}
+            if not claim(row):
+                continue
+            owning_groups[slot].append(row)
+        raw = json.loads(subject.source_payload_json)
+        # Reuse position/identity only. Derived charts also read these rows, so
+        # retaining old graph amounts, clocks or summaries would bypass the
+        # validated source even though the action-sheet renderer ignores them.
+        key = row["record_key"]
+        row.clear()
+        planned = raw.get("anticipated_solicitation") if subject.source_kind == "forecast" else None
+        row.update({
+            "record_key": key,
+            "kind": subject.source_kind, "source_id": subject.source_record_id,
+            "source_url": _http_url(str(subject.source_url)), "title": subject.title,
+            "agency": subject.agency, "office": subject.component,
+            "summary": subject.evidence[0].excerpt,
+            "value": raw.get("estimated_value_range") if subject.source_kind == "forecast" else None,
+            "response_date": None,
+            "window_state": (f"Planned solicitation release: {planned}; confirm current status"
+                             if planned else "Current buying window not established"),
+            "source_as_of": None,
+            "research_subject": subject.model_dump(mode="json"),
+            "research_as_of": parent.as_of.isoformat(),
+            "research": parent.research.model_dump(mode="json") if parent.research else None,
+            "targets": [t.model_dump(mode="json") for t in parent.targets],
+            "assessment_status": subject.source_posture,
+            "next_action": parent.research.next_ask if parent.research else subject.next_ask,
+            "lead_status": "Research parent; no qualified lead implied",
+            "value_evidence": value_evidence(raw, source_url=str(subject.source_url),
+                                              source_id=subject.source_record_id),
+            "research_projection_basis": "Current immutable Assess source and reviewed subject",
+            "owning_slot_id": slot,
+        })
+        result.append(row)
+    return result
 
 
 def _withhold_notice(row: dict, gaps: list[str]) -> None:
@@ -748,6 +873,12 @@ def build_external_product_document(
         if claim(row):
             event_rows.append(row)
 
+    research_parents, research_gaps = _bound_research_parents(leadgen, context, client_name)
+    companion_gaps.extend(research_gaps)
+    research_rows = _own_research_parents(research_parents, {
+        "future-forecasts": forecast_rows, "competitors": competitor_rows,
+        "teaming-opportunities": teaming_rows, "agency-spending": spending_rows,
+    }, claim)
     priorities = _priority_records(qualified_rows, forecast_rows)
     if leadgen.get("status") == "complete":
         priorities = _priority_records([
@@ -755,11 +886,11 @@ def build_external_product_document(
             if r.get("current_notice_admitted") and any(c.get("lead_tier") in {"LEAD_T1", "LEAD_T2"}
                    for c in r.get("lead_rows", []))
         ][:3], [])
-    reviewed_rows = [r for r in opportunity_rows if r.get("research")]
+    reviewed_rows = [r for r in [*opportunity_rows, *research_rows] if r.get("research")]
     if reviewed_rows:
         # Deliberate current research selection; all candidates remain in slot 5.
         priorities = [{
-            "reference_key": row["record_key"], "reference_slot_id": "federal-opportunities",
+            "reference_key": row["record_key"], "reference_slot_id": row.get("owning_slot_id", "federal-opportunities"),
             "priority": index, "title": row["title"], "source_url": row.get("source_url"),
             "priority_kind": row["research"]["status"].replace("_", " "),
             "why": row["research"]["rationale"], "route": row["research"]["route"],
@@ -771,8 +902,8 @@ def build_external_product_document(
         _metric("Ranked pursuits", len(priorities),
                 "References the owned opportunity or forecast record below."),
         _metric("Named targets", sum(len(r.get("targets") or [])
-                                     for r in opportunity_rows),
-                "Targets remain bound to their qualifying opportunity."),
+                                     for r in [*opportunity_rows, *research_rows]),
+                "Targets remain bound to their owning assessment or reviewed research parent."),
     ] if priorities else []
 
     slots_by_id = {
@@ -784,7 +915,7 @@ def build_external_product_document(
             (() if priorities else (
                 "No pursuit cleared the current qualification boundary; resolve "
                 "the displayed graph and coverage holds before promotion.",)),
-            {"ranked_from": "qualified opportunities, then forecasts"}),
+            {"ranked_from": "current qualified opportunities or explicitly reviewed research priorities"}),
         "research-mesh": ProductSlot(
             2, "research-mesh", contract_slots[1].heading,
             "populated", "The approved vocabulary, boundaries, query lanes, and receipts used to find this market.",

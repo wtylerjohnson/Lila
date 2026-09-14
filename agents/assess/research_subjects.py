@@ -126,10 +126,13 @@ def make_subject(kind, row, *, questions=(), route=None, discovery_context=None,
     sha=digest(row)
     clock=acquisition_clock(row.get('retrieved_at'),basis='none',component='research_record',field='source_row.retrieved_at',binding=sha)
     unknowns=tuple(questions) or ('Current acquisition or continuation decision','Actual OEM and covered products','Government tool owner and purchasing authority','Eligible supplier and permitted OEM role')
+    next_ask = (f'Is {title} still planned, and which current requirements identify the products, technical owner and eligible supplier?'
+                if kind == 'forecast' else
+                f'Who owns the next decision for {row.get("piid") or row.get("award_id")}, which products are covered, and is there a separate need beyond the recorded contract?')
     return ResearchSubject(subject_id=subject_identity(system,sid),source_kind=kind,source_posture=source_posture(kind,row,as_of),source_system=system,source_record_id=sid,source_url=url,title=title,agency=agency,component=component,source_payload_json=canonical(row),source_sha256=sha,
         discovery_context_json=canonical(discovery_context) if discovery_context else None,
         evidence=(EvidenceRef(evidence_id='ev:research:v1:'+sha,tier=EvidenceTier.PROGRAM if kind=='forecast' else EvidenceTier.MARKET,kind=EvidenceKind.AGENCY_FORECAST if kind=='forecast' else EvidenceKind.AWARD,source_name=system,source_url=url,source_acquisition=clock,record_hash=sha,excerpt=text,primary_source=True,supports=(EvidenceUse.BUYER,)),),
-        open_questions=unknowns, next_ask='Which current acquisition documents establish the next decision, tool ownership, eligible supplier and permitted OEM role?',route_hypothesis=route or 'Acquisition route remains to be established')
+        open_questions=unknowns, next_ask=next_ask,route_hypothesis=route or 'Acquisition route remains to be established')
 
 
 def build_research_ledger(searches, profile, *,run_id,client_name,profile_version,scope,as_of):

@@ -1,0 +1,16 @@
+{
+  "base": "c487c0dee2a1d3b482c03fa838294d994cda698e",
+  "files": {
+    "agents/assess/research_subjects.py": "e472ab8b8730f26a131535840e3036c408b2e96278956bd385c1539b6c082404",
+    "agents/golden_press/external_product_projection.py": "357b52d4f96faaedc14219c3101eb0671f88bb2806584b8b1b945e9853462abb",
+    "agents/golden_press/external_product_render.py": "6799c29814bf969a45bae3dad78bd58b196341445dfc894404d4de5b12c05d90",
+    "agents/leadgen/press_html.py": "5f0ef8ef6af10d3773809fa2aeea07749ae22b8158b5a674f49066ea76b610eb",
+    "agents/leadgen/target_html.py": "a6fef5fc070d400e952118b33784d5db6c2d45c61ce8df55cd8607e475003915",
+    "agents/leadgen/research_html.py": "4514911bf7aecd5ecf04ab0e748e78cf6ef1a3d8abbc5ebed08b57d40515ef90",
+    "agents/leadgen/action_sheet.py": "9ccf0ba061ea41ffaa960b1d518b2ba5c73de9024d5e93b09a87f405c93a3472",
+    "tests/test_native_action_sheets.py": "1ec401f8af200093eca5373d01f2e0600083b3989a4856bec426f6dfc2b9fd0c",
+    "tests/test_native_action_projection.py": "911689a23eb216a9b0c51810a1e244ad959f4e73907b7b5968ccb03a18d26298",
+    "tests/test_native_action_editing.py": "6db3d42176ad31d6cd82e85ad584a60297c1f5b29b6282f6c246fa63426483d0"
+  },
+  "frozen_at_utc": "2026-09-14T22:26:18.978311+00:00"
+}

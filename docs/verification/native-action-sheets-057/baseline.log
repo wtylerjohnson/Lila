@@ -1,0 +1,71 @@
+FFFFF.                                                                   [100%]
+=================================== FAILURES ===================================
+____________ test_golden_preserves_complete_current_action_and_date ____________
+
+    def test_golden_preserves_complete_current_action_and_date():
+        from agents.leadgen.next_action import CurrentNextAction
+        from agents.leadgen.enums import NextActionVerb
+        action = CurrentNextAction(verb=list(NextActionVerb)[0],
+            object='Ask the named buyer for the current kit requirements.',
+            owner='Assigned operator', due=date(2026, 10, 3), blocked_by='Confirm the permitted route')
+        row = {'lead_rows': [{'lead_id': 'l1', 'lead_tier': 'HOLD',
+                              'next_action': action.model_dump(mode='json')}]}
+        before = json.dumps(row, sort_keys=True)
+        page = _lead_rows(row)
+        for text in (action.object, action.owner, '2026-10-03', action.blocked_by):
+>           assert text in page
+E           assert 'Ask the named buyer for the current kit requirements.' in '<div class="product-targets"><h4>Lead generation</h4><div class="product-target"><dl class="product-fields"><dt>Lead .../dt><dd>review_requirement_span</dd><dt>Evidence to complete</dt><dd>Confirm the permitted route</dd></dl></div></div>'
+
+tests/test_native_action_sheets.py:45: AssertionError
+___________________ test_golden_contact_keeps_both_channels ____________________
+
+    def test_golden_contact_keeps_both_channels():
+        page = _targets({'targets': [{'name': 'Published person', 'role': 'Contract specialist',
+            'email': 'person@example.gov', 'phone': '202-555-0104',
+            'source_url': 'https://example.gov/notice/1'}]})
+>       assert 'person@example.gov' in page and '202-555-0104' in page
+E       assert ('person@example.gov' in '<div class="product-targets"><h4>Targets specific to this opportunity</h4><div class="product-target"><span>target</span><strong>Published person</strong><span></span><span> · person@example.gov</span></div></div>' and '202-555-0104' in '<div class="product-targets"><h4>Targets specific to this opportunity</h4><div class="product-target"><span>target</span><strong>Published person</strong><span></span><span> · person@example.gov</span></div></div>')
+
+tests/test_native_action_sheets.py:53: AssertionError
+_________ test_shared_research_puts_reason_and_first_question_in_view __________
+
+    def test_shared_research_puts_reason_and_first_question_in_view():
+        from agents.leadgen.target_html import render_research
+        research = _book().cases[0].research
+        page = unescape(render_research(research))
+>       assert research.rationale in page
+E       assert 'Synthetic rationale for case 1' in '<div class="research-action"><strong>technical qualification</strong><dl class="product-fields"><dt>Buyer requirement...0000000000000000000000000000001/view" target="_blank" rel="noopener noreferrer">Synthetic notice fixture</a></p></div>'
+E        +  where 'Synthetic rationale for case 1' = LeadResearch(status='technical_qualification', priority=True, rationale='Synthetic rationale for case 1', buyer_requir...lidation requirement.', observed_date=None, effective_date=None, record_hash=None, primary_source=True, supports=()),)).rationale
+
+tests/test_native_action_sheets.py:62: AssertionError
+____________ test_reviewed_parent_without_children_can_be_priority _____________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a192cf0>
+
+    def test_reviewed_parent_without_children_can_be_priority(monkeypatch):
+        receipt, parent = reviewed_parent(monkeypatch)
+        before = receipt.model_dump_json()
+        page = render_html(receipt)
+>       assert 'id="priority"' in page
+E       assert 'id="priority"' in '<!doctype html>\n<html lang="en"><head><meta charset="utf-8">\n<meta name="viewport" content="width=device-width, ini... complete release includes the assessment, lead report, dossier and source receipts.</footer>\n</main></body></html>\n'
+
+tests/test_native_action_sheets.py:72: AssertionError
+_______ test_native_research_is_readable_action_sheet_with_full_receipts _______
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a1929c0>
+
+    def test_native_research_is_readable_action_sheet_with_full_receipts(monkeypatch):
+        run, _, _ = build(monkeypatch)
+        receipt = run_press(assess=run, client_name='NETSCOUT')
+        page = render_html(receipt)
+>       assert 'Candidate opportunities and leads identified' in page
+E       assert 'Candidate opportunities and leads identified' in '<!doctype html>\n<html lang="en"><head><meta charset="utf-8">\n<meta name="viewport" content="width=device-width, ini... complete release includes the assessment, lead report, dossier and source receipts.</footer>\n</main></body></html>\n'
+
+tests/test_native_action_sheets.py:84: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_native_action_sheets.py::test_golden_preserves_complete_current_action_and_date
+FAILED tests/test_native_action_sheets.py::test_golden_contact_keeps_both_channels
+FAILED tests/test_native_action_sheets.py::test_shared_research_puts_reason_and_first_question_in_view
+FAILED tests/test_native_action_sheets.py::test_reviewed_parent_without_children_can_be_priority
+FAILED tests/test_native_action_sheets.py::test_native_research_is_readable_action_sheet_with_full_receipts
+5 failed, 1 passed in 0.76s

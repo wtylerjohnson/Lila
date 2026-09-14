@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Any
 from urllib.parse import quote, urlsplit
 
 from agents.reports.lint import BANNED_PHRASES
+from .action_sheet import ACTION_SHEET_CSS, bound_parent_research, research_subject_brief
 
 if TYPE_CHECKING:
     from .press import PressLeadGenReceipt
@@ -174,51 +175,70 @@ def render_html(receipt: PressLeadGenReceipt) -> str:
             ("Requirement", parent.requirement_span),
             ("Source acquisition", "Collection time not established in this parent summary; inspect the source Assess evidence."),
         ])
+        from .target_html import render_research, render_targets
         if parent.research_subject is not None:
-            from .target_html import render_research, render_targets
-            from .research_html import render_source_fields, source_link, render_reviewed_context
+            from .research_html import (render_source_fields, source_link,
+                                        render_reviewed_context, render_forecast_contacts)
             subject = parent.research_subject
-            context = json.loads(subject.discovery_context_json) if subject.discovery_context_json else {}
-            boundary = "Research only; direct qualification unchanged. Code boundary: " + str(context.get("direct_code_boundary", "unknown"))
-            from .research_html import render_forecast_contacts
-            detail += render_forecast_contacts(subject, as_of=receipt.as_of.date())
-            detail += render_research(parent.research) + render_targets(parent.targets)
-            detail += render_reviewed_context(subject)
-            detail += ('<div class="receipt-body"><p><b>Research needed</b> · ' + _text(subject.source_posture.replace('_',' ')) + '</p>'
-                       + source_link(subject)
-                       + '<p>' + _text(subject.next_ask) + '</p>'
-                       + '<p>' + _text(subject.route_hypothesis) + '</p><ul>'
-                       + ''.join('<li>' + _text(q) + '</li>' for q in subject.open_questions)
-                       + '</ul><p>' + _text(boundary) + '</p>'
-                       + render_source_fields(subject, as_of=receipt.as_of.date()) + '</div>')
+            research = bound_parent_research(parent)
+            detail = (research_subject_brief(subject, research=research, as_of=receipt.as_of.date())
+                      + render_forecast_contacts(subject, as_of=receipt.as_of.date())
+                      + render_targets(parent.targets if research else ())
+                      + render_reviewed_context(subject)
+                      + detail + render_source_fields(subject, as_of=receipt.as_of.date()))
+            kind = "Planned purchase / research" if subject.source_kind == "forecast" else "Existing contract / research"
+            identity = source_link(subject)
+        else:
+            kind = "Opportunity assessment"
+            identity = _text(parent.solicitation_number or parent.subject_id)
+            overview = ('<div class="action-grid"><section><h4>Buyer requirement</h4><p>'
+                        + _text(parent.requirement_span or "Read the source assessment to confirm the requirement.")
+                        + '</p></section><section><h4>Assessment status</h4><p>'
+                        + _text(parent.live_classification or parent.subject_kind)
+                        + '</p></section></div>')
+            actions = []
+            for lead in receipt.leads:
+                if lead.parent_assessment_id != parent.assessment_id:
+                    continue
+                action = lead.next_action
+                actions.append('<section><h4>What to do next</h4><p>' + _text(action.object)
+                               + '</p><p>Owner: ' + _text(action.owner) + ' · Due: '
+                               + _text(action.due or "Confirm timing") + '</p><p>'
+                               + _text(action.blocked_by or "Follow the permitted source route.")
+                               + '</p><p>Communication permission: ' + _text(action.communication_permission)
+                               + '</p>' + render_research(lead.research) + render_targets(lead.targets)
+                               + _link(lead.external_pathway.source_url, "Original pathway and evidence") + '</section>')
+            detail = overview + ''.join(actions) + detail
         parent_rows.append(
-            f'<tr id="{parent_anchors[parent.assessment_id]}">'
-            f'<td><b>{_text(parent.title)}</b>{detail}</td>'
-            f'<td>{_text(parent.agency)}</td>'
-            f'<td>{_text(parent.subject_kind)}</td>'
-            f'<td>{len(parent.lead_ids)}</td></tr>')
-    parent_body = (
-        '<div class="table-scroll"><table class="data-table"><thead><tr>'
-        '<th>Opportunity / receipt</th><th>Agency</th><th>Subject kind</th>'
-        '<th>Child leads</th></tr></thead><tbody>' + "".join(parent_rows)
-        + '</tbody></table></div>' if parent_rows else
-        '<p class="empty">No parent assessments supplied.</p>'
-    )
+            f'<article class="assessment-sheet" id="{parent_anchors[parent.assessment_id]}">'
+            f'<header><span class="eyebrow">{_text(kind)}</span><h3>{_text(parent.title)}</h3>'
+            f'<p>{_text(parent.agency)} · {identity}</p>'
+            f'<p>{len(parent.lead_ids)} linked lead records; readiness is shown separately.</p></header>'
+            f'<div class="assessment-sheet-body">{detail}</div></article>')
+    parent_body = ''.join(parent_rows) if parent_rows else '<p class="empty">No parent assessments supplied.</p>'
+    if parent_rows:
+        parent_body = ('<nav class="sheet-index" aria-label="Candidate sheets">'
+                       + ''.join(f'<a href="#{parent_anchors[p.assessment_id]}">{_text(p.agency)} · {_text(p.title)}</a>'
+                                 for p in receipt.parents) + '</nav>' + parent_body)
     sections = [_section(1, "parents", "Opportunity assessments",
-                        f"{len(receipt.parents)} parents · {len(receipt.leads)} draft leads. "
-                        "An opportunity assessment remains valid with zero children.",
-                        parent_body)]
-    from agents.leadgen.target_html import render_research, render_targets
+                        f"{len(receipt.parents)} assessments · {len(receipt.leads)} lead records. "
+                        "Research remains visible while the next buying decision is being confirmed.", parent_body)]
     priority_rows = []
-    for lead in receipt.leads:
-        if lead.research and lead.research.priority:
-            parent = parents[lead.parent_assessment_id]
-            priority_rows.append('<article class="product-record"><h3>' + _text(parent.title)
-                                 + '</h3>' + render_research(lead.research)
-                                 + render_targets(lead.targets) + '</article>')
+    for parent in receipt.parents:
+        research = bound_parent_research(parent)
+        if research is None and parent.research_subject is None:
+            research = next((lead.research for lead in receipt.leads
+                             if lead.parent_assessment_id == parent.assessment_id
+                             and lead.research and lead.research.priority), None)
+        if research and research.priority:
+            priority_rows.append('<article class="assessment-sheet"><header><h3>' + _text(parent.title)
+                                 + '</h3></header><div class="assessment-sheet-body">' + render_research(research)
+                                 + f'<a href="#{parent_anchors[parent.assessment_id]}">Open assessment, contacts and sources</a>'
+                                 + '</div></article>')
     if priority_rows:
         sections.insert(0, _section(0, "priority", f"Priority opportunities · {receipt.as_of.date()}",
-                                   "", ''.join(priority_rows[:3])))
+                                   "Reviewed research priorities. Lead readiness and contact permission remain separate.",
+                                   ''.join(priority_rows[:3])))
     for index, bucket in enumerate(receipt.by_lead_tier, 2):
         rows = []
         for lead in receipt.leads:
@@ -299,21 +319,21 @@ def render_html(receipt: PressLeadGenReceipt) -> str:
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{_text(receipt.client_name)} · Press Lead Gen</title>
-<style>{CHROME_CSS}</style></head><body><main class="report">
+<style>{CHROME_CSS}{ACTION_SHEET_CSS}</style></head><body><main class="report">
 <header class="topbar"><div class="brand"><div class="brand-copy">
 <strong>LILA</strong><span>Federal Market Map · Press Lead Gen</span></div></div>
 <div class="refresh"><b>Assessment as of</b><span>{_text(receipt.as_of.isoformat())}</span></div>
 <div class="toolbar"><b>{_text(receipt.client_name)}</b></div></header>
-<section class="hero"><div class="eyebrow">Primary deliverable · HTML</div>
-<h1>{_text(receipt.client_name)}<br>Press Lead Gen</h1>
-<p class="lead">Opportunity assessments, lead tiers, and the evidence behind the next action.</p>
-<p class="boundary">{
+<section class="hero"><div class="eyebrow">Candidate opportunities and leads</div>
+<h1>{_text(receipt.client_name)}<br>Candidate opportunities and leads identified</h1>
+<p class="lead">Buyer needs, people to contact, and what to do next, with the sources behind each assessment.</p>
+<details class="boundary"><summary>Assessment and qualification receipt</summary><p>{
     "Orchestration stub. Active lead T1 / lead T2 remain empty."
     if receipt.stub else
     "Real qualifier ran. HOLD remains the fail-closed default when evidence is thin."
-} Assessment run: {_text(receipt.assess_run_id)}.</p></section>
+} Assessment run: {_text(receipt.assess_run_id)}.</p></details></section>
 <div class="metrics">{metrics}</div>
-<nav class="nav" aria-label="Report sections"><a href="#parents">Parents</a>
+<nav class="nav" aria-label="Report sections"><a href="#parents">Assessments and actions</a>
 <a href="#tier-LEAD_T1">Lead T1 / T2</a><a href="#tier-WATCH">Watch</a>
 <a href="#tier-HOLD">Hold</a><a href="#tier-REJECT">Reject</a>
 <a href="#steps">Steps</a><a href="#coverage">Coverage / trace</a></nav>
