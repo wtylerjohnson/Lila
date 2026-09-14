@@ -439,11 +439,16 @@ def _is_incumbent_renewal(
     holder = _clean(lead.seller_path.holder).casefold()
     relation = (r"^(?:" + re.escape(holder) + r" is (?:the |an? )?(?:current )?incumbent\b|"
                 r"the (?:current )?incumbent (?:is |: )" + re.escape(holder) + r"\b)")
-    requirement = _requirement_terms(subject)
-    incumbent = any((match := re.search(relation, text)) and not _uncertain(text)
-                    and _incumbent_scope(text, text[match.end():], requirement)
-                    for text in _source_sentences(subject, as_of=as_of))
-    return incumbent and _approaching_decision(lead, subject, as_of=as_of)
+    requirements = _requirement_terms(subject)
+    texts = tuple(_source_sentences(subject, as_of=as_of))
+    # One requirement must witness every leg, not a different 'any' match per leg.
+    return any(
+        any((match := re.search(relation, text)) and not _uncertain(text)
+            and _incumbent_scope(text, text[match.end():], (need,), implicit=len(requirements) == 1)
+            for text in texts)
+        and _approaching_decision(lead, subject, as_of=as_of, requirement=(need,),
+                                  implicit=len(requirements) == 1)
+        for need in requirements)
 
 
 def _is_prime_recompete(
@@ -464,14 +469,18 @@ def _is_prime_recompete(
     )
     if not prime:
         return False
-    if not _approaching_decision(lead, subject, as_of=as_of, markers=("recompete",)):
+    requirements = _requirement_terms(subject)
+    return any(_prime_requirement(lead, subject, as_of=as_of, requirement=(need,),
+                                 implicit=len(requirements) == 1) for need in requirements)
+
+
+def _prime_requirement(lead, subject, *, as_of, requirement, implicit):
+    if not _approaching_decision(lead, subject, as_of=as_of, markers=("recompete",),
+                                 requirement=requirement, implicit=implicit):
         return False
     # A hypothesized vendor role, rival product, or vehicle seat cannot grant
     # the prime authority to choose and supply tools on this requirement.
     texts = list(_source_sentences(subject, as_of=as_of))
-    requirement = _requirement_terms(subject)
-    if not requirement:
-        return False
     tool_lines = [text for text in texts if re.search(r"\b(tool|software|equipment|product)s?\b", text)
                   and _relation_scope(text, requirement, implicit=False)]
     conflicts = [text for text in _source_sentences(subject, as_of=as_of, counter=True)
@@ -551,7 +560,7 @@ def _requirement_terms(subject):
                'product', 'services', 'service', 'appliances', 'systems', 'system'}
     terms = (frozenset(re.findall(r'[a-z0-9]+', c)) - generic for c in clauses
              if not _uncertain(c) and not _scope_shift(c))
-    return tuple(need for need in terms if need)
+    return tuple(dict.fromkeys(need for need in terms if need))
 
 
 def _relation_scope(text, requirements, *, implicit, event=False):
@@ -579,10 +588,10 @@ def _relation_scope(text, requirements, *, implicit, event=False):
     return len(requirements) == 1
 
 
-def _incumbent_scope(text, tail, requirement):
+def _incumbent_scope(text, tail, requirement, *, implicit=True):
     tail = tail.strip(' .;')
     ordinary_role = tail in {'', 'contractor', 'supplier', 'reseller', 'holder'}
-    return (_relation_scope(text, requirement, implicit=True) and (
+    return (_relation_scope(text, requirement, implicit=implicit) and (
         ordinary_role or tail.startswith(('for ', 'on '))
         or _relation_scope(text, requirement, implicit=False)))
 
@@ -629,14 +638,15 @@ def _dated(text, due):
     return bool(re.search(r"\b(?:" + '|'.join(forms) + r")\b", text))
 
 
-def _approaching_decision(lead, subject, *, as_of: date, markers=_DECISION_MARKERS):
+def _approaching_decision(lead, subject, *, as_of: date, markers=_DECISION_MARKERS,
+                          requirement=None, implicit=True):
     due = lead.buying_motion.clock or lead.next_action.due
     if due is None or due < as_of:
         return False
     # The dated event must be present in the same original source sentence.
     # Matching a calendar elsewhere in the document does not bind the decision.
     source = list(_source_sentences(subject, as_of=as_of))
-    requirement = _requirement_terms(subject)
+    requirement = _requirement_terms(subject) if requirement is None else requirement
     # A cancellation may be dated by the cancellation action, not by the
     # future event it cancels. Keep cross-sentence conflicts as questions.
     conflicts = [text for text in _source_sentences(subject, as_of=as_of, counter=True)
@@ -644,7 +654,7 @@ def _approaching_decision(lead, subject, *, as_of: date, markers=_DECISION_MARKE
                  and _uncertain(text) and _relation_scope(text, requirement, implicit=True, event=True)]
     lines = [text for text in source
              if _dated(text, due) and any(marker in text for marker in markers)
-             and _relation_scope(text, requirement, implicit=True, event=True)]
+             and _relation_scope(text, requirement, implicit=implicit, event=True)]
     return bool(lines) and not conflicts
 
 

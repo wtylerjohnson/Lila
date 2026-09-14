@@ -312,6 +312,7 @@ def test_withholding_current_notice_also_withholds_saved_amount_explanations():
 
 ROOT_PROBES = json.loads((Path(__file__).parent / 'fixtures/shared_qualification_root_probes.json').read_text())['probes']
 ROOT_PROBES += json.loads((Path(__file__).parent / 'fixtures/shared_qualification_root_adjacent.json').read_text())['probes']
+ROOT_PROBES += json.loads((Path(__file__).parent / 'fixtures/shared_qualification_root_multi.json').read_text())['probes']
 
 
 @pytest.mark.parametrize('probe', ROOT_PROBES, ids=lambda p: p['probe'])
@@ -321,7 +322,7 @@ def test_independent_root_semantic_probes(probe):
     text = probe['source_excerpt']
     live = _timed_live().model_copy(update={'requirement_excerpt': text,
         'authoritative_evidence': (_evidence(excerpt=text, supports=[EvidenceUse.REQUIREMENT, EvidenceUse.TIMING]),)})
-    prime = probe['probe'].startswith('prime_')
+    prime = probe['probe'].startswith(('prime_', 'multi_prime_'))
     actions = _decision_actions()
     if prime: actions['rows'][0].update(row_class='displacement', rule_id='T2', why_this_account='Prime-led recompete; vendor component role is packet capture.')
     receipt = run_press(assess=_run(live=[live], partners=[_prime_partner() if prime else _holder_partner()]), target_actions=actions)
@@ -365,3 +366,13 @@ def test_generic_software_is_not_a_concrete_requirement_for_renewal_promotion():
         'authoritative_evidence':(_evidence(excerpt=text,supports=[EvidenceUse.REQUIREMENT,EvidenceUse.TIMING]),)})
     receipt=run_press(assess=_run(live=[live],partners=[_holder_partner()]),target_actions=_decision_actions())
     assert not receipt.active_lead_t1 and not receipt.active_lead_t2
+
+
+def test_repeated_same_requirement_does_not_create_a_second_scope():
+    from tests.test_leadgen_qualify import _timed_live, _evidence
+    from agents.assess.contracts import EvidenceUse
+    text='The contractor must provide packet capture. ' + _timed_live().requirement_excerpt
+    live=_timed_live().model_copy(update={'requirement_excerpt':text,
+        'authoritative_evidence':(_evidence(excerpt=text,supports=[EvidenceUse.REQUIREMENT,EvidenceUse.TIMING]),)})
+    receipt=run_press(assess=_run(live=[live],partners=[_holder_partner()]),target_actions=_decision_actions())
+    assert receipt.active_lead_t1

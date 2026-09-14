@@ -1,0 +1,61 @@
+{
+  "provenance": "Root recheck02: same-requirement intersection; synthetic paired controls",
+  "probes": [
+    {
+      "probe": "multi_renewal_role_other_object",
+      "scope": "synthetic in-memory Testco fixture; not a client run",
+      "source_excerpt": "The contractor shall provide packet capture. The contractor shall provide office equipment. Example Reseller is the incumbent for office equipment. Other Vendor is the incumbent for packet capture. The packet capture renewal decision is on 2026-10-01.",
+      "expected": "NO_ACTIVE_LEAD",
+      "tiers": [
+        "LEAD_T1"
+      ],
+      "active_leads": 1,
+      "matches_expected": false,
+      "reasons": [
+        "LEAD_T1: incumbent_renewal with named buyer, dated clock, published pathway, and seller route channel_reseller via Example Reseller"
+      ]
+    },
+    {
+      "probe": "multi_renewal_correct_object_positive",
+      "scope": "synthetic in-memory Testco fixture; not a client run",
+      "source_excerpt": "The contractor shall provide packet capture. The contractor shall provide office equipment. Example Reseller is the incumbent for packet capture. The packet capture renewal decision is on 2026-10-01.",
+      "expected": "ACTIVE_LEAD",
+      "tiers": [
+        "LEAD_T1"
+      ],
+      "active_leads": 1,
+      "matches_expected": true,
+      "reasons": [
+        "LEAD_T1: incumbent_renewal with named buyer, dated clock, published pathway, and seller route channel_reseller via Example Reseller"
+      ]
+    },
+    {
+      "probe": "multi_prime_authority_other_object",
+      "scope": "synthetic in-memory Testco fixture; not a client run",
+      "source_excerpt": "The contractor shall provide packet capture. The contractor shall provide office equipment. The packet capture recompete award decision is on 2026-10-01. Example Reseller is an eligible prime for this recompete for packet capture. The prime shall select and supply office equipment.",
+      "expected": "NO_ACTIVE_LEAD",
+      "tiers": [
+        "LEAD_T2"
+      ],
+      "active_leads": 1,
+      "matches_expected": false,
+      "reasons": [
+        "LEAD_T2: prime_recompete with named buyer, dated clock, published pathway, and seller route prime_to_sub via Example Reseller"
+      ]
+    },
+    {
+      "probe": "multi_prime_correct_object_positive",
+      "scope": "synthetic in-memory Testco fixture; not a client run",
+      "source_excerpt": "The contractor shall provide packet capture. The contractor shall provide office equipment. The packet capture recompete award decision is on 2026-10-01. Example Reseller is an eligible prime for this recompete for packet capture. The prime shall select and supply packet capture software.",
+      "expected": "ACTIVE_LEAD",
+      "tiers": [
+        "LEAD_T2"
+      ],
+      "active_leads": 1,
+      "matches_expected": true,
+      "reasons": [
+        "LEAD_T2: prime_recompete with named buyer, dated clock, published pathway, and seller route prime_to_sub via Example Reseller"
+      ]
+    }
+  ]
+}
