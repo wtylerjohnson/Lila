@@ -439,7 +439,9 @@ def _is_incumbent_renewal(
     holder = _clean(lead.seller_path.holder).casefold()
     relation = (r"^(?:" + re.escape(holder) + r" is (?:the |an? )?(?:current )?incumbent\b|"
                 r"the (?:current )?incumbent (?:is |: )" + re.escape(holder) + r"\b)")
-    incumbent = any(re.search(relation, text) and not _uncertain(text)
+    requirement = _requirement_terms(subject)
+    incumbent = any((match := re.search(relation, text)) and not _uncertain(text)
+                    and _incumbent_scope(text, text[match.end():], requirement)
                     for text in _source_sentences(subject, as_of=as_of))
     return incumbent and _approaching_decision(lead, subject, as_of=as_of)
 
@@ -467,15 +469,24 @@ def _is_prime_recompete(
     # A hypothesized vendor role, rival product, or vehicle seat cannot grant
     # the prime authority to choose and supply tools on this requirement.
     texts = list(_source_sentences(subject, as_of=as_of))
+    requirement = _requirement_terms(subject)
+    if not requirement:
+        return False
     tool_lines = [text for text in texts if re.search(r"\b(tool|software|equipment|product)s?\b", text)
-                  and not _explicitly_outside_scope(text)]
-    if any(_uncertain(text) or re.search(r"government[ -](?:furnished|provided|selected)", text)
-           for text in tool_lines):
+                  and _relation_scope(text, requirement, implicit=False)]
+    conflicts = [text for text in _source_sentences(subject, as_of=as_of, counter=True)
+                 if (_relation_scope(text, requirement, implicit=False)
+                     or _tool_reference(text) and _relation_scope(text, requirement, implicit=True))
+                 and not _scope_shift(text)]
+    if any((_uncertain(text) and re.search(r"\b(?:tool|software|equipment|product|authority|select|supply)\b", text))
+           or re.search(r"government[ -](?:furnished|provided|selected)", text)
+           or re.search(r"^(?:the )?(?:government|agency) (?:shall |will |must )?(?:supply|supplies|provide|provides|furnish|furnishes|select|selects)\b", text)
+           for text in conflicts):
         return False
     holder = _clean(lead.seller_path.holder).casefold()
     eligible = any(holder and re.search(r"^" + re.escape(holder)
                    + r" is (?:an? |the )?(?:eligible|authorized) prime for (?:this|the current) recompete\b", text)
-                   and not _uncertain(text) for text in texts)
+                   and not _uncertain(text) and _relation_scope(text, requirement, implicit=True) for text in texts)
     actor = r"(?:the (?:prime(?: contractor)?|contractor)|" + re.escape(holder) + r")"
     authority = any(re.search(r"^" + actor + r"\s+(?:shall|must|will|is authorized to)\b"
                               r".{0,30}\bselect\b.{0,80}\b(?:supply|provide|purchase)\b", text)
@@ -516,7 +527,74 @@ def _explicitly_outside_scope(text: str) -> bool:
     return bool(re.search(r"\bis outside (?:the |this )?scope\b", text)) and not _uncertain(text)
 
 
-def _source_sentences(subject: Any, *, as_of: date):
+def _scope_shift(text: str) -> bool:
+    """Explicit different work stays separate even if it uses the same tools."""
+    return (_explicitly_outside_scope(text) or bool(re.search(
+        r"^(?:separately,?\s*)?(?:an?|the) (?:unrelated|separate)\b|"
+        r"\b(?:for|on|under|within|in) (?:an?|the) (?:separate|unrelated|different)\b|"
+        r"\bfor (?:its|their) own internal use\b", text)))
+
+
+def _requirement_terms(subject):
+    """Literal objects of affirmative requirement clauses, already source-bound.
+
+    This does not infer capability fit. It requires the role/tool claim to refer
+    to the same concrete work as an affirmative buyer requirement. Ambiguous
+    or unrecognized clause forms remain research; all parent evidence survives.
+    """
+    text = _clean(getattr(subject, 'requirement_excerpt', '')).casefold()
+    clauses = re.findall(r"\b(?:the )?contractor (?:shall|must) "
+                         r"(?:provide|supply|deliver|install|implement|perform|operate|maintain) "
+                         r"([^.!?;]+)", text)
+    generic = {'a', 'an', 'the', 'and', 'or', 'of', 'for', 'to', 'with', 'its',
+               'software', 'hardware', 'equipment', 'tools', 'tool', 'products',
+               'product', 'services', 'service', 'appliances', 'systems', 'system'}
+    terms = (frozenset(re.findall(r'[a-z0-9]+', c)) - generic for c in clauses
+             if not _uncertain(c) and not _scope_shift(c))
+    return tuple(need for need in terms if need)
+
+
+def _relation_scope(text, requirements, *, implicit, event=False):
+    if not requirements or _scope_shift(text):
+        return False
+    words = set(re.findall(r'[a-z0-9]+', text))
+    explicit = re.search(r'\b(?:for|within|under|at|in)\s+(.+)', text)
+    if explicit:
+        scope_words = set(re.findall(r'[a-z0-9]+', explicit.group(1)))
+        current = bool(re.match(r'(?:this|the current) (?:requirement|recompete|renewal|task order|contract)\b', explicit.group(1)))
+        if not current and not any(need and need <= scope_words for need in requirements):
+            return False
+    modifier = re.search(r'^(.+?)\s+(?:renewal decision|recompete|option exercise)\b', text) if event else None
+    if modifier:
+        qualifiers = set(re.findall(r'[a-z0-9]+', modifier.group(1))) - {
+            'the','a','an','this','that','seat','faces','face','current','upcoming','scheduled','next'}
+        if qualifiers and not any(need and need <= qualifiers for need in requirements):
+            return False
+    if any(need and need <= words for need in requirements):
+        return True
+    if not implicit:
+        return False
+    # Unqualified references inside this notice can refer to its work; an
+    # explicit different object cannot borrow that default through co-occurrence.
+    return len(requirements) == 1
+
+
+def _incumbent_scope(text, tail, requirement):
+    tail = tail.strip(' .;')
+    ordinary_role = tail in {'', 'contractor', 'supplier', 'reseller', 'holder'}
+    return (_relation_scope(text, requirement, implicit=True) and (
+        ordinary_role or tail.startswith(('for ', 'on '))
+        or _relation_scope(text, requirement, implicit=False)))
+
+
+def _tool_reference(text):
+    return bool(re.search(r'\b(?:this|that) tool[ -]selection authority\b|'
+                          r'\bgovernment[ -](?:furnished|provided|selected) (?:tools|software|equipment)\b|'
+                          r'\b(?:the|these|those) (?:tools|software|equipment)\b|'
+                          r'\b(?:select|supply|provide|purchase) (?:any )?(?:tools|software|equipment)\b', text))
+
+
+def _source_sentences(subject: Any, *, as_of: date, counter=False):
     """Use only this subject's original primary evidence, never action copy.
 
     This is a conservative English-language sufficient-evidence rule, not
@@ -526,7 +604,8 @@ def _source_sentences(subject: Any, *, as_of: date):
         clock = acquired_at(evidence)
         if (not evidence.primary_source or clock is None or clock.date() > as_of
                 or evidence.kind in {EvidenceKind.VEHICLE, EvidenceKind.NEWS, EvidenceKind.WEB_LEAD}
-                or not ({EvidenceUse.REQUIREMENT, EvidenceUse.TIMING, EvidenceUse.ACCESS} & set(evidence.supports))):
+                or not ({EvidenceUse.REQUIREMENT, EvidenceUse.TIMING, EvidenceUse.ACCESS,
+                         *({EvidenceUse.COUNTEREVIDENCE} if counter else set())} & set(evidence.supports))):
             continue
         notice_id = getattr(subject, "notice_id", None)
         if notice_id:
@@ -557,12 +636,15 @@ def _approaching_decision(lead, subject, *, as_of: date, markers=_DECISION_MARKE
     # The dated event must be present in the same original source sentence.
     # Matching a calendar elsewhere in the document does not bind the decision.
     source = list(_source_sentences(subject, as_of=as_of))
+    requirement = _requirement_terms(subject)
     # A cancellation may be dated by the cancellation action, not by the
     # future event it cancels. Keep cross-sentence conflicts as questions.
-    conflicts = [text for text in source if re.search(r"\b(?:renewal|option|recompete|decision)\b", text)
-                 and _uncertain(text) and not _explicitly_outside_scope(text)]
+    conflicts = [text for text in _source_sentences(subject, as_of=as_of, counter=True)
+                 if re.search(r"\b(?:renewal|option|recompete|decision)\b", text)
+                 and _uncertain(text) and _relation_scope(text, requirement, implicit=True, event=True)]
     lines = [text for text in source
-             if _dated(text, due) and any(marker in text for marker in markers)]
+             if _dated(text, due) and any(marker in text for marker in markers)
+             and _relation_scope(text, requirement, implicit=True, event=True)]
     return bool(lines) and not conflicts
 
 

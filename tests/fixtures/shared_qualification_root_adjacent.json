@@ -1,0 +1,89 @@
+{
+  "provenance": "Independent root recheck01; synthetic scope-binding controls",
+  "probes": [
+    {
+      "probe": "renewal_unrelated_cancelled_event",
+      "scope": "synthetic in-memory Testco fixture; not a client run",
+      "source_excerpt": "The contractor shall provide packet capture. Example Reseller is the incumbent. The seat faces a renewal decision on 2026-10-01. Separately, an unrelated office-equipment renewal decision was canceled on 2026-09-05.",
+      "expected": "ACTIVE_LEAD",
+      "tiers": [
+        "WATCH"
+      ],
+      "active_leads": 0,
+      "matches_expected": false,
+      "reasons": [
+        "WATCH: four-leg draft retained; confirm a source-backed future buying decision"
+      ]
+    },
+    {
+      "probe": "renewal_incumbent_unrelated_scope",
+      "scope": "synthetic in-memory Testco fixture; not a client run",
+      "source_excerpt": "The contractor shall provide packet capture. Example Reseller is the incumbent for a separate office-equipment contract. Other Vendor is the incumbent for this packet-capture requirement. The seat faces a renewal decision on 2026-10-01.",
+      "expected": "NO_ACTIVE_LEAD",
+      "tiers": [
+        "LEAD_T1"
+      ],
+      "active_leads": 1,
+      "matches_expected": false,
+      "reasons": [
+        "LEAD_T1: incumbent_renewal with named buyer, dated clock, published pathway, and seller route channel_reseller via Example Reseller"
+      ]
+    },
+    {
+      "probe": "prime_authority_unrelated_tool",
+      "scope": "synthetic in-memory Testco fixture; not a client run",
+      "source_excerpt": "The contractor shall provide packet capture. The recompete award decision is on 2026-10-01. Example Reseller is an eligible prime for this recompete.  The prime shall select and supply office productivity software for its own internal use. The agency supplies the packet capture software.",
+      "expected": "NO_ACTIVE_LEAD",
+      "tiers": [
+        "LEAD_T2"
+      ],
+      "active_leads": 1,
+      "matches_expected": false,
+      "reasons": [
+        "LEAD_T2: prime_recompete with named buyer, dated clock, published pathway, and seller route prime_to_sub via Example Reseller"
+      ]
+    },
+    {
+      "probe": "prime_authority_cancelled_separate_sentence",
+      "scope": "synthetic in-memory Testco fixture; not a client run",
+      "source_excerpt": "The contractor shall provide packet capture. The recompete award decision is on 2026-10-01. Example Reseller is an eligible prime for this recompete. The prime shall select and supply packet capture software. That tool-selection authority was withdrawn on 2026-09-05.",
+      "expected": "NO_ACTIVE_LEAD",
+      "tiers": [
+        "WATCH"
+      ],
+      "active_leads": 0,
+      "matches_expected": true,
+      "reasons": [
+        "WATCH: four-leg draft retained; confirm a source-backed future recompete, eligible prime route, and tool selection and supply authority"
+      ]
+    },
+    {
+      "probe": "prime_unrelated_equipment_uncertainty",
+      "scope": "synthetic in-memory Testco fixture; not a client run",
+      "source_excerpt": "The contractor shall provide packet capture. The recompete award decision is on 2026-10-01. Example Reseller is an eligible prime for this recompete. The prime shall select and supply packet capture software. Optional office-equipment maintenance may be proposed separately.",
+      "expected": "ACTIVE_LEAD",
+      "tiers": [
+        "WATCH"
+      ],
+      "active_leads": 0,
+      "matches_expected": false,
+      "reasons": [
+        "WATCH: four-leg draft retained; confirm a source-backed future recompete, eligible prime route, and tool selection and supply authority"
+      ]
+    },
+    {
+      "probe": "prime_current_named_holder_positive",
+      "scope": "synthetic in-memory Testco fixture; not a client run",
+      "source_excerpt": "The contractor shall provide packet capture. The recompete award decision is on 2026-10-01. Example Reseller is an eligible prime for this recompete. Example Reseller shall select and supply packet capture software.",
+      "expected": "ACTIVE_LEAD",
+      "tiers": [
+        "LEAD_T2"
+      ],
+      "active_leads": 1,
+      "matches_expected": true,
+      "reasons": [
+        "LEAD_T2: prime_recompete with named buyer, dated clock, published pathway, and seller route prime_to_sub via Example Reseller"
+      ]
+    }
+  ]
+}

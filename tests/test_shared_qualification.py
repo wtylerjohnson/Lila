@@ -311,6 +311,7 @@ def test_withholding_current_notice_also_withholds_saved_amount_explanations():
 
 
 ROOT_PROBES = json.loads((Path(__file__).parent / 'fixtures/shared_qualification_root_probes.json').read_text())['probes']
+ROOT_PROBES += json.loads((Path(__file__).parent / 'fixtures/shared_qualification_root_adjacent.json').read_text())['probes']
 
 
 @pytest.mark.parametrize('probe', ROOT_PROBES, ids=lambda p: p['probe'])
@@ -339,3 +340,28 @@ def test_root_reduced_buyer_map_keeps_obligation_basis_and_end():
     assert values[0]['period']['end'] == '2027-04-15'
     assert values[0]['source_field'] == '/amount' and values[0]['source_basis_field'] == '/amount_basis'
     assert values[0]['source_url'] == native['url']
+
+
+@pytest.mark.parametrize('role,event', [
+    ('Example Reseller is the incumbent.', 'The office-equipment renewal decision is on 2026-10-01.'),
+    ('Example Reseller is the incumbent office-equipment contractor.', 'The seat faces a renewal decision on 2026-10-01.'),
+    ('Example Reseller is the incumbent for an office-equipment contract.', 'The seat faces a renewal decision on 2026-10-01.'),
+])
+def test_incumbent_and_event_cannot_borrow_another_requirement(role,event):
+    from tests.test_leadgen_qualify import _timed_live, _evidence
+    from agents.assess.contracts import EvidenceUse
+    text = 'The contractor shall provide packet capture. ' + role + ' ' + event
+    live = _timed_live().model_copy(update={'requirement_excerpt':text,
+        'authoritative_evidence':(_evidence(excerpt=text,supports=[EvidenceUse.REQUIREMENT,EvidenceUse.TIMING]),)})
+    receipt=run_press(assess=_run(live=[live],partners=[_holder_partner()]),target_actions=_decision_actions())
+    assert not receipt.active_lead_t1 and not receipt.active_lead_t2
+
+
+def test_generic_software_is_not_a_concrete_requirement_for_renewal_promotion():
+    from tests.test_leadgen_qualify import _timed_live, _evidence
+    from agents.assess.contracts import EvidenceUse
+    text=_timed_live().requirement_excerpt.replace('packet capture','software')
+    live=_timed_live().model_copy(update={'requirement_excerpt':text,
+        'authoritative_evidence':(_evidence(excerpt=text,supports=[EvidenceUse.REQUIREMENT,EvidenceUse.TIMING]),)})
+    receipt=run_press(assess=_run(live=[live],partners=[_holder_partner()]),target_actions=_decision_actions())
+    assert not receipt.active_lead_t1 and not receipt.active_lead_t2
