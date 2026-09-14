@@ -1,0 +1,311 @@
+{
+  "work_id": "ROOT-MERGE-REPAIR-054",
+  "status": "TARGETED_VERIFIED_PENDING_ROOT_COMBINED_VALIDATION",
+  "created_at_utc": "2026-09-14T15:05:46.583059+00:00",
+  "base_reviewed_sha": "7415686783b9de7a2d0c59187fe294b6afbf2eba",
+  "pre_patch_docs_commit": "d55eb0d1c8fc8277961e178640321792a4ee3e00",
+  "exact_tested_code_commit": "8e2bac4f97dec9f166b3881b4226aa36c86c85c3",
+  "branch": "codex/step7-merge-repair-054",
+  "checkout": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step7-merge-repair-054",
+  "code_and_contract_file_sha256": {
+    "docs/CONTRACT_SURFACES.md": "e150fa2568b7b0595c981e37fdfd3f33246232ec8c3f687532d8a220b4bfb702",
+    "docs/CONVENTIONS.md": "d2e2f922e500231d92984367d86e50ff6dbd22630855961447f3bdff62ae106c",
+    "run_dossiers.py": "2c0ed9b12ab7de66bebdfee1f79cadebecbde2059a25c29c1ef7524150beae2f",
+    "tests/test_dossiers.py": "c7a2bc1a93963cae2bd812972490ee36200ed5f3a952ffb26b5de6b438fd3c22",
+    "tests/test_step7_followups.py": "2c9a632f9b7e891fecc3bf7f647177deb1ab70e700b158879c0e112e091de8c6",
+    "tests/test_step7_merge_repair.py": "044267f33bb5772de91a57c99d111c4bf8fc70784fcd85016e8e3be3c575b46b",
+    "tools/api/sam_attachment_text.py": "f421bafd8fbb0d82c97c09d1613f4d4b9850d61dcaac06a926dc9762f67f50b2",
+    "tools/api/sam_capture.py": "3877c09eaf02bff7412da4b68d60b1b213a2481c6eadc8d36f7f5de4a54f20f9",
+    "tools/api/sam_notice_detail.py": "c7a5c7480abe688fe56bbf3400e2ec1b3d4cd1eee0649320bae875494fd1479f"
+  },
+  "review_driver_sha256": "08aef99416dc703e7f57472dbc58e12052f97698cd23337b1c3ba6d5808841bc",
+  "commands": [
+    {
+      "kind": "focused",
+      "argv": [
+        "/Users/wtjohnson/Lila/.venv/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_step7_merge_repair.py",
+        "tests/test_step7_followups.py",
+        "tests/test_step7_evidence_collection.py",
+        "tests/test_sam_attachment_text.py",
+        "tests/test_dossiers.py",
+        "tests/test_native_notice_bridge.py",
+        "tests/test_native_surface_contract.py",
+        "tests/test_assess_source_clock.py",
+        "tests/test_assess_ledger.py",
+        "tests/test_external_notice_authority.py",
+        "tests/test_step6_material_source.py",
+        "tests/test_triage_prefilter.py",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--junitxml=/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/outputs/step7-merge-repair-054/focused-commit.xml"
+      ],
+      "cwd": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step7-merge-repair-054",
+      "env": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONPATH": "docs/verification/step7-followups-053/offline_guard",
+        "LILA_SUITE_OFFLINE": "1",
+        "LILA_SUITE_STRICT": "1"
+      },
+      "exit_code": 0,
+      "passed": 278
+    },
+    {
+      "kind": "migration",
+      "argv": [
+        "/Users/wtjohnson/Lila/.venv/bin/python",
+        "docs/verification/step7-merge-repair-054/probe_migration.py",
+        "--repo-root",
+        ".",
+        "--cache-snapshot",
+        "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/OPERATING_MERGE_2026-09-14/operating-cache-before",
+        "--output-dir",
+        "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/outputs/step7-merge-repair-054/migration-commit"
+      ],
+      "cwd": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step7-merge-repair-054",
+      "env": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONPATH": "docs/verification/step7-followups-053/offline_guard",
+        "LILA_SUITE_OFFLINE": "1",
+        "LILA_SUITE_STRICT": "1"
+      },
+      "exit_code": 0
+    },
+    {
+      "kind": "saved_IHS",
+      "argv": [
+        "/Users/wtjohnson/Lila/.venv/bin/python",
+        "docs/verification/step7-followups-053/replay_ihs.py",
+        "--repo-root",
+        ".",
+        "--source-root",
+        "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/outputs/step7-followups-053/source-proof",
+        "--output-dir",
+        "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/outputs/step7-merge-repair-054/ihs-commit"
+      ],
+      "cwd": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step7-merge-repair-054",
+      "env": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONPATH": "docs/verification/step7-followups-053/offline_guard",
+        "LILA_SUITE_OFFLINE": "1",
+        "LILA_SUITE_STRICT": "1"
+      },
+      "exit_code": 0
+    },
+    {
+      "kind": "locator",
+      "argv": [
+        "/Users/wtjohnson/Lila/.venv/bin/python",
+        "docs/verification/step7-052/probe_text_boundaries.py",
+        "--repo-root",
+        ".",
+        "--output-dir",
+        "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/outputs/step7-merge-repair-054/locator-commit"
+      ],
+      "cwd": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step7-merge-repair-054",
+      "env": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONPATH": "docs/verification/step7-followups-053/offline_guard",
+        "LILA_SUITE_OFFLINE": "1",
+        "LILA_SUITE_STRICT": "1"
+      },
+      "exit_code": 0
+    },
+    {
+      "kind": "original_critic",
+      "argv": [
+        "/Users/wtjohnson/Lila/.venv/bin/python",
+        "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/outputs/step7-merge-repair-054/original-probes/critic/probe_depth_redirect_bounds.py"
+      ],
+      "cwd": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step7-merge-repair-054",
+      "env": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONPATH": "docs/verification/step7-followups-053/offline_guard",
+        "LILA_SUITE_OFFLINE": "1",
+        "LILA_SUITE_STRICT": "1"
+      },
+      "exit_code": 0,
+      "result_log": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/outputs/step7-merge-repair-054/probes-commit/probe_depth_redirect_bounds.log"
+    },
+    {
+      "kind": "original_critic",
+      "argv": [
+        "/Users/wtjohnson/Lila/.venv/bin/python",
+        "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/outputs/step7-merge-repair-054/original-probes/critic/probe_base_property_regressions.py"
+      ],
+      "cwd": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step7-merge-repair-054",
+      "env": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONPATH": "docs/verification/step7-followups-053/offline_guard",
+        "LILA_SUITE_OFFLINE": "1",
+        "LILA_SUITE_STRICT": "1"
+      },
+      "exit_code": 0,
+      "result_log": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/outputs/step7-merge-repair-054/probes-commit/probe_base_property_regressions.log"
+    },
+    {
+      "kind": "original_critic",
+      "argv": [
+        "/Users/wtjohnson/Lila/.venv/bin/python",
+        "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/outputs/step7-merge-repair-054/original-probes/critic/probe_surrogate_receipt_writer.py"
+      ],
+      "cwd": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step7-merge-repair-054",
+      "env": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONPATH": "docs/verification/step7-followups-053/offline_guard",
+        "LILA_SUITE_OFFLINE": "1",
+        "LILA_SUITE_STRICT": "1"
+      },
+      "exit_code": 0,
+      "result_log": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/outputs/step7-merge-repair-054/probes-commit/probe_surrogate_receipt_writer.log"
+    },
+    {
+      "kind": "original_critic",
+      "argv": [
+        "/Users/wtjohnson/Lila/.venv/bin/python",
+        "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/outputs/step7-merge-repair-054/original-probes/critic/probe_bid_now_control_live.py"
+      ],
+      "cwd": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step7-merge-repair-054",
+      "env": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONPATH": "docs/verification/step7-followups-053/offline_guard",
+        "LILA_SUITE_OFFLINE": "1",
+        "LILA_SUITE_STRICT": "1"
+      },
+      "exit_code": 0,
+      "result_log": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/outputs/step7-merge-repair-054/probes-commit/probe_bid_now_control_live.log"
+    },
+    {
+      "kind": "original_critic",
+      "argv": [
+        "/Users/wtjohnson/Lila/.venv/bin/python",
+        "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/outputs/step7-merge-repair-054/original-probes/critic/probe_f10_depth_surface.py"
+      ],
+      "cwd": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step7-merge-repair-054",
+      "env": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONPATH": "docs/verification/step7-followups-053/offline_guard",
+        "LILA_SUITE_OFFLINE": "1",
+        "LILA_SUITE_STRICT": "1"
+      },
+      "exit_code": 0,
+      "result_log": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/outputs/step7-merge-repair-054/probes-commit/probe_f10_depth_surface.log"
+    },
+    {
+      "kind": "original_critic",
+      "argv": [
+        "/Users/wtjohnson/Lila/.venv/bin/python",
+        "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/outputs/step7-merge-repair-054/original-probes/critic/probe_wrong_notice_attribution.py"
+      ],
+      "cwd": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step7-merge-repair-054",
+      "env": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONPATH": "docs/verification/step7-followups-053/offline_guard",
+        "LILA_SUITE_OFFLINE": "1",
+        "LILA_SUITE_STRICT": "1"
+      },
+      "exit_code": 0,
+      "result_log": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/outputs/step7-merge-repair-054/probes-commit/probe_wrong_notice_attribution.log"
+    }
+  ],
+  "targeted": {
+    "passed": 278,
+    "failed": 0,
+    "junit": "focused-commit.xml"
+  },
+  "earlier_attempts": [
+    {
+      "log": "focused-01.log",
+      "passed": 146,
+      "failed": 10,
+      "reason": "Old observer-bypassing fixtures, short synthetic IDs, and no-key/no-refresh expectation corrected to current contract."
+    },
+    {
+      "log": "focused-02.log",
+      "passed": 187,
+      "failed": 0
+    },
+    {
+      "log": "focused-final.log",
+      "passed": 276,
+      "failed": 0,
+      "scope": "Before final unrelated-route controls; exact code run has 278."
+    }
+  ],
+  "migration": {
+    "status": "PASS",
+    "scope": "Saved-byte inventory migration plus offline shadow audit of root-copied caches; no operating migration.",
+    "exact_checkout_sha": "8e2bac4f97dec9f166b3881b4226aa36c86c85c3",
+    "source_archive_sha256": "db4f2b129117c0c1f17d7d3227f1d51b1374aa8fc5b3ba649fd22d05978a31d6",
+    "saved_inventory_responses": 21,
+    "recognized": 17,
+    "recognized_hash_changes": 17,
+    "changed_without_withdrawn_rows": 13,
+    "old_cache_files": 20,
+    "old_operating_depth_count": 0,
+    "root_snapshot_unchanged": true,
+    "root_snapshot_sha256": {
+      "MANIFEST.json": "dc5b48a33f24b5e279563cb9b3faf2c2a9c0f8e34720884717afda8cdf758846",
+      "data/cache/sam_notice/e114088d1b444a9984a123dc842b96c7.resources.json": "03536d0dbf01e9341d775a01dca2110b2047b5d533118a243faabbe46410a6b5",
+      "data/cache/sam_notice/c325264751504faeaa0bae4c95438def.resources.json": "5c30490c1d329ffc35c33516827310cbc00a90ca8f8e713221c3637c9dd19547",
+      "data/cache/sam_notice/8d3557ebc3de47c39b79b710d4c70037.resources.json": "402a482bb879d2497bb610ba98b6b2460d9095ac69916a71493aaecf087477ad",
+      "data/cache/sam_notice/1fe040054ada42989399568bd4fcc66e.resources.json": "641fefc4ba4fdfb242c76620bfba016df91ee2c8529a32e33fd2fb4a401664b5",
+      "data/cache/sam_notice/facd280a47314bb68bbd47048e10fbf1.resources.json": "1d19acae3ae130aa8983a8cf9d4c0ec61e030b6c7201b9c33136ca66034fee10",
+      "data/cache/sam_notice/09686ebb05aa4f5a91e6fe8f43468a65.resources.json": "934628fb64f08126f9cf50a9d8ce19fda06f35e83312c657a3f7e3c68c26741e",
+      "data/cache/sam_attachment_text/69c0b16cfe684f81a7fe221e358fbc44.json": "a1e2f7bc374ef5531c59c386ae1cd7ae76b36305f4a2d061b261c4a667c74a38",
+      "data/cache/sam_attachment_text/b2baa3bd455c4bf49a53c13193445c60.json": "d5541d405cf0c5d370cc1fe56fec9a4de6326d9e943d21f9b973df7f00e880ea",
+      "data/cache/sam_attachment_text/b0c8d0c117a54be4beb6dad4aa6752ca.json": "6fdfa1daf79ff4288444957be40ed0ddd123558a931ef798b6cc76aea19fcf81",
+      "data/cache/sam_attachment_text/fd71bfad21ba4e80b2242feb9e68b897.json": "e10487069a8028f2334199f2106a57d6827349009805a45239e65b6f61fe4fd2",
+      "data/cache/sam_attachment_text/99bac6dfd5634a46924c79a810bbae6a.json": "47f195a3d48dec01aabf098fc80cdc638878fd06e022beb92e136cc6ce04c174",
+      "data/cache/sam_attachment_text/1d6335c72b7d435fb7d87e4602fa0e7e.json": "c25b5b5e5f70a77039ada53b85fe934a2c6f148d5e72d28f43127cb85debe668",
+      "data/cache/sam_attachment_text/ffc8cbc53ac0434088ce1d333eb4e38f.json": "9669a3dfd167741958728f55e3fe76d33cb44ad211ddbf0ef292607676288fe2",
+      "data/cache/sam_attachment_text/2a2e08d8ee0a4ab8b80ed81fcfc91b7f.json": "35c30abbb248f021a64d91263c6697bec4897c4891d0f0cecf80be2e8f2c4c42",
+      "data/cache/sam_attachment_text/91892b71e41f4ed2b43802dc69d91063.json": "3c589759df41498f9e18a47f4b12c9bc90aaa2629fb3d00baf13f602d7fc4589",
+      "data/cache/sam_attachment_text/79f1cd5a643540aaaf826e0e2bce0335.json": "0246ad79c4f8ffcc8a8c2c059d4f9c640c8b1eaab733132aebf4b77fd04aed52",
+      "data/cache/sam_attachment_text/a4982cf574c449f5a4ce93e84fe9555b.json": "21c5983ca285025230ee2975f7d688bd5f29feca26135339aabbed0769588f16",
+      "data/cache/sam_attachment_text/dd58eb0701eb477f804e0db334301c2b.json": "afd4b865e164f1031b7e42b8f8d06c993ef497892cb285653554d3ec9f282919",
+      "data/cache/sam_attachment_text/9e898aabbde440a3b1fbad2229f4f4b1.json": "7b125f4b2d636d21a0961a5855d1cf588f65bdd2fadae8597c31e67798fd85e7",
+      "data/cache/sam_attachment_text/5ad79b35bf5a42789312113b4214c062.json": "f4f9a7fcb6dfc41b03aae3f4687924c894c5f58d806201e2f49d7c45f665419b"
+    },
+    "live_socket_attempts": 0,
+    "mocked_unavailable_attempts": 20,
+    "clock_limit": "Synthetic audit acquisition time; not replay-time freshness or source authentication.",
+    "description_limit": "Base-written saved-inventory controls use a synthetic legacy description; all remain untrusted.",
+    "production_merge": false
+  },
+  "original_probe_scope_caveat": "Wrong-notice A/B use actual repaired acquisition and refuse. C ignores the acquired result and forges a separate trusted depth fixture; its bid_now output is preserved, not represented as repaired-fetch proof. Twelve new acquisition-to-production-projector-to-Assess/LeadRow tests supply actual-path positive and negative proof.",
+  "preservation": {
+    "regular_original_review_files": 19263,
+    "all_regular_hashes_match": true,
+    "prior_checkouts_clean": true,
+    "initial_membership_check_followed_166_excluded_symlinks": true,
+    "symlink_target_history_not_claimed": true
+  },
+  "artifact_archive": {
+    "path": "EVIDENCE.tar.gz",
+    "sha256": "0d5a5fdb998dd8739ba55bcfcc3b047a3a1492eb0611940223f8f4b3f9bec682",
+    "bytes": 1345714,
+    "files": 224,
+    "manifest_sha256": "6eee9f62fdaa57f91402c427063e45479d8c28ed432f8c4dccbdc3ca93d24450"
+  },
+  "full_suite": "NOT_RUN_ROOT_OWNS_ONE_COMBINED_REGRESSION",
+  "independent_review": "PENDING_ROOT_COMBINED_REVIEW",
+  "operating_migration": "NOT_PERFORMED_BY_COORDINATOR",
+  "published": false,
+  "operating_merge": false,
+  "frozen_cases_written": false,
+  "live_source_acquisition": false,
+  "seller_ready_proof": false,
+  "prior_residuals": "Original053 register unchanged; Step1 R1-R7 and canonical prior step residuals retained; assigned bounded repair map in REVIEW.md.",
+  "limits": [
+    "Post-response origin validation is not a pre-contact redirect firewall.",
+    "Coherently forged caches are not authenticated by local hash custody.",
+    "Migration controls use synthetic acquisition clocks and synthetic legacy description text.",
+    "IHS uses retained bytes and the prior synthesized request-start-clock limit.",
+    "N09/N13 limited to typed depth migration; N14 limited to diagnostic text bound.",
+    "Only six critic copies executed. Other copied lead scripts are custody evidence and retain original output paths; do not execute without isolated retargeting."
+  ]
+}
