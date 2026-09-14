@@ -562,6 +562,8 @@ def render_markdown(receipt: PressLeadGenReceipt) -> str:
     for parent in receipt.parents:
         if parent.research_subject is not None:
             subject = parent.research_subject
+            from .research_html import reviewed_context_markdown
+            lines.extend(reviewed_context_markdown(subject))
             if parent.research is not None:
                 lines.extend([parent.research.rationale, parent.research.next_ask, parent.research.route])
             for target in parent.targets:

@@ -420,6 +420,11 @@ def qualify_opportunities(records: list[dict], ctx: dict, *, notice_context=None
             "response_due": row.get("response_deadline"),
             "published_value": (row.get("ceiling_dollars") if row.get("ceiling_dollars") is not None
                                 else row.get("estimated_value_range")),
+            "ceiling_dollars": row.get("ceiling_dollars"),
+            "estimated_value_range": row.get("estimated_value_range"),
+            "period_start": row.get("period_start"),
+            "period_end": row.get("period_end"),
+            "potential_end_date": row.get("potential_end_date"),
             "evidence_class": row.get("evidence_class"),
             "service_fit": row.get("service_fit"),
             "window_state": row.get("window_state"),

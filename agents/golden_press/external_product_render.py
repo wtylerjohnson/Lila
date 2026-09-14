@@ -145,12 +145,15 @@ def _fields(record: dict) -> str:
     )
     rows = []
     for key, label in labels:
+        if key == "value" and record.get("value_evidence"):
+            continue
         value = record.get(key)
         if value in (None, "", [], {}):
             continue
         rows.append(f"<dt>{esc(label)}</dt><dd>{esc(_display_value(value))}</dd>")
-    return ('<dl class="product-fields">' + "".join(rows) + "</dl>"
-            if rows else "")
+    from agents.reports.value_evidence import render_values
+    return (('<dl class="product-fields">' + "".join(rows) + "</dl>"
+             if rows else "") + render_values(record.get("value_evidence", []), source_link=_source_link(record)))
 
 
 def _targets(record: dict) -> str:

@@ -149,7 +149,7 @@ def build_research_ledger(searches, profile, *,run_id,client_name,profile_versio
     taxonomy=CapabilityTaxonomy(client_name=client_name,version=1,updated='1970-01-01',
         core=[TaxonomyTerm(term=t) for t in getattr(terms,'core',[])],
         exclude=[KillRule(term=t,scope='span') for t in getattr(terms,'excluded',[])])
-    brand_terms=[client_name] if client_name.strip().casefold()=='netscout' else []
+    brand_terms=[client_name.strip()] if client_name.strip() else []
     output={}; diagnostics=[]
     for kind,row,context in candidates:
         try:

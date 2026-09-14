@@ -68,10 +68,10 @@ def _decision_actions(*, notice_id="N1", record_id="L1"):
     return actions
 
 
-def _timed_live(*, record_id="L1", notice_id="N1"):
+def _timed_live(*, record_id="L1", notice_id="N1", timing_support=True):
     excerpt = (
         "The contractor shall provide packet capture. "
-        "The incumbent seat faces a renewal decision on 2026-10-01."
+        "Example Reseller is the incumbent. The seat faces a renewal decision on 2026-10-01."
     )
     return LiveSolicitation(
         record_id=record_id, notice_id=notice_id,
@@ -81,7 +81,7 @@ def _timed_live(*, record_id="L1", notice_id="N1"):
         response_deadline=NOW_DEADLINE,
         authoritative_evidence=[_evidence(
             notice_id=notice_id, excerpt=excerpt,
-            supports=[EvidenceUse.REQUIREMENT, EvidenceUse.TIMING],
+            supports=[EvidenceUse.REQUIREMENT, EvidenceUse.TIMING] if timing_support else [EvidenceUse.REQUIREMENT],
         )],
         requirement_excerpt=excerpt,
         **_review_fields(),
@@ -146,7 +146,7 @@ def test_four_leg_bare_expiry_promotes_to_watch_not_t1t2():
 
 
 def test_four_leg_renewal_decision_promotes_to_t2():
-    run = _run(partners=[_holder_partner()])
+    run = _run(live=[_timed_live(timing_support=False)], partners=[_holder_partner()])
     receipt = run_press(assess=run, target_actions=_decision_actions())
     assert receipt.stub is False
     assert {row.lead_tier for row in receipt.leads} == {LeadTier.LEAD_T2}
@@ -196,7 +196,15 @@ def test_solicitation_only_cannot_green_t1_or_t2():
 
 
 def test_prime_recompete_with_component_role_promotes_to_t2():
-    run = _run(partners=[_prime_partner()])
+    excerpt = ("The contractor shall provide packet capture. "
+               "This recompete has an award decision on 2026-10-01. "
+               "Example Reseller is an eligible prime for this recompete. "
+               "The prime shall select and supply packet capture software.")
+    live = _timed_live().model_copy(update={
+        "requirement_excerpt": excerpt,
+        "authoritative_evidence": (_evidence(excerpt=excerpt, supports=[EvidenceUse.REQUIREMENT, EvidenceUse.TIMING]),),
+    })
+    run = _run(live=[live], partners=[_prime_partner()])
     actions = _t1_target_actions()
     actions["rows"][0]["row_class"] = "displacement"
     actions["rows"][0]["rule_id"] = "T2"
@@ -227,7 +235,7 @@ def test_html_path_still_produced(tmp_path):
 
 
 def test_eval_scores_promoted_pack_without_typeerror_and_af_pass():
-    run = _run(partners=[_holder_partner()])
+    run = _run(live=[_timed_live(timing_support=False)], partners=[_holder_partner()])
     receipt = run_press(assess=run, target_actions=_decision_actions())
     payload = receipt.model_dump(mode="json")
     card = score_pack(payload)
@@ -270,7 +278,7 @@ def test_checked_in_promoted_fixture_scores_without_typeerror():
 
 
 def test_mapper_still_watch_or_hold_only():
-    run = _run(partners=[_holder_partner()])
+    run = _run(live=[_timed_live(timing_support=False)], partners=[_holder_partner()])
     batch = draft_lead_rows(run, _decision_actions())
     assert {row.lead_tier for row in batch.leads} <= {
         LeadTier.WATCH, LeadTier.HOLD}
@@ -280,7 +288,7 @@ def test_mapper_still_watch_or_hold_only():
 
 def test_no_quota_keys_on_receipt():
     receipt = run_press(
-        assess=_run(partners=[_holder_partner()]),
+        assess=_run(live=[_timed_live(timing_support=False)], partners=[_holder_partner()]),
         target_actions=_decision_actions(),
     )
     dumped = receipt.model_dump(mode="json")
@@ -358,7 +366,7 @@ def test_vehicle_cite_is_not_stripped_and_does_not_green_t2():
 
 def test_overlays_do_not_self_certify_auth_or_solicitation_only():
     receipt = run_press(
-        assess=_run(partners=[_holder_partner()]),
+        assess=_run(live=[_timed_live(timing_support=False)], partners=[_holder_partner()]),
         target_actions=_decision_actions(),
     )
     assert {row.lead_tier for row in receipt.leads} == {LeadTier.LEAD_T2}

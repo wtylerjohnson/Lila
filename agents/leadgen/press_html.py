@@ -176,11 +176,12 @@ def render_html(receipt: PressLeadGenReceipt) -> str:
         ])
         if parent.research_subject is not None:
             from .target_html import render_research, render_targets
-            from .research_html import render_source_fields, source_link
+            from .research_html import render_source_fields, source_link, render_reviewed_context
             subject = parent.research_subject
             context = json.loads(subject.discovery_context_json) if subject.discovery_context_json else {}
             boundary = "Research only; direct qualification unchanged. Code boundary: " + str(context.get("direct_code_boundary", "unknown"))
             detail += render_research(parent.research) + render_targets(parent.targets)
+            detail += render_reviewed_context(subject)
             detail += ('<div class="receipt-body"><p><b>Research needed</b> · ' + _text(subject.source_posture.replace('_',' ')) + '</p>'
                        + source_link(subject)
                        + '<p>' + _text(subject.next_ask) + '</p>'

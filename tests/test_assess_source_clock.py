@@ -269,7 +269,7 @@ def test_base_serialized_positive_leads_remain_history_but_cannot_be_requalified
         old = LeadRow.model_validate(serialized)
         assert old.lead_tier in (LeadTier.LEAD_T1,LeadTier.LEAD_T2)
         assert load_score_input({'parents':[fixture['parent']],'leads':[serialized]}).leads == (old,)
-        current, _, promoted = _qualify_one(old,parent,None,(),{},None,t1_used=False)
+        current, _, promoted = _qualify_one(old,parent,None,(),{},None,t1_used=False,as_of=NOW.date())
         assert current.lead_tier == LeadTier.HOLD and not promoted
         assert current.lead_id == old.lead_id
         assert current.external_pathway.evidence == old.external_pathway.evidence
@@ -318,11 +318,11 @@ def test_horizon_keeps_existing_strict_refusal_for_unknown_source_time(stamp):
 
 
 def test_already_held_renewal_retains_named_acquisition_gap_and_prior_blocker():
-    from tests.test_leadgen_qualify import _holder_partner,_decision_actions
+    from tests.test_leadgen_qualify import _holder_partner,_decision_actions,_timed_live
     from tests.test_leadgen_from_assess import _run
     from agents.leadgen import qualify_drafts
     from agents.leadgen.enums import LeadTier,TIER_READINESS
-    run=_run(partners=[_holder_partner()]);actions=_decision_actions()
+    run=_run(live=[_timed_live(timing_support=False)],partners=[_holder_partner()]);actions=_decision_actions()
     batch=draft_lead_rows(run,actions)
     assert {l.lead_tier for l in qualify_drafts(batch,run,actions).leads} == {LeadTier.LEAD_T2}
     old=batch.leads[0]

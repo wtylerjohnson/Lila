@@ -1,0 +1,129 @@
+{
+  "provenance": "Independent root review of first055 candidate; bounded synthetic counterexamples, not live/client evidence.",
+  "source_sha256": {
+    "agents/leadgen/qualify.py": "2daaa21e0fa1723bf670e2fe3fd890a27b912023ce67c4bc930ade2272f179d4",
+    "agents/reports/value_evidence.py": "ccfc3b25db8a8108506ef6658a7867a7a7659cf0238f97c71f2b2a2de9d28a4f",
+    "agents/assess/reviewed_cases.py": "3303482221cbe355e4eb4b729313eb5b30c5d784317cebc7583006c881528341",
+    "agents/assess/research_subjects.py": "1f7227f91c43109b0fd8928116d57adef24dcdf59cda734175a509d9a27717f3",
+    "agents/leadgen/research_html.py": "bf15068d446c2d7f13f13b353a0dce5be46f7639c0a4fa995700376400aa6c0c",
+    "agents/golden_press/external_product_projection.py": "54f6c8eb895f23d836c0ae232118224f1d9734a0c23f7634679d4e9865e4d168",
+    "agents/golden_press/evidence_pack_v2.py": "fdae08ea20ad78621533efbbd32cba88cd6ee37680a4b2404e6077322d357846",
+    "agents/golden_press/external_product_render.py": "ce0f39fdb0524d8ef1ccbb21b3ba69834fb1ea097d9e504f5c280a7c2b9daaec",
+    "agents/leadgen/press.py": "d590a42a91252ad4404bba34dad00456b93b9a17fccb20677393b9d92e9c10ed",
+    "agents/leadgen/press_html.py": "4ef7c722e18ed6e9ac38bf6f04b251e85b13fa2db5b84c7ded43fb7d187bf457"
+  },
+  "probes": [
+    {
+      "probe": "renewal_positive",
+      "scope": "synthetic in-memory Testco fixture; not a client run",
+      "source_excerpt": "The contractor shall provide packet capture. Example Reseller is the incumbent. The seat faces a renewal decision on 2026-10-01.",
+      "expected": "ACTIVE_LEAD",
+      "tiers": [
+        "LEAD_T1"
+      ],
+      "active_leads": 1,
+      "matches_expected": true,
+      "reasons": [
+        "LEAD_T1: incumbent_renewal with named buyer, dated clock, published pathway, and seller route channel_reseller via Example Reseller"
+      ]
+    },
+    {
+      "probe": "renewal_cancellation_separate_sentence",
+      "scope": "synthetic in-memory Testco fixture; not a client run",
+      "source_excerpt": "The contractor shall provide packet capture. Example Reseller is the incumbent. The seat faces a renewal decision on 2026-10-01. The renewal decision was canceled on 2026-09-05.",
+      "expected": "NO_ACTIVE_LEAD",
+      "tiers": [
+        "LEAD_T1"
+      ],
+      "active_leads": 1,
+      "matches_expected": false,
+      "reasons": [
+        "LEAD_T1: incumbent_renewal with named buyer, dated clock, published pathway, and seller route channel_reseller via Example Reseller"
+      ]
+    },
+    {
+      "probe": "renewal_cancellation_same_date_control",
+      "scope": "synthetic in-memory Testco fixture; not a client run",
+      "source_excerpt": "The contractor shall provide packet capture. Example Reseller is the incumbent. The renewal decision on 2026-10-01 was canceled.",
+      "expected": "NO_ACTIVE_LEAD",
+      "tiers": [
+        "WATCH"
+      ],
+      "active_leads": 0,
+      "matches_expected": true,
+      "reasons": [
+        "WATCH: four-leg draft retained; confirm a source-backed future buying decision"
+      ]
+    },
+    {
+      "probe": "incumbent_relation_wrong_entity",
+      "scope": "synthetic in-memory Testco fixture; not a client run",
+      "source_excerpt": "The contractor shall provide packet capture. Example Reseller will replace the incumbent Other Vendor. The seat faces a renewal decision on 2026-10-01.",
+      "expected": "NO_ACTIVE_LEAD",
+      "tiers": [
+        "LEAD_T1"
+      ],
+      "active_leads": 1,
+      "matches_expected": false,
+      "reasons": [
+        "LEAD_T1: incumbent_renewal with named buyer, dated clock, published pathway, and seller route channel_reseller via Example Reseller"
+      ]
+    },
+    {
+      "probe": "prime_positive",
+      "scope": "synthetic in-memory Testco fixture; not a client run",
+      "source_excerpt": "The contractor shall provide packet capture. The recompete award decision is on 2026-10-01. Example Reseller is an eligible prime for this recompete. The prime shall select and supply packet capture software.",
+      "expected": "ACTIVE_LEAD",
+      "tiers": [
+        "LEAD_T2"
+      ],
+      "active_leads": 1,
+      "matches_expected": true,
+      "reasons": [
+        "LEAD_T2: prime_recompete with named buyer, dated clock, published pathway, and seller route prime_to_sub via Example Reseller"
+      ]
+    },
+    {
+      "probe": "prime_authority_different_existing_contractor",
+      "scope": "synthetic in-memory Testco fixture; not a client run",
+      "source_excerpt": "The contractor shall provide packet capture. The recompete award decision is on 2026-10-01. Example Reseller is an eligible prime for this recompete. For the existing task order, incumbent contractor Other Integrator shall select and supply packet capture software.",
+      "expected": "NO_ACTIVE_LEAD",
+      "tiers": [
+        "LEAD_T2"
+      ],
+      "active_leads": 1,
+      "matches_expected": false,
+      "reasons": [
+        "LEAD_T2: prime_recompete with named buyer, dated clock, published pathway, and seller route prime_to_sub via Example Reseller"
+      ]
+    },
+    {
+      "probe": "prime_unrelated_gfe",
+      "scope": "synthetic in-memory Testco fixture; not a client run",
+      "source_excerpt": "The contractor shall provide packet capture. The recompete award decision is on 2026-10-01. Example Reseller is an eligible prime for this recompete. The prime shall select and supply packet capture software. Government-furnished office equipment is outside the scope of this task order.",
+      "expected": "ACTIVE_LEAD",
+      "tiers": [
+        "WATCH"
+      ],
+      "active_leads": 0,
+      "matches_expected": false,
+      "reasons": [
+        "WATCH: four-leg draft retained; confirm a source-backed future recompete, eligible prime route, and tool selection and supply authority"
+      ]
+    },
+    {
+      "probe": "prime_explicit_tool_prohibition",
+      "scope": "synthetic in-memory Testco fixture; not a client run",
+      "source_excerpt": "The contractor shall provide packet capture. The recompete award decision is on 2026-10-01. Example Reseller is an eligible prime for this recompete. The prime shall not select and supply packet capture software.",
+      "expected": "NO_ACTIVE_LEAD",
+      "tiers": [
+        "WATCH"
+      ],
+      "active_leads": 0,
+      "matches_expected": true,
+      "reasons": [
+        "WATCH: four-leg draft retained; confirm a source-backed future recompete, eligible prime route, and tool selection and supply authority"
+      ]
+    }
+  ]
+}

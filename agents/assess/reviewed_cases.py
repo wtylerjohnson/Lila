@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import date
 from pathlib import Path
 from typing import Literal
 
@@ -30,12 +31,68 @@ class ReviewedCase(BaseModel):
         return self
 
 
+class CustomerStatement(BaseModel):
+    """Attributed meeting evidence, never procurement or contact authority."""
+    model_config = ConfigDict(extra="forbid", frozen=True, str_strip_whitespace=True)
+    statement_id: str = Field(min_length=1)
+    speaker: str = Field(min_length=1)
+    source_document_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    transcript_timestamp: str = Field(pattern=r"^\d{1,3}:\d{2}(?::\d{2})?$")
+    source_excerpt: str = Field(min_length=1)
+    quote: str = Field(min_length=1)
+    topic: Literal["installed_base", "buying_status", "amount", "competitor", "meeting", "contact_role"]
+    certainty: Literal["reported", "tentative"]
+    event_date: date | None = None
+    relative_date_text: str | None = None
+
+    @model_validator(mode="after")
+    def bound_quote(self):
+        if self.quote not in self.source_excerpt:
+            raise ValueError("customer quote must occur in the retained source excerpt")
+        if self.relative_date_text is not None and (
+                not self.relative_date_text.strip() or self.relative_date_text not in self.source_excerpt):
+            raise ValueError("relative timing must retain the original source wording")
+        return self
+
+
+class ReviewedInvestigation(BaseModel):
+    """A separate research question under a source parent, with no lead child."""
+    model_config = ConfigDict(extra="forbid", frozen=True, str_strip_whitespace=True)
+    investigation_id: str = Field(min_length=1)
+    scope: str = Field(min_length=1)
+    purpose: Literal["expansion", "technical_qualification", "competitor_review"]
+    research: LeadResearch
+    targets: tuple[LeadTarget, ...] = ()
+    customer_statements: tuple[CustomerStatement, ...] = ()
+
+
 class ReviewedSubject(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     subject_id: str
     source_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     research: LeadResearch
     targets: tuple[LeadTarget, ...] = ()
+    customer_statements: tuple[CustomerStatement, ...] = ()
+    investigations: tuple[ReviewedInvestigation, ...] = ()
+
+    @model_validator(mode="after")
+    def distinct_context(self):
+        ids = [i.investigation_id for i in self.investigations]
+        if len(ids) != len(set(ids)) or self.subject_id in ids:
+            raise ValueError("investigations require distinct IDs separate from the source parent")
+        statements = [*self.customer_statements, *(s for i in self.investigations for s in i.customer_statements)]
+        ids = [s.statement_id for s in statements]
+        if len(ids) != len(set(ids)):
+            raise ValueError("duplicate customer statement IDs")
+        return self
+
+    @model_serializer(mode="wrap")
+    def preserve_existing_serialization(self, handler):
+        value = handler(self)
+        for name in ("customer_statements", "investigations"):
+            if not getattr(self, name):
+                value.pop(name, None)
+        return value
 
 
 class ReviewedCases(BaseModel):

@@ -11,6 +11,8 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from enum import Enum
+from datetime import date
+import re
 from typing import Any
 
 from agents.assess.source_clock import acquired_at
@@ -42,40 +44,14 @@ from .next_action import CurrentNextAction
 from .seller_path import SellerTransactionPath
 from .traces import DecisionTrace
 
-QUALIFIER_VERSION = "leadgen.qualify.v1"
+QUALIFIER_VERSION = "leadgen.qualify.v2"
 
 # Incomplete required Assess coverage may leave a four-leg draft on
 # WATCH. It cannot green LEAD_T1 / LEAD_T2.
 _COVERAGE_HOLD_MARK = "required Assess coverage is incomplete"
 _DECISION_MARKERS = (
     "renewal decision",
-    "approaching decision",
-    "documented decision",
     "option exercise",
-    "recompete",
-    "follow-on decision",
-    "award decision",
-)
-_BARE_EXPIRY_MARKERS = (
-    "period ends",
-    "period of performance",
-    "pop end",
-    "expires",
-    "expiry",
-    "expiration",
-)
-# Role language only. Capability vocabulary is product fit, not a
-# vendor component role.
-_COMPONENT_ROLE_MARKERS = (
-    "component role",
-    "vendor component",
-    "named vendor",
-    "subcontractor role",
-)
-_RECOMPETE_MARKERS = (
-    "recompete",
-    "prime-led",
-    "prime led",
 )
 
 
@@ -123,6 +99,7 @@ def qualify_drafts(
             row,
             traces_by_lead.get(lead.lead_id),
             t1_used=t1_used,
+            as_of=run.as_of.date(),
         )
         if company_dossier is not None:
             if company_dossier.client_name.casefold() != run.client_name.casefold():
@@ -227,6 +204,7 @@ def _qualify_one(
     trace: DecisionTrace | None,
     *,
     t1_used: bool,
+    as_of: date,
 ) -> tuple[LeadRow, DecisionTrace | None, bool]:
     if lead.lead_tier in (LeadTier.LEAD_T1, LeadTier.LEAD_T2) and any(
             acquired_at(e) is None for e in lead.external_pathway.evidence):
@@ -241,7 +219,7 @@ def _qualify_one(
     if not four:
         return _keep_hold(lead, path, trace, "HOLD: four LeadRow legs are incomplete")
 
-    klass = _promotion_class(lead, parent, subject, partners, action_row)
+    klass = _promotion_class(lead, parent, subject, partners, action_row, as_of=as_of)
     solicitation_only = _solicitation_only(lead, path)
     blockers = _t12_blockers(lead, path)
 
@@ -283,6 +261,15 @@ def _qualify_one(
         )
         updated, next_trace = _as_promoted(lead, path, trace, tier, receipt)
         return updated, next_trace, t1_ok
+
+    if lead.buying_motion.kind is CommercialMotionKind.RENEWAL or (
+            path.kind is SellerPathKind.PRIME_TO_SUB):
+        reason = ("WATCH: four-leg draft retained; confirm a source-backed future buying decision"
+                  if path.kind is not SellerPathKind.PRIME_TO_SUB else
+                  "WATCH: four-leg draft retained; confirm a source-backed future recompete, "
+                  "eligible prime route, and tool selection and supply authority")
+        return _as_watch_or_hold(lead, path, trace,
+                                '; '.join(filter(None, (blockers, reason))), watch=True)
 
     if _coverage_or_gates_only(lead) or lead.lead_tier is LeadTier.WATCH:
         return _as_watch_or_hold(
@@ -424,10 +411,11 @@ def _promotion_class(
     subject: Any,
     partners: tuple[PartnerOpportunity, ...],
     action_row: Mapping[str, Any],
+    *, as_of: date,
 ) -> PromotionClass | None:
-    if _is_incumbent_renewal(lead, parent, subject, partners, action_row):
+    if _is_incumbent_renewal(lead, parent, subject, partners, action_row, as_of=as_of):
         return PromotionClass.INCUMBENT_RENEWAL
-    if _is_prime_recompete(lead, parent, subject, partners, action_row):
+    if _is_prime_recompete(lead, parent, subject, partners, action_row, as_of=as_of):
         return PromotionClass.PRIME_RECOMPETE
     if _is_funded_project(lead, parent, subject):
         return PromotionClass.FUNDED_PROJECT
@@ -440,12 +428,20 @@ def _is_incumbent_renewal(
     subject: Any,
     partners: tuple[PartnerOpportunity, ...],
     action_row: Mapping[str, Any],
+    *, as_of: date,
 ) -> bool:
     if lead.buying_motion.kind is not CommercialMotionKind.RENEWAL:
         return False
+    if lead.seller_path.kind is SellerPathKind.PRIME_TO_SUB:
+        return False
     if not _named(lead.seller_path.holder):
         return False
-    return _approaching_decision(lead, subject, action_row)
+    holder = _clean(lead.seller_path.holder).casefold()
+    relation = (r"^(?:" + re.escape(holder) + r" is (?:the |an? )?(?:current )?incumbent\b|"
+                r"the (?:current )?incumbent (?:is |: )" + re.escape(holder) + r"\b)")
+    incumbent = any(re.search(relation, text) and not _uncertain(text)
+                    for text in _source_sentences(subject, as_of=as_of))
+    return incumbent and _approaching_decision(lead, subject, as_of=as_of)
 
 
 def _is_prime_recompete(
@@ -454,8 +450,9 @@ def _is_prime_recompete(
     subject: Any,
     partners: tuple[PartnerOpportunity, ...],
     action_row: Mapping[str, Any],
+    *, as_of: date,
 ) -> bool:
-    del parent, subject
+    del parent, action_row
     prime = (
         lead.seller_path.kind is SellerPathKind.PRIME_TO_SUB
         or any(
@@ -465,19 +462,26 @@ def _is_prime_recompete(
     )
     if not prime:
         return False
-    role_text = " ".join(part for part in (
-        _clean(action_row.get("why_this_account")),
-        *(partner.role_hypothesis for partner in partners),
-    ) if part).casefold()
-    if not any(marker in role_text for marker in _COMPONENT_ROLE_MARKERS):
+    if not _approaching_decision(lead, subject, as_of=as_of, markers=("recompete",)):
         return False
-    recompete_text = " ".join(part for part in (
-        role_text,
-        _clean(action_row.get("why_now")).casefold(),
-    ) if part)
-    if not any(marker in recompete_text for marker in _RECOMPETE_MARKERS):
+    # A hypothesized vendor role, rival product, or vehicle seat cannot grant
+    # the prime authority to choose and supply tools on this requirement.
+    texts = list(_source_sentences(subject, as_of=as_of))
+    tool_lines = [text for text in texts if re.search(r"\b(tool|software|equipment|product)s?\b", text)
+                  and not _explicitly_outside_scope(text)]
+    if any(_uncertain(text) or re.search(r"government[ -](?:furnished|provided|selected)", text)
+           for text in tool_lines):
         return False
-    return True
+    holder = _clean(lead.seller_path.holder).casefold()
+    eligible = any(holder and re.search(r"^" + re.escape(holder)
+                   + r" is (?:an? |the )?(?:eligible|authorized) prime for (?:this|the current) recompete\b", text)
+                   and not _uncertain(text) for text in texts)
+    actor = r"(?:the (?:prime(?: contractor)?|contractor)|" + re.escape(holder) + r")"
+    authority = any(re.search(r"^" + actor + r"\s+(?:shall|must|will|is authorized to)\b"
+                              r".{0,30}\bselect\b.{0,80}\b(?:supply|provide|purchase)\b", text)
+                    and not re.search(r"for (?:the )?(?:existing|previous|prior) (?:task order|contract)\b", text)
+                    for text in tool_lines)
+    return eligible and authority
 
 
 def _is_funded_project(
@@ -502,30 +506,64 @@ def _is_funded_project(
     return bool(need) and timetable
 
 
-def _approaching_decision(
-    lead: LeadRow,
-    subject: Any,
-    action_row: Mapping[str, Any],
-) -> bool:
-    # Requirement span is product fit, not a decision receipt.
-    text = " ".join(part for part in (
-        _clean(action_row.get("why_now")),
-        _clean(getattr(subject, "watch_trigger", None)),
-        _clean(getattr(subject, "predicted_event", None)),
-        _clean(getattr(subject, "inference_chain", None)),
-    ) if part).casefold()
-    if not text:
+def _uncertain(text: str) -> bool:
+    return bool(re.search(r"\?|\b(?:not|no|never|unknown|unconfirmed|may|might|could|if|whether|"
+                          r"cannot|can't|isn't|doesn't|wasn't|pending|proposed|potential|"
+                          r"cancelled|canceled|withdrawn|completed|exercised|awarded|expired|closed)\b", text))
+
+
+def _explicitly_outside_scope(text: str) -> bool:
+    return bool(re.search(r"\bis outside (?:the |this )?scope\b", text)) and not _uncertain(text)
+
+
+def _source_sentences(subject: Any, *, as_of: date):
+    """Use only this subject's original primary evidence, never action copy.
+
+    This is a conservative English-language sufficient-evidence rule, not
+    general semantic entailment. Unrecognized phrasing remains researchable.
+    """
+    for evidence in getattr(subject, "authoritative_evidence", ()):
+        clock = acquired_at(evidence)
+        if (not evidence.primary_source or clock is None or clock.date() > as_of
+                or evidence.kind in {EvidenceKind.VEHICLE, EvidenceKind.NEWS, EvidenceKind.WEB_LEAD}
+                or not ({EvidenceUse.REQUIREMENT, EvidenceUse.TIMING, EvidenceUse.ACCESS} & set(evidence.supports))):
+            continue
+        notice_id = getattr(subject, "notice_id", None)
+        if notice_id:
+            from urllib.parse import urlsplit
+            url = urlsplit(str(evidence.source_url))
+            if (url.hostname != "sam.gov" or url.path.rstrip('/') != f"/opp/{notice_id}/view"):
+                continue
+        for sentence in re.split(r"(?<=[.!?])\s+|\n", evidence.excerpt):
+            if sentence.strip():
+                yield _clean(sentence).casefold()
+
+
+def _dated(text, due):
+    months = f"{due.strftime('%B')}|{due.strftime('%b')}".casefold()
+    if due.month == 9:
+        months += '|sept'
+    forms = [re.escape(due.isoformat()),
+             rf"0?{due.month}[/-]0?{due.day}[/-]{due.year}",
+             rf"(?:{months})\.?\s+0?{due.day}(?:st|nd|rd|th)?,?\s+{due.year}",
+             rf"0?{due.day}\s+(?:{months})\.?\s+{due.year}"]
+    return bool(re.search(r"\b(?:" + '|'.join(forms) + r")\b", text))
+
+
+def _approaching_decision(lead, subject, *, as_of: date, markers=_DECISION_MARKERS):
+    due = lead.buying_motion.clock or lead.next_action.due
+    if due is None or due < as_of:
         return False
-    if not any(marker in text for marker in _DECISION_MARKERS):
-        return False
-    expiry_only = (
-        any(marker in text for marker in _BARE_EXPIRY_MARKERS)
-        and not any(marker in text for marker in _DECISION_MARKERS
-                    if marker not in _BARE_EXPIRY_MARKERS)
-    )
-    if expiry_only:
-        return False
-    return lead.buying_motion.clock is not None or lead.next_action.due is not None
+    # The dated event must be present in the same original source sentence.
+    # Matching a calendar elsewhere in the document does not bind the decision.
+    source = list(_source_sentences(subject, as_of=as_of))
+    # A cancellation may be dated by the cancellation action, not by the
+    # future event it cancels. Keep cross-sentence conflicts as questions.
+    conflicts = [text for text in source if re.search(r"\b(?:renewal|option|recompete|decision)\b", text)
+                 and _uncertain(text) and not _explicitly_outside_scope(text)]
+    lines = [text for text in source
+             if _dated(text, due) and any(marker in text for marker in markers)]
+    return bool(lines) and not conflicts
 
 
 def _timing_evidenced(lead: LeadRow) -> bool:

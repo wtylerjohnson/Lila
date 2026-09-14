@@ -74,7 +74,10 @@ def render_source_fields(subject, *, as_of: date) -> str:
     """
     from agents.assess.contracts import ResearchSubject
     subject = ResearchSubject.model_validate(subject.model_dump(mode="json"))
-    blocks = []
+    from agents.reports.value_evidence import value_evidence, render_values
+    blocks = [render_values(value_evidence(json.loads(subject.source_payload_json),
+                  source_url=str(subject.source_url), source_id=subject.source_record_id),
+                  source_link=source_link(subject))]
     for kind, raw in (("source", subject.source_payload_json),
                       ("discovery-context", subject.discovery_context_json)):
         if raw is None:
@@ -103,3 +106,58 @@ def render_source_fields(subject, *, as_of: date) -> str:
     return ('<details><summary>Show work: original source fields and value basis</summary>'
             f'<p class="mono">Source SHA-256: {escape(subject.source_sha256)}</p>'
             + ''.join(blocks) + '</details>')
+
+
+def reviewed_context(subject):
+    from agents.assess.reviewed_cases import ReviewedSubject
+    if not subject.reviewed_overlay_json:
+        return None
+    return ReviewedSubject.model_validate_json(subject.reviewed_overlay_json)
+
+
+def _statement_text(statement):
+    anchor = (f"Meeting date: {statement.event_date.isoformat()}" if statement.event_date
+              else "Meeting date not established; confirm the actual date")
+    relative = (f'; original timing: "{statement.relative_date_text}"' if statement.relative_date_text else '')
+    return (f'{statement.speaker} ({statement.certainty}, {statement.transcript_timestamp}): '
+            f'"{statement.quote}". {anchor}{relative}. '
+            'Attributed customer context; reconcile with the original procurement record. '
+            'This does not establish budget, tool ownership, authority, or a current buying decision.')
+
+
+def render_reviewed_context(subject):
+    """Keep a known award and distinct expansion questions visible together."""
+    from .target_html import render_research, render_targets
+    overlay = reviewed_context(subject)
+    if overlay is None:
+        return ''
+    def statements(items):
+        return ''.join('<blockquote>' + escape(_statement_text(s))
+                       + '<details><summary>Show work: meeting evidence</summary><p>'
+                       + escape(s.source_excerpt) + '</p><p>Source document SHA-256: '
+                       + escape(s.source_document_sha256) + '</p></details></blockquote>' for s in items)
+    blocks = [statements(overlay.customer_statements)]
+    for item in overlay.investigations:
+        blocks.append('<section data-investigation="'
+                      + escape(item.investigation_id, quote=True) + '"><h4>'
+                      + escape(item.scope) + '</h4><p>Separate investigation: '
+                      + escape(item.purpose.replace('_', ' '))
+                      + '. Existing business does not establish demand or purchasing authority for this scope.</p>'
+                      + render_research(item.research) + render_targets(item.targets)
+                      + statements(item.customer_statements) + '</section>')
+    return ''.join(blocks)
+
+
+def reviewed_context_markdown(subject):
+    overlay = reviewed_context(subject)
+    if overlay is None:
+        return []
+    lines = [_statement_text(s) for s in overlay.customer_statements]
+    for item in overlay.investigations:
+        lines.extend([f'### Separate investigation: {item.scope}', item.research.status,
+                      item.research.rationale, item.research.next_ask, item.research.route,
+                      *item.research.open_questions,
+                      *[_statement_text(s) for s in item.customer_statements],
+                      *[f'[{t.name} / {t.role}]({t.source_url}): {t.next_ask}. {t.authority_boundary}' for t in item.targets],
+                      'Existing business does not establish demand or purchasing authority for this scope.'])
+    return lines

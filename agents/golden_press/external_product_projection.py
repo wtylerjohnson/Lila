@@ -137,6 +137,7 @@ def _source_from_graph(row: dict) -> str:
 
 
 def _graph_record(row: dict, *, kind: str, summary: str = "") -> dict:
+    from agents.reports.value_evidence import value_evidence
     record_id = _text(row.get("record_id") or row.get("notice_id"))
     return {
         "record_key": _record_key(kind, record_id),
@@ -150,8 +151,9 @@ def _graph_record(row: dict, *, kind: str, summary: str = "") -> dict:
         "recipient": _text(row.get("recipient")),
         "response_date": _text(
             row.get("response_due") or row.get("response_deadline")),
-        "value": row.get("published_value") or row.get("obligated_dollars")
-                 or row.get("ceiling_dollars") or row.get("estimated_value_range"),
+        "value": next((row[key] for key in ("published_value", "obligated_dollars",
+                     "ceiling_dollars", "estimated_value_range") if row.get(key) is not None), None),
+        "value_evidence": value_evidence(row, source_url=_source_from_graph(row), source_id=record_id),
         "evidence_class": _text(row.get("evidence_class")),
         "service_fit": _text(row.get("service_fit")),
         "window_state": _text(row.get("window_state")),
@@ -307,11 +309,11 @@ def _withhold_notice(row: dict, gaps: list[str]) -> None:
     """Keep the selected assessment without advertising saved positive state."""
     row.setdefault("saved_assessment", {key: deepcopy(row.get(key)) for key in (
         "assessment_status", "evidence_class", "service_fit", "commercial_route",
-        "window_state", "response_date", "value", "next_action")})
+        "window_state", "response_date", "value", "value_evidence", "next_action")})
     row.update(assessment_status="Current qualification withheld",
                evidence_class="notice_diagnostic", service_fit="Unverified",
                commercial_route="Unverified", window_state="Unverified",
-               value=None, targets=[], selected_response_date=row.get("response_date"),
+               value=None, value_evidence=[], targets=[], selected_response_date=row.get("response_date"),
                response_date="", next_action="; ".join(gaps),
                current_notice_admitted=False, qualification_gaps=list(gaps))
 
@@ -416,7 +418,8 @@ def _direction_visuals(forecasts: list[dict], client_name: str) -> tuple[dict, .
             "type": "directional_graph",
             "title": "Published forecast value floor by signal",
             "note": ("Bars use only cited numeric values. Ranges and 'over' "
-                     "statements plot their published floor, not an estimate."),
+                     "statements plot the source's published floor. Forecast amounts "
+                     "are planning estimates, not committed spending or seller pipeline."),
             "points": points,
         })
     visuals.append({
