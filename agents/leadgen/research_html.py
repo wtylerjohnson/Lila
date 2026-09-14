@@ -171,16 +171,22 @@ def _forecast_projection(subject):
     return json.loads(subject.source_payload_json)
 
 
-def render_forecast_contacts(subject):
+def render_forecast_contacts(subject, *, as_of=None):
     record = _forecast_projection(subject)
-    return render_forecast_contact_record(record) if record else ''
+    return render_forecast_contact_record(record, as_of=as_of) if record else ''
 
 
-def render_forecast_contact_record(record):
+def render_forecast_contact_record(record, *, as_of=None):
     from tools.api.forecasts.contacts import contact_record
     projected = contact_record(record)
     if projected is None or not projected['contacts']:
         return ''
+    published = projected['published']
+    observed = published if as_of and published and published <= as_of else None
+    grade = grade_for(observed, now=as_of) if as_of else 'C'
+    source = escape(projected['source_url'], quote=True)
+    freshness = (f'Grade {grade}: publication age as of {as_of.isoformat()}.'
+                 if observed else 'Grade C: freshness at report date not established.')
     rows = []
     for contact in projected['contacts']:
         role = contact.title or contact.contact_type or 'Forecast POC'
@@ -194,7 +200,7 @@ def render_forecast_contact_record(record):
         ask = ('Confirm small-business participation and the permitted contract route.'
                if contact.contact_type == 'small_business_coordinator' else
                'Confirm procurement status and the appropriate technical contact.')
-        rows.append('<tr><td><b>' + escape(contact.name or 'Name not published')
+        rows.append(f'<tr data-contact="1" data-grade="{grade}" data-source="{source}"><td><b>' + escape(contact.name or 'Name not published')
                     + '</b><br>' + escape(role) + '</td><td>' + email
                     + '</td><td>' + phone + '</td><td>' + ask + '</td></tr>')
     stamp = projected['published'].isoformat() if projected['published'] else 'Not established'
@@ -206,7 +212,7 @@ def render_forecast_contact_record(record):
             '</tr></thead><tbody>' + ''.join(rows) + '</tbody></table></div><p>'
             + '<a href="' + escape(projected['source_url'], quote=True) + '" rel="noreferrer">'
             + escape(projected['source_id']) + '</a> · Source publication: ' + escape(stamp)
-            + '</p></section>')
+            + '</p><p>' + escape(freshness) + ' Publication does not verify deliverability.</p></section>')
 
 
 def forecast_contacts_markdown(subject):

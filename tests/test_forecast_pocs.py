@@ -43,6 +43,13 @@ def test_saved_source_pocs_visible_outside_source_drawer():
     assert '<details' not in html and 'mailto:casey.cauffman@usss.dhs.gov' in html
     assert 'Published phone' in html and 'Mobile' not in html
     assert json.loads(subject.source_payload_json)==row
+    from agents.reports.lint import lint_contact_rendering
+    assert lint_contact_rendering(html).ok
+    assert 'data-grade="C"' in html
+    fresh=render_forecast_contacts(subject,as_of=NOW.date())
+    assert 'data-grade="A"' in fresh and lint_contact_rendering(fresh).ok
+    future=render_forecast_contacts(subject,as_of=date(2026,9,1))
+    assert 'data-grade="C"' in future
 
 
 def test_no_publication_date_is_invented_from_harvest():

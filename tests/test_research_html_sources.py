@@ -59,8 +59,14 @@ def test_native_research_html_meets_source_contact_and_count_contracts(monkeypat
     originals = [s.source_payload_json for s in run.research.items]
     assert [raw for kind, raw in parsed.downloads if kind == "source"] == originals
     assert all(not p.lead_ids for p in receipt.parents if p.research_subject)
-    assert parsed.contacts and {c["data-grade"] for c in parsed.contacts} == {"C"}
-    assert all(c["data-source"].startswith("research:v1:") for c in parsed.contacts)
+    saved_fields = [c for c in parsed.contacts if c["data-source"].startswith("research:")]
+    published_pocs = [c for c in parsed.contacts if c["data-source"].startswith("https://apfs-cloud.dhs.gov/")]
+    assert saved_fields and {c["data-grade"] for c in saved_fields} == {"C"}
+    # This saved sweep contains both dated and undated forecast publications.
+    assert published_pocs and {c["data-grade"] for c in published_pocs} == {"A", "C"}
+    assert all(c["data-grade"] == "A" for c in published_pocs if "/74289/" in c["data-source"])
+    assert len(saved_fields) + len(published_pocs) == len(parsed.contacts)
+    assert all(c["data-source"].startswith("research:v1:") for c in saved_fields)
     assert "source observation date unknown" in page
     assert "current contact role remains unconfirmed" in page
 
