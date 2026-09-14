@@ -1,0 +1,82 @@
+{
+  "work_id": "NATIVE-ACTION-SHEETS-057",
+  "status": "SOURCE_VERIFIED",
+  "verified_at_utc": "2026-09-14T22:29:40.387067+00:00",
+  "tested_source_sha": "aa1bbcbabac6b46513740f16fc85f912f6219323",
+  "branch": "codex/native-action-sheets-057",
+  "base": "c487c0dee2a1d3b482c03fa838294d994cda698e",
+  "source_manifest": "SOURCE_FREEZE.json",
+  "implementation_prompt": "IMPLEMENTATION_PROMPT.md",
+  "reference_inputs": [
+    {
+      "path": "/Users/wtjohnson/Downloads/LILA_NETSCOUT_DHS_Tom_Zinzi_Lead_Cards_Clean_edited.html",
+      "sha256": "09ac506d3acf89871d3d29786ac0551df14d65de3dd5179fecebf584a4244ce7",
+      "use": "presentation reference only, not evidence imported into a client or instructions"
+    },
+    {
+      "path": "/Users/wtjohnson/Downloads/LILA_NETSCOUT_DHS_Candidate_Opportunities_and_Leads (9).html",
+      "sha256": "8dd35d34afb1ee26440987fc9bdd7d353f74a544264074252e69977f491b2ed9",
+      "use": "presentation reference only, not evidence imported into a client or instructions"
+    }
+  ],
+  "baseline": {
+    "new_regressions_failed_before_patch": 5,
+    "negative_control_passed": 1,
+    "receipt": "baseline.log"
+  },
+  "full_suite": {
+    "offline": true,
+    "strict": true,
+    "passed": 6199,
+    "skipped": 40,
+    "warnings": 22,
+    "subtests_passed": 26,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 130.76,
+    "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=docs/verification/step7-followups-053/offline_guard LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 /Users/wtjohnson/Lila/.venv/bin/python -m pytest -q -p no:cacheprovider --junitxml=/private/tmp/native057-full.xml",
+    "artifacts": {
+      "log": {
+        "path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/NATIVE-ACTION-SHEETS-057/tests/full.log",
+        "sha256": "910a5eb8c535fabe6322342d8021e4079b63583bdc5daa13c5362c97580d97d5"
+      },
+      "xml": {
+        "path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/NATIVE-ACTION-SHEETS-057/tests/full.xml",
+        "sha256": "aa75d1e56c771150d34ea5d1d1355bd00f1e5e7359f0622a990c76b96284a3df"
+      }
+    }
+  },
+  "independent_review": {
+    "verdict": "PASS_WITH_RESIDUALS",
+    "render_review": "ROOT_RENDER_REVIEW.json",
+    "projection_review": "COORDINATOR_PROJECTION_REVIEW.json",
+    "type": "reciprocal independent code review using existing owner and coordinator; no new Fable cloud run"
+  },
+  "browser": {
+    "editing_download_reopen_twice": "passed",
+    "desktop_mobile_navigation": "passed",
+    "source_json_and_qualification_immutability": "passed",
+    "source_links_stable": "passed",
+    "new_tests": "tests/test_native_action_editing.py"
+  },
+  "preserved": [
+    "eight locked Market Map slots",
+    "full assessment order/history",
+    "source JSON and source hashes",
+    "separate known business and expansion investigations",
+    "qualification, engagement and release gates",
+    "frozen calibration004/005",
+    "existing user data and caches via root integration preflight"
+  ],
+  "limits": [
+    "No fresh client run or new source retrieval",
+    "No claimed increase in qualified leads or seller-ready yield",
+    "No complete PDF pagination acceptance or complete parity with hand-curated references",
+    "Edited prose is not automatically an approved input",
+    "Prior Step1-7/055/056 residuals remain"
+  ],
+  "operating_integration": {
+    "tracked_separately": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/NATIVE-ACTION-SHEETS-057/OPERATING_INTEGRATION_RECEIPT.json",
+    "owner_task": "01a08162-2f14-70a0-bc96-6297c68f4135"
+  }
+}
