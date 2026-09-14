@@ -2281,8 +2281,9 @@ The remaining ten Fable findings and prior residuals remain separately recorded.
 `agents.leadgen.research_html` renders validated ResearchSubject identities with
 the existing canonical award-link builder. Reconciliation here binds the link to
 the exact historical source record; it does not establish a current opportunity,
-acquisition clock or eligible route. A foreign federal URL in a source field is
-refused rather than silently assigned the parent's identity.
+acquisition clock or eligible route. A different federal URL in a source field
+remains an explicit reconciliation gap with its exact value in the original JSON;
+it neither receives the parent's identity nor suppresses the report.
 
 Show work displays every original source/context field with a JSON pointer and
 offers each untouched serialized JSON payload as a downloadable data URI. Public

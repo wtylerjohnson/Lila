@@ -44,8 +44,9 @@ def _field_text(value, subject):
             if subject.source_system == "usaspending.gov":
                 allowed.add(build_usaspending_award_link(subject.source_record_id).url)
             if url not in allowed:
-                raise ValueError("research field has a federal URL not bound to its source record")
-            parts.append(source_link(subject, "Public source record"))
+                parts.append("Federal URL needs source reconciliation; see original JSON")
+            else:
+                parts.append(source_link(subject, "Public source record"))
         else:
             parts.append(escape(url))
         previous = match.end()
@@ -96,7 +97,7 @@ def render_source_fields(subject, *, as_of: date) -> str:
             f'<a download="{escape(subject.source_sha256)}.{kind}.json" '
             f'data-source-json="{kind}" href="data:application/json;base64,{download}">Download untouched JSON</a></p>'
             '<p>URL fields link to the source record; the download retains the exact original URL and values. '
-            'Saved contact text does not establish present responsibility or permission to contact.</p>'
+            'Saved contact text does not establish present responsibility or freshness.</p>'
             '<table class="data-table source-fields"><thead><tr><th>Original field</th><th>Saved value</th></tr></thead>'
             '<tbody>' + ''.join(rows) + '</tbody></table>')
     return ('<details><summary>Show work: original source fields and value basis</summary>'

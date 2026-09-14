@@ -7,7 +7,7 @@ import json
 
 import pytest
 
-from agents.assess.research_subjects import canonical, make_subject
+from agents.assess.research_subjects import make_subject
 from agents.leadgen.press import run_press
 from agents.leadgen.press_html import render_html
 from agents.leadgen.research_html import render_source_fields, source_link
@@ -125,8 +125,40 @@ def test_copied_unbound_subject_cannot_receive_builder_proof(change):
         render_source_fields(subject, as_of=date(2026, 9, 14))
 
 
-def test_foreign_federal_link_in_raw_fields_is_not_relabelled_as_primary():
+def test_foreign_federal_link_stays_explicit_with_exact_original_download():
     subject = award(related_url="https://www.usaspending.gov/award/CONT_AWD_other_123")
-    with pytest.raises(ValueError, match="not bound to its source"):
-        render_source_fields(subject, as_of=date(2026, 9, 14))
+    page = render_source_fields(subject, as_of=date(2026, 9, 14))
+    parsed = SourceFields()
+    parsed.feed(page)
+    assert "Federal URL needs source reconciliation; see original JSON" in page
+    assert "/related_url" in page
+    assert dict(parsed.downloads)["source"] == subject.source_payload_json
+    assert all("CONT_AWD_other_123" not in anchor.href for anchor in parse_client_anchors(page))
+    assert lint_federal_link_construction(page).ok
     assert json.loads(subject.source_payload_json)["related_url"].endswith("CONT_AWD_other_123")
+
+
+def test_native_parent_with_related_notice_context_survives_report_and_lint(monkeypatch):
+    from agents.assess.ledger import build_assess_run
+    from tests.test_research_subjects import research_sweep, NOW, BINDING
+    sweep, profile = research_sweep(monkeypatch)
+    record = sweep["results"]["incumbent_buyer_map"]["research_award_details"]["records"][0]
+    other_id = "a" * 32
+    related = f"https://sam.gov/opp/{other_id}/view"
+    record["related_notice_url"] = related
+    run, _, _ = build_assess_run("NETSCOUT", sweep, profile, BINDING, as_of=NOW)
+    receipt = run_press(assess=run, client_name="NETSCOUT")
+    subject = next(s for s in run.research.items
+                   if json.loads(s.source_payload_json).get("related_notice_url") == related)
+    parent = next(p for p in receipt.parents if p.subject_id == subject.subject_id)
+    page = render_html(receipt)
+    parsed = SourceFields()
+    parsed.feed(page)
+    assert parent.title in "".join(parsed.text) and not parent.lead_ids
+    assert ("source", subject.source_payload_json) in parsed.downloads
+    assert "/related_notice_url" in page
+    assert "Federal URL needs source reconciliation; see original JSON" in page
+    assert all(other_id not in a.href for a in parse_client_anchors(page))
+    assert lint_federal_link_construction(page).ok
+    assert lint_contact_rendering(page).ok
+    assert "or permission to contact" not in page
