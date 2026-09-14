@@ -1065,10 +1065,14 @@ def golden_press(
             )
             from tools.notice_store import connect as _graph_store_connect
 
-            _graph_conn = _graph_store_connect()
+            _graph_conn = _graph_store_connect(root / "data" / "state" / "notice_store" / "notices.db")
             try:
+                from agents.golden_press.notice_bridge import NoticeReadContext
+                from datetime import datetime, timezone
+                notice_context = NoticeReadContext(root, pack.client_name or client, slug,
+                                                   datetime.now(timezone.utc))
                 graph_path, graph_payload = build_corrected_pack(
-                    slug, pack.client_name or client,
+                    slug, pack.client_name or client, notice_context=notice_context,
                     root=root,
                     pressed_pack_path=(
                         out_dir / f"{stem}.evidence_pack.json"),
@@ -1108,7 +1112,7 @@ def golden_press(
             market_map = press_market_map(
                 pack=pack, client=client, slug=slug, root=root,
                 out_dir=out_dir, stamp=_press_stamp(pack),
-                profile=profile_dict, log=log)
+                profile=profile_dict, log=log, notice_context=notice_context, graph=graph_payload)
             market_map["delivered_path"] = _mm_deliver(
                 market_map, client=pack.client_name or client, log=log,
                 deliver_fn=_deliver_to_desktop)

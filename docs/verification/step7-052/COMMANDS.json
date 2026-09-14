@@ -1,0 +1,26 @@
+{
+  "focused": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 /Users/wtjohnson/Lila/.venv/bin/python -m pytest tests/test_step7_evidence_collection.py tests/test_sam_attachment_text.py tests/test_dossiers.py tests/test_native_notice_bridge.py tests/test_native_surface_contract.py tests/test_assess_source_clock.py tests/test_assess_ledger.py tests/test_external_notice_authority.py tests/test_step6_material_source.py tests/test_triage_prefilter.py -q -p no:cacheprovider",
+    "log": "targeted-05.log",
+    "passed": 201,
+    "execution_state": "precommit same runtime/test bytes subsequently committed as 6b51f005c001d2d99a535e4a302370f9ad80c6ea"
+  },
+  "full": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 /Users/wtjohnson/Lila/.venv/bin/python -m pytest tests/ -q -rs -p no:cacheprovider --junitxml=/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/full-01.xml",
+    "cwd": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step7-evidence-collection",
+    "log": "full-01.log",
+    "junit": {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "40",
+      "tests": "5930",
+      "time": "140.121",
+      "timestamp": "2026-09-13T08:09:03.122612-06:00",
+      "hostname": "Ws-MacBook-Air.local"
+    },
+    "exact_tested_sha": "6b51f005c001d2d99a535e4a302370f9ad80c6ea",
+    "exit_code": 0,
+    "result": "5864 passed, 40 skipped, 20 warnings, 26 subtests passed in 140.41s"
+  }
+}

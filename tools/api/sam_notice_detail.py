@@ -23,7 +23,7 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
-from urllib.parse import urljoin, urlparse
+from urllib.parse import unquote, urljoin, urlparse
 
 import tools.api.sam_quota as sam_quota
 from tools.api._http import get_json
@@ -93,6 +93,9 @@ def _attachments(payload: Any) -> Optional[list[dict]]:
                     "access_status": cur.get("accessStatus"),
                     "export_controlled": cur.get("exportControlled"),
                     "explicit_access": cur.get("explicitAccess"),
+                    **{normalized: cur[original] for original, normalized in (
+                        ('deletedFlag', 'deleted_flag'), ('deletedDate', 'deleted_date'),
+                        ('fileExists', 'file_exists')) if original in cur},
                 })
             stack.extend(cur.values())
         elif isinstance(cur, list):
@@ -100,13 +103,58 @@ def _attachments(payload: Any) -> Optional[list[dict]]:
     return found or None
 
 
-def _attachment_inventory(payload: Any) -> tuple[Optional[list[dict]], bool]:
+def _notice_link_matches(value: Any, notice_id: str) -> bool:
+    if not isinstance(value, str):
+        return True
+    try:
+        parts = unquote(urlparse(value).path).split('/')
+    except ValueError:
+        return False
+    # A file resource route has /opportunities/resources/files/<resource>/,
+    # not /opportunities/<notice>/. Resource ids must never become notice ids.
+    for i, part in enumerate(parts[:-1]):
+        if part in ('opportunities', 'opp') and _PUBLIC_NOTICE_ID.fullmatch(parts[i + 1]):
+            if parts[i + 1] != notice_id:
+                return False
+    return True
+
+
+def _resource_identity_matches(payload: Any, notice_id: str) -> bool:
+    stack = [payload]
+    while stack:
+        item = stack.pop()
+        if isinstance(item, dict):
+            for key in ("opportunityId", "noticeId", "notice_id"):
+                if key in item and item[key] not in (None, "", notice_id):
+                    return False
+            for key in ('href', 'downloadUrl', 'resourceUrl', 'uri', 'source_url'):
+                if not _notice_link_matches(item.get(key), notice_id):
+                    return False
+            stack.extend(item.values())
+        elif isinstance(item, list):
+            stack.extend(item)
+    return True
+
+
+def attachment_withdrawn(item: dict) -> bool:
+    open_flags = {'', '0', 'false', 'no', 'n', 'none'}
+    return (str(item.get('deleted_flag') or '').strip().casefold() not in open_flags
+            or bool(item.get('deleted_date'))
+            or ('file_exists' in item and str(item['file_exists']).strip().casefold()
+                in {'0', 'false', 'no', 'n'}))
+
+
+def _attachment_inventory(payload: Any, notice_id: str | None = None, *,
+                          include_withdrawn: bool = False
+                          ) -> tuple[Optional[list[dict]], bool]:
     """Return ``(items, schema_recognized)`` for the known resources shapes.
 
     An HTTP 200 with an unfamiliar JSON object is not evidence of zero
     attachments. Confirmed zero requires a recognized container whose walk
     yields no attachment rows.
     """
+    if notice_id is not None and not _resource_identity_matches(payload, notice_id):
+        return None, False
     containers: list[list] = []
     if isinstance(payload, list):
         containers.append(payload)
@@ -171,8 +219,37 @@ def _attachment_inventory(payload: Any) -> tuple[Optional[list[dict]], bool]:
                 sizes.append(0)
         if sizes:
             chosen["size"] = max(sizes)
-        normalized.append(chosen)
+        if any(attachment_withdrawn(item) for _, item in entries):
+            chosen['deleted_flag'] = '1'
+            dates = sorted(str(item['deleted_date']) for _, item in entries
+                           if item.get('deleted_date'))
+            if dates:
+                chosen['deleted_date'] = dates[-1]
+        if include_withdrawn or not attachment_withdrawn(chosen):
+            normalized.append(chosen)
     return normalized, True
+
+
+def _withdrawn_inventory(payload: Any, notice_id: str) -> list[dict]:
+    items, _ = _attachment_inventory(payload, notice_id, include_withdrawn=True)
+    return [item for item in (items or []) if attachment_withdrawn(item)]
+
+
+def _capture_origin_valid(capture: dict, notice_id: str) -> bool:
+    requested = RESOURCES_URL_TPL.format(id=notice_id)
+    chain = capture.get('redirect_chain')
+    if (capture.get('requested_url') != requested or not isinstance(chain, list)
+            or not chain or chain[0] != requested or chain[-1] != capture.get('source_url')):
+        return False
+    for value in chain:
+        if not isinstance(value, str):
+            return False
+        parsed = urlparse(value)
+        host = (parsed.hostname or '').casefold()
+        if (parsed.scheme != 'https' or not (host == 'sam.gov' or host.endswith('.sam.gov'))
+                or not _notice_link_matches(value, notice_id)):
+            return False
+    return True
 
 
 def _manifest_hash(items: list[dict]) -> str:
@@ -197,7 +274,9 @@ def _timestamp(value: Any) -> Optional[datetime]:
 
 
 def _resource_cache_age(payload: dict) -> Optional[float]:
-    retrieved = _timestamp(payload.get("retrieved_at"))
+    capture = payload.get("raw_capture")
+    stamp = capture.get("received_at") if isinstance(capture, dict) else payload.get("retrieved_at")
+    retrieved = _timestamp(stamp)
     if retrieved is None:
         return None
     return (datetime.now(timezone.utc) - retrieved).total_seconds()
@@ -220,8 +299,13 @@ def fetch_notice_resources(notice_id: str, *, timeout_seconds: float = 15.0) -> 
     cache = _cache_dir() / f"{notice_id}.resources.json"
     cached = None
     if cache.exists():
-        cached = json.loads(cache.read_text())
-        if _resource_cache_fresh(cached):
+        try:
+            cached = json.loads(cache.read_text())
+            if not isinstance(cached, dict) or cached.get("id") != notice_id:
+                cached = None
+        except (ValueError, OSError):
+            cached = None
+        if cached is not None and _resource_cache_fresh(cached) and _resource_capture_valid(cached):
             cached["from_cache"] = True
             cached["stale_cache"] = False
             return cached
@@ -232,40 +316,112 @@ def fetch_notice_resources(notice_id: str, *, timeout_seconds: float = 15.0) -> 
         "resources_checked": False,
         "resources_schema": None,
         "errors": [],
+        "collection_status": "lookup_failed",
+        "authority": "discovery_only",
     }
+    def capture(response, raw, complete):
+        from tools.api.sam_capture import retain_bytes
+        out["raw_capture"] = {
+            "complete": complete,
+            "http_status": response.status_code,
+            "requested_url": RESOURCES_URL_TPL.format(id=notice_id),
+            "source_url": str(response.url),
+            "redirect_chain": [str(r.url) for r in [*response.history, response]],
+            "received_at": datetime.now(timezone.utc).isoformat(),
+            "representation": "decoded_http_entity_bytes",
+        }
+        try:
+            out['raw_capture'].update(retain_bytes(_cache_dir(), raw))
+        except (OSError, ValueError) as exc:
+            out['raw_capture'].update(sha256=hashlib.sha256(raw).hexdigest(),
+                                      bytes=len(raw), retained=False)
+            out['retention_error'] = str(exc)[:300]
+            out['collection_status'] = 'retention_failed'
+        if not _capture_origin_valid(out['raw_capture'], notice_id):
+            out['collection_status'] = 'identity_mismatch'
+            raise ValueError('resources response origin or notice link mismatch')
+
     try:
         payload = get_json(
             RESOURCES_URL_TPL.format(id=notice_id),
             timeout=max(0.25, min(15.0, timeout_seconds)),
             headers=RESOURCES_HEADERS, retries=1,
+            response_observer=capture, max_response_bytes=2 * 1024 * 1024,
         )
-        attachments, recognized = _attachment_inventory(payload)
+        if not _resource_identity_matches(payload, notice_id):
+            out["collection_status"] = "identity_mismatch"
+            raise ValueError("resources notice identity mismatch")
+        attachments, recognized = _attachment_inventory(payload, notice_id)
         if not recognized:
+            out["collection_status"] = "unrecognized_inventory"
             raise ValueError("unrecognized resources schema")
+        if out.get('retention_error'):
+            out['collection_status'] = 'retention_failed'
+            out['diagnostic_inventory'] = attachments
+            out['errors'].append('local retention failed: ' + out['retention_error'])
+            return {**out, 'from_cache': False, 'stale_cache': False}
         out.update({
             "attachments": attachments,
+            "withdrawn_attachments": _withdrawn_inventory(payload, notice_id),
             "resources_checked": True,
             "resources_schema": "recognized_v1",
             "attachment_inventory_count": len(attachments or []),
             "attachment_inventory_hash": _manifest_hash(attachments or []),
+            "collection_status": "inventory_captured" if attachments else "confirmed_empty",
         })
         _cache_dir().mkdir(parents=True, exist_ok=True)
         from tools.artifacts import atomic_write_json
         atomic_write_json(cache, out)
     except Exception as exc:  # noqa: BLE001 - one notice never sinks breadth
+        if out.get('retention_error'):
+            out['source_collection_status'] = out['collection_status']
+            out['collection_status'] = 'retention_failed'
+            out['errors'].append('local retention failed: ' + out['retention_error'])
         cached_age = _resource_cache_age(cached or {})
         if cached is not None and cached.get("resources_checked") is True \
+                and cached.get('id') == notice_id and _resource_capture_valid(cached) \
                 and cached_age is not None \
                 and 0 <= cached_age <= RESOURCE_CACHE_MAX_STALE_SECONDS:
             cached.setdefault("errors", []).append(
                 f"resources refresh failed; using stale inventory: {exc}")
             cached["from_cache"] = True
             cached["stale_cache"] = True
+            cached["collection_status"] = "stale_inventory"
+            cached["refresh_attempt"] = out
             return cached
         out["errors"].append(f"resources fetch failed: {exc}")
     out["from_cache"] = False
     out["stale_cache"] = False
     return out
+
+
+def _resource_capture_valid(cached: dict) -> bool:
+    """Current cache reuse needs its original response and exact projection."""
+    from tools.api.sam_capture import read_retained
+    try:
+        if not isinstance(cached, dict) or not isinstance(cached.get('errors'), list):
+            return False
+        capture = cached["raw_capture"]
+        if not isinstance(capture, dict) or capture.get("complete") is not True or capture.get("http_status") != 200:
+            return False
+        if not _capture_origin_valid(capture, cached['id']):
+            return False
+        received = datetime.fromisoformat(capture["received_at"].replace("Z", "+00:00"))
+        if received.utcoffset() is None or received > datetime.now(timezone.utc):
+            return False
+        raw = read_retained(_cache_dir(), capture)
+        payload = json.loads(raw)
+        items, recognized = _attachment_inventory(payload, cached["id"])
+        return (recognized and cached.get("attachments") == items
+                and cached.get('withdrawn_attachments') == _withdrawn_inventory(payload, cached['id'])
+                and cached.get('authority') == 'discovery_only'
+                and cached.get('resources_schema') == 'recognized_v1'
+                and cached.get('collection_status') == ('inventory_captured' if items else 'confirmed_empty')
+                and cached.get("resources_checked") is True
+                and cached.get("attachment_inventory_count") == len(items or [])
+                and cached.get("attachment_inventory_hash") == _manifest_hash(items or []))
+    except (AttributeError, KeyError, TypeError, ValueError, OSError):
+        return False
 
 
 def fetch_notice_depth(notice_id: str, api_key: str | None = None,
@@ -278,8 +434,31 @@ def fetch_notice_depth(notice_id: str, api_key: str | None = None,
         raise ValueError("notice_id required")
     api_key = api_key or os.environ.get("SAM_GOV_API_KEY")
     cache = _cache_dir() / f"{notice_id}.json"
+    data = None
+    invalid_cache = False
     if cache.exists():
-        data = json.loads(cache.read_text())
+        try:
+            data = json.loads(cache.read_text())
+            if (not isinstance(data, dict) or data.get('id') != notice_id
+                    or not _resource_identity_matches(data, notice_id)
+                    or not isinstance(data.get('errors', []), list)
+                    or not isinstance(data.get('description', ''), (str, type(None)))
+                    or not isinstance(data.get('attachments', []), (list, type(None)))
+                    or not isinstance(data.get('withdrawn_attachments', []), list)
+                    or any(not isinstance(item, dict) for item in (data.get('attachments') or []))):
+                data = None
+        except (OSError, ValueError, TypeError):
+            data = None
+        invalid_cache = data is None
+    if data is not None:
+        listed = data.get('attachments')
+        if isinstance(listed, list) and any(attachment_withdrawn(item) for item in listed):
+            data.setdefault('withdrawn_attachments', []).extend(
+                item for item in listed if attachment_withdrawn(item))
+            data['attachments'] = [item for item in listed if not attachment_withdrawn(item)]
+            if data.get('resources_checked') is True:
+                data['attachment_inventory_count'] = len(data['attachments'])
+                data['attachment_inventory_hash'] = _manifest_hash(data['attachments'])
         # Old cache rows predate explicit depth lineage. Preserve their paid
         # description while marking the attachment surface honestly. A
         # resource failure is retried below because that endpoint is keyless;
@@ -308,6 +487,8 @@ def fetch_notice_depth(notice_id: str, api_key: str | None = None,
                         params={"noticeid": notice_id, "api_key": api_key},
                         timeout=60.0, headers=SAM_HEADERS,
                     )
+                    if not _resource_identity_matches(payload, notice_id):
+                        raise ValueError('description notice identity mismatch')
                     raw = payload.get("description") \
                         if isinstance(payload, dict) else None
                     checked = strip_html(raw)[:20000] if raw else None
@@ -334,9 +515,10 @@ def fetch_notice_depth(notice_id: str, api_key: str | None = None,
                     RESOURCES_URL_TPL.format(id=notice_id), timeout=30.0,
                     headers=RESOURCES_HEADERS, retries=1,
                 )
-                attachments, recognized = _attachment_inventory(res)
+                attachments, recognized = _attachment_inventory(res, notice_id)
                 if recognized:
                     data["attachments"] = attachments
+                    data['withdrawn_attachments'] = _withdrawn_inventory(res, notice_id)
                     data["resources_checked"] = True
                     data["resources_schema"] = "recognized_v1"
                     data["attachment_inventory_count"] = len(attachments or [])
@@ -360,6 +542,11 @@ def fetch_notice_depth(notice_id: str, api_key: str | None = None,
         return data
 
     if not api_key:
+        if invalid_cache:
+            return {'id': notice_id, 'description': None, 'attachments': None,
+                    'from_cache': False, 'retrieved_at': None,
+                    'description_checked': False, 'resources_checked': False,
+                    'errors': ['invalid or foreign depth cache; refresh unavailable without SAM key']}
         raise RuntimeError("SAM_GOV_API_KEY not set — depth fetch needs the SAM key")
 
     out: dict = {
@@ -379,6 +566,8 @@ def fetch_notice_depth(notice_id: str, api_key: str | None = None,
         sam_quota.note_call("deep")
         payload = get_json(DESC_URL, params={"noticeid": notice_id, "api_key": api_key},
                            timeout=60.0, headers=SAM_HEADERS)
+        if not _resource_identity_matches(payload, notice_id):
+            raise ValueError('description notice identity mismatch')
         raw = payload.get("description") if isinstance(payload, dict) else None
         out["description"] = strip_html(raw)[:20000] if raw else None
         out["description_checked"] = True
@@ -390,9 +579,10 @@ def fetch_notice_depth(notice_id: str, api_key: str | None = None,
     try:  # best-effort, keyless, never fatal
         res = get_json(RESOURCES_URL_TPL.format(id=notice_id), timeout=30.0,
                        headers=RESOURCES_HEADERS, retries=1)
-        attachments, recognized = _attachment_inventory(res)
+        attachments, recognized = _attachment_inventory(res, notice_id)
         if recognized:
             out["attachments"] = attachments
+            out['withdrawn_attachments'] = _withdrawn_inventory(res, notice_id)
             out["resources_checked"] = True
             out["resources_schema"] = "recognized_v1"
             out["attachment_inventory_count"] = len(attachments or [])

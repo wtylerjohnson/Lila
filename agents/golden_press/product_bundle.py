@@ -197,20 +197,20 @@ def _require_output_retention(root: Path, slug: str, pack, leadgen: Optional[dic
 
 
 def _build_graph(root: Path, slug: str, client_name: str,
-                 pressed_pack_path: Path) -> tuple[Path, dict]:
+                 pressed_pack_path: Path, *, notice_context=None) -> tuple[Path, dict]:
     from agents.golden_press.evidence_pack_v2 import build_corrected_pack
 
     connection = None
     try:
         try:
             from tools.notice_store import connect
-            connection = connect()
+            connection = connect(root / "data" / "state" / "notice_store" / "notices.db")
         except Exception:  # noqa: BLE001 - stored pack remains usable
             connection = None
         return build_corrected_pack(
             slug, client_name, root=root,
             pressed_pack_path=pressed_pack_path,
-            store_conn=connection,
+            store_conn=connection, notice_context=notice_context,
         )
     finally:
         if connection is not None:
@@ -309,7 +309,11 @@ def build_complete_bundle(
     pressed_pack_path = pressed_pack_path.with_name(f"{slug}.assessment_release.evidence_pack.json")
     _write(pressed_pack_path, _json_bytes(pack.model_dump(mode="json")))
     profile = _load_profile(root, slug)
-    graph_path, graph = _build_graph(root, slug, client_name, pressed_pack_path)
+    from agents.golden_press.notice_bridge import NoticeReadContext
+    from datetime import datetime, timezone
+    notice_context = NoticeReadContext(root, client_name, slug, datetime.now(timezone.utc))
+    graph_path, graph = _build_graph(root, slug, client_name, pressed_pack_path,
+                                    notice_context=notice_context)
     if not graph.get("graph_contract_certified"):
         problems = [
             f"graph contract: {row.get('rule_id')}: {row.get('message')}"
@@ -320,14 +324,14 @@ def build_complete_bundle(
     from agents.golden_press.market_map_projection import (
         build_market_map, capture_inputs,
     )
-    captured_inputs = capture_inputs(profile=profile, slug=slug, pack=pack)
+    captured_inputs = capture_inputs(profile=profile, slug=slug, pack=pack, root=root, graph=graph)
     market_map = build_market_map(
         pack, profile=profile, slug=slug, as_of=as_of,
-        inputs=captured_inputs)
+        inputs=captured_inputs, notice_context=notice_context)
     product = build_external_product_document(
         market_map=market_map, graph_payload=graph, evidence_pack=pack,
         profile=profile, client_name=client_name, slug=slug, as_of=as_of,
-        leadgen=leadgen)
+        leadgen=leadgen, notice_context=notice_context)
     studio_html, client_html = render_external_product(product)
     validation = validate_external_product_html(client_html, product)
     if not validation.get("ok"):

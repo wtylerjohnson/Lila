@@ -131,6 +131,7 @@ def _fields(record: dict) -> str:
     labels = (
         ("agency", "Agency"), ("office", "Office"),
         ("recipient", "Recipient"), ("response_date", "Timing"),
+        ("selected_response_date", "Selected notice response (historical)"),
         ("value", "Published value"), ("commercial_route", "Route"),
         ("window_state", "Window"), ("service_fit", "Fit"),
         ("role", "Relationship"), ("target_role", "Target role"),
@@ -206,9 +207,51 @@ def _record(record: dict, *, include_targets: bool = False) -> str:
         + (f'<p>{esc(summary)}</p>' if summary else "")
         + _fields(record)
         + _source_link(record)
+        + _family_history(record)
         + _lead_rows(record)
+        + _saved_lead_history(record)
         + (_targets(record) if include_targets else "")
         + "</article>")
+
+
+def _family_history(record: dict) -> str:
+    representative = record.get("current_representative")
+    members = record.get("family_members") or []
+    if not representative or not members:
+        return ""
+    current = dict(representative)
+    current["source_id"] = representative.get("source_id")
+    title = "Current family representative" if record.get("family_order_status") == "ordered" else "Family chronology unresolved"
+    rows = []
+    for member in members:
+        status = str(member.get("lineage_status") or "unknown").replace("_", " ")
+        if member.get("superseded_by"):
+            status += f" by {member['superseded_by']}"
+        rows.append("<li>" + esc(member.get("source_id")) + " · " + esc(member.get("title"))
+                    + " · " + esc(member.get("source_status")) + " · " + esc(status)
+                    + _source_link(member) + "</li>")
+    return ('<div class="product-family"><h4>' + esc(title) + '</h4><p>'
+            + esc(representative.get("source_id")) + ' · ' + esc(representative.get("title"))
+            + ' · ' + esc(representative.get("source_status")) + '</p>' + _source_link(current)
+            + '<details><summary>Notice family history (' + str(len(members)) + ')</summary><ul>'
+            + ''.join(rows) + '</ul><p>' + esc(record.get("family_history_scope")) + '</p></details></div>')
+
+
+def _saved_lead_history(record: dict) -> str:
+    saved = record.get("saved_lead_rows") or []
+    if not saved:
+        return ""
+    rows = []
+    for lead in saved:
+        fields = {"Saved readiness": lead.get("lead_tier"),
+                  "Saved next action": (lead.get("next_action") or {}).get("verb"),
+                  "Saved research": (lead.get("research") or {}).get("status")}
+        rows.append('<dl class="product-fields">' + ''.join(
+            f'<dt>{esc(label)}</dt><dd>{esc(_display_value(value))}</dd>'
+            for label, value in fields.items() if value) + '</dl>')
+    return ('<details class="product-saved-history"><summary>Saved lead history — current authority withheld</summary><p>'
+            + esc('; '.join(record.get("lead_projection_gaps") or [])) + '</p>'
+            + ''.join(rows) + '</details>')
 
 
 def _lead_rows(record: dict) -> str:

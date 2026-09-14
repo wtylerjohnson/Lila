@@ -144,7 +144,8 @@ def _enrich_sam_public_attachments(sam: list[dict], source, query,
                                    *, limit: int) -> tuple[list[dict], dict]:
     """Add bounded public requirements-file evidence to SAM candidates."""
     from tools.api.sam_attachment_text import (
-        attachment_priority, extract_public_attachment_text)
+        attachment_priority, extract_public_attachment_text, _public_file,
+        _unfetched_file_status)
     from tools.api.sam_notice_detail import fetch_notice_resources
     from tools.relevance.engine import score_record
 
@@ -204,6 +205,15 @@ def _enrich_sam_public_attachments(sam: list[dict], source, query,
             # Preserve the adapter's receipt before either early return so
             # the saved sweep explains why file requirements were not inspected.
             resource_errors = resources.get("errors") or []
+            record_receipt["inventory_receipt"] = {
+                key: resources.get(key) for key in (
+                    "id", "retrieved_at", "collection_status", "raw_capture",
+                    "attachment_inventory_hash", "resources_schema", "refresh_attempt")
+            }
+            if resources.get("id") not in (None, candidate.source_id):
+                record_receipt.update(status="IDENTITY_MISMATCH",
+                                      errors=["resource inventory belongs to another notice"])
+                continue
             record_receipt["errors"] = [str(e)[:240] for e in resource_errors[:10]]
             errors.extend(
                 f"{candidate.source_id}: {str(error)[:240]}"
@@ -225,28 +235,71 @@ def _enrich_sam_public_attachments(sam: list[dict], source, query,
             record_receipt.update(
                 status="INVENTORY_CHECKED", inventory_count=len(resources.get("attachments") or []))
             attachments = sorted(
-                resources.get("attachments") or [], key=attachment_priority)
-            attachments = [
-                item for item in attachments
-                if os.path.splitext(str(item.get("name") or ""))[1].lower()
-                in supported
-            ][:3]
+                (resources.get("attachments") or []) +
+                (resources.get('withdrawn_attachments') or []), key=attachment_priority)
+            file_receipts = [{"resource_id": a.get("resource_id"),
+                              "name": a.get("name"), "status": "not_fetched",
+                              "reason": "file cap", "authority": "discovery_only"}
+                             for a in attachments]
+            record_receipt["files"] = file_receipts
+            selected = []
+            for attachment, receipt in zip(attachments, file_receipts):
+                allowed, reason = _public_file(attachment)
+                if not allowed:
+                    receipt.update(status=_unfetched_file_status(reason), reason=reason)
+                elif os.path.splitext(str(attachment.get('name') or ''))[1].lower() not in supported:
+                    receipt['reason'] = 'type filter'
+                elif len(selected) < 3:
+                    selected.append((attachment, receipt))
+                    receipt['reason'] = 'selected; not attempted'
             evidence = []
             texts = []
-            for attachment in attachments:
+            for index, (attachment, file_receipt) in enumerate(selected):
                 if time.monotonic() >= stop_at:
+                    for _, remaining_receipt in selected[index:]:
+                        remaining_receipt.update(reason='stage time budget exhausted',
+                                                 stop_reason='stage_deadline')
                     errors.append(
                         f"attachment stage reached its {stage_seconds}s hard budget")
                     break
+                start = sum(len(t) for t in texts) + 2 * len(texts)
+                if start >= 150000:
+                    for _, remaining_receipt in selected[index:]:
+                        remaining_receipt.update(reason='text bundle budget exhausted',
+                                                 stop_reason='text_budget')
+                    break
                 extracted = extract_public_attachment_text(
                     attachment, deadline_monotonic=stop_at)
-                if extracted.get("text"):
-                    texts.append(str(extracted["text"]))
-                    evidence.append({
+                file_receipt.update({k: v for k, v in extracted.items() if k != "text"})
+                file_receipt["status"] = extracted.get("collection_status") or (
+                    "captured_discovery_only" if extracted.get("text") else "text_unavailable")
+                file_receipt["reason"] = extracted.get("error") or "collected within declared budget"
+                if extracted.get("text") and file_receipt['status'] == 'captured_discovery_only':
+                    file_text = str(extracted["text"])[:max(0, 150000 - start)]
+                    if not file_text:
+                        file_receipt.update(status='not_fetched', reason='text bundle budget exhausted',
+                                            stop_reason='text_budget')
+                        continue
+                    if len(file_text) < len(str(extracted['text'])):
+                        file_receipt.update(reason='collected; text bundle budget clipped',
+                                            stop_reason='text_budget')
+                    texts.append(file_text)
+                    file_evidence = {
                         key: extracted.get(key)
                         for key in ("resource_id", "name", "sha256",
-                                    "retrieved_at", "source_url")
-                    })
+                                    "retrieved_at", "source_url", "raw_capture",
+                                    "text_capture", "extraction_limits")
+                    }
+                    file_evidence.update(
+                        authority="discovery_only",
+                        text_sha256=hashlib.sha256(file_text.encode()).hexdigest(),
+                        file_text_locator={"unit": "unicode_characters", "start": 0,
+                                           "end": len(file_text)},
+                        file_text_truncated=len(file_text) < len(str(extracted["text"])),
+                        combined_text_locator={"unit": "unicode_characters",
+                                               "start": start,
+                                               "end": start + len(file_text)})
+                    evidence.append(file_evidence)
                 elif extracted.get("error"):
                     record_receipt["errors"].append(str(extracted["error"])[:240])
                     errors.append(
@@ -279,6 +332,17 @@ def _enrich_sam_public_attachments(sam: list[dict], source, query,
                     fingerprint_basis, sort_keys=True, separators=(",", ":")
                 ).encode("utf-8")
             ).hexdigest()
+            # Additive locator binding; retain the legacy bundle fingerprint
+            # so saved historical research remains readable.
+            raw["attachment_collection_v1"] = {
+                "notice_id": candidate.source_id,
+                "inventory_hash": raw["attachment_inventory_hash"],
+                "files": evidence, "authority": "discovery_only",
+                "combined_text_sha256": fingerprint_basis["text_sha256"],
+            }
+            raw["attachment_collection_sha256"] = hashlib.sha256(json.dumps(
+                raw["attachment_collection_v1"], sort_keys=True,
+                separators=(",", ":")).encode()).hexdigest()
             verdict = score_record(
                 row, taxonomy, engagement_scope=engagement_scope)
             # Keep a bounded audit trail even when this file supplies no match

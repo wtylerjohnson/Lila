@@ -777,12 +777,17 @@ def run_l1_from_sweep(
     if len(scored) > cap:
         _log(f"L1 capped at {cap} of {len(scored)} capability-screened notices "
              f"({len(eligible)} in sweep); cap is loud, never silent")
+    from agents.golden_press.notice_bridge import source_transport
     records = [
         GoldenRecord(
             record_id=str(row.get("source_id") or ""),
             lane="L1_notice",
             title=str(row.get("title") or ""),
             agency=row.get("agency"),
+            office=row.get("office") or (row.get("raw_payload") or {}).get("office"),
+            description=row.get("description") or (row.get("raw_payload") or {}).get("description") or (row.get("raw_payload") or {}).get("description_snippet"),
+            notice_type=row.get("notice_type") or (row.get("raw_payload") or {}).get("type"),
+            source_fields={"notice_source_v1": source_transport(row, ordinal=rows.index(row), locator="selected_sweep/results/sam.gov")},
             naics=row.get("naics_code"),
             psc=row.get("psc_code"),
             set_aside=row.get("set_aside"),
@@ -792,7 +797,7 @@ def run_l1_from_sweep(
             entity_hits=hits,
             relevance_method="sweep_capability_search",
             relevance_matched=hits[:6],
-            retrieved_at=str(sweep.get("generated_at") or ""),
+            retrieved_at=str(row.get("retrieved_at") or ""),
         )
         for _, row, hits in kept
     ]

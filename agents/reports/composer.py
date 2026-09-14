@@ -16,7 +16,7 @@ taxonomy and engagement scope; only verdict.relevant rows survive. When that
 pool is empty, active USAspending award corridors may fill the band, but only
 when the sanctioned evidence scorer finds real CORE text, the award is in
 scope, its PoP end is current/future, and both PIID and generated identity are
-present. Award cards say ACTIVE AWARD CORRIDOR and PERIOD OF PERFORMANCE END;
+present. Award cards say AWARD CONTEXT and PERIOD OF PERFORMANCE END;
 they never masquerade as solicitations.
 
 COMPETITOR LANES (default 5): direct-award vendors in the client's
@@ -623,13 +623,13 @@ def select_award_best_fit(
     today: date,
     n: int = 3,
 ) -> list[BestFitPick]:
-    """Core-evidenced active award corridors when SAM yields no play.
+    """Core-evidenced award research context when SAM yields no play.
 
     This is deliberately not a generic award ranking. Every selected row has
     a current/future PoP end, a positive scope verdict, exact structured award
     identity, and a relevant verdict from the same evidence scorer the Signal
-    Board press uses. It therefore supports installed-base renewal/expansion
-    and evidenced displacement corridors without calling either a live bid.
+    Board press uses. It preserves source timing and supplier research context; future buying
+    intent and a supported seller action remain separate questions.
     """
     results = sweep.get("results") or {}
     buyer_map = results.get("incumbent_buyer_map") or {}
@@ -677,7 +677,7 @@ def select_award_best_fit(
                 continue
             if not award_id or not gid:
                 raise ComposerSelectionError(
-                    f"core-evidenced active award corridor {recipient} · "
+                    f"core-evidenced award context {recipient} · "
                     f"{buyer_name} lacks structured award identity "
                     "(award_id and generated_internal_id)",
                     "re-run the sweep: the buyer map now preserves Award ID "
@@ -726,9 +726,9 @@ def select_award_best_fit(
     for pick in chosen:
         kind = ("client installed-base" if _is_client_footprint(
             pick.recipient, pick.record, client_name, taxonomy=taxonomy)
-            else "displacement")
+            else "supplier research")
         pick.why = (
-            f"active {kind} award corridor · score {pick.verdict.score} · "
+            f"{kind} award context · score {pick.verdict.score} · "
             f"core {', '.join(pick.verdict.core_terms)} · "
             f"{len(pick.verdict.spans)} evidence spans · PoP end "
             f"{pick.window_end} · award {pick.award_id}"
@@ -4936,14 +4936,14 @@ def compose_content(client_name: str, sweep: dict, *,
             lane_kind = ("CLIENT FOOTPRINT" if _is_client_footprint(
                 pick.recipient, pick.record, client_name,
                 taxonomy=client_inputs["taxonomy"])
-                else "DISPLACEMENT")
+                else "SUPPLIER RESEARCH")
             excerpts = len(pick.verdict.spans)
             card = {
                 "rank": f"{i + 1:02d}",
                 "code": code,
                 "agency_name": pick.agency,
                 "title": pick.title[:70],
-                "account": (f"{str(code).upper()} · ACTIVE AWARD CORRIDOR · "
+                "account": (f"{str(code).upper()} · AWARD CONTEXT · "
                             f"{lane_kind}"),
                 "award_generated_id": pick.gid,
                 "evidence": [{"award_generated_id": pick.gid,
@@ -5311,7 +5311,7 @@ def compose_content(client_name: str, sweep: dict, *,
             source_citation = f"{source.replace('_', ' ').upper()} · {pick.ident}"
         elif pick.kind == "award-window":
             value = fmt_day(pick.event_date)
-            small = "ACTIVE AWARD · PERIOD OF PERFORMANCE END"
+            small = "AWARD CONTEXT · PERIOD OF PERFORMANCE END"
             buyer = str(row.get("buyer") or row.get("agency") or "")
             label = f"{_compact_org(buyer).upper()} · AWARD WINDOW"
             recipient = str(row.get("recipient") or "")
@@ -5620,7 +5620,7 @@ def compose_content(client_name: str, sweep: dict, *,
     signal_cards = [{
         "label": "Priority routes", "value": str(len(best_fit)),
         "sub": "Verified federal records",
-        "detail": ("Active award corridors" if award_lead
+        "detail": ("Award research context" if award_lead
                    else "Current federal notices"),
     }]
     if footprint_lead:

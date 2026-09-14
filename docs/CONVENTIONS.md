@@ -2179,3 +2179,109 @@ byte-identical and never supply v5 classification. No frozen case is re-scored.
 ### Native research preservation (2026-09-13)
 
 Use tools.api.forecasts.research for separate discovery; use agents.assess.research_subjects for pure source-to-investigation projection. Source facts and research interpretation remain separate. Never use an award end or forecast release as a response deadline, cumulative obligations as pipeline, or an exploratory competitor token as client fit. Native parents may have zero children. Keep original v1/v2 serialized fields absent where they did not exist; schema3 owns the new research lane and its source-clock checks. Regenerate LeadGen schemas with python -m agents.leadgen.schema_export and Assess schemas with python -m agents.assess.schema_export.
+
+## Step6 native source admission and family identity (051)
+
+Separately identified contract change under the locked weekend plan. Current notice
+graph qualification and native action projection rebind the actual selected source,
+profile, taxonomy and immutable Assess/review/depth at the ordinary reader. Saved
+graph/registry flags and legacy discovery matches cannot establish current authority.
+`source_fields.notice_source_v1` transports original evidence only. `NoticeReadContext`
+revalidates original inputs and passes current admission explicitly through graph,
+Market Map and external projection. Missing context yields zero qualified rows while
+preserving raw assessments and contextual source facts.
+
+The shared notice-family owner uses source/agency/office/full solicitation with
+posting fallback and conservative original chronology. Full supplied members and
+retained store siblings precede filtering; closed or zero-match representatives
+suppress older positives without replacing native slots. Compact term diagnostics
+retain zero-match members and full-census suppression counts. Research-only parents
+remain visible without a default invented live-bid child. Award/document context does
+not itself establish displacement or funding. No immutable identity migration,
+operator-gate change, external eight-slot change, CRM or frozen-case rescore occurs.
+See `docs/verification/step6-051/REVIEW.md` for exact changed contracts, limitations
+and executable verification commands; `FUTURE_MEASUREMENT_CONTRACT.json` separately
+predeclares retrieval, native recommendations and seller-action measurements. The
+proposed future equal-effort budget is not a frozen or executed benchmark.
+
+## Step7 decision-changing collection (052)
+
+The existing public SAM inventory and file collectors now preserve original
+HTTP entity/file bytes as internal content-addressed `objects/<sha256>.bin`
+artifacts. Atomic no-overwrite publication and read-time hashes bind those bytes;
+this is observed custody, not independent source truth. The shared HTTP helper
+adds optional `response_observer` and `max_response_bytes`; existing callers keep
+their original behavior. Public inventories use one attempt, a 2MiB response cap,
+and retain partial/error bodies separately from complete recognized responses.
+Explicit response notice-ID conflicts refuse the inventory, including depth
+reconciliation. Unknown JSON shapes remain unknown, not zero files.
+
+File extraction retains the acquired bytes/hash/clock even when parsing fails.
+`collection_status` distinguishes captured discovery text, lookup failure,
+unreadable, inaccessible, invalid identity and not fetched. Successful caches
+check the original resource metadata, raw object hash, text object hash and an
+aware local acquisition clock. Text is not independently re-derived from raw
+bytes on a cache hit; a coherent rewrite of text and its hashes can pass. Cache
+clocks are unauthenticated local fields. Legacy/unbound/changed cache entries
+require a new bounded attempt; failed
+refresh cannot return their text as freshly collected. Same-resource changes
+that leave all inventory metadata unchanged are not continuously detected.
+PDF limits remain bounded extraction, not a full-document completeness claim.
+
+`run_searches._enrich_sam_public_attachments` retains every listed file's status
+and stop reason, plus a versioned `attachment_collection_v1` with notice,
+inventory, per-file Unicode character offsets and source/text hashes. Existing
+bundle fingerprints and historic artifacts remain compatible. Three-file and
+150,000-character bundle limits remain. Dossier research validates the new
+locator binding before exposing per-file passages, marks prompt truncation,
+and remains `discovery_only`. It does not populate trusted source depth or
+approve a requirement, inventory, current opportunity or lead. New sidecar
+hashes are internal custody, not general entailment or source authentication.
+
+See docs/verification/step7-052/REVIEW.md for protocol, changes, commands and proof
+limits. No APFS mapper, ResearchSubject schema3, gate settings, eight-slot schema,
+CRM or frozen benchmark artifact was changed by this amendment.
+
+## Step7 follow-up repair (053)
+
+The same inventory owner checks explicit notice IDs and parsed notice paths in
+href/downloadUrl/resourceUrl/uri/source_url fields. File resource IDs are not
+notice IDs. Captures distinguish requested URL, actual final URL and redirect
+chain; parsed hosts must be sam.gov or its subdomains and notice paths must match.
+These checks occur on receipt, after HTTP redirects; they are not a pre-contact
+redirect firewall. Fresh and stale cache reuse both validate retained bytes,
+origin, projection, current-file hash and aware acquisition clock. Unknown,
+foreign, malformed and legacy cache entries cannot become validated stale data.
+Depth cache records must match the requested id before supplying description.
+
+Withdrawal flags/dates/file existence survive projection. Withdrawn attachments
+remain in withdrawn_attachments and original bytes, outside active count/hash and
+selection. The collector applies public eligibility and type filtering before
+assigning three file slots. Receipts distinguish type filter, file cap, stage,
+download/extraction deadlines and bundle text exhaustion. Empty bundle tails
+are not appended; earlier bound passages remain usable discovery context.
+
+Content-addressed writers and readers share per-object advisory locks. Hardlink
+publication remains the normal path; exclusive creation under that lock supports
+filesystems without hardlinks. Readers use the shared lock to avoid partial bytes.
+Conflicting existing objects move to a uniquely named quarantine entry; they are
+not deleted. Local retention_failed preserves diagnostic_inventory/diagnostic_text
+without resources_checked, captured text or promotion authority. A failed optional
+cache-index write is recorded separately when both objects were already retained.
+These are cooperative process guarantees, not protection from arbitrary filesystem
+writers, independent text derivation, source authentication or signed clocks.
+
+See docs/verification/step7-followups-053 for exact regression and saved-source
+proof. No production cache migration occurs here. Previous captures missing the
+new URL/lifecycle fields refetch on use; root owns bounded operating cache warming.
+The remaining ten Fable findings and prior residuals remain separately recorded.
+
+## Combined operating candidate, September 14, 2026
+
+The current combined Assess write contract is schema3/assess:v3, including the
+separate parent-only ResearchSubject lane. Earlier schema1/schema2 amendment
+sections document their historical scope and remain valid for archival reads;
+they do not override current schema3 writes. Step6 current-source admission and
+Step7 discovery-only attachment custody apply alongside that research contract.
+No attachment receipt grants trusted requirement approval, and no research parent
+becomes a seller action without the existing independent qualification evidence.

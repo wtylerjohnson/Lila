@@ -1,0 +1,17 @@
+{
+  "loopback_connect": "PASS",
+  "external_connect_denied": "PASS",
+  "external_dns_denied": "PASS",
+  "spawned_python_guard": "PASS",
+  "scope": "Python DNS/connect/connect_ex in process and inherited Python startup; standard Chrome keeps its own sandbox, not controlled by this Python guard; no OS-wide network hermeticity claim.",
+  "os_sandbox_diagnostic": "Loopback allowed and external reserved-IP denied; not used for final full suite because nested Chrome sandbox failed.",
+  "final_suite_blocked_python_attempts": 27,
+  "hosts": {
+    "nonexistent.invalid": 12,
+    "www.gao.gov": 6,
+    "www.defense.gov": 3,
+    "falextracts.s3.amazonaws.com": 1,
+    "www.sbir.gov": 2,
+    "www.oversight.gov": 3
+  }
+}

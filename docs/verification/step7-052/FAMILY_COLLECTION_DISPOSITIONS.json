@@ -1,0 +1,375 @@
+[
+  {
+    "card_key": "K-095aac2ddef3a04f08cf",
+    "family_id": "F-095aac2ddef3a04f08cf",
+    "title": "R--Scanning and digitization of paper records for BIA",
+    "local_rows_retained": 2,
+    "inventory_attempts": [
+      {
+        "notice_id": "7426620b477c45c19543726ecbc7bd15",
+        "status": "inventory_captured",
+        "elapsed_seconds": 0.5928482080344111,
+        "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/public-inventory-001/7426620b477c45c19543726ecbc7bd15.json"
+      }
+    ],
+    "file_status": "not_fetched",
+    "stop_reason": "Local requirement/family and public inventory evidence retained. No additional material file question adjudicated in this baseline; substantive per-family scope review remains pending. No inference of empty files or completed relevance review.",
+    "scope_adjudication": "pending",
+    "equal_ceiling_policy": "COLLECTION_PROTOCOL.v1.json",
+    "comparison_completed": false
+  },
+  {
+    "card_key": "K-45693b2a864b55c21cc4",
+    "family_id": "F-45693b2a864b55c21cc4",
+    "title": "JPEO-CBRND CWMD BOTAA-24-01",
+    "local_rows_retained": 1,
+    "inventory_attempts": [
+      {
+        "notice_id": "2d04622b25364669857a6a61c576ade9",
+        "status": "inventory_captured",
+        "elapsed_seconds": 0.6451907909940928,
+        "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/public-inventory-001/2d04622b25364669857a6a61c576ade9.json"
+      }
+    ],
+    "file_status": "not_fetched",
+    "stop_reason": "Local requirement/family and public inventory evidence retained. No additional material file question adjudicated in this baseline; substantive per-family scope review remains pending. No inference of empty files or completed relevance review.",
+    "scope_adjudication": "pending",
+    "equal_ceiling_policy": "COLLECTION_PROTOCOL.v1.json",
+    "comparison_completed": false
+  },
+  {
+    "card_key": "K-4ded6de38a2007297353",
+    "family_id": "F-4ded6de38a2007297353",
+    "title": "JWCC UCM Core Draft Solicitation",
+    "local_rows_retained": 4,
+    "inventory_attempts": [
+      {
+        "notice_id": "bd044c19631145ad83d87745d2eaceff",
+        "status": "inventory_captured",
+        "elapsed_seconds": 0.5946830420289189,
+        "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/public-inventory-001/bd044c19631145ad83d87745d2eaceff.json"
+      }
+    ],
+    "file_status": "not_fetched",
+    "stop_reason": "Local requirement/family and public inventory evidence retained. No additional material file question adjudicated in this baseline; substantive per-family scope review remains pending. No inference of empty files or completed relevance review.",
+    "scope_adjudication": "pending",
+    "equal_ceiling_policy": "COLLECTION_PROTOCOL.v1.json",
+    "comparison_completed": false
+  },
+  {
+    "card_key": "K-62649797d732e23b6258",
+    "family_id": "F-62649797d732e23b6258",
+    "title": "ACS (ARMY COMMUNITY SERVICE) CONSOLIDATED SERVICES",
+    "local_rows_retained": 3,
+    "inventory_attempts": [
+      {
+        "notice_id": "db62a76be8894f5d8b7dc254660a4721",
+        "status": "inventory_captured",
+        "elapsed_seconds": 0.22541354200802743,
+        "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/public-inventory-001/db62a76be8894f5d8b7dc254660a4721.json"
+      }
+    ],
+    "file_status": "not_fetched",
+    "stop_reason": "Local requirement/family and public inventory evidence retained. No additional material file question adjudicated in this baseline; substantive per-family scope review remains pending. No inference of empty files or completed relevance review.",
+    "scope_adjudication": "pending",
+    "equal_ceiling_policy": "COLLECTION_PROTOCOL.v1.json",
+    "comparison_completed": false
+  },
+  {
+    "card_key": "K-8071d7814b888cdba20c",
+    "family_id": "F-8071d7814b888cdba20c",
+    "title": "HAZ-X Service Maintenance",
+    "local_rows_retained": 1,
+    "inventory_attempts": [
+      {
+        "notice_id": "d32ce423647843139e092721df3b4879",
+        "status": "unrecognized_inventory",
+        "elapsed_seconds": 0.19071516708936542,
+        "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/public-inventory-001/d32ce423647843139e092721df3b4879.json"
+      }
+    ],
+    "file_status": "not_fetched",
+    "stop_reason": "Local requirement/family and public inventory evidence retained. No additional material file question adjudicated in this baseline; substantive per-family scope review remains pending. No inference of empty files or completed relevance review.",
+    "scope_adjudication": "pending",
+    "equal_ceiling_policy": "COLLECTION_PROTOCOL.v1.json",
+    "comparison_completed": false
+  },
+  {
+    "card_key": "K-8211d3a4cfe8b7f0c748",
+    "family_id": "F-8211d3a4cfe8b7f0c748",
+    "title": "R499--RFI School Enrollment Reporting",
+    "local_rows_retained": 1,
+    "inventory_attempts": [
+      {
+        "notice_id": "35ad4744267a4802b6cce692883a7064",
+        "status": "inventory_captured",
+        "elapsed_seconds": 0.18609062500763685,
+        "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/public-inventory-001/35ad4744267a4802b6cce692883a7064.json"
+      }
+    ],
+    "file_status": "not_fetched",
+    "stop_reason": "Local requirement/family and public inventory evidence retained. No additional material file question adjudicated in this baseline; substantive per-family scope review remains pending. No inference of empty files or completed relevance review.",
+    "scope_adjudication": "pending",
+    "equal_ceiling_policy": "COLLECTION_PROTOCOL.v1.json",
+    "comparison_completed": false
+  },
+  {
+    "card_key": "K-829b16d7b735af349262",
+    "family_id": "F-829b16d7b735af349262",
+    "title": "Cardinal Health Supply Line Subscription Renewal",
+    "local_rows_retained": 6,
+    "inventory_attempts": [
+      {
+        "notice_id": "fa8827fec00843b6ba329d57fdc0a94e",
+        "status": "inventory_captured",
+        "elapsed_seconds": 0.20287233300041407,
+        "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/public-inventory-001/fa8827fec00843b6ba329d57fdc0a94e.json"
+      },
+      {
+        "notice_id": "d48d16c0f35c47cdbb0fae7133116d07",
+        "status": "inventory_captured",
+        "elapsed_seconds": 0.1931416669394821,
+        "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/public-inventory-001/d48d16c0f35c47cdbb0fae7133116d07.json"
+      }
+    ],
+    "file_status": "not_fetched",
+    "stop_reason": "Local requirement/family and public inventory evidence retained. No additional material file question adjudicated in this baseline; substantive per-family scope review remains pending. No inference of empty files or completed relevance review.",
+    "scope_adjudication": "pending",
+    "equal_ceiling_policy": "COLLECTION_PROTOCOL.v1.json",
+    "comparison_completed": false
+  },
+  {
+    "card_key": "K-85895910ea7d4513b2ad",
+    "family_id": "F-85895910ea7d4513b2ad",
+    "title": "Department of Homeland Security (DHS) - Department-Wide Cloud (Cumulus) Multiple Award Solicitation",
+    "local_rows_retained": 4,
+    "inventory_attempts": [
+      {
+        "notice_id": "3e6ef0d1090448dd97081f7c868447ff",
+        "status": "inventory_captured",
+        "elapsed_seconds": 0.1807395409559831,
+        "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/public-inventory-001/3e6ef0d1090448dd97081f7c868447ff.json"
+      },
+      {
+        "notice_id": "9e07a565ef804ffe9fd850d121ecc82e",
+        "status": "inventory_captured",
+        "elapsed_seconds": 0.18266104103531688,
+        "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/public-inventory-001/9e07a565ef804ffe9fd850d121ecc82e.json"
+      }
+    ],
+    "file_status": "not_fetched",
+    "stop_reason": "Local requirement/family and public inventory evidence retained. No additional material file question adjudicated in this baseline; substantive per-family scope review remains pending. No inference of empty files or completed relevance review.",
+    "scope_adjudication": "pending",
+    "equal_ceiling_policy": "COLLECTION_PROTOCOL.v1.json",
+    "comparison_completed": false
+  },
+  {
+    "card_key": "K-9f239ad3422e5ccfbe09",
+    "family_id": "F-9f239ad3422e5ccfbe09",
+    "title": "INTEGRATED TACTICAL TRAINER (ITT) 2B & 2C OPERATING SYSTEMS UPDATES and MODIFICATIONS",
+    "local_rows_retained": 2,
+    "inventory_attempts": [
+      {
+        "notice_id": "ac5412444dff4a2e92de4179bb7aca56",
+        "status": "unrecognized_inventory",
+        "elapsed_seconds": 0.1880522919818759,
+        "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/public-inventory-001/ac5412444dff4a2e92de4179bb7aca56.json"
+      }
+    ],
+    "file_status": "not_fetched",
+    "stop_reason": "Local requirement/family and public inventory evidence retained. No additional material file question adjudicated in this baseline; substantive per-family scope review remains pending. No inference of empty files or completed relevance review.",
+    "scope_adjudication": "pending",
+    "equal_ceiling_policy": "COLLECTION_PROTOCOL.v1.json",
+    "comparison_completed": false
+  },
+  {
+    "card_key": "K-abbc52f09052b0398eb4",
+    "family_id": "F-abbc52f09052b0398eb4",
+    "title": "ISBEE/IEE Request for Proposal for Revenue Enhancement Services for the IHS Billings Area",
+    "local_rows_retained": 2,
+    "inventory_attempts": [
+      {
+        "notice_id": "0caab6e53d8b47d7850692b7684610bf",
+        "status": "inventory_captured",
+        "elapsed_seconds": 0.18840558303054422,
+        "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/public-inventory-001/0caab6e53d8b47d7850692b7684610bf.json"
+      }
+    ],
+    "file_status": "captured_discovery_only",
+    "stop_reason": "Specific missing-SOW question resolved by SOWv2 and Q&A within 73.59 seconds; no further files needed for bounded scope assessment.",
+    "scope_adjudication": "bounded_custodian_assessment",
+    "equal_ceiling_policy": "COLLECTION_PROTOCOL.v1.json",
+    "comparison_completed": false
+  },
+  {
+    "card_key": "K-af06f2ab176a5c69af19",
+    "family_id": "F-af06f2ab176a5c69af19",
+    "title": "Portfolio Acquisition Executive, Medical Digital Solutions, (PAE MDS) End User Services (EUS) Area of Interest Application, Workflow, Adoption, and Change Support (AWACS)",
+    "local_rows_retained": 4,
+    "inventory_attempts": [
+      {
+        "notice_id": "5ad10c73d29b487fa70e750479bb0517",
+        "status": "inventory_captured",
+        "elapsed_seconds": 0.19780258391983807,
+        "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/public-inventory-001/5ad10c73d29b487fa70e750479bb0517.json"
+      }
+    ],
+    "file_status": "not_fetched",
+    "stop_reason": "Local requirement/family and public inventory evidence retained. No additional material file question adjudicated in this baseline; substantive per-family scope review remains pending. No inference of empty files or completed relevance review.",
+    "scope_adjudication": "pending",
+    "equal_ceiling_policy": "COLLECTION_PROTOCOL.v1.json",
+    "comparison_completed": false
+  },
+  {
+    "card_key": "K-b0247cdd10c62fb02a42",
+    "family_id": "F-b0247cdd10c62fb02a42",
+    "title": "Dorm Wi-Fi Heat Mapping Survey",
+    "local_rows_retained": 4,
+    "inventory_attempts": [
+      {
+        "notice_id": "b20a69e553fb4a728085fa93f9608764",
+        "status": "inventory_captured",
+        "elapsed_seconds": 0.18914395803585649,
+        "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/public-inventory-001/b20a69e553fb4a728085fa93f9608764.json"
+      }
+    ],
+    "file_status": "not_fetched",
+    "stop_reason": "Local requirement/family and public inventory evidence retained. No additional material file question adjudicated in this baseline; substantive per-family scope review remains pending. No inference of empty files or completed relevance review.",
+    "scope_adjudication": "pending",
+    "equal_ceiling_policy": "COLLECTION_PROTOCOL.v1.json",
+    "comparison_completed": false
+  },
+  {
+    "card_key": "K-b3683f67c12f893252e5",
+    "family_id": "F-b3683f67c12f893252e5",
+    "title": "FY26 USAFA DF/DFT Projectors and Soundbars",
+    "local_rows_retained": 2,
+    "inventory_attempts": [
+      {
+        "notice_id": "9d298434e39a41e2bde21329bf95b238",
+        "status": "inventory_captured",
+        "elapsed_seconds": 0.17996162502095103,
+        "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/public-inventory-001/9d298434e39a41e2bde21329bf95b238.json"
+      }
+    ],
+    "file_status": "not_fetched",
+    "stop_reason": "Local requirement/family and public inventory evidence retained. No additional material file question adjudicated in this baseline; substantive per-family scope review remains pending. No inference of empty files or completed relevance review.",
+    "scope_adjudication": "pending",
+    "equal_ceiling_policy": "COLLECTION_PROTOCOL.v1.json",
+    "comparison_completed": false
+  },
+  {
+    "card_key": "K-b37d49c3b90382d05ade",
+    "family_id": "F-b37d49c3b90382d05ade",
+    "title": "Launch Vehicle Probabilistic Reliability Risk Analysis Services",
+    "local_rows_retained": 1,
+    "inventory_attempts": [
+      {
+        "notice_id": "00c39d451a234f5eb95f6ca717fb9bf6",
+        "status": "unrecognized_inventory",
+        "elapsed_seconds": 0.26840729208197445,
+        "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/public-inventory-001/00c39d451a234f5eb95f6ca717fb9bf6.json"
+      }
+    ],
+    "file_status": "not_fetched",
+    "stop_reason": "Local requirement/family and public inventory evidence retained. No additional material file question adjudicated in this baseline; substantive per-family scope review remains pending. No inference of empty files or completed relevance review.",
+    "scope_adjudication": "pending",
+    "equal_ceiling_policy": "COLLECTION_PROTOCOL.v1.json",
+    "comparison_completed": false
+  },
+  {
+    "card_key": "K-c3d444c152a4c86885d7",
+    "family_id": "F-c3d444c152a4c86885d7",
+    "title": "Geospatial Information Asset (GIS) Tool Development",
+    "local_rows_retained": 1,
+    "inventory_attempts": [
+      {
+        "notice_id": "4bc2ba0e35404485b54d9cbfcb02b8a2",
+        "status": "unrecognized_inventory",
+        "elapsed_seconds": 0.2543117089662701,
+        "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/public-inventory-001/4bc2ba0e35404485b54d9cbfcb02b8a2.json"
+      }
+    ],
+    "file_status": "not_fetched",
+    "stop_reason": "Local requirement/family and public inventory evidence retained. No additional material file question adjudicated in this baseline; substantive per-family scope review remains pending. No inference of empty files or completed relevance review.",
+    "scope_adjudication": "pending",
+    "equal_ceiling_policy": "COLLECTION_PROTOCOL.v1.json",
+    "comparison_completed": false
+  },
+  {
+    "card_key": "K-cbbd6471ef734efdc9ef",
+    "family_id": "F-cbbd6471ef734efdc9ef",
+    "title": "R499--Insurance Entry and Verification Services - CPAC [VA-26-00073096]",
+    "local_rows_retained": 2,
+    "inventory_attempts": [
+      {
+        "notice_id": "1e7c366402a848b4bf698c8dc8159edc",
+        "status": "inventory_captured",
+        "elapsed_seconds": 0.25878533301874995,
+        "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/public-inventory-001/1e7c366402a848b4bf698c8dc8159edc.json"
+      }
+    ],
+    "file_status": "not_fetched",
+    "stop_reason": "Local requirement/family and public inventory evidence retained. No additional material file question adjudicated in this baseline; substantive per-family scope review remains pending. No inference of empty files or completed relevance review.",
+    "scope_adjudication": "pending",
+    "equal_ceiling_policy": "COLLECTION_PROTOCOL.v1.json",
+    "comparison_completed": false
+  },
+  {
+    "card_key": "K-dababefd9cc59e6409e5",
+    "family_id": "F-dababefd9cc59e6409e5",
+    "title": "Baltimore Longitudinal Study of Aging (BLSA) Data System Maintenance",
+    "local_rows_retained": 1,
+    "inventory_attempts": [
+      {
+        "notice_id": "acf16e75b4304d5b8d6364373a8700c1",
+        "status": "inventory_captured",
+        "elapsed_seconds": 0.18669383297674358,
+        "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/public-inventory-001/acf16e75b4304d5b8d6364373a8700c1.json"
+      }
+    ],
+    "file_status": "not_fetched",
+    "stop_reason": "Local requirement/family and public inventory evidence retained. No additional material file question adjudicated in this baseline; substantive per-family scope review remains pending. No inference of empty files or completed relevance review.",
+    "scope_adjudication": "pending",
+    "equal_ceiling_policy": "COLLECTION_PROTOCOL.v1.json",
+    "comparison_completed": false
+  },
+  {
+    "card_key": "K-e16836becb533fe44650",
+    "family_id": "F-e16836becb533fe44650",
+    "title": "JOMIS Joint Medical Planning, Modeling and Simulation Capabilities",
+    "local_rows_retained": 1,
+    "inventory_attempts": [
+      {
+        "notice_id": "213a2fe3a447465e8f30699c9f056ec4",
+        "status": "inventory_captured",
+        "elapsed_seconds": 0.19922566693276167,
+        "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/public-inventory-001/213a2fe3a447465e8f30699c9f056ec4.json"
+      }
+    ],
+    "file_status": "not_fetched",
+    "stop_reason": "Local requirement/family and public inventory evidence retained. No additional material file question adjudicated in this baseline; substantive per-family scope review remains pending. No inference of empty files or completed relevance review.",
+    "scope_adjudication": "pending",
+    "equal_ceiling_policy": "COLLECTION_PROTOCOL.v1.json",
+    "comparison_completed": false
+  },
+  {
+    "card_key": "K-fb3608034caaed7e1296",
+    "family_id": "F-fb3608034caaed7e1296",
+    "title": "AF Product Lifecycle Management",
+    "local_rows_retained": 2,
+    "inventory_attempts": [
+      {
+        "notice_id": "6956ae1ef09c4baa987342b947ed6066",
+        "status": "inventory_captured",
+        "elapsed_seconds": 0.1884020420257002,
+        "receipt": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/STEP7-052/public-inventory-001/6956ae1ef09c4baa987342b947ed6066.json"
+      }
+    ],
+    "file_status": "not_fetched",
+    "stop_reason": "Local requirement/family and public inventory evidence retained. No additional material file question adjudicated in this baseline; substantive per-family scope review remains pending. No inference of empty files or completed relevance review.",
+    "scope_adjudication": "pending",
+    "equal_ceiling_policy": "COLLECTION_PROTOCOL.v1.json",
+    "comparison_completed": false
+  }
+]

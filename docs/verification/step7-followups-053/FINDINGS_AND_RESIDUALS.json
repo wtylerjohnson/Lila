@@ -1,0 +1,1360 @@
+{
+ "schema": "lila.fable.findings_and_residuals.v2",
+ "work_id": "FABLE-STEP7-052",
+ "verdict": "PASS_WITH_RESIDUALS",
+ "verdict_basis": "Every safety property the Step7 delta claims held under 106 hostile and positive probes on the exact candidate: original bytes are retained before parse and after parse failure; explicit wrong-notice ids are refused at every depth; every single-field cache tamper is refused; failed, unrecognized, identity-mismatch and confirmed-empty inventories stay distinct and nothing failed is cached as empty; restricted, unreadable, oversize and unfetched files carry distinct states; Unicode locators are exact code-point intervals and every rehashed offset tamper is rejected by the dossier; the 3-file, 150000 and 14000 ceilings hold; collected discovery text never reached strict Assess approval or a LeadRow under any hostile case including a human review excerpt copied from an attachment, while the BID_NOW positive control stayed live; Step6 hostile driver cases, 791 focused tests, the full suite (5864/40 with zero case differences from the producer) and frozen calibration004/005 are unchanged; cache hits keep original acquisition clocks. No Critical or High finding. The 22 canonical findings are receipt-truth, robustness, yield and documentation-accuracy defects (four Medium: two introduced by the delta, F-05 and F-07, contradicting explicit claims; F-04, F-10, F-11 pre-existing and unchanged), plus one conditional wrong-notice research attribution at discovery_only authority that requires an id-less cross-notice body no real captured body exhibits and that base also accepted (F-03). Acceptance remains root-owned; the items under required_before_operating_integration are recommendations, not gates imposed by this review.",
+ "exact_tested_sha": "67f644bc31bf19eadec628b738855e7b6c152a4e",
+ "tested_code_commit": "6b51f005c001d2d99a535e4a302370f9ad80c6ea",
+ "accepted_base": "2d522f0362e656e029986344d47e2e06b86a58f8",
+ "branch": "codex/step7-evidence-collection",
+ "review_clone": "/Users/wtjohnson/lila-step7-052",
+ "package": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052",
+ "suite": {
+  "focused": "201 passed",
+  "full": "5864 passed / 40 skipped / 0 failed / 0 errors / 26 subtests / 5930 junit cases; zero case-level differences from the producer junit",
+  "fixtures": "31 ignored baseline fixtures staged byte-exact from producer-declared sources; without them 2 collection errors, 1 failure, 8 setup errors, 21 extra skips (results/fixture_dependency.json)",
+  "cloud": "not run; no cloud/local parity claimed"
+ },
+ "custody_checks": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/CUSTODY_CHECKS.json",
+ "probe_counts": {
+  "PASS": 51,
+  "FAIL": 33,
+  "INFO": 22
+ },
+ "probe_total": 106,
+ "raw_findings_total": 86,
+ "votes_total": 73,
+ "critic": {
+  "gaps": [
+   "COVERAGE MAP: every demanded dimension has at least one hostile FAIL-capable probe in the package (byte retention = probes/byte-retention; wrong-notice identity = probes/wrong-notice-identity; cache tampering = probes/cache-tampering (10 scripts, 46+ tamper branches); failed vs empty = probes/failed-vs-empty; unreadable/restricted = probes/restricted-unreadable-files; Unicode offsets = probes/unicode-offsets; extraction limits 3/150000/14000 = probes/extraction-limits-dossier; dossier propagation and file_passages = extraction-limits-dossier + unicode-offsets probe_dossier_rejection_branches; no strict Assess approval = probes/assess-approval-propagation (hostile cases A-E incl. C review excerpt copied from attachment, LeadRow probe, BID_NOW positive control with normalized-record identity); Step6 controls/clocks = probes/step6-preservation-clocks (791 focused tests + full suite 5864/40 rerun in harness-docs-prepatch); bounded HTTP capture = probes/http-capture-seam; identity/projection/cache validation and changed raw/text/metadata/identity = cache-tampering + wrong-notice-identity; custody before parse = byte-retention probe_inventory_retain_before_parse; file states and cache binding = restricted-unreadable-files probe_state_enumeration + cache-tampering; native receipts = failed-vs-empty probe_run_searches_receipts + restricted-unreadable-files; unknown vs confirmed empty = failed-vs-empty probe_real_sam_shapes/probe_inventory_replay_21; partial/failed HTTP = http-capture-seam + byte-retention partial-body probes). No demanded dimension is unprobed.",
+   "CLOSED BY CRITIC (cheap, admitted in LIMITS): byte-retention LIMITS 'cross-process races on the same objects/ dir were not exercised' -> probe_cross_process_retain.py PASS (6 spawn processes x 12 same-payload publications, 7 distinct digests interleaved, 4 readers polling read_retained during publication: zero writer errors, one exact blob per digest, zero stray temp files, readers saw only FileNotFoundError before publication and never partial or changed bytes).",
+   "CLOSED BY CRITIC: unicode-offsets LIMITS 'Only the .txt/.csv/.md branch of _text_from_bytes was exercised; PDF and DOCX were not run' -> probe_docx_unicode_locators.py PASS for the DOCX branch (real _docx_text over a real zip/document.xml with Latin-1, Greek, CJK, ZWJ emoji, flag pair, astral letter and combining mark; 137 code points vs 164 UTF-8 bytes; run_searches locators re-hash exactly, dossier discovery_only with 2 passages equal to retained slices after ascii and non-ascii JSON round trips; text cache hit with dead network returns identical text and the retained text object decodes to it).",
+   "CLOSED BY CRITIC: the recorded half of 'reject any conflicting original notice ID' (explicit keys at any depth) had no recorded positive control; probe_identity_walk_mixed_entries.py PASS through the REAL fetch_notice_resources over MockTransport: a conflict in the second HAL wrapper entry, inside an attachment row, in an unrelated nested list, as a list-valued opportunityId, as a deep snake_case notice_id, and a padded copy of the right id are all identity_mismatch with raw bytes retained and no cache written; the all-matching control is inventory_captured; the known F-03 boundary (explicit null id plus foreign _links href) is re-observed as inventory_captured.",
+   "CLOSED BY STATIC READ (no probe needed): assess-approval LIMITS 'attachment inventory names ... not adversarially probed' and 'attachment_relevance_excerpt only checked indirectly': agents/assess/ledger.py reads raw_payload only for url/uiLink (line 237), type/baseType (248), description_snippet (1511) and naics (1727); agents/leadgen/*.py reads no raw_payload key; attachment_relevance_excerpt is consumed only by agents/decisions/dossier.py:171 (substring-bound to text, 1200 cap) and agents/decisions/triage.py:693 (LLM triage prompt input whose verdicts reach Assess only as pursue/monitor/discard). No Step7 raw_payload key reaches Assess or LeadRow.",
+   "CLOSED BY EXISTING PROBE (LIMITS line stale): harness-docs-prepatch LIMITS says the approved-requirement-review control 'raised ... not pursued'; assess-approval-propagation probe_hostile_attachment_only_assess.py case C_review_copied_from_attachment ran it (classification unscreened, requirement_reviewed_at None, zero leaks) and probe_mixed_positive_control.py variant 2_approved_zero_attachments proves the BID_NOW path itself is live, so the negative result is discriminating at package level even though the shipped producer test is not (F-15/AAP-1 stands).",
+   "NOT CLOSED, NOT CHEAP: PDF (pdfplumber) branch under non-ASCII text is still covered only by the lone-surrogate monkeypatch (needs a unicode-font PDF generator; low trust impact because locators bind whatever the extractor emits, as the DOCX probe shows).",
+   "NOT CLOSED, FORBIDDEN BY RULES: real HTTPTransport/h11 short-body and truncated-gzip behaviour (BR-8), stalled-socket zero-byte read timeout (FVE LIMITS), downloadability of deletedFlag 1 files (FVE-2) all need a live socket or sam.gov; correctly left as inferred.",
+   "NOT CLOSED, LOW VALUE: brotli/zstd content encodings on the capture seam; cross-machine shared-account semantics of 0600 object mode; both outside the Step7 claims."
+  ],
+  "extra_probes": [
+   {
+    "name": "cross_process_retain",
+    "script": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/critic/probe_cross_process_retain.py",
+    "log": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/critic/probe_cross_process_retain.log",
+    "status": "PASS",
+    "observed": "case1 6 spawn processes x 12 publications of one 512 KiB payload: 0 writer errors, blob_count 1, bytes exact, stray_files []. case2 6 processes interleaving 6 distinct 64 KiB payloads plus the shared one: 0 errors, 7 exact blobs, no stray files. case3 4 readers polling read_retained for a 1 MiB digest while 4 writers publish it: each reader ~14.6k-15.3k FileNotFoundError then ~4.0k successes, other_error_count 0 (never 'retained SAM bytes changed' or partial content), single exact blob. case4 altered blob under the true digest refused on republish and on read with 'retained SAM bytes changed' (restates F-01 poisoned-blob invariant). Closes byte-retention LIMITS cross-process line; retain_bytes publication is atomic and exact across processes."
+   },
+   {
+    "name": "identity_walk_mixed_entries",
+    "script": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/critic/probe_identity_walk_mixed_entries.py",
+    "log": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/critic/probe_identity_walk_mixed_entries.log",
+    "status": "PASS",
+    "observed": "Real fetch_notice_resources over httpx.MockTransport (socket.connect blocked), probe-local LILA_NOTICE_CACHE_DIR per case. control_all_entries_match -> inventory_captured, 2 attachments, cache written. second_wrapper_entry_names_B, conflict_inside_attachment_row, conflict_in_unrelated_nested_list, list_valued_opportunityId, snake_case_notice_id_conflict_deep, same_id_with_trailing_space -> all identity_mismatch, resources_checked False, error 'resources fetch failed: resources notice identity mismatch', cache_written False, raw bytes retained (1 object), 1 request each. known_h3_boundary_null_id_foreign_href -> inventory_captured (the F-03 gap, re-observed, not judged). Explicit-key conflicts at every depth are refused; the claim is overstated only for non-key identity carriers (F-03 stands as scoped)."
+   },
+   {
+    "name": "docx_unicode_locators",
+    "script": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/critic/probe_docx_unicode_locators.py",
+    "log": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/critic/probe_docx_unicode_locators.log",
+    "status": "PASS",
+    "observed": "Real _docx_text over an in-memory .docx (zip with [Content_Types].xml + word/document.xml) carrying 'Caf\u00e9 \u0394 \u4e2d\u6587 na\u00efve \u00df', a ZWJ emoji sequence, a flag pair, an astral letter and a combining mark: direct extraction equals expected text byte-exact (137 code points, 164 UTF-8 bytes). Through run_searches._enrich_sam_public_attachments with a second .txt file: record DISCOVERY_TEXT_CAPTURED, both files captured_discovery_only, locators [0,137] and [139,192], both slices equal the extracted texts and re-hash to text_sha256, separator exact, unit proven code points not bytes. Candidate dossier: discovery_only with 2 file_passages equal to retained slices; identical after ensure_ascii and non-ascii JSON round trips. Cache hit with _download_bytes raising: from_cache True, captured_discovery_only, identical text; retained text object decodes to the same text. Closes the DOCX half of the unicode-offsets LIMITS line."
+   }
+  ],
+  "contradictions": [
+   "F-02 kind/severity: CT-2 says disclosed_residual (inside 'hashes establish byte custody, not truth'), BR-3 and HDP-04 say doc_overstatement; existing BR-3 votes are CONFIRMED Medium doc_overstatement, REFUTED Info disclosed_residual, DOWNGRADE Low disclosed_residual, and the fresh SCOPE vote is Info disclosed_residual while the merged finding carries Medium doc_overstatement. Both are half right: the code behaviour is disclosed, the CONVENTIONS sentence 'bind ... raw bytes, text bytes and aware acquisition clock' is the overstatement. Suggested settlement Low/doc_overstatement (Info undersells a contract-doc sentence a reader takes as text-to-raw binding).",
+   "F-03 uppercase-id members: WNI-6 is labelled pre_existing while FVE-6 (same behaviour, same probe outcome) is labelled new_defect and its evidence shows base accepted the uppercase id with 5 attachments. The identity check did not exist at 2d522f0, so the refusal is introduced by the delta; WNI-6's pre_existing label is wrong (Low or Info new_defect, conservative edge).",
+   "F-03 WNI-1 votes: REPRODUCTION CONFIRMED Medium new_defect vs SCOPE REFUTED Low pre_existing. The redirect acceptance is pre-existing but the field raw_capture.source_url that asserts a false origin is new; the fresh merged vote 'Low doc_overstatement' does not describe WNI-1 at all (it is not a doc claim). Proper label: Low new_defect (receipt truth).",
+   "F-06 kind: YU-4 is new_defect while CT-3, WNI-4, FVE-4, HDP-07, S7C-01, S7C-02 are pre_existing for the same stale-fallback root cause; YU-4's new_defect clause is really its second sentence (unreachable IDENTITY_MISMATCH branch), which duplicates FVE-5/WNI-7 in F-15.",
+   "F-09 disclosure: FVE-1 states the wrapper-with-empty-attachments limitation 'is not disclosed' and the state list 'implies confirmed_empty is a live outcome', while HDP-09 and the fresh SCOPE vote call the finding disclosed_residual. Both hold for different shapes: the observed real shape (_links-only, 4/21) is disclosed in PRE_PATCH_REPORT; the wrapper shape is hypothetical (not among the 21 bodies). The 'unreachable in production' claim rests on a 21-body sample; Low/pre_existing with a disclosure note is the consistent settlement.",
+   "F-14 kind: three fresh votes all Low but three different kinds (REPRODUCTION pre_existing, SCOPE disclosed_residual, IMPACT new_defect). The flag file_text_truncated is new (misleading name = new_defect), the absence of any per-file truncation signal is pre_existing, and 'bounded extraction can omit later text' is disclosed. Settle Low/new_defect scoped to the flag semantics.",
+   "F-01 summary vs member CT-6: the summary says 'Base 2d522f0 returned the parsed inventory/text in all these cases', but CT-6 records that on a cache-WRITE failure the base also dropped the text (text side) and that the candidate inventory side still returns a usable inventory_captured result. CT-6 is a contradictory-status finding, not a bytes-discarded finding; the base-parity sentence should exclude the cache-write case.",
+   "F-17 provenance: the merged summary says 'Operator census read-only: 6 legacy inventory caches and 14 legacy text caches', but the YU LIMITS line states the operator machine census was not read and legacy caches were regenerated by running base code; the numbers come from CONTEXT.md H8 (lead), not from the dimension's measurement.",
+   "F-18 kinds: BR-6 REPRODUCTION disclosed_residual vs SCOPE REFUTED new_defect vs HDP-10 doc_overstatement vs HCS-06 new_defect, all Info. Immaterial to acceptance but the merged kind disclosed_residual is not what two of its members concluded.",
+   "F-15 vs its members: FVE-5 and RUF-7 are labelled new_defect (dead code introduced by the delta) while the merged finding is 'harness'; unreachable receipt states are a vocabulary/dead-code defect, not a test-design issue. Info either way.",
+   "Cross-dimension vote inconsistency on F-07: REPRODUCTION and SCOPE CONFIRMED Medium, IMPACT DOWNGRADE Low; RUF-2's own LIMITS line already argued Low against the rubric's Medium for misleading receipts because the reason string names the true cause and nothing failed is cached. Not a factual contradiction, but the group should carry one severity with that rationale stated."
+  ],
+  "merge_corrections": [
+   "BR-5 is a member of both F-01 and F-12 (duplicate membership). BR-5 and HCS-01 (F-01) are one root cause: response_observer is invoked inside the finally block and its exception replaces the capture-loop exception. Keep BR-5 with HCS-01 in F-01 (the guard-the-observer fix is shared) and drop it from F-12, or move both to F-12; not both groups.",
+   "YU-4 should be split: the stale-fallback-serves-wrong-notice-legacy clause stays in F-06 (pre_existing); the 'run_searches IDENTITY_MISMATCH branch is unreachable' clause belongs in F-15 with FVE-5 and WNI-7 (same dead branch).",
+   "WNI-6 and FVE-6 (uppercase requested id refused) do not share F-03's root cause (F-03 = wrong notice ACCEPTED because non-key identity carriers are ignored; these = right notice REFUSED by exact-case compare). Make them a separate Low/new_defect edge (base accepted uppercase) or fold into F-20's conservative-edge list with the corrected kind.",
+   "WNI-1 (raw_capture.source_url records the requested URL, final host unchecked after redirect) is a distinct fix site (the capture closure in fetch_notice_resources, record str(response.url) and history) from the identity walk (_resource_identity_matches). Either give it its own Low/new_defect finding or keep it in F-03 with a title clause and kind that name it; the merged kind doc_overstatement misdescribes it.",
+   "F-20 misplacements: HDP-08 (REVIEW.md/COMMANDS.json not runnable verbatim) is a docs/harness item and belongs in F-15; BR-8 (truncated gzip flagged complete=true under MockTransport) concerns the NEW complete flag on the capture seam and belongs in F-12; ELD-08 (no consumer other than dossier reads file_passages/attachment_collection_v1; research_evidence forwards a key nothing writes) is a consumer-map note and belongs with F-16.",
+   "CT-6 fits F-07 (receipts misreport the stop reason: status captured_discovery_only with empty text and error 'Is a directory'; inventory error 'resources fetch failed' on a successful fetch) better than F-01 (bytes discarded), because its yield loss is pre_existing and its point is the contradictory receipt; move it or annotate F-01's base-parity sentence.",
+   "RUF-9 (record-level TEXT_UNAVAILABLE does not separate zero-attempted from all-failed) is pre_existing inside the new_defect group F-07; keep as context but mark it pre_existing so the group's 'introduced by the delta' claim is not overstated.",
+   "Confirmed correct groupings: F-08 (ELD-05, UO-1, YU-3) is one root cause (empty file_text appended after the 150000 cut); F-04 (depth cache id check) is distinct from F-06 (stale fallback) and from F-03; F-13 (dossier double text) is distinct from F-08; F-09 (FVE-1, HDP-09) is one root cause with two shapes; F-10 and F-11 are correctly standalone; F-16 (AAP-2..5) correctly isolates pre-existing consumers outside the delta; F-02 correctly absorbs UO-4 and S7C-05 (integrity-not-authentication family)."
+  ],
+  "approval_or_wrong_notice_path_demonstrated": {
+   "demonstrated": true,
+   "evidence": "Two halves, answered separately. (1) Strict Assess requirement approval or LeadRow from collected discovery text: NO. probes/assess-approval-propagation/probe_hostile_attachment_only_assess.log cases A_no_depth, B_trusted_irrelevant_depth, C_review_copied_from_attachment, D_depth_with_inventory, E_triage_monitor all end LiveClassification UNSCREENED with requirement_reviewed_at None and zero attachment-text leaks into the LiveSolicitation record or AssessRun dump; probe_leadrow_propagation.log: hostile parent mints 0 LeadRows, requirement_span null; probe_mixed_positive_control.log proves the BID_NOW path is live (variant 2_approved_zero_attachments -> bid_now) and that normalized records are identical with and without attachment fields, so the negative is discriminating at package level. Static read confirms no Step7 raw_payload key (text, attachment_evidence, attachment_collection_v1, attachment_relevance_excerpt, attachment_relevance, attachment_inventory_hash) is read by agents/assess/ledger.py or agents/leadgen (ledger reads only url/uiLink/type/baseType/description_snippet/naics). AAP-4 shows the only route to BID_NOW remains a depth description plus human review, and run_searches writes neither source_depth nor full_description nor description (probe_depth_promotion.log). The pre-existing consumers AAP-2 (research_evidence 'stored_source_text'/'channel_fact') and AAP-3 (notice_bridge requirement leg) are internal Research Picture / a redundant press leg still blocked by the independent Assess leg; neither is Assess or LeadRow. (2) Wrong-notice evidence attributed as this notice's research through a production path: YES, conditionally, at discovery_only authority only. probes/wrong-notice-identity/probe_run_searches_guard.log case e_e2e_href_only_B_body_cand: REAL fetch_notice_resources (only the transport mocked via httpx.MockTransport, the sanctioned network isolation) served notice A's resources URL with a HAL body that omits opportunityId/noticeId/notice_id and names notice B only in _links.self.href and per-row links; candidate result inventory_captured under A, run_searches downloaded the body's resource (download URL is templated from the body's resourceId, so it fetched B's file) and bound its text to attachment_collection_v1.notice_id = A with record DISCOVERY_TEXT_CAPTURED and row text 'Href-only body requires network visibility.'; the candidate dossier's collection.notice_id == notice_id check then passes (A == A). Corroborated on a REAL captured body with the explicit keys stripped (probes/failed-vs-empty/probe_identity_case_and_custody.log case 5_wrong_notice_only_links_H3: body for 213a2fe3... accepted and cached as 0caab6e5...'s inventory) and by the redirect variant (probes/wrong-notice-identity/probe_redirect.log off_host_no_id_body: 302 to another notice/off-host with an id-less body -> inventory_captured with raw_capture.source_url asserting A's sam.gov URL). My probe_identity_walk_mixed_entries.log re-observes the boundary (explicit null id plus foreign href -> inventory_captured) while every explicit-key conflict at any depth is refused. Preconditions and limits: SAM (or a redirect target) must serve a cross-notice body with no explicit id key; none of the 21 captured real bodies does (17 rowed bodies carry opportunityId on every entry, the 4 id-less bodies are _links-only and classify unrecognized_inventory, zero rows), so realism is low and base 2d522f0 behaved identically (base had no identity check at all). The wrong text never rises above discovery_only: it cannot reach strict Assess approval or LeadRow (half 1). Separately, F-04/WNI-2 places a foreign depth record into source_depth (TRUSTED path) under the requested id, but only from a pre-planted <id>.json cache file (local tamper, no production writer path, pre_existing and unchanged by the delta), so it is not a production path. Net: Critical rubric (trusted approval or wrong-notice evidence reaching Assess/LeadRow) is NOT met by any finding alone or combined; the wrong-notice research attribution is demonstrated at Medium-class impact conditional on an unobserved source behaviour, which is what F-03 (Low/doc_overstatement after votes) records, and its cheapest closure is the _links/href id parse or requiring per-entry opportunityId for recognized rows."
+  },
+  "notes": [
+   "Hard rules honoured: all writes under /Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/critic/ (3 probe scripts, 3 logs, _critic_harness.py; tmp caches removed by the probes); git -C /Users/wtjohnson/lila-step7-052 status --porcelain empty after the runs; no live network (socket.connect blocked in-process, MockTransport only), no sam.gov, no LLM, no pkill; grep confirms no em-dash character and no banned house term in the critic dir.",
+   "Probe run recipe used verbatim: cd /Users/wtjohnson/lila-step7-052 && PYTHONDONTWRITEBYTECODE=1 .venv/bin/python <script> > <log> 2>&1; exit codes 0/0/0 after fixing one probe-side import (read_retained lives in tools.api.sam_capture, not sam_attachment_text); logs read in full, never piped through tail.",
+   "The three extra probes are all PASS (candidate behaves as claimed); none is a new defect. Their value is closing three admitted LIMITS lines so the acceptance decision does not rest on untested cross-process custody, an untested DOCX unicode path, or an unrecorded positive control for the identity walk.",
+   "Observation not raised as a finding (same root cause as F-03): because the text cache is keyed by resource_id and bound to caller metadata but not to a notice id, an id-less wrong-notice inventory that lists a resource already cached from its true notice would bind that text to the wrong notice with zero downloads; the fix for F-03 (identity from _links/href or per-entry opportunityId) closes it too.",
+   "Vote coverage: F-04, F-05, F-18, F-20 received no fresh votes in the supplied list (F-04/F-05/F-18/F-20 carry only existing_verdicts); F-07, F-08, F-09, F-10, F-11, F-13, F-14, F-16, F-17 have zero verified_members in the merged file despite fresh CONFIRMED votes, so the 'verified_members' field lags the vote list and should be refreshed before the register is finalized.",
+   "Severity ceiling after this pass: no Critical, no High. Highest defensible are Medium for F-04 (trusted depth accepts a foreign cached record, pre_existing, tamper-only), F-05 (malformed cache types sink the notice, new_defect; IMPACT vote Low), F-10 (deleted attachments win slots, pre_existing, real corpus 3/17) and F-11 (gate-rejected files consume slots, pre_existing); everything Step7 introduced is Medium-or-lower receipt truth, yield or non-default-filesystem behaviour, and the collected-text trust boundary held under every hostile probe in the package plus mine."
+  ]
+ },
+ "findings": [
+  {
+   "id": "F-04",
+   "title": "fetch_notice_depth cached branch never checks data[id] against the requested notice; a foreign depth record flows into source_depth under the requested id",
+   "summary": "The delta added the id check to the resources cache but not to the depth cache. Requires a foreign record already under <id>.json (tamper or mixup). Identical at base.",
+   "severity": "Medium",
+   "kind": "pre_existing",
+   "disposition": "CONFIRMED by 3 lenses as Medium pre_existing; tamper-only reach into the trusted depth path; unchanged by the delta",
+   "recommended_action": "Step8 follow-up: mirror the id check in fetch_notice_depth",
+   "member_raw_findings": [
+    "WNI-2"
+   ],
+   "member_titles": {
+    "WNI-2": "fetch_notice_depth cached branch never checks data['id'] against the requested notice; foreign depth record flows into source_depth under the requested id"
+   },
+   "refuter_votes": [
+    {
+     "finding_id": "WNI-2",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Medium",
+     "kind_recommendation": "pre_existing"
+    },
+    {
+     "finding_id": "WNI-2",
+     "lens": "SCOPE and CLASSIFICATION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Medium",
+     "kind_recommendation": "pre_existing"
+    },
+    {
+     "finding_id": "WNI-2",
+     "lens": "IMPACT",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Medium",
+     "kind_recommendation": "pre_existing"
+    }
+   ],
+   "vote_summary": "CONFIRMED by 3 lenses as Medium pre_existing; tamper-only reach into the trusted depth path; unchanged by the delta.",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/wrong-notice-identity/probe_depth_identity.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  },
+  {
+   "id": "F-05",
+   "title": "Malformed cache field types raise AttributeError out of both validators and sink the whole notice (FAILED) in run_searches instead of a cache miss",
+   "summary": "Validators catch KeyError/TypeError/ValueError/OSError but not AttributeError (raw_capture as str/list/int/null, retrieved_at as int/null). Base returned the dict unvalidated. Contradicts one file never sinks a sweep and legacy entries require a new bounded attempt.",
+   "severity": "Medium",
+   "kind": "new_defect",
+   "disposition": "CONFIRMED (Medium, Medium, Low)",
+   "recommended_action": "fix recommended before integration",
+   "member_raw_findings": [
+    "CT-1"
+   ],
+   "member_titles": {
+    "CT-1": "Malformed cache field types raise AttributeError out of both validators and sink the whole notice in run_searches"
+   },
+   "refuter_votes": [
+    {
+     "finding_id": "CT-1",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Medium",
+     "kind_recommendation": "new_defect"
+    },
+    {
+     "finding_id": "CT-1",
+     "lens": "SCOPE and CLASSIFICATION (new_defect vs pre_existing at 2d522f0 vs disclosed_residual vs doc_overstatement vs harness)",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Medium",
+     "kind_recommendation": "new_defect"
+    },
+    {
+     "finding_id": "CT-1",
+     "lens": "IMPACT",
+     "verdict": "DOWNGRADE",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "new_defect"
+    }
+   ],
+   "vote_summary": "CONFIRMED (Medium, Medium, Low). Contradicts the stated invariants that one file never sinks a sweep and that unbound cache entries trigger a bounded refetch; one-line fix.",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/cache-tampering/probe_run_searches_propagation.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  },
+  {
+   "id": "F-07",
+   "title": "Per-file receipts misreport stop reasons: after stage-budget exhaustion the unattempted eligible files keep the default reason outside file/type budget; a deadline that fires after a successful download is labelled unreadable; type-filtered and cap-overflow files share one reason",
+   "summary": "CONVENTIONS claims run_searches retains every listed file status and stop reason (S2-COVERAGE-005 explicit gaps). Receipts are new in the delta. The record-level errors list still names the true budget stop; nothing failed is cached.",
+   "severity": "Medium",
+   "kind": "new_defect",
+   "disposition": "CONFIRMED (Medium, Medium, Low)",
+   "recommended_action": "fix recommended before integration",
+   "member_raw_findings": [
+    "RUF-1",
+    "ELD-02",
+    "HDP-02",
+    "ELD-03",
+    "RUF-2",
+    "RUF-5",
+    "RUF-9",
+    "CT-6"
+   ],
+   "member_titles": {
+    "RUF-1": "H6 confirmed: after stage-budget exhaustion the unattempted eligible files carry the false stop reason 'outside file/type budget'",
+    "ELD-02": "Stage time exhaustion marks only the file where the loop breaks; later eligible files keep the reason 'outside file/type budget'",
+    "HDP-02": "File receipts mislabel time-budget stops: deadline-after-download reported as 'unreadable'; unattempted eligible files reported 'outside file/type budget' (H6)",
+    "ELD-03": "Stage deadline firing after bytes were acquired is classified 'unreadable' although the parser never ran",
+    "RUF-2": "Time/budget stops after successful byte acquisition are labelled collection_status 'unreadable'",
+    "RUF-5": "Type-filtered and cap-overflow files share one indistinguishable receipt reason",
+    "RUF-9": "Record-level TEXT_UNAVAILABLE does not distinguish 'zero files attempted' from 'all files tried and failed'",
+    "CT-6": "Cache write failure after a successful download yields collection_status captured_discovery_only with empty text (text) and 'resources fetch failed' on a successful fetch (inventory)"
+   },
+   "refuter_votes": [
+    {
+     "finding_id": "F-07",
+     "lens": "scope_classification",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Medium",
+     "kind_recommendation": "new_defect"
+    },
+    {
+     "finding_id": "F-07",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Medium",
+     "kind_recommendation": "new_defect"
+    },
+    {
+     "finding_id": "F-07",
+     "lens": "IMPACT",
+     "verdict": "DOWNGRADE",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "new_defect"
+    }
+   ],
+   "vote_summary": "CONFIRMED (Medium, Medium, Low). New receipts contradict the CONVENTIONS sentence that every listed file carries its stop reason; record-level errors still name the budget stop; RUF-9 member is pre_existing context.",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/cache-tampering/probe_text_filesystem.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/extraction-limits-dossier/probe_stage_budget_receipts.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/harness-docs-prepatch/probe_h6_stop_reasons.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/restricted-unreadable-files/probe_parse_failures.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/restricted-unreadable-files/probe_run_searches_receipts.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  },
+  {
+   "id": "F-10",
+   "title": "Withdrawn attachments (deletedFlag 1, deletedDate set) are projected as live inventory, counted in attachment_inventory_count/hash, and win the 3-file download budget on real notices (3 of 17 captured notices, including the IHS superseded SOW)",
+   "summary": "_attachments ignores deletedFlag/deletedDate/fileExists. Research text can come from a superseded document while a live requirements file is left unread. Identical at base; in scope for the Step7 inventory projection contract.",
+   "severity": "Medium",
+   "kind": "pre_existing",
+   "disposition": "CONFIRMED by 3 lenses as Medium pre_existing on the real 21-body corpus (3 of 17 notices select a withdrawn file, including the IHS superseded SOW)",
+   "recommended_action": "Step8 follow-up",
+   "member_raw_findings": [
+    "FVE-2"
+   ],
+   "member_titles": {
+    "FVE-2": "Withdrawn attachments (deletedFlag \"1\") are counted as live inventory and win the 3-file download budget on real notices"
+   },
+   "refuter_votes": [
+    {
+     "finding_id": "F-10",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Medium",
+     "kind_recommendation": "pre_existing"
+    },
+    {
+     "finding_id": "F-10",
+     "lens": "scope_and_classification",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Medium",
+     "kind_recommendation": "pre_existing"
+    },
+    {
+     "finding_id": "F-10",
+     "lens": "IMPACT",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Medium",
+     "kind_recommendation": "pre_existing"
+    }
+   ],
+   "vote_summary": "CONFIRMED by 3 lenses as Medium pre_existing on the real 21-body corpus (3 of 17 notices select a withdrawn file, including the IHS superseded SOW).",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/failed-vs-empty/probe_deleted_rows_census.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  },
+  {
+   "id": "F-11",
+   "title": "Gate-rejected files (restricted, export-controlled, over-size, invalid id) consume the three file slots before any network call; a public readable file ranked fourth is never attempted",
+   "summary": "[:3] slice is applied before the pure _public_file gate. Realistic SAM shape (controlled SOW with public amendments). Identical at base; new receipts make the loss visible.",
+   "severity": "Medium",
+   "kind": "pre_existing",
+   "disposition": "CONFIRMED by 3 lenses as Medium pre_existing; realistic SAM shape; new receipts make the loss visible",
+   "recommended_action": "Step8 follow-up",
+   "member_raw_findings": [
+    "RUF-3",
+    "ELD-06"
+   ],
+   "member_titles": {
+    "RUF-3": "Gate-rejected files (restricted, over-size, invalid id) consume the three file slots before any network; a public readable file is never attempted",
+    "ELD-06": "Files rejectable from inventory metadata (size over 5 MiB, non-public access) still consume one of the three file slots"
+   },
+   "refuter_votes": [
+    {
+     "finding_id": "F-11",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Medium",
+     "kind_recommendation": "pre_existing"
+    },
+    {
+     "finding_id": "F-11",
+     "lens": "SCOPE and CLASSIFICATION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Medium",
+     "kind_recommendation": "pre_existing"
+    },
+    {
+     "finding_id": "F-11",
+     "lens": "IMPACT",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Medium",
+     "kind_recommendation": "pre_existing"
+    }
+   ],
+   "vote_summary": "CONFIRMED by 3 lenses as Medium pre_existing; realistic SAM shape; new receipts make the loss visible.",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/extraction-limits-dossier/probe_stage_budget_receipts.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/restricted-unreadable-files/probe_base_comparison.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  },
+  {
+   "id": "F-01",
+   "title": "Retention (custody) failure discards acquired bytes and is misreported as a source failure; a poisoned content-addressed blob blocks that notice/file on every sweep; a filesystem without hardlinks fails every collection",
+   "summary": "retain_bytes raises (disk full, os.link unsupported, existing objects/<sha>.bin with different bytes) inside the HTTP observer finally block or right after download; the exception is recorded as lookup_failed (or unreadable when the text retain fails after a good parse) and the already-received inventory body or file bytes are dropped. A pre-existing corrupt blob under the true digest converts every later correct fetch of those bytes into a failure with a fresh network call each sweep and never self-heals (stale_inventory for 7 days, then lookup_failed). Base 2d522f0 returned the parsed inventory/text in all these cases. Default healthy APFS is unaffected.",
+   "severity": "Low",
+   "kind": "new_defect",
+   "disposition": "CONFIRMED (9 votes: 2 Medium, 7 Low)",
+   "recommended_action": "fix recommended before integration (see required list)",
+   "member_raw_findings": [
+    "BR-1",
+    "BR-2",
+    "BR-5",
+    "CT-8",
+    "FVE-7",
+    "HCS-01",
+    "HDP-01"
+   ],
+   "member_titles": {
+    "BR-1": "Storage failure during retention is recorded as lookup_failed or unreadable and the acquired bytes are discarded",
+    "BR-2": "H7 confirmed: retain_bytes requires os.link; on a filesystem without hardlinks every inventory and file collection fails and yield regresses versus base",
+    "BR-5": "Retention error masks the in-flight capture error in the recorded reason",
+    "CT-8": "Retention denial paths: poisoned object under the true digest name blocks capture; missing hardlink support drops every download (H7)",
+    "FVE-7": "Custody failure converts a recognized 200 inventory into lookup_failed with no raw_capture (no-hardlink filesystem or unwritable cache dir; H7 verified)",
+    "HCS-01": "Observer exception in the finally block masks the capture outcome and discards a fully received inventory",
+    "HDP-01": "Corrupt content-addressed blob poisons every later capture of identical bytes (inventory and file)"
+   },
+   "refuter_votes": [
+    {
+     "finding_id": "BR-2",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "new_defect"
+    },
+    {
+     "finding_id": "BR-1",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Medium",
+     "kind_recommendation": "new_defect"
+    },
+    {
+     "finding_id": "BR-2",
+     "lens": "SCOPE and CLASSIFICATION: new_defect vs pre_existing at 2d522f0 vs disclosed_residual vs doc_overstatement vs harness",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "new_defect"
+    },
+    {
+     "finding_id": "BR-1",
+     "lens": "scope_and_classification",
+     "verdict": "DOWNGRADE",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "new_defect"
+    },
+    {
+     "finding_id": "BR-5",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "new_defect"
+    },
+    {
+     "finding_id": "BR-1",
+     "lens": "IMPACT",
+     "verdict": "DOWNGRADE",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "new_defect"
+    },
+    {
+     "finding_id": "BR-5",
+     "lens": "scope and classification (new_defect vs pre_existing vs disclosed_residual vs doc_overstatement vs harness)",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "new_defect"
+    },
+    {
+     "finding_id": "F-01",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Medium",
+     "kind_recommendation": "new_defect"
+    },
+    {
+     "finding_id": "F-01",
+     "lens": "IMPACT",
+     "verdict": "DOWNGRADE",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "new_defect"
+    }
+   ],
+   "vote_summary": "CONFIRMED (9 votes: 2 Medium, 7 Low). Mechanism real and a regression versus base on the inventory path under degraded storage or a poisoned blob; reach is one notice discovery yield with the true cause in the error string; default APFS unaffected.",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/byte-retention/probe_h7_base_inventory.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/byte-retention/probe_hardlink_semantics.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/byte-retention/probe_observer_raises.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/cache-tampering/probe_inventory_filesystem.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/failed-vs-empty/probe_identity_case_and_custody.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/harness-docs-prepatch/probe_corrupt_blob_blocks_refresh.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/http-capture-seam/probe_observer_exception.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  },
+  {
+   "id": "F-02",
+   "title": "Text-cache binding is self-referential and cache clocks are unauthenticated: a coherent rewrite (text + text_sha256 + new objects blob, any past aware retrieved_at) passes _text_capture_valid; CONVENTIONS wording overstates the binding",
+   "summary": "_text_capture_valid checks raw hash and text hash independently and never re-derives text from the retained raw bytes; received_at/retrieved_at are plain fields. Invented text served from cache drives relevance and reaches dossier research (discovery_only only). Inventory receipt fields collection_status/authority/resources_schema and text cache name/extraction_limits are also unbound. Producer residual says hash custody is not truth; CONVENTIONS says caches bind raw bytes, text bytes and clock. Base served any cache blindly.",
+   "severity": "Low",
+   "kind": "doc_overstatement",
+   "disposition": "CONFIRMED behaviour, disclosed limit; the CONVENTIONS binding sentence is the overstatement (7 votes: Medium x2 reproduce, Low/Info scope and impact)",
+   "recommended_action": "doc correction and coherent-rewrite test recommended before integration",
+   "member_raw_findings": [
+    "CT-2",
+    "BR-3",
+    "HDP-04",
+    "CT-7",
+    "S7C-05",
+    "CT-4",
+    "CT-5",
+    "UO-4"
+   ],
+   "member_titles": {
+    "CT-2": "H1 confirmed: coherent text-cache rewrite (text + text_sha256 + new objects/<sha>.bin) is served from cache and drives relevance and dossier research",
+    "BR-3": "H1 confirmed: a coherent text-cache rewrite (text, text_sha256, text_locator, new object) passes _text_capture_valid and is served as captured_discovery_only",
+    "HDP-04": "CONVENTIONS 'Successful caches bind ... raw bytes, text bytes and aware acquisition clock' overstates: text is never re-derived from raw; clock is unauthenticated (H1/H2)",
+    "CT-7": "H2 confirmed: cache clocks are unauthenticated; rewriting received_at keeps an expired inventory fresh forever, text cache accepts any aware past clock",
+    "S7C-05": "Cache validators do not check request_started_at ordering, and inventory retrieved_at is unchecked once received_at exists",
+    "CT-4": "Inventory cache receipt fields collection_status, authority, resources_schema, errors are unbound and served from fresh cache with forged values",
+    "CT-5": "Text cache name and extraction_limits are unbound and flow into attachment_collection_v1 and dossier file_passages",
+    "UO-4": "Locator binding is integrity, not authentication: full local re-hash, additive receipt keys, and legacy downgrade all pass"
+   },
+   "refuter_votes": [
+    {
+     "finding_id": "BR-3",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Medium",
+     "kind_recommendation": "doc_overstatement"
+    },
+    {
+     "finding_id": "BR-3",
+     "lens": "SCOPE and CLASSIFICATION (byte retention and custody; doc claim vs code at tools/api/sam_attachment_text.py::_text_capture_valid)",
+     "verdict": "REFUTED",
+     "severity_recommendation": "Info",
+     "kind_recommendation": "disclosed_residual"
+    },
+    {
+     "finding_id": "BR-3",
+     "lens": "IMPACT",
+     "verdict": "DOWNGRADE",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "disclosed_residual"
+    },
+    {
+     "finding_id": "CT-2",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Medium",
+     "kind_recommendation": "disclosed_residual"
+    },
+    {
+     "finding_id": "CT-2",
+     "lens": "SCOPE and CLASSIFICATION (new_defect vs pre_existing at base 2d522f0 vs disclosed_residual vs doc_overstatement)",
+     "verdict": "DOWNGRADE",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "pre_existing"
+    },
+    {
+     "finding_id": "CT-2",
+     "lens": "IMPACT",
+     "verdict": "DOWNGRADE",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "disclosed_residual"
+    },
+    {
+     "finding_id": "F-02",
+     "lens": "SCOPE and CLASSIFICATION (new_defect vs pre_existing at base 2d522f0 vs disclosed_residual vs doc_overstatement; docs/CONVENTIONS.md Step7 section, docs/CONTRACT_SURFACES.md Step7 section, docs/verification/step7-052/*)",
+     "verdict": "DOWNGRADE",
+     "severity_recommendation": "Info",
+     "kind_recommendation": "disclosed_residual"
+    }
+   ],
+   "vote_summary": "CONFIRMED behaviour, disclosed limit; the CONVENTIONS binding sentence is the overstatement (7 votes: Medium x2 reproduce, Low/Info scope and impact).",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/byte-retention/probe_h1_coherent_text_rewrite.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/cache-tampering/probe_inventory_clock_forgery.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/cache-tampering/probe_inventory_fields.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/cache-tampering/probe_text_h1_coherent_rewrite.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/cache-tampering/probe_text_metadata_binding.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/harness-docs-prepatch/probe_s7_cache_004.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/step6-preservation-clocks/probe_text_cache_clock.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/unicode-offsets/probe_dossier_rejection_branches.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  },
+  {
+   "id": "F-03",
+   "title": "Identity check narrower than the CONTRACT_SURFACES sentence: only explicit opportunityId/noticeId/notice_id keys are compared (exact case); a body naming the other notice only in _links.self.href or download URL is accepted; raw_capture.source_url records the requested URL not the final redirected URL",
+   "summary": "All 17 recognized real SAM bodies carry opportunityId in every entry and all 21 carry the notice id in _links.self.href, so realism of the gap is low but a cheap stronger check exists. The contract-surface sentence must be narrowed or the code extended. Base had no identity check at all.",
+   "severity": "Low",
+   "kind": "doc_overstatement",
+   "disposition": "CONFIRMED on a real body with explicit keys stripped; conditional wrong-notice research attribution at discovery_only only; identical at base; contract-surface sentence broader than the code (10 votes, majority Low/Info)",
+   "recommended_action": "contract-surface correction or identity-walk extension recommended before integration",
+   "member_raw_findings": [
+    "WNI-3",
+    "FVE-3",
+    "HDP-03",
+    "WNI-5"
+   ],
+   "member_titles": {
+    "WNI-3": "H3 confirmed: wrong-notice bodies identified only by _links.self.href, per-row _links, or download URL path are captured as this notice's inventory and their text is bound to it",
+    "FVE-3": "Doc claim 'recognized inventories must reject any conflicting original notice ID' is broader than the code: a wrong-notice body identified only by _links.self.href is accepted and cached (H3 confirmed on a real body)",
+    "HDP-03": "CONTRACT_SURFACES 'reject any conflicting original notice ID' overstates the identity check (three exact keys only)",
+    "WNI-5": "Depth reconciliation collapses identity conflicts into 'unrecognized resources schema (non-fatal)'"
+   },
+   "refuter_votes": [
+    {
+     "finding_id": "WNI-3",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "pre_existing"
+    },
+    {
+     "finding_id": "WNI-5",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Info",
+     "kind_recommendation": "doc_overstatement"
+    },
+    {
+     "finding_id": "WNI-3",
+     "lens": "SCOPE and CLASSIFICATION (new_defect vs pre_existing vs disclosed_residual vs doc_overstatement vs harness), with realism and severity check",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "pre_existing"
+    },
+    {
+     "finding_id": "WNI-5",
+     "lens": "scope_classification",
+     "verdict": "REFUTED",
+     "severity_recommendation": "Info",
+     "kind_recommendation": "pre_existing"
+    },
+    {
+     "finding_id": "F-03",
+     "lens": "SCOPE and CLASSIFICATION (new_defect vs pre_existing vs disclosed_residual vs doc_overstatement vs harness), independent refuter",
+     "verdict": "DOWNGRADE",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "doc_overstatement"
+    }
+   ],
+   "vote_summary": "CONFIRMED on a real body with explicit keys stripped; conditional wrong-notice research attribution at discovery_only only; identical at base; contract-surface sentence broader than the code (10 votes, majority Low/Info).",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/failed-vs-empty/probe_identity_case_and_custody.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/harness-docs-prepatch/probe_s7_identity_002.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/wrong-notice-identity/probe_depth_identity.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/wrong-notice-identity/probe_h3_href_only.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  },
+  {
+   "id": "F-06",
+   "title": "Stale-inventory fallback bypasses _resource_capture_valid: tampered/foreign/naive-clock/legacy caches are served as stale_inventory and their unvalidated hash lands in the sweep inventory_receipt; wrong-notice legacy inventory survives 7 days",
+   "summary": "run_searches excludes STALE_INVENTORY from relevance so no evidence reaches Assess; receipt truth gap only. Base served the same caches fresh.",
+   "severity": "Low",
+   "kind": "pre_existing",
+   "disposition": "CONFIRMED (4 votes Low pre_existing)",
+   "recommended_action": "Step8 follow-up",
+   "member_raw_findings": [
+    "CT-3",
+    "WNI-4",
+    "FVE-4",
+    "HDP-07",
+    "S7C-01",
+    "S7C-02",
+    "YU-4"
+   ],
+   "member_titles": {
+    "CT-3": "Stale inventory fallback returns a tampered projection unvalidated; tampered hash lands in inventory_receipt",
+    "WNI-4": "Stale fallback path bypasses _resource_capture_valid: planted wrong-notice rows are returned as stale_inventory under the requested id",
+    "FVE-4": "A cache that fails _resource_capture_valid is still served as stale_inventory when the refresh fails",
+    "HDP-07": "Stale inventory path returns a projection that just failed _resource_capture_valid",
+    "S7C-01": "Stale-inventory fallback returns a cache with a naive received_at clock; awareness is enforced only on the fresh path",
+    "S7C-02": "Stale-inventory fallback serves an edited projection (attachments/hash) without rebinding to retained bytes, and the tampered hash lands in the sweep receipt",
+    "YU-4": "Wrong-notice legacy inventory survives as stale_inventory for 7 days; run_searches IDENTITY_MISMATCH branch is unreachable"
+   },
+   "refuter_votes": [
+    {
+     "finding_id": "WNI-4",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "pre_existing"
+    },
+    {
+     "finding_id": "WNI-4",
+     "lens": "SCOPE and CLASSIFICATION (new_defect vs pre_existing vs disclosed_residual vs doc_overstatement vs harness)",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "pre_existing"
+    },
+    {
+     "finding_id": "CT-3",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "pre_existing"
+    },
+    {
+     "finding_id": "F-06",
+     "lens": "SCOPE and CLASSIFICATION (new_defect vs pre_existing vs disclosed_residual vs doc_overstatement vs harness)",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "pre_existing"
+    }
+   ],
+   "vote_summary": "CONFIRMED (4 votes Low pre_existing). Receipt-truth gap on the stale path only; relevance excludes stale inventories.",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/cache-tampering/probe_inventory_stale_legacy.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/failed-vs-empty/probe_not_cached_stale.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/harness-docs-prepatch/probe_s7_cache_004.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/step6-preservation-clocks/probe_inventory_cache_clock.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/wrong-notice-identity/probe_cache_identity.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/yield-upgrade-impact/probe_upgrade_legacy_cache.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  },
+  {
+   "id": "F-08",
+   "title": "Zero-budget third file produces a degenerate start==end locator recorded as captured_discovery_only and the dossier then drops the WHOLE research context (non-default LILA_SAM_ATTACHMENT_TEXT_CHARS >= 74998)",
+   "summary": "Regression versus base when reached (base row still readable). Unreachable at the 50000 default (3 x 50000 + 4 = 150004). Lead probe probes/lead/probe_lead_h5_degenerate_locator.py reproduced it.",
+   "severity": "Low",
+   "kind": "new_defect",
+   "disposition": "CONFIRMED (2 votes Low)",
+   "recommended_action": "fix recommended before integration",
+   "member_raw_findings": [
+    "ELD-05",
+    "UO-1",
+    "YU-3"
+   ],
+   "member_titles": {
+    "ELD-05": "Non-default per-file cap produces a degenerate third locator and the dossier drops the whole research bundle",
+    "UO-1": "Zero-budget file gets a start==end locator recorded as captured, and the dossier then drops the whole research context (H5 confirmed)",
+    "YU-3": "Raised text cap with three files yields a degenerate third-file locator; candidate dossier then drops the whole research context, including two correctly bound files"
+   },
+   "refuter_votes": [
+    {
+     "finding_id": "F-08",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "new_defect"
+    },
+    {
+     "finding_id": "F-08",
+     "lens": "scope_classification",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "new_defect"
+    }
+   ],
+   "vote_summary": "CONFIRMED (2 votes Low). Regression versus base when reached; unreachable at the default per-file cap.",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/extraction-limits-dossier/probe_extraction_limits.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/unicode-offsets/probe_h5_degenerate_locator.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/yield-upgrade-impact/probe_h5_locator_yield.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  },
+  {
+   "id": "F-09",
+   "title": "confirmed_empty is unreachable from any real SAM zero-file shape: the 4 real _links-only bodies and the wrapper-with-empty-attachments shape both classify unrecognized_inventory, so VERIFIED_EMPTY_INVENTORY never occurs in production",
+   "summary": "Conservative direction (never claims empty). PRE_PATCH_REPORT discloses the four are not called empty; the wrapper-shape limit is not disclosed and the state list implies confirmed_empty is live. Identical at base.",
+   "severity": "Low",
+   "kind": "pre_existing",
+   "disposition": "CONFIRMED (Medium reproduce, Low scope and impact)",
+   "recommended_action": "Step8 follow-up; document that confirmed_empty is not reachable from observed live SAM shapes",
+   "member_raw_findings": [
+    "FVE-1",
+    "HDP-09"
+   ],
+   "member_titles": {
+    "FVE-1": "confirmed_empty is unreachable from any real SAM zero-file response; every truly empty notice lands in INVENTORY_UNAVAILABLE",
+    "HDP-09": "Four of 21 real inventory bodies are 442-byte _links-only responses classified unrecognized_inventory (H4)"
+   },
+   "refuter_votes": [
+    {
+     "finding_id": "F-09",
+     "lens": "SCOPE and CLASSIFICATION",
+     "verdict": "DOWNGRADE",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "disclosed_residual"
+    },
+    {
+     "finding_id": "F-09",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Medium",
+     "kind_recommendation": "pre_existing"
+    },
+    {
+     "finding_id": "F-09",
+     "lens": "IMPACT",
+     "verdict": "DOWNGRADE",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "pre_existing"
+    }
+   ],
+   "vote_summary": "CONFIRMED (Medium reproduce, Low scope and impact). Conservative direction; the _links-only shape is disclosed in PRE_PATCH_REPORT, the wrapper shape is hypothetical (not among the 21 bodies).",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/failed-vs-empty/probe_inventory_replay_21.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/harness-docs-prepatch/probe_doc_claims.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  },
+  {
+   "id": "F-12",
+   "title": "HTTP capture seam edges: partial bodies retain only whole 64 KiB decoded blocks (small partial bodies retain zero), an oversize 4xx/5xx body surfaces as ValueError losing status/body/retry, a fully received body landing after the stop clock is marked complete=false, observer exceptions mask the in-flight error",
+   "summary": "Incomplete captures are already refused for reuse, so no evidence-integrity impact; CONVENTIONS retain partial bodies wording is broader than what survives a mid-body reset.",
+   "severity": "Low",
+   "kind": "new_defect",
+   "disposition": "CONFIRMED (5 votes Low)",
+   "recommended_action": "doc note and observer guard recommended",
+   "member_raw_findings": [
+    "BR-4",
+    "HCS-02",
+    "HCS-03",
+    "HCS-04",
+    "HCS-07",
+    "BR-8"
+   ],
+   "member_titles": {
+    "BR-4": "Partial inventory bodies lose the unflushed 64 KiB tail on a mid-body transport error; small bodies retain zero bytes",
+    "HCS-02": "A 4xx/5xx body larger than max_response_bytes surfaces as ValueError, losing status, error body and retry semantics",
+    "HCS-03": "Partial captures on mid-stream transport errors hold only whole 64 KiB decoded blocks; trailing bytes are not observed",
+    "HCS-04": "Time boundary semantics: a fully received body landing after the stop clock is recorded complete=False; empty bodies skip the check; boundary errors bypass retry",
+    "HCS-07": "Observer interface is asymmetric between paths: stream path passes an un-read streaming Response and connect failures produce zero calls",
+    "BR-8": "Truncated gzip body is flagged complete=true when body-length enforcement is bypassed"
+   },
+   "refuter_votes": [
+    {
+     "finding_id": "BR-4",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "doc_overstatement"
+    },
+    {
+     "finding_id": "BR-8",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Info",
+     "kind_recommendation": "harness"
+    },
+    {
+     "finding_id": "BR-4",
+     "lens": "SAM inventory byte retention and custody: tools/api/_http.py streaming capture path (response_observer / max_response_bytes) as consumed by tools/api/sam_notice_detail.fetch_notice_resources and copied into run_searches inventory_receipt.raw_capture",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "new_defect"
+    },
+    {
+     "finding_id": "BR-8",
+     "lens": "SCOPE and CLASSIFICATION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Info",
+     "kind_recommendation": "harness"
+    },
+    {
+     "finding_id": "F-12",
+     "lens": "SCOPE and CLASSIFICATION (new_defect vs pre_existing vs disclosed_residual vs doc_overstatement vs harness)",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "new_defect"
+    }
+   ],
+   "vote_summary": "CONFIRMED (5 votes Low). Incomplete captures are refused for reuse; the partial-body wording in CONVENTIONS is broader than what survives a mid-body reset; BR-8 is a MockTransport-only harness note.",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/byte-retention/probe_gzip_representation.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/byte-retention/probe_inventory_error_partial_bodies.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/http-capture-seam/probe_observer_contract.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/http-capture-seam/probe_status_paths.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/http-capture-seam/probe_time_boundary.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  },
+  {
+   "id": "F-13",
+   "title": "Dossier prompt carries the research text twice (text field 14000 + file_passages 14000 + relevance_excerpt up to 1200), so about 28.9k research characters reach the model, not at most 14000",
+   "summary": "No trust impact; prompt size and a SYSTEM_PROMPT sentence (do not attribute a passage to one file) now contradicts the per-file passages supplied. With defaults files 2 and 3 contribute empty passages whenever file 1 has >= 14000 chars.",
+   "severity": "Low",
+   "kind": "doc_overstatement",
+   "disposition": "CONFIRMED (Low, Info)",
+   "recommended_action": "doc correction or drop the duplicate text field",
+   "member_raw_findings": [
+    "ELD-04",
+    "ELD-07"
+   ],
+   "member_titles": {
+    "ELD-04": "Dossier prompt carries the research text twice; 28879 research characters reach the model, not 'at most 14000'",
+    "ELD-07": "With defaults, files 2 and 3 never reach the dossier prompt whenever file 1 has 14000 or more characters"
+   },
+   "refuter_votes": [
+    {
+     "finding_id": "F-13",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "doc_overstatement"
+    },
+    {
+     "finding_id": "F-13",
+     "lens": "scope_classification",
+     "verdict": "DOWNGRADE",
+     "severity_recommendation": "Info",
+     "kind_recommendation": "doc_overstatement"
+    }
+   ],
+   "vote_summary": "CONFIRMED (Low, Info). Prompt carries text twice; no trust impact.",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/extraction-limits-dossier/probe_dossier_propagation.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  },
+  {
+   "id": "F-14",
+   "title": "No per-file signal when the 50000-character extractor cap dropped text; file_text_truncated is false for a 60000-character file because it only measures the bundle cap",
+   "summary": "extraction_limits names the bounds generically but not whether they bit. Base had no flag; the delta introduces a flag whose name suggests more than it measures.",
+   "severity": "Low",
+   "kind": "new_defect",
+   "disposition": "DOWNGRADED by all 3 lenses to Low; the flag name overstates what it measures; absence of any per-file truncation signal is pre-existing and the bounded-extraction limit is disclosed",
+   "recommended_action": "rename or extend the flag",
+   "member_raw_findings": [
+    "ELD-01"
+   ],
+   "member_titles": {
+    "ELD-01": "file_text_truncated is false when the 50000-character extractor cap dropped text; no per-file truncation signal exists"
+   },
+   "refuter_votes": [
+    {
+     "finding_id": "F-14",
+     "lens": "REPRODUCTION",
+     "verdict": "DOWNGRADE",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "pre_existing"
+    },
+    {
+     "finding_id": "F-14",
+     "lens": "SCOPE and CLASSIFICATION",
+     "verdict": "DOWNGRADE",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "disclosed_residual"
+    },
+    {
+     "finding_id": "F-14",
+     "lens": "IMPACT",
+     "verdict": "DOWNGRADE",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "new_defect"
+    }
+   ],
+   "vote_summary": "DOWNGRADED by all 3 lenses to Low; the flag name overstates what it measures; absence of any per-file truncation signal is pre-existing and the bounded-extraction limit is disclosed.",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/extraction-limits-dossier/probe_extraction_limits.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  },
+  {
+   "id": "F-15",
+   "title": "Harness gaps: the producer strict-Assess negative test is non-discriminating (holds with zero attachment fields), 31 delta branches have no test, one test name overstates, the module restores native _request bypassing the offline observer, and two receipt states (IDENTITY_MISMATCH at run_searches level, text_unavailable) are unreachable dead branches",
+   "summary": "The no-approval property itself held under independent hostile probes (assess-approval-propagation dimension); the shipped test is not the proof of it.",
+   "severity": "Low",
+   "kind": "harness",
+   "disposition": "CONFIRMED (4 votes Low/Info harness)",
+   "recommended_action": "make the negative test discriminating before integration",
+   "member_raw_findings": [
+    "AAP-1",
+    "HDP-05",
+    "HDP-06",
+    "WNI-7",
+    "FVE-5",
+    "RUF-7",
+    "HDP-08"
+   ],
+   "member_titles": {
+    "AAP-1": "Producer negative test for strict Assess does not discriminate (no retained depth)",
+    "HDP-05": "Step7 test module restores native _request, so conftest's live-network receipt and LILA_SUITE_STRICT cannot see these tests (H9)",
+    "HDP-06": "Test coverage narrower than the doc's 'verified by tests/test_step7_evidence_collection.py': 31 delta branches untested, one test name overstates, strict-refusal test is non-discriminating",
+    "WNI-7": "run_searches identity guard admits an inventory with no id key (dead branch with the real adapter)",
+    "FVE-5": "run_searches IDENTITY_MISMATCH receipt branch is unreachable; identity conflicts surface as INVENTORY_UNAVAILABLE",
+    "RUF-7": "'text_unavailable' fallback in run_searches is dead code from the production extractor",
+    "HDP-08": "REVIEW.md/COMMANDS.json commands are not runnable verbatim from the review clone (interpreter and paths); with the clone venv they reproduce the producer counts exactly"
+   },
+   "refuter_votes": [
+    {
+     "finding_id": "WNI-7",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Info",
+     "kind_recommendation": "harness"
+    },
+    {
+     "finding_id": "WNI-7",
+     "lens": "SCOPE and CLASSIFICATION (new_defect vs pre_existing at 2d522f0 vs disclosed_residual vs doc_overstatement vs harness)",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Info",
+     "kind_recommendation": "harness"
+    },
+    {
+     "finding_id": "F-15",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "harness"
+    },
+    {
+     "finding_id": "F-15",
+     "lens": "SCOPE and CLASSIFICATION (new_defect vs pre_existing at 2d522f0 vs disclosed_residual vs doc_overstatement vs harness)",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "harness"
+    }
+   ],
+   "vote_summary": "CONFIRMED (4 votes Low/Info harness). The no-approval property was independently proven at package level; the shipped test is not the proof.",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/assess-approval-propagation/probe_harness_producer_negative_test.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/failed-vs-empty/probe_run_searches_receipts.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/harness-docs-prepatch/probe_docs_commands.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/harness-docs-prepatch/probe_h9_native_request_bypass.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/harness-docs-prepatch/probe_test_audit_branch_map.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/harness-docs-prepatch/probe_test_audit_strict_refusal_vacuity.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/restricted-unreadable-files/probe_state_enumeration.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/wrong-notice-identity/probe_run_searches_guard.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  },
+  {
+   "id": "F-16",
+   "title": "Pre-existing discovery-text consumers outside the delta: research_evidence labels an attachment-text-only row stored_source_text and can classify a vehicle_route claim as channel_fact; golden_press notice_bridge requirement leg is satisfiable by attachment text alone (admission still blocked by the independent Assess leg)",
+   "summary": "Relevant to S4-ATTACHMENT-AUTHORITY safe research propagation. Depth path remains the single trust boundary. Files unchanged between base and candidate.",
+   "severity": "Low",
+   "kind": "pre_existing",
+   "disposition": "CONFIRMED (2 votes Low pre_existing)",
+   "recommended_action": "Step8 follow-up under S4-ATTACHMENT-AUTHORITY",
+   "member_raw_findings": [
+    "AAP-2",
+    "AAP-3",
+    "AAP-4",
+    "AAP-5",
+    "ELD-08"
+   ],
+   "member_titles": {
+    "AAP-2": "research_evidence labels an attachment-text-only SAM row 'stored_source_text' and can classify a vehicle_route claim quoting it as 'channel_fact'",
+    "AAP-3": "golden_press notice_bridge requirement leg is satisfiable by attachment discovery text alone",
+    "AAP-4": "Depth path remains the single trust boundary: a depth description copied from attachment text reaches BID_NOW after review",
+    "AAP-5": "Attachment-only requirement language drives discovery surfaces (relevance, requirement_support, triage eligibility) as designed",
+    "ELD-08": "No consumer other than the dossier prompt reads file_passages or attachment_collection_v1; research_evidence forwards a raw key nothing writes"
+   },
+   "refuter_votes": [
+    {
+     "finding_id": "F-16",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "pre_existing"
+    },
+    {
+     "finding_id": "F-16",
+     "lens": "SCOPE and CLASSIFICATION (new_defect vs pre_existing vs disclosed_residual vs doc_overstatement vs harness)",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "pre_existing"
+    }
+   ],
+   "vote_summary": "CONFIRMED (2 votes Low pre_existing). Internal Research Picture and a redundant press leg; Assess admission still blocked.",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/assess-approval-propagation/probe_base_research_evidence.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/assess-approval-propagation/probe_consumer_trace.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/assess-approval-propagation/probe_depth_promotion.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/assess-approval-propagation/probe_notice_bridge_requirement_leg.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/extraction-limits-dossier/probe_consumers_scan.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  },
+  {
+   "id": "F-17",
+   "title": "Upgrade invalidates every legacy inventory and text cache: one-time refetch storm bounded by the 120 s stage budget; if the refetch fails inside that window the sweep yields zero attachment rows where base served cached rows; lowering the text cap later triggers a second storm",
+   "summary": "Operator census read-only: 6 legacy inventory caches and 14 legacy text caches, so the real storm is small. Heals on the next successful sweep.",
+   "severity": "Low",
+   "kind": "disclosed_residual",
+   "disposition": "CONFIRMED mechanism (Medium reproduce, Low impact); operator census 6 + 14 legacy caches makes the real storm small; heals on the next successful sweep",
+   "recommended_action": "warm the caches once outside a press before the first production sweep",
+   "member_raw_findings": [
+    "YU-1",
+    "YU-2",
+    "YU-5",
+    "YU-6"
+   ],
+   "member_titles": {
+    "YU-1": "Upgrade invalidates every legacy inventory and text cache: one-time refetch storm, and zero attachment yield if the refetch fails inside the window where the base still served from cache",
+    "YU-2": "Refetch storm competes with the stage time budget; slow source turns the post-upgrade sweep into NOT_ATTEMPTED candidates and stale_inventory via the new capture time boundary",
+    "YU-5": "Cache-hit revalidation cost is 11x to 58x the base but immaterial against the stage budget",
+    "YU-6": "Lowering LILA_SAM_ATTACHMENT_TEXT_CHARS after caching invalidates every text cache (second refetch storm); raising it does not re-extract"
+   },
+   "refuter_votes": [
+    {
+     "finding_id": "F-17",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Medium",
+     "kind_recommendation": "disclosed_residual"
+    },
+    {
+     "finding_id": "F-17",
+     "lens": "IMPACT",
+     "verdict": "DOWNGRADE",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "disclosed_residual"
+    }
+   ],
+   "vote_summary": "CONFIRMED mechanism (Medium reproduce, Low impact); operator census 6 + 14 legacy caches makes the real storm small; heals on the next successful sweep.",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/yield-upgrade-impact/probe_cache_hit_cost.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/yield-upgrade-impact/probe_h5_locator_yield.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/yield-upgrade-impact/probe_stage_budget_storm.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/yield-upgrade-impact/probe_upgrade_legacy_cache.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  },
+  {
+   "id": "F-19",
+   "title": "Replay driver synthesizes request_started_at from the previous clock reading while its docstring claims original observed acquisition clocks; retrieved_at values are exact",
+   "summary": "Affects the packaged native-ihs-replay-002 RECEIPT only; no product path consumes request_started_at.",
+   "severity": "Low",
+   "kind": "harness",
+   "disposition": "CONFIRMED (Low harness)",
+   "recommended_action": "narrow the driver docstring or advance the clock before each extract call",
+   "member_raw_findings": [
+    "S7C-03"
+   ],
+   "member_titles": {
+    "S7C-03": "Replay driver synthesizes request_started_at from the previous clock reading; docstring claims original observed acquisition clocks"
+   },
+   "refuter_votes": [
+    {
+     "finding_id": "F-19",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "harness"
+    }
+   ],
+   "vote_summary": "CONFIRMED (Low harness). Packaged replay RECEIPT request_started_at values are synthesized; retrieved_at exact.",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/step6-preservation-clocks/probe_replay_clock_reach.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  },
+  {
+   "id": "F-21",
+   "title": "Uppercase or mixed-case requested notice id is admitted by the 32-hex regex but always refused as identity_mismatch against SAM lowercase bodies (conservative edge introduced by the new identity check; base accepted it)",
+   "summary": "Exact-case compare in _resource_identity_matches and the cache id check. SAM extracts carry lowercase ids, so no live exposure was measured; zero yield for a non-lowercase caller.",
+   "severity": "Low",
+   "kind": "new_defect",
+   "disposition": "WNI-6 votes CONFIRMED Info (reproduce) and REFUTED on kind; FVE-6 evidence shows base accepted the uppercase id, so the refusal is introduced by the delta; conservative edge with no live exposure measured",
+   "recommended_action": "casefold both sides or drop IGNORECASE",
+   "member_raw_findings": [
+    "WNI-6",
+    "FVE-6"
+   ],
+   "member_titles": {
+    "WNI-6": "Uppercase requested notice id is admitted by the 32-hex regex but always refused as identity_mismatch against lowercase SAM bodies",
+    "FVE-6": "Notice ID case: an uppercase notice_id is refused as identity_mismatch against SAM's lowercase opportunityId"
+   },
+   "refuter_votes": [
+    {
+     "finding_id": "WNI-6",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Info",
+     "kind_recommendation": "new_defect"
+    },
+    {
+     "finding_id": "WNI-6",
+     "lens": "scope/classification",
+     "verdict": "REFUTED",
+     "severity_recommendation": "Info",
+     "kind_recommendation": "new_defect"
+    }
+   ],
+   "vote_summary": "WNI-6 votes CONFIRMED Info (reproduce) and REFUTED on kind; FVE-6 evidence shows base accepted the uppercase id, so the refusal is introduced by the delta; conservative edge with no live exposure measured.",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/failed-vs-empty/probe_identity_case_and_custody.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/wrong-notice-identity/probe_real_bodies.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  },
+  {
+   "id": "F-22",
+   "title": "raw_capture.source_url records the requested resources URL, not the URL the bytes actually came from; the inventory path follows redirects with no final-host check (the file download path has one)",
+   "summary": "A 302 to another notice or an off-host server followed by an id-less body is captured as this notice inventory and the new receipt asserts a sam.gov origin. Redirect acceptance is pre-existing; the false-origin receipt field is new. response.url and history were available to the observer.",
+   "severity": "Low",
+   "kind": "new_defect",
+   "disposition": "WNI-1 votes: CONFIRMED Medium reproduce, Low scope and impact; redirect acceptance pre-existing, false-origin receipt field new",
+   "recommended_action": "record the final URL and chain; check the final host",
+   "member_raw_findings": [
+    "WNI-1"
+   ],
+   "member_titles": {
+    "WNI-1": "raw_capture.source_url records the requested URL, not the URL the bytes came from; no final-host check after redirects"
+   },
+   "refuter_votes": [
+    {
+     "finding_id": "WNI-1",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Medium",
+     "kind_recommendation": "new_defect"
+    },
+    {
+     "finding_id": "WNI-1",
+     "lens": "scope_classification",
+     "verdict": "REFUTED",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "pre_existing"
+    },
+    {
+     "finding_id": "WNI-1",
+     "lens": "IMPACT",
+     "verdict": "DOWNGRADE",
+     "severity_recommendation": "Low",
+     "kind_recommendation": "new_defect"
+    }
+   ],
+   "vote_summary": "WNI-1 votes: CONFIRMED Medium reproduce, Low scope and impact; redirect acceptance pre-existing, false-origin receipt field new.",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/wrong-notice-identity/probe_redirect.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  },
+  {
+   "id": "F-18",
+   "title": "Object store hygiene: failed-attempt bodies retained as orphan blobs with no on-disk receipt and no garbage collection; unreadable file outcomes not cached; file download error bodies not retained",
+   "summary": "Consistent with internal custody wording.",
+   "severity": "Info",
+   "kind": "disclosed_residual",
+   "disposition": "CONFIRMED as a measured limit (4 votes Info)",
+   "recommended_action": "optional reaper for unreferenced objects",
+   "member_raw_findings": [
+    "BR-6",
+    "FVE-8",
+    "HCS-06",
+    "HDP-10",
+    "BR-7"
+   ],
+   "member_titles": {
+    "BR-6": "Failure-path objects have no on-disk receipt and the object store has no garbage collection",
+    "FVE-8": "Every failed response body is retained as an objects/<sha>.bin blob with no garbage collection",
+    "HCS-06": "Failed attempts retain orphan content-addressed objects that no cache file references",
+    "HDP-10": "Partial/error inventory bodies are retained as blobs without any on-disk receipt outside the saved sweep; unreadable file outcomes are not cached",
+    "BR-7": "File download error bodies and partial downloads are not retained (inventories only)"
+   },
+   "refuter_votes": [
+    {
+     "finding_id": "BR-6",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Info",
+     "kind_recommendation": "disclosed_residual"
+    },
+    {
+     "finding_id": "BR-7",
+     "lens": "REPRODUCTION",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Info",
+     "kind_recommendation": "disclosed_residual"
+    },
+    {
+     "finding_id": "BR-6",
+     "lens": "SCOPE and CLASSIFICATION (new_defect vs pre_existing vs disclosed_residual vs doc_overstatement vs harness)",
+     "verdict": "REFUTED",
+     "severity_recommendation": "Info",
+     "kind_recommendation": "new_defect"
+    },
+    {
+     "finding_id": "BR-7",
+     "lens": "scope_and_classification",
+     "verdict": "CONFIRMED",
+     "severity_recommendation": "Info",
+     "kind_recommendation": "disclosed_residual"
+    }
+   ],
+   "vote_summary": "CONFIRMED as a measured limit (4 votes Info).",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/byte-retention/probe_file_retention.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/byte-retention/probe_inventory_retain_before_parse.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/failed-vs-empty/probe_http_failures.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/harness-docs-prepatch/probe_doc_claims.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/http-capture-seam/probe_e2e_notice_resources.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  },
+  {
+   "id": "F-20",
+   "title": "Pre-existing gate and text semantics carried forward: unsupported/extension-less files downloaded before the type check; unapproved redirect host contacted before the host check (its 401/403 now labelled inaccessible); missing access metadata treated as public; binary or UTF-16 bytes named .txt captured as text; code-point cuts can split grapheme clusters; dossier accepts a future attachment retrieved_at",
+   "summary": "None produces wrong-notice evidence or approval.",
+   "severity": "Info",
+   "kind": "pre_existing",
+   "disposition": "CONFIRMED as measured pre-existing semantics (Info)",
+   "recommended_action": "none required for Step7",
+   "member_raw_findings": [
+    "RUF-4",
+    "RUF-6",
+    "RUF-8",
+    "UO-2",
+    "UO-3",
+    "S7C-04",
+    "HCS-05"
+   ],
+   "member_titles": {
+    "RUF-4": "Unsupported or extension-less files reaching extract are downloaded and their bytes retained before the type check",
+    "RUF-6": "Unapproved redirect host is contacted before the host check, and its 401/403 is labelled 'inaccessible'",
+    "RUF-8": "Gate semantics measured: missing access metadata is public, invalid inventory sizes coerce to 0, binary bytes named .txt are captured as text, docx internal entities expand",
+    "UO-2": "Non-whitespace-only and mis-decoded .txt payloads (ZWSP-only, all-invalid UTF-8, UTF-16) are retained as captured discovery text",
+    "UO-3": "'unicode_characters' means code points; remainder and prompt cuts can split grapheme clusters",
+    "S7C-04": "Dossier research context accepts a future attachment retrieved_at (aware-only check, no <= now)",
+    "HCS-05": "Only fetch_notice_resources uses the capture seam; fetch_notice_depth's keyless resources legs stay uncaptured and unbounded"
+   },
+   "refuter_votes": [],
+   "vote_summary": "CONFIRMED as measured pre-existing semantics (Info).",
+   "evidence_scripts": [
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/http-capture-seam/probe_production_callers.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/restricted-unreadable-files/probe_download_errors.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/restricted-unreadable-files/probe_parse_failures.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/restricted-unreadable-files/probe_public_file_gate.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/step6-preservation-clocks/probe_dossier_assess_clock.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/unicode-offsets/probe_empty_second_file.py",
+    "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/probes/unicode-offsets/probe_grapheme_split.py"
+   ],
+   "raw_finding_text": "/Users/wtjohnson/lila-step7-052-review/FABLE-STEP7-052/results/findings_raw_all.md"
+  }
+ ],
+ "required_before_operating_integration": [
+  "F-03: correct the CONTRACT_SURFACES sentence (reject any conflicting original notice ID) to the implemented scope (explicit opportunityId/noticeId/notice_id keys) or extend _resource_identity_matches to parse 32-hex ids from _links.*.href and /opportunities/<id>/ paths; all 21 real bodies carry the id in _links.self.href, so the stronger check is cheap.",
+  "F-02: correct the CONVENTIONS sentence (successful caches bind ... raw bytes, text bytes and aware acquisition clock) to state that text is bound to its own object and to caller metadata, not re-derived from raw, and that cache clocks are local unauthenticated fields; add a coherent-rewrite tamper case to tests/test_step7_evidence_collection.py.",
+  "F-05: add AttributeError to the except tuples of _text_capture_valid and _resource_capture_valid (or type-check before .get/.replace) so a malformed local cache entry is a cache miss followed by the bounded refetch, never a notice-level FAILED; add a test with raw_capture set to a non-dict.",
+  "F-07: on the stage-time break stamp every remaining selected file with the true stop reason; map TimeoutError after a successful download to a distinct state rather than unreadable; give type-filtered and cap-overflow files distinct reasons; add tests with a jumped clock.",
+  "F-01: introduce a distinct retention_failed state, keep the parsed inventory or extracted text in the returned dict when only retention failed, fall back from os.link to an exclusive create on OSError other than EEXIST, and quarantine a mismatching objects/<sha>.bin instead of failing forever.",
+  "F-08: do not append a file whose bundle-capped text is empty; mark its receipt not_fetched with a bundle-budget reason so two bound files keep a valid locator chain; add a test at LILA_SAM_ATTACHMENT_TEXT_CHARS=75000.",
+  "F-15: make test_collected_attachment_text_cannot_supply_strict_notice_requirement discriminating (trusted irrelevant depth plus attachment cues; review excerpt copied from attachment; mixed control), and rename or extend the all_inventory_states test.",
+  "F-22: record str(response.url) and the redirect chain in raw_capture and refuse a final host outside sam.gov on the inventory path, mirroring _download_bytes."
+ ],
+ "step7_policy_followups": [
+  "S4-ATTACHMENT-AUTHORITY: per-file offsets and raw/text custody are implemented and independently verified; no independent trust upgrade was granted or is warranted. Carry F-16 (research_evidence stored_source_text label and notice_bridge requirement leg satisfiable by attachment text) and F-04 (depth cache lacks the id check the delta added to the resources cache) as the remaining safe-propagation items.",
+  "S2-COVERAGE-005: bounded collection is auditable through the new per-file receipts and the 19-family dispositions; explicit-gap fidelity is weakened by F-07 (stop reasons) and by F-10/F-11 (withdrawn and gate-rejected files consume slots), and confirmed_empty is not reachable from any observed real SAM shape (F-09). No full-market recall or comparative relevance claim.",
+  "Step8 candidates outside the delta: F-04 depth-cache id check; F-10 carry deletedFlag/deletedDate/fileExists and exclude withdrawn rows from count, hash and selection; F-11 apply the pure _public_file gate before the [:3] slice; F-09 recognize the real HAL empty shapes only with a matching _links.self.href; F-06 gate the stale fallback on _resource_capture_valid."
+ ],
+ "informational_observations": [
+  "Suite hygiene (pre-existing, outside the delta): during the full offline strict suite one repository test rendered a document carrying the synthetic news link https://n.gov/1; agents/reports/link_integrity.py opens its own httpx client, which the conftest offline observer does not wrap, so the suite attempted a real DNS lookup (failed, nodename not known) and wrote data/cache/links/2026-09-13/<sha>.json into the review clone (gitignored). Same behaviour would occur on the producer machine.",
+  "Fixture staging: the 31 ignored fixtures were staged byte-exact from the producer-declared Step6 sources; the same bytes are present in the operator checkout /Users/wtjohnson/Lila (read-only check). No cloud run; no cloud/local parity claimed.",
+  "Operator legacy cache census (read-only, lead reviewer): 6 inventory caches and 14 text caches without raw_capture in /Users/wtjohnson/Lila/data/cache; all will be refetched once by the candidate (F-17).",
+  "Replay receipt clocks (F-19): in the packaged native-ihs-replay-002 RECEIPT the per-file request_started_at values are synthesized from the previous clock reading; retrieved_at values equal the original observed acquisition clocks. No product path consumes request_started_at.",
+  "Same physical host as the producer; independence is at the clone, interpreter, venv and probe level."
+ ],
+ "prior_residuals": {
+  "register": "docs/verification/step7-052/PRIOR_FOLLOWUPS.json",
+  "sha256": "30ba14ac52420314b9cf7e937c6927d7a990c806254af684248e3247ed9565da",
+  "retained_byte_for_byte": true,
+  "item_ids": [
+   "S3-TIME-001",
+   "S3-TYPE-002",
+   "S3-AUTH-003",
+   "S3-SEM-004",
+   "S3-SURFACE-005",
+   "S3-DIAG-006",
+   "S3-ROLE-007",
+   "S3-PROOF-008",
+   "S2-SOURCE-002",
+   "S4-SOURCE-CLOCK-001",
+   "S4-UI-RELIABILITY",
+   "S4-CLOUD-PROOF",
+   "S4-REPRODUCIBILITY",
+   "S4-BOUNDED-LANGUAGE",
+   "S4-ATTACHMENT-AUTHORITY",
+   "S5-PROOF-PARITY",
+   "S5-NETSCOUT-REPLAY",
+   "S5-PLAN-LAYOUT",
+   "S5-RUNTIME-VERSION",
+   "S5-AUTHORITY",
+   "S5-REVIEW-050-01",
+   "S5-REVIEW-050-02",
+   "R1",
+   "R2",
+   "R3",
+   "R4",
+   "R5",
+   "R6",
+   "R7",
+   "LILA-051-R1",
+   "LILA-051-R2",
+   "S6-LOCAL-001",
+   "LILA-051-R3",
+   "S6-LOCAL-002",
+   "S6-FABLE-PROOF",
+   "S6-FABLE-FIXTURES",
+   "S6-FABLE-RUNTIME",
+   "S6-NETSCOUT-OBJECT",
+   "S6-R1-PROBE-DRIFT",
+   "S6-EXPORT-CUSTODY"
+  ],
+  "statement": "All prior canonical residuals remain with their recorded status; no blanket closure is claimed."
+ },
+ "non_claims": [
+  "production merge",
+  "automatic Step7 acceptance",
+  "seller-ready lead",
+  "frozen rescore",
+  "NETSCOUT composite acceptance",
+  "live SAM acquisition",
+  "government-source authentication (hash custody only)",
+  "cloud/local suite parity",
+  "full-market recall or comparative relevance",
+  "independent trust upgrade for discovery text"
+ ]
+}

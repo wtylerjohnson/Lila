@@ -421,8 +421,9 @@ def test_unverified_inventory_without_adapter_error_records_named_gap(
          "no attachment search performed")]
 
 
-def test_stale_inventory_retains_refresh_failure_and_relevance_refusal(
-        monkeypatch, attachment_inventory_probe):
+@pytest.mark.parametrize('legacy', [False, True])
+def test_only_bound_stale_inventory_retains_refresh_failure_and_relevance_refusal(
+        monkeypatch, attachment_inventory_probe, legacy):
     from datetime import datetime, timedelta, timezone
 
     cache_dir = detail._cache_dir()
@@ -436,17 +437,28 @@ def test_stale_inventory_retains_refresh_failure_and_relevance_refusal(
         "resources_schema": "recognized_v1",
         "errors": [],
     }))
+    if not legacy:
+        from tests.test_step7_evidence_collection import http_fixture
+        (cache_dir / f"{'8' * 32}.resources.json").unlink()
+        http_fixture(monkeypatch, json.dumps({'attachments': [
+            {'name': 'SOW.txt', 'resourceId': '9' * 32}]}).encode())
+        saved = detail.fetch_notice_resources('8' * 32)
+        saved['raw_capture']['received_at'] = (datetime.now(timezone.utc) - timedelta(
+            seconds=detail.RESOURCE_CACHE_TTL_SECONDS + 1)).isoformat()
+        (cache_dir / f"{'8' * 32}.resources.json").write_text(json.dumps(saved))
 
     def failed_refresh(*args, **kwargs):
         raise RuntimeError("fixture refresh unavailable")
 
     monkeypatch.setattr(detail, "get_json", failed_refresh)
     stats = attachment_inventory_probe()
-    assert stats["attachment_errors"] == [
+    assert stats["attachment_errors"] == ([
+        f"{'8' * 32}: resources fetch failed: fixture refresh unavailable",
+    ] if legacy else [
         (f"{'8' * 32}: resources refresh failed; using stale inventory: "
          "fixture refresh unavailable"),
         f"{'8' * 32}: stale attachment inventory was not used for relevance",
-    ]
+    ])
 
 
 def test_resource_errors_are_bounded_and_notice_attributed(

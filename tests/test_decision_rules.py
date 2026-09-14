@@ -369,7 +369,7 @@ def test_decision_band_states_zero_never_pads():
     assert "COMPETITIVE VALIDATION PENDING" in band
     assert "HEAD-TO-HEAD · NONE" not in band
     assert "RivalSuite Enterprise" in band     # the comparison set is named
-    assert "DISPLACEMENT · NONE" in band
+    assert "COMPETITOR SOURCE CONTEXT · NONE" in band
 
 
 def test_decision_band_states_the_tested_zero_once_the_lane_has_run():
@@ -599,7 +599,7 @@ def test_d3_r2_window_excludes_older_matches_into_the_receipt():
     pack2.decisions = build_decisions(pack2, today=TODAY)
     band = re.search(r'<section class="band" id="decisions".*?</section>',
                      _render(pack2), re.S).group(0)
-    assert "older displacement record" in band
+    assert "older competitor-context record" in band
     assert "FY20" in band
     assert "DISPLACEMENT ALERT" not in band
 

@@ -114,6 +114,46 @@ def _attachment_research_context(notice: dict, depth: dict) -> dict | None:
     current_inventory = depth.get("attachment_inventory_hash")
     if current_inventory and current_inventory != inventory:
         return unavailable("Attachment inventory changed after discovery")
+    collection = raw.get("attachment_collection_v1")
+    file_passages = []
+    if collection is not None or "attachment_collection_sha256" in raw:
+        if not isinstance(collection, dict):
+            return unavailable("Attachment collection receipt is malformed")
+        digest = hashlib.sha256(json.dumps(collection, sort_keys=True,
+                                           separators=(",", ":")).encode()).hexdigest()
+        if (digest != raw.get("attachment_collection_sha256")
+                or collection.get("notice_id") != notice_id
+                or collection.get("inventory_hash") != inventory
+                or collection.get("authority") != "discovery_only"
+                or collection.get("combined_text_sha256") != basis["text_sha256"]
+                or collection.get("files") != files):
+            return unavailable("Attachment collection does not bind this notice/text/inventory")
+        previous_end = 0
+        for index, item in enumerate(files):
+            loc = item.get("combined_text_locator")
+            if not isinstance(loc, dict):
+                return unavailable("Attachment file locator is missing")
+            start, end = loc.get("start"), loc.get("end")
+            expected_start = previous_end + (2 if index else 0)
+            if (type(start) is not int or type(end) is not int
+                    or loc.get("unit") != "unicode_characters"
+                    or start != expected_start or not start < end <= len(text)
+                    or (index and text[previous_end:start] != "\n\n")
+                    or item.get("authority") != "discovery_only"
+                    or hashlib.sha256(text[start:end].encode()).hexdigest() != item.get("text_sha256")):
+                return unavailable("Attachment file locator does not match retained text")
+            previous_end = end
+            included_end = min(end, _ATTACHMENT_RESEARCH_MAX_CHARS)
+            file_passages.append({
+                "resource_id": item["resource_id"], "name": item["name"],
+                "source_url": item["source_url"], "sha256": item["sha256"],
+                "authority": "discovery_only", "locator": loc,
+                "included_end": max(start, included_end),
+                "text": text[start:included_end] if start < included_end else "",
+                "truncated": included_end < end,
+            })
+        if previous_end != len(text):
+            return unavailable("Attachment file locators leave unbound text")
     included = text[:_ATTACHMENT_RESEARCH_MAX_CHARS]
     result = {
         "status": "discovery_only", "notice_id": notice_id,
@@ -125,6 +165,9 @@ def _attachment_research_context(notice: dict, depth: dict) -> dict | None:
         "text": included, "captured_characters": len(text),
         "included_characters": len(included), "truncated": len(included) < len(text),
     }
+    if collection is not None:
+        result["file_passages"] = file_passages
+        result["collection_sha256"] = raw["attachment_collection_sha256"]
     excerpt = raw.get("attachment_relevance_excerpt")
     if isinstance(excerpt, str) and excerpt.strip() and all(
             part.strip() and part.strip() in text for part in excerpt.split("\n…\n")):

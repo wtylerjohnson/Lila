@@ -128,15 +128,24 @@ def test_dedupe_collapses_one_notice_posted_many_times():
     """Undeduped, a single BAA reads as six opportunities."""
     recs = [_rec(f"id{i}", title="Broad Agency Announcement",
                  agency="DEPT OF X") for i in range(6)]
+    from agents.golden_press.notice_bridge import source_transport
+    for i, record in enumerate(recs):
+        record.source_fields["notice_source_v1"] = source_transport(dict(source_id=record.record_id,
+            solicitation="BAA-1", agency="DEPT OF X", office="Office", posted_date=f"2026-08-0{i+1}"))
     kept, dropped = dedupe_by_title_agency(recs)
+    assert kept[0].record_id == "id5"
     assert len(kept) == 1 and len(dropped) == 5
 
 
-def test_dedupe_keeps_the_most_actionable_member():
+def test_dedupe_keeps_latest_even_when_older_member_is_more_actionable():
     a = _rec("a", title="BAA", agency="X"); a.notice_leverage_rank = 4
     b = _rec("b", title="BAA", agency="X"); b.notice_leverage_rank = 1
+    from agents.golden_press.notice_bridge import source_transport
+    for record, posted in ((a, "2026-08-02"), (b, "2026-08-01")):
+        record.source_fields["notice_source_v1"] = source_transport(dict(source_id=record.record_id,
+            solicitation="BAA-1", agency="X", office="Office", posted_date=posted))
     kept, dropped = dedupe_by_title_agency([a, b])
-    assert kept[0].record_id == "b", "the shapeable one represents the group"
+    assert kept[0].record_id == "a", "current source chronology overrides actionability"
 
 
 def test_dedupe_does_not_merge_different_agencies():

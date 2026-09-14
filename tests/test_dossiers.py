@@ -469,4 +469,4 @@ def test_attachment_research_analysis_does_not_promote_assess_or_lead():
     assert record.attachment_reviewed_by is None
     drafts = draft_lead_rows(after)
     assert drafts.parents[0].requirement_span is None
-    assert drafts.leads[0].lead_tier == LeadTier.HOLD
+    assert not drafts.leads  # parent-only research, no supported buying motion

@@ -87,23 +87,9 @@ def _normalized_text(value: Any) -> str:
 
 
 def _notice_thread_key(notice: dict, index: int) -> tuple[str, ...]:
-    """Return a conservative amendment-thread identity.
-
-    Solicitation numbers are not globally unique.  Different agencies (and
-    occasionally different offices inside one agency) reuse short identifiers
-    such as ``RFI-01``.  Amendment consolidation therefore requires the
-    solicitation, agency, and issuing office to agree.  If agency/office
-    identity is absent, fail open to the notice id instead of discarding an
-    unrelated record.
-    """
-    normalized = _solicitation_id(notice).upper()
-    if normalized not in _EMPTY_SOLICITATIONS:
-        raw = _raw_payload(notice)
-        agency = _normalized_text(raw.get("agency") or notice.get("agency"))
-        office = _normalized_text(raw.get("office") or notice.get("office"))
-        if agency and office:
-            return ("solicitation", normalized, agency, office, str(notice.get('source') or 'sam.gov'))
-    return ("notice", _source_id(notice, f"idx-{index}"))
+    """Shared source/agency/office/full-solicitation identity, never title similarity."""
+    from tools.relevance.notice_family import identity
+    return identity(notice, index)
 
 
 def _notice_lineage(notice: dict) -> list[dict[str, Any]]:
@@ -253,10 +239,11 @@ def _cross_post_key(notice: dict) -> tuple[str, ...] | None:
     """Identify one requirement published as several SAM cross-posts.
 
     No fuzzy title-only grouping is allowed. A cross-post must agree on the
-    normalized title, explicit agency and issuing office, response day,
+    full solicitation identifier, normalized title, explicit agency and issuing office, response day,
     primary POC email, notice type, and a substantive description fingerprint.
     Missing evidence disables this consolidation path. This keeps separate
-    lots and similarly named requirements independent.
+    lots and similarly named requirements independent. Identical wording alone
+    cannot merge separate full solicitation numbers.
     """
     raw = _raw_payload(notice)
     title = _normalized_text(notice.get("title"))
@@ -272,7 +259,7 @@ def _cross_post_key(notice: dict) -> tuple[str, ...] | None:
         or raw.get("description_snippet")
         or notice.get("description")
     )
-    required = (title, agency, office, deadline, email, notice_type)
+    required = (_solicitation_id(notice).upper(), title, agency, office, deadline, email, notice_type)
     if not all(required) or len(description) < 120:
         return None
     description_sha256 = hashlib.sha256(description.encode("utf-8")).hexdigest()
@@ -641,7 +628,8 @@ def deterministic_prefilter(
             post_solicitation_candidates
         ),
         "model_candidates": len(candidates),
-        "superseded_revisions": superseded_count,
+        "superseded_revisions": _count,
+        "positive_candidate_superseded_revisions": superseded_count,
         "cross_post_duplicates": cross_post_count,
         "model_candidate_reasons": dict(sorted(candidate_reasons.items())),
         "deterministic_discards": sum(v["verdict"] == "discard" for v in ruled.values()),

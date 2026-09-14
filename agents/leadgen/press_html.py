@@ -172,6 +172,7 @@ def render_html(receipt: PressLeadGenReceipt) -> str:
             ("Classification", parent.live_classification),
             ("Recommendation", parent.live_recommendation),
             ("Requirement", parent.requirement_span),
+            ("Source acquisition", "Collection time not established in this parent summary; inspect the source Assess evidence."),
         ])
         if parent.research_subject is not None:
             from .target_html import render_research, render_targets

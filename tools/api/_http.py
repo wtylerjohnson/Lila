@@ -41,12 +41,42 @@ def _request(
     headers: Optional[dict] = None,
     timeout: float = DEFAULT_TIMEOUT,
     retries: int = 3,
+    response_observer=None,
+    max_response_bytes: int | None = None,
 ) -> Any:
     last_exc: Optional[Exception] = None
     for attempt in range(retries):
         try:
             with _client(timeout) as c:
-                resp = c.request(method, url, params=params, json=json, headers=headers)
+                if max_response_bytes is None:
+                    resp = c.request(method, url, params=params, json=json, headers=headers)
+                    if response_observer is not None:
+                        response_observer(resp, resp.content, True)
+                else:
+                    # Opt-in bounded capture for public resource inventories.
+                    # Existing clients retain their original request behavior.
+                    captured = bytearray()
+                    complete = False
+                    stop = time.monotonic() + timeout
+                    with c.stream(method, url, params=params, json=json,
+                                  headers=headers) as streamed:
+                        try:
+                            for chunk in streamed.iter_bytes(65536):
+                                remaining = max_response_bytes - len(captured)
+                                captured.extend(chunk[:remaining])
+                                if len(chunk) > remaining:
+                                    raise ValueError("response exceeds capture byte boundary")
+                                if time.monotonic() > stop:
+                                    raise TimeoutError("response exceeds capture time boundary")
+                            complete = True
+                        finally:
+                            if response_observer is not None:
+                                response_observer(streamed, bytes(captured), complete)
+                        resp = httpx.Response(streamed.status_code,
+                                              headers={k: v for k, v in streamed.headers.items()
+                                                       if k not in {"content-encoding", "content-length"}},
+                                              content=bytes(captured),
+                                              request=streamed.request)
             if resp.status_code >= 400:
                 # Carry the response BODY in the error — "429" alone hides whether
                 # it's a daily cap, a burst throttle, a role problem, or a WAF block.

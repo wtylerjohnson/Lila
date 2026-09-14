@@ -1,0 +1,375 @@
+{
+  "schema": "lila.fable.followups.v1",
+  "canonical_register": true,
+  "work_id": "FABLE-STEP5-050",
+  "at_utc": "2026-09-13T02:16:46.320564+00:00",
+  "exact_tested_sha": "497b7f3b1bdef6a58081918fd0e4d62b66fa7d76",
+  "source_report": "handoffs/FABLE-STEP5-050/FABLE_STEP5_REPORT.md",
+  "source_report_sha256": "3f72328e6963666a945b1ff1b25af9f25de683eea303f880eb16045cb7a61bf7",
+  "export_summary_discrepancy": {
+    "file": "FINDINGS_AND_RESIDUALS.json",
+    "kind": "INCOMPLETE_SUMMARY_NOT_VERDICT_CONTRADICTION",
+    "omitted": [
+      "NetScout saved-input non-reexecution",
+      "retained Step1R1-R7 and Step3/4 residuals including S3-ROLE-007",
+      "canonical plan path absent from candidate",
+      "Python3.12.3 versus producer3.14.5"
+    ],
+    "disposition": "Preserve original export unchanged; use original final report plus this disposition and coordinator canonical followups. Do not use summary JSON as exhaustive residual register."
+  },
+  "items": [
+    {
+      "id": "S3-TIME-001",
+      "status": "CLOSED_ASSIGNED_STEP4_CASES_ON_EXACT_CANDIDATE",
+      "owner": "Existing coordinator; LILA operator baseline support",
+      "finding": "Archived instructions can satisfy the current-response helper. The original Fable observation is helper-level, not a demonstrated full Research Picture promotion.",
+      "target": "Before the next reviewed Step4 candidate",
+      "acceptance": [
+        "Add an end-to-end case with an evidence-bound supported SOW, future metadata deadline and archived-only submission instruction; it must not confirm a current action.",
+        "Keep the original heading when a narrow quoted Submit proposals span is cited; reject historical, previous, prior and archived action borrowing.",
+        "Retain genuine current submission and mixed archived/current positive controls. Distinguish current action, deadline precision and capability fit."
+      ],
+      "step4_implementation": {
+        "candidate": "ca6620dd9a4387b5145e49588a878ca3efb925e4",
+        "status": "LOCAL_VERIFIED_OPERATOR_CLOSURE_FABLE_PENDING",
+        "verification": "handoffs/STEP4-049/VERIFICATION.json",
+        "operator_closure": "handoffs/STEP4-049/CLOSURE_ACK.json"
+      },
+      "closure_candidate": "ca6620dd9a4387b5145e49588a878ca3efb925e4",
+      "closure_acceptance": "handoffs/FABLE-STEP4-049/COORDINATOR_ACCEPTANCE.json"
+    },
+    {
+      "id": "S3-TYPE-002",
+      "status": "CLOSED_ASSIGNED_STEP4_CASES_ON_EXACT_CANDIDATE",
+      "owner": "Existing coordinator; LILA operator baseline support",
+      "finding": "Award Synopsis, Awarded Contract and Justification with requested-work grammar classify unknown and can reach model review. This does not by itself establish current buying or qualification.",
+      "target": "Step4 current-buying-state policy and next candidate acceptance",
+      "acceptance": [
+        "Map demonstrated award aliases using explicit source/provenance policy; preserve raw labels and unknown states.",
+        "Investigate Justification/J&A separately: its label alone does not prove an historical award or open action. Do not introduce substring bans or blindly reject unknown types.",
+        "Verify no current buying claim follows solely from capability fit, future date or type; genuine solicitations/preaward actions retain investigation paths.",
+        "Preserve the six prior historical aliases and contradictory-current-projection controls."
+      ],
+      "step4_implementation": {
+        "candidate": "ca6620dd9a4387b5145e49588a878ca3efb925e4",
+        "status": "LOCAL_VERIFIED_OPERATOR_CLOSURE_FABLE_PENDING",
+        "verification": "handoffs/STEP4-049/VERIFICATION.json",
+        "operator_closure": "handoffs/STEP4-049/CLOSURE_ACK.json"
+      },
+      "closure_candidate": "ca6620dd9a4387b5145e49588a878ca3efb925e4",
+      "closure_acceptance": "handoffs/FABLE-STEP4-049/COORDINATOR_ACCEPTANCE.json"
+    },
+    {
+      "id": "S3-AUTH-003",
+      "status": "CLOSED_ASSIGNED_STEP4_CASES_ON_EXACT_CANDIDATE",
+      "owner": "Existing coordinator; root trace complete; LILA operator baseline support",
+      "finding": "Read-only trace at cb8448e confirms native enrichment writes discovery-labelled raw_payload.text, which can support model review. Research Picture scalar passage reconstruction drops attachment provenance. Native confirmed promotion was not reproduced; independent row-level same-day retrieval and other gates still apply. No direct strict Assess bypass is established.",
+      "target": "Before the next reviewed candidate may confirm requirement evidence, especially when Step4 adds fresh clock data",
+      "acceptance": [
+        "Preserve field/passage authority through native enrichment, source registry and Research Picture reconstruction; discovery-only text remains investigation context and cannot alone substantiate a trusted confirmed buyer requirement.",
+        "Add one bounded native-enrichment-through-classification regression with valid row timestamps and all other positive promotion prerequisites. Verify withholding for discovery-only requirement support.",
+        "Retain a mixed-source positive control where original-notice evidence independently supports the requirement; do not globally disqualify the row because discovery context exists.",
+        "Retain source identity, exact original field, raw evidence provenance and missing per-file offsets. Treat any authority/schema change as a separately described contract extension with tests.",
+        "Strict Assess trusted-description and bound-requirement checks remain independent; no generic Assess bypass or authentic-source outcome claim."
+      ],
+      "trace_pending": false,
+      "trace": "handoffs/FABLE-STEP3-047/ROOT_DISCOVERY_AUTHORITY_TRACE.json",
+      "trace_sha256": "f3be551d3487b4a02e674e32392bcfeec8c7637482d8061523384bcc60acbc16",
+      "step4_implementation": {
+        "candidate": "ca6620dd9a4387b5145e49588a878ca3efb925e4",
+        "status": "LOCAL_VERIFIED_OPERATOR_CLOSURE_FABLE_PENDING",
+        "verification": "handoffs/STEP4-049/VERIFICATION.json",
+        "operator_closure": "handoffs/STEP4-049/CLOSURE_ACK.json"
+      },
+      "closure_candidate": "ca6620dd9a4387b5145e49588a878ca3efb925e4",
+      "closure_acceptance": "handoffs/FABLE-STEP4-049/COORDINATOR_ACCEPTANCE.json"
+    },
+    {
+      "id": "S3-SEM-004",
+      "status": "ACCEPTED_DISCLOSED_LIMIT_WITH_RETAINMENT_CHECKS",
+      "owner": "Step4 current action and Step5 evidence states",
+      "finding": "Withdraw/cancel is unresolved rather than general negation; same-family later amendments already suppress older positive candidates. Conservative grammar is not general entailment.",
+      "acceptance": [
+        "Keep old-row suppression with full family lineage and source-bound action scope.",
+        "Do not invent a blanket withdrawal/negation rule or infer broader permanent market irrelevance from a closed response.",
+        "Retain uncertainty for optional, anticipated, incumbent and ambiguous wording."
+      ],
+      "step4_implementation": {
+        "candidate": "ca6620dd9a4387b5145e49588a878ca3efb925e4",
+        "status": "LOCAL_VERIFIED_OPERATOR_CLOSURE_FABLE_PENDING",
+        "verification": "handoffs/STEP4-049/VERIFICATION.json",
+        "operator_closure": "handoffs/STEP4-049/CLOSURE_ACK.json"
+      }
+    },
+    {
+      "id": "S3-SURFACE-005",
+      "status": "OPEN_STEP6",
+      "detail": "Inspect non-C1 DISPLACEMENT/current funding/access copy on actual native recommendation surface."
+    },
+    {
+      "id": "S3-DIAG-006",
+      "status": "OPEN_STEP6",
+      "detail": "Preserve no-term latest family member status/suppression and full lineage in compact diagnostics; no superseded positive counting."
+    },
+    {
+      "id": "S3-ROLE-007",
+      "status": "RETAIN_ACCEPTED_DIAGNOSTIC_LABEL_LIMIT",
+      "detail": "Known excluded identity is discarded but planned known_excluded_identity label is not established. Preserve taxonomy exclusion truth and do not claim every planned role label exists."
+    },
+    {
+      "id": "S3-PROOF-008",
+      "status": "ACCEPTED_PROOF_LIMIT",
+      "owner": "Coordinator; all downstream handoffs",
+      "finding": "Focused cloud395 pass; full cloud5521 pass/62 skip/11 fail/8 errors plus2 collection errors before fixture exclusions. Producer local5585 pass/40 skip remains separate. Missing fixtures and bounded synthetic success do not establish authentic-source success or seller yield.",
+      "acceptance": [
+        "Keep all suite scopes/counts explicit and do not claim full parity. Report fixture attribution as Fable assessment unless independently reproduced.",
+        "No recovered lead, authentic-source success, seller readiness, production merge or general entailment claim."
+      ]
+    },
+    {
+      "id": "S2-SOURCE-002",
+      "status": "CLOSED_ASSIGNED_REWRITE_DEFECT_ON_EXACT_CANDIDATE",
+      "candidate": "ca6620dd9a4387b5145e49588a878ca3efb925e4",
+      "basis": "Independent hidden-metadata rewrite triggers named reread digest mismatch while preserving consumed hash/bytes; unreadable/incomplete reread controls pass.",
+      "retained_limits": [
+        "Equal observed reads do not prove every transient mutation absent",
+        "No cloud-filesystem parity; later writes remain possible"
+      ]
+    },
+    {
+      "id": "S4-SOURCE-CLOCK-001",
+      "status": "CLOSED_ASSIGNED_STRICT_ASSESS_ACQUISITION_CONTRACT",
+      "scope": "CLOSED_ASSIGNED_STRICT_ASSESS_ACQUISITION_CONTRACT: supported acquisition or explicit unknown; assessment/approval/generation clocks cannot manufacture source acquisition; v1 history retained without new authority",
+      "candidate": "497b7f3b1bdef6a58081918fd0e4d62b66fa7d76",
+      "acceptance": "handoffs/FABLE-STEP5-050/COORDINATOR_ACCEPTANCE.json"
+    },
+    {
+      "id": "S4-UI-RELIABILITY",
+      "status": "OPEN_PREINTEGRATION_FOLLOWUP",
+      "detail": "Prior intermittent browser selector timeouts remain unexplained. Passing retries do not establish cause resolution or blanket stability."
+    },
+    {
+      "id": "S4-CLOUD-PROOF",
+      "status": "ACCEPTED_PROOF_LIMIT",
+      "finding": "Cloud5691pass/10fail/8errors/62skip after synthetic missing fixture reconstruction, plus initial collection failure. Focused646pass and186hostilepass are distinct. Failure attribution is Fable assessment, not coordinator reproduction. No local5731 parity."
+    },
+    {
+      "id": "S4-REPRODUCIBILITY",
+      "status": "DOCUMENTED_FOLLOWUP",
+      "finding": "Candidate lacks canonical weekend plan and exact379-file command in REVIEW.md. Plan hash was independently checked on origin/main. Coordinator preserves exact local command in addendum; future review packages must include their command lists and plan binding. No change to accepted candidate."
+    },
+    {
+      "id": "S4-BOUNDED-LANGUAGE",
+      "status": "ACCEPTED_DISCLOSED_LIMIT",
+      "finding": "Unknown timezone labels, partial clocks and unsupported grammar can withhold genuine actions. Conservative requested-work and response checks are not general entailment."
+    },
+    {
+      "id": "S4-ATTACHMENT-AUTHORITY",
+      "status": "RETAIN_STEP7_EVIDENCE_POLICY",
+      "finding": "Discovery-only attachments have no per-file offsets or independent trust upgrade. Original mixed-row evidence may independently suffice."
+    },
+    {
+      "id": "S5-PROOF-PARITY",
+      "status": "ACCEPTED_PROOF_LIMIT",
+      "detail": "No cloud/local5804 parity; preserve actual collection/subset failures, skips and missing inputs without synthetic reconstruction."
+    },
+    {
+      "id": "S5-NETSCOUT-REPLAY",
+      "status": "ACCEPTED_PROOF_LIMIT",
+      "detail": "Cloud did not re-execute authentic23/25 bytes. No authentic new-source, live acquisition or lead proof."
+    },
+    {
+      "id": "S5-PLAN-LAYOUT",
+      "status": "PREINTEGRATION_PRESERVATION_REQUIREMENT",
+      "detail": "Canonical docs/plans path absent in candidate; packaged copy and current main blob hash71a4c7c11ee575596357e5e0fcfb66a75d2c855b4761040042732c8cad26bfc5 match. Preserve canonical operating-main documents during integration."
+    },
+    {
+      "id": "S5-RUNTIME-VERSION",
+      "status": "ACCEPTED_DISCLOSED_LIMIT",
+      "detail": "CloudPython3.12.3 versus producer3.14.5; no portable behavior difference observed in tested scope."
+    },
+    {
+      "id": "S5-AUTHORITY",
+      "status": "ACCEPTED_BOUNDED_ADAPTER_LIMIT",
+      "detail": "Finite same-subject JSON notice adapter; named external checker owns semantic support. Hash equality is not semantic truth. Cross-notice adapters remain deferred."
+    },
+    {
+      "id": "S5-REVIEW-050-01",
+      "status": "CLOSED_BOUNDED_SYNTHETIC",
+      "scope": "CLOSED_BOUNDED_SYNTHETIC: original unsupported proposal disagreement preserved separately from validated states/counts",
+      "candidate": "497b7f3b1bdef6a58081918fd0e4d62b66fa7d76",
+      "acceptance": "handoffs/FABLE-STEP5-050/COORDINATOR_ACCEPTANCE.json"
+    },
+    {
+      "id": "S5-REVIEW-050-02",
+      "status": "CLOSED_BOUNDED_SYNTHETIC",
+      "scope": "CLOSED_BOUNDED_SYNTHETIC: numeric/boolean nested receipt/check-record substitutions refused with canonical type checks",
+      "candidate": "497b7f3b1bdef6a58081918fd0e4d62b66fa7d76",
+      "acceptance": "handoffs/FABLE-STEP5-050/COORDINATOR_ACCEPTANCE.json"
+    },
+    {
+      "id": "R1",
+      "summary": "Attributed cross-notice context can appear on confirmed card when own-source facts exist",
+      "status": "RETAINED_ORIGINAL_STEP1_RESIDUAL",
+      "original_candidate": "600a3e210844610a8f407fc0684d40c104bf8134",
+      "source": "handoffs/FABLE-STEP1-RECHECK-046/FINDINGS_AND_RESIDUALS.json",
+      "scope": "Historical Step1 finding retained; later bounded repairs do not establish a blanket closure."
+    },
+    {
+      "id": "R2",
+      "summary": "Labeled inference from another notice can sit on confirmed card",
+      "status": "RETAINED_ORIGINAL_STEP1_RESIDUAL",
+      "original_candidate": "600a3e210844610a8f407fc0684d40c104bf8134",
+      "source": "handoffs/FABLE-STEP1-RECHECK-046/FINDINGS_AND_RESIDUALS.json",
+      "scope": "Historical Step1 finding retained; later bounded repairs do not establish a blanket closure."
+    },
+    {
+      "id": "R3",
+      "summary": "Citation is not entailment; minimal quote may still confirm",
+      "status": "RETAINED_ORIGINAL_STEP1_RESIDUAL",
+      "original_candidate": "600a3e210844610a8f407fc0684d40c104bf8134",
+      "source": "handoffs/FABLE-STEP1-RECHECK-046/FINDINGS_AND_RESIDUALS.json",
+      "scope": "Historical Step1 finding retained; later bounded repairs do not establish a blanket closure."
+    },
+    {
+      "id": "R4",
+      "summary": "Claimed local VERIFICATION sha e106198d\u2026 not in-tree on this commit",
+      "status": "RETAINED_ORIGINAL_STEP1_RESIDUAL",
+      "original_candidate": "600a3e210844610a8f407fc0684d40c104bf8134",
+      "source": "handoffs/FABLE-STEP1-RECHECK-046/FINDINGS_AND_RESIDUALS.json",
+      "scope": "Historical Step1 finding retained; later bounded repairs do not establish a blanket closure."
+    },
+    {
+      "id": "R5",
+      "summary": "Frozen calib lock files absent from cloud checkout; commit did not touch them",
+      "status": "RETAINED_ORIGINAL_STEP1_RESIDUAL",
+      "original_candidate": "600a3e210844610a8f407fc0684d40c104bf8134",
+      "source": "handoffs/FABLE-STEP1-RECHECK-046/FINDINGS_AND_RESIDUALS.json",
+      "scope": "Historical Step1 finding retained; later bounded repairs do not establish a blanket closure."
+    },
+    {
+      "id": "R6",
+      "summary": "Cloud broader suite is not local 5413-parity; report reduced/unavailable fixtures",
+      "status": "RETAINED_ORIGINAL_STEP1_RESIDUAL",
+      "original_candidate": "600a3e210844610a8f407fc0684d40c104bf8134",
+      "source": "handoffs/FABLE-STEP1-RECHECK-046/FINDINGS_AND_RESIDUALS.json",
+      "scope": "Historical Step1 finding retained; later bounded repairs do not establish a blanket closure."
+    },
+    {
+      "id": "R7",
+      "summary": "CLI stderr can print pre-revalidation headline if compose mocked to return unvalidated fields",
+      "status": "RETAINED_ORIGINAL_STEP1_RESIDUAL",
+      "original_candidate": "600a3e210844610a8f407fc0684d40c104bf8134",
+      "source": "handoffs/FABLE-STEP1-RECHECK-046/FINDINGS_AND_RESIDUALS.json",
+      "scope": "Historical Step1 finding retained; later bounded repairs do not establish a blanket closure."
+    }
+  ],
+  "prior_step2_dispositions": [
+    {
+      "id": "S2-HISTORY-001",
+      "status": "CLOSED_FOR_SIX_DEMONSTRATED_ALIASES",
+      "evidence": "Fable Step3 historical-type/provenance probes; additional labels tracked separately as S3-TYPE-002."
+    },
+    {
+      "id": "S2-C1-003",
+      "status": "BOUNDARY_CLARIFIED_AND_EXPLICITLY_TESTED",
+      "evidence": "Native taxonomy-absent bypass not reproduced; native current source rebind required; standalone validation explicitly projection-only. Original Step2 wording is preserved as history, not restated as a proved bypass."
+    },
+    {
+      "id": "S2-CLAIM-004",
+      "status": "CLOSED_REVIEWED_C1_COPY_ONLY",
+      "evidence": "Unsupported funding/displacement/access copy withheld in C1; non-C1 label remains S3-SURFACE-005."
+    },
+    {
+      "id": "S2-SOURCE-002",
+      "status": "CLOSED_ASSIGNED_REWRITE_DEFECT_ON_EXACT_CANDIDATE",
+      "owner": "Root integration/source-integrity owner",
+      "evidence": "handoffs/FABLE-STEP2-045/SOURCE_INTEGRITY_DIAGNOSTIC_ACK.json",
+      "scope": "Correct consumed-byte hash does not establish final-file or interval stability. Do not duplicate root implementation or declare portability from local APFS passes.",
+      "implementation_ack": "handoffs/FABLE-STEP2-045/SOURCE_INTEGRITY_IMPLEMENTATION_ACK.json",
+      "integration_plan": "handoffs/FABLE-STEP2-045/SOURCE_INTEGRITY_INTEGRATION_PLAN_ACK.json",
+      "review_target": "Combined Step4 candidate after exact root commit/local handoff verification; no separate cloud review planned.",
+      "local_candidate": "a75b52ebbfebbc0496f31d8db9854855dac4bba7",
+      "root_local_acceptance": "handoffs/ROOT-SOURCE-INTEGRITY-002/REVIEW.json",
+      "step4_import": "handoffs/STEP4-049/SOURCE002_IMPORT.json",
+      "combined_review_owner": "Existing Step4 coordinator through CoS/Fable",
+      "closure_required": "Run and review combined exact-candidate source-read regression, including hidden timestamps; retain endpoint and cloud-filesystem limits.",
+      "closure_candidate": "ca6620dd9a4387b5145e49588a878ca3efb925e4",
+      "closure_acceptance": "handoffs/FABLE-STEP4-049/COORDINATOR_ACCEPTANCE.json",
+      "retained_limits": "Observed-read integrity only; no continuous immutability or cloud-filesystem parity."
+    },
+    {
+      "id": "S2-COVERAGE-005",
+      "status": "ACCEPTED_DISCLOSED_LIMIT_CARRIED_TO_STEP7"
+    },
+    {
+      "id": "S2-PROOF-006",
+      "status": "ACCEPTED_PROOF_LIMIT_CARRIED_FORWARD"
+    }
+  ],
+  "prior_registers": {
+    "handoffs/FABLE-STEP4-049/FOLLOWUPS.json": "954d91579607da331431a9c50daf09773485443fea1bb39eecabffb88375c8f1",
+    "handoffs/FABLE-STEP3-047/FOLLOWUPS.json": "3a97e5aae82788e1526732e54cefe913ccb83ff60f8c6ead30861a7130cd2c7b",
+    "handoffs/FABLE-STEP1-RECHECK-046/FINDINGS_AND_RESIDUALS.json": "a40c989cee61713693e56c157a1a7676b833cce11812a0d4ae1b825a7e85cb76"
+  },
+  "step6_required_followups": [
+    "S3-SURFACE-005",
+    "S3-DIAG-006"
+  ],
+  "step7_evidence_policy_followups": [
+    "S2-COVERAGE-005",
+    "S4-ATTACHMENT-AUTHORITY"
+  ],
+  "proof_scopes": {
+    "producer_full": {
+      "passed": 5804,
+      "skipped": 40,
+      "warnings": 20,
+      "subtests": 26,
+      "tested_code": "482091a271d632e87635473023d5c918e2bc02d3"
+    },
+    "fable_portable_unittest": {
+      "passed": 39,
+      "also_passed_from_exact_archive": true
+    },
+    "fable_source_clock_file": {
+      "passed": 34
+    },
+    "fable_combined_focused": {
+      "passed": 175,
+      "subtests": 26
+    },
+    "fable_strict_collection": {
+      "collected": 5744,
+      "collection_errors": 2,
+      "playwright_modules_not_imported": 4
+    },
+    "fable_collectable_subset": {
+      "passed": 5662,
+      "failed": 11,
+      "skipped": 67,
+      "errors": 8,
+      "warnings": 4,
+      "subtests": 26,
+      "ignored_files": [
+        "tests/test_contacts.py",
+        "tests/test_ingest.py"
+      ],
+      "full_suite_parity": false
+    },
+    "fable_post_subset_focused": {
+      "passed": 73,
+      "subtests": 26
+    },
+    "failure_attribution": "Fable attributes subset failures/errors to absent ignored fixtures, marks, Playwright and press state; root did not reconstruct them or independently reproduce cloud environmental failures.",
+    "netscout": "Authentic saved23-family/25-evidence bytes absent in cloud and not re-executed. Bound producer compatibility receipt is retained; all25 acquisition states unknown. Synthetic browser output is not authentic-source or lead success."
+  },
+  "non_claims": [
+    "full cloud/local suite parity",
+    "authentic new-source or live acquisition",
+    "recovered lead",
+    "native yield",
+    "seller readiness",
+    "production merge"
+  ]
+}

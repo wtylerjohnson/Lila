@@ -1,0 +1,51 @@
+{
+  "schema": "lila.root.fable_acceptance.v1",
+  "work_id": "ROOT-ACCEPT-FABLE-STEP7-052",
+  "at_utc": "2026-09-13T21:40:05.195583+00:00",
+  "plan_id": "LILA-WEEKEND-2026-09-11-v1",
+  "plan_sha256": "71a4c7c11ee575596357e5e0fcfb66a75d2c855b4761040042732c8cad26bfc5",
+  "authority_receipt": "control/receipts/WEEKEND_AUTO_PASSTHROUGH_2026-09-11.json",
+  "accepted_by": "root 01a08162-2f14-70a0-bc96-6297c68f4135",
+  "status": "ACCEPTED_PASS_WITH_RESIDUALS",
+  "exact_tested_sha": "67f644bc31bf19eadec628b738855e7b6c152a4e",
+  "branch": "codex/step7-evidence-collection",
+  "source_report_sha256": "e9ad2edd2ec6c9e90596f639b5708db1c5234d3d604204fd2d66f00a9e8dd9f9",
+  "source_receipt_sha256": "fce5aef248a994c687cd71bcaad87fc79b66f7ac259ea1594f4387e522179cd7",
+  "original_archive_sha256": "9a74f729a75bbbdc75aa20859128ff2a52d48405ae478c03d3bcbbb743f04528",
+  "custody_check": {
+    "receipt_files": 11,
+    "archive_manifest_entries": 4469,
+    "regular_files": 4464,
+    "symlinks": 5,
+    "symlinks_extracted": false,
+    "hash_mismatches": 0
+  },
+  "focused_passed": 201,
+  "full_result": "5864 passed / 40 skipped / 20 warnings / 26 subtests",
+  "reproduction_scope": "Independent clone, interpreter, venv and probes on the same physical host; 31 byte-matched fixtures.",
+  "finding_counts": {
+    "Medium": 5,
+    "Low": 15,
+    "Info": 2
+  },
+  "acceptance_scope": "Bounded Step7 collection, provenance and discovery-only separation; residual findings remain open with root dispositions.",
+  "canonical_followups": "handoffs/FABLE-STEP7-052/ROOT_FOLLOWUPS.json",
+  "canonical_followups_sha256": "d8b8ead7896e56e8c4472d6a47ac1f179c2f3a7031876d485a8094fb3d5d16e9",
+  "followup_work_id": "REPAIR-STEP7-FOLLOWUPS-053",
+  "followup_assignment": "handoffs/STEP7-FOLLOWUPS-053/ASSIGNMENT.md",
+  "followup_authorized": true,
+  "followup_implementation_started": false,
+  "production_merge": false,
+  "netscout_composite_accepted": false,
+  "seller_ready_lead_proof": false,
+  "shepherd": "PAUSED",
+  "review_routing": "USER_REQUESTED_IN_CHAT_HANDOFF",
+  "proof_limits": [
+    "Five Medium findings, not the four claimed by verdict_basis prose. Individual dispositions govern; original report/register preserved.",
+    "106 probes comprise 51 PASS, 33 FAIL and 22 INFO; no claim that all safety properties passed.",
+    "Original workflow outputs, probes, votes and logs are preserved, but no complete original session transcript/JSONL is in the export.",
+    "Full reproduction is same-host local clone/venv with 31 staged matching fixtures, not cloud parity.",
+    "Strict/offline flags did not prevent a failed external DNS attempt from an unwrapped link client; no network-hermetic claim.",
+    "No live-source authenticity, new seller-ready lead, completed comparative review, NETSCOUT composite acceptance or operating merge."
+  ]
+}

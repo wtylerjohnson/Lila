@@ -340,7 +340,7 @@ def test_native_enrichment_authority_through_every_projection(monkeypatch, mode,
         last_attachment_census = {'synthetic': True}
         def attachment_candidates(self, *args, **kwargs):
             return [candidate]
-    attachment = dict(resource_id='synthetic-SOW', name='SOW.txt', source_url=ROW['api_url'])
+    attachment = dict(resource_id='a' * 32, name='SOW.txt', source_url=ROW['api_url'])
     extracted = attachment | dict(text=BODY, sha256=hashlib.sha256(BODY.encode()).hexdigest(), retrieved_at=ROW['retrieved_at'])
     monkeypatch.setattr(sam_quota, 'calls_today', lambda *a, **k: 0)
     monkeypatch.setattr(sam_notice_detail, 'fetch_notice_resources', lambda *a, **k: dict(resources_checked=True, attachments=[attachment], attachment_inventory_hash='synthetic-inventory'))

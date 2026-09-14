@@ -11,6 +11,7 @@ rows.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field, is_dataclass
+from copy import deepcopy
 import re
 from typing import Any, Iterable, Optional
 from urllib.parse import urlsplit
@@ -228,7 +229,7 @@ def _metric(label: str, value: Any, note: str = "", evidence: Any = ()) -> dict:
 
 
 def _priority_records(opportunities: list[dict], forecasts: list[dict]) -> list[dict]:
-    source = opportunities[:7] or forecasts[:5]
+    source = opportunities[:7]
     rows = []
     for index, row in enumerate(source, start=1):
         target_count = len(row.get("targets") or [])
@@ -246,6 +247,122 @@ def _priority_records(opportunities: list[dict], forecasts: list[dict]) -> list[
             "target_count": target_count,
         })
     return rows
+
+
+def _companion_binding(leadgen: dict, context) -> tuple[dict, dict, list[str]]:
+    """A saved child is current only under the current immutable Assess parent.
+
+    A run-id string or notice-id join is not a provenance check. The supplied
+    run must equal the currently loaded run, and each serialized parent must
+    agree with the native parent mapper. Invalid input remains saved history.
+    """
+    from agents.leadgen.from_assess import coerce_assess_run, _parent_from_live
+    from agents.leadgen.press import PressLeadGenReceipt
+
+    if not leadgen.get("receipt"):
+        return {}, {}, []
+    try:
+        current = getattr(context, "current_assess_run", None)
+        if current is None or context.gaps or not context.unchanged():
+            raise ValueError("Current Assess source binding is unavailable")
+        run = coerce_assess_run(leadgen.get("assessment") or {})
+        if run.model_dump(mode="json") != current.model_dump(mode="json"):
+            raise ValueError("Saved companion differs from the current immutable Assess run")
+        receipt = PressLeadGenReceipt.model_validate(leadgen["receipt"])
+        if (leadgen.get("assess_run_id") != run.run_id
+                or receipt.assess_run_id != run.run_id
+                or receipt.client_name != run.client_name
+                or receipt.as_of != run.as_of):
+            raise ValueError("Saved companion receipt has different Assess provenance")
+        expected = {_parent_from_live(run, item).assessment_id: _parent_from_live(run, item)
+                    for item in run.live.records}
+        parents = {}
+        for parent in receipt.parents:
+            if not parent.notice_id:
+                continue
+            native = expected.get(parent.assessment_id)
+            excluded = {"lead_ids", "dossier_schema_version", "identity_status"}
+            if native is None or parent.model_dump(exclude=excluded) != native.model_dump(exclude=excluded):
+                raise ValueError("Saved companion notice parent differs from current Assess")
+            if parent.assessment_id in parents:
+                raise ValueError("Saved companion repeats a notice parent")
+            parents[parent.assessment_id] = parent.model_dump(mode="json")
+        children = {}
+        seen = set()
+        for child in receipt.leads:
+            parent = parents.get(child.parent_assessment_id)
+            if parent is None:
+                continue  # non-notice children belong to their existing surfaces
+            if (child.assess_run_id != run.run_id or child.lead_id in seen
+                    or child.lead_id not in parent["lead_ids"]):
+                raise ValueError("Saved child does not bind its current Assess parent")
+            seen.add(child.lead_id)
+            children.setdefault(parent["notice_id"], []).append(child.model_dump(mode="json"))
+        return parents, children, []
+    except (ValueError, TypeError, KeyError, AttributeError) as exc:
+        return {}, {}, [f"Current lead projection withheld: {exc}"]
+
+
+def _withhold_notice(row: dict, gaps: list[str]) -> None:
+    """Keep the selected assessment without advertising saved positive state."""
+    row.setdefault("saved_assessment", {key: deepcopy(row.get(key)) for key in (
+        "assessment_status", "evidence_class", "service_fit", "commercial_route",
+        "window_state", "response_date", "value", "next_action")})
+    row.update(assessment_status="Current qualification withheld",
+               evidence_class="notice_diagnostic", service_fit="Unverified",
+               commercial_route="Unverified", window_state="Unverified",
+               value=None, targets=[], selected_response_date=row.get("response_date"),
+               response_date="", next_action="; ".join(gaps),
+               current_notice_admitted=False, qualification_gaps=list(gaps))
+
+
+def _notice_family(row: dict, context) -> None:
+    """Expose the current family without substituting a nonselected result."""
+    if context is None or not context.unchanged():
+        return
+    family = context.family_for(row["source_id"])
+    if not family:
+        return
+    from tools.relevance.temporal import record_time
+    members = []
+    for member in family["members"]:
+        original = member["original_record"]
+        raw = original.get("raw_payload") or {}
+        raw = raw if isinstance(raw, dict) else {}
+        active = [str(d["active"]).strip().casefold() for d in (original, raw) if d.get("active") is not None]
+        states = [str(d["status"]).strip().casefold() for d in (original, raw) if d.get("status") is not None]
+        types = [str(d[k]).strip().casefold() for d in (original, raw)
+                 for k in ("notice_type", "type") if d.get(k) is not None]
+        closed = any(v in {"no", "false", "0"} for v in active) or any(
+            v in {"closed", "cancelled", "canceled", "inactive", "awarded"} for v in states) or any(
+            v in {"award", "award notice", "award notification", "awarded", "a"} for v in types)
+        state = "inactive or closed" if closed else "active source claim" if active and all(
+            v in {"yes", "true", "1"} for v in active) else "status unknown"
+        members.append({"source_id": member["source_id"], "title": _text(original.get("title")),
+            "source_url": _http_url(original.get("api_url") or original.get("url") or raw.get("uiLink") or raw.get("url")),
+            "source_status": state, "original_active_claims": active, "original_status_claims": states,
+            "notice_types": types, "lineage_status": member["status"],
+            "superseded_by": member.get("superseded_by"), "record_sha256": member["record_sha256"],
+            "posted": member["posted"], "deadline": record_time(original, "deadline")})
+    representative = next((m for m in members if m["source_id"] == family["representative_id"]), None)
+    row.update(family_member_ids=list(family["member_ids"]), family_members=members,
+               family_order_status=family["order_status"], current_representative=representative,
+               canonical_record_id=family["representative_id"],
+               family_history_scope=family["history_scope"])
+    if family["order_status"] != "ordered" or family["representative_id"] != row["source_id"]:
+        row["selected_response_date"] = row.get("selected_response_date") or row.pop("response_date", "")
+        row["response_date"] = ""
+        row["window_state"] = ("Family chronology unresolved" if family["order_status"] != "ordered" else
+                               f"Selected notice superseded; current family {representative['source_status']}")
+
+
+def _current_research(child: dict, notice_id: str, context) -> bool:
+    book = getattr(context, "current_reviewed_cases", None)
+    if book is None:
+        return False
+    case = next((c for c in book.cases if c.record.notice_id == notice_id), None)
+    return bool(case and child.get("research") == case.research.model_dump(mode="json")
+                and child.get("targets", []) == [t.model_dump(mode="json") for t in case.targets])
 
 
 def _numeric_magnitude(value: Any) -> tuple[Optional[float], str]:
@@ -319,9 +436,23 @@ def build_external_product_document(
     slug: str,
     as_of: str,
     leadgen: Optional[dict] = None,
+    notice_context=None,
 ) -> ExternalProductDocument:
     """Assign the certified graph and preserved research to eight slots."""
 
+    from agents.golden_press.notice_bridge import NoticeReadContext
+    supplied_graph = graph_payload
+    context = notice_context if isinstance(notice_context, NoticeReadContext) else None
+    graph_current = context is not None and context.accepts_graph(graph_payload)
+    if not graph_current:
+        saved = {str(r.get("record_id") or r.get("notice_id")): r
+                 for r in graph_payload.get("qualified_opportunity_records") or []}
+        diagnostic_rows = [dict(r, lane=r.get("lane") or "L1_notice") if str(r.get("record_id")) in saved else dict(r)
+                           for r in graph_payload.get("records") or []]
+        known = {str(r.get("record_id")) for r in diagnostic_rows}
+        diagnostic_rows.extend(dict(r, lane="L1_notice") for sid, r in saved.items() if sid not in known)
+        graph_payload = dict(graph_payload, records=diagnostic_rows,
+            qualified_opportunities=[], qualified_opportunity_records=[])
     profile = profile or {}
     contract_slots = load_external_product_slots()
     graph_rows = list(graph_payload.get("records") or [])
@@ -341,8 +472,13 @@ def build_external_product_document(
 
     # Slot 5: qualified current opportunities and their exact target groups.
     opportunity_rows: list[dict] = []
+    admissions = {}
     target_groups = graph_payload.get("target_groups") or {}
     for raw in graph_payload.get("qualified_opportunity_records") or []:
+        decision = context.decision(raw)
+        admissions[str(raw.get("record_id"))] = decision
+        if not decision["admitted"]:
+            continue
         row = _graph_record(raw, kind="notice")
         family = _text(raw.get("requirement_family"))
         targets = list(raw.get("linked_targets") or target_groups.get(family) or [])
@@ -353,6 +489,7 @@ def build_external_product_document(
             "next_action": _text((raw.get("next_route") or {}).get("route_basis")
                                  or raw.get("qualification_reason")),
             "priority_basis": _text((raw.get("technical_fit") or {}).get("basis")),
+            "current_notice_admitted": True,
         })
         if claim(row):
             opportunity_rows.append(row)
@@ -383,8 +520,6 @@ def build_external_product_document(
                                  or fields.get("recommendation")
                                  or "Review requirement, fit, timing, and purchase route."),
             "requirement_family": _text(raw.get("requirement_family")),
-            "source_as_of": _text(_get(source, "retrieved_at")
-                                  or _get(evidence_pack, "generated_at")),
             "targets": [],
         })
         opportunity_rows.append(row)
@@ -393,37 +528,62 @@ def build_external_product_document(
     child_receipt = leadgen.get("receipt") or {}
     if child_receipt and _text(child_receipt.get("client_name")).casefold() != _text(client_name).casefold():
         raise ValueError("lead generation receipt belongs to a different client")
-    parents = {p.get("assessment_id"): p for p in child_receipt.get("parents", [])}
-    children: dict[str, list[dict]] = {}
+    saved_parents = {p.get("assessment_id"): p for p in child_receipt.get("parents", [])}
+    saved_children: dict[str, list[dict]] = {}
     for child in child_receipt.get("leads", []):
-        parent = parents.get(child.get("parent_assessment_id"), {})
+        parent = saved_parents.get(child.get("parent_assessment_id"), {})
         if parent.get("notice_id"):
-            children.setdefault(parent["notice_id"], []).append(child)
+            saved_children.setdefault(parent["notice_id"], []).append(child)
+    parents, children, companion_gaps = _companion_binding(leadgen, context)
     for row in opportunity_rows:
+        sid = row["source_id"]
         source = original.get(row["source_id"], {})
+        decision = admissions.get(sid) or (context.decision(graph_index.get(sid) or {"record_id": sid})
+                                          if graph_current else {})
+        admitted = graph_current and decision.get("admitted") is True
+        row["current_notice_admitted"] = admitted
         row["summary"] = row.get("summary") or _text(_get(source, "description"))
-        row["source_as_of"] = row.get("source_as_of") or _text(_get(source, "retrieved_at"))
-        if not row.get("targets") and any(_get(source, k) for k in ("contact_name", "contact_email", "contact_phone")):
+        row["saved_source_as_of"] = _text(_get(source, "retrieved_at"))
+        row["source_as_of"] = None
+        row["source_clock_status"] = "unverified source acquisition"
+        row["source_clock_coverage"] = "Source acquisition unavailable; refresh the current bound assessment."
+        if not admitted:
+            gaps = decision.get("gaps") or ["Current original source and graph admission are unavailable; refresh the bound assessment."]
+            _withhold_notice(row, gaps)
+        material = context.material_fields(sid) if admitted else {}
+        if admitted:
+            row["summary"] = _text(material.get("description"))
+        if admitted and not row.get("targets"):
             row["targets"] = [{
-                "name": _get(source, "contact_name") or "Published notice contact",
-                "organization": _get(source, "office") or _get(source, "agency"),
-                "email": _get(source, "contact_email"), "phone": _get(source, "contact_phone"),
+                "name": contact.get("name") or "Published notice contact",
+                "role": contact.get("title") or "Published notice contact",
+                "organization": material.get("office") or material.get("agency"),
+                "email": contact.get("email"), "phone": contact.get("phone"),
+                "source_slot": contact.get("source_slot"),
                 "source_kind": "Published notice contact; follow official communication instructions",
                 "source_url": row.get("source_url"),
-            }]
+            } for contact in material.get("source_notice_contacts") or []]
         if re.fullmatch(r"[0-9a-f]{32}", row["source_id"]):
             from agents.reports.links import build_sam_notice_link
             row["source_url"] = build_sam_notice_link(row["source_id"]).url
-        evidence_date = (leadgen.get("evidence_dates") or {}).get(row["source_id"])
-        clock = (leadgen.get("evidence_clocks") or {}).get(row["source_id"])
-        if clock is not None:
+        current_run = getattr(context, "current_assess_run", None)
+        clock_parent = next((p for p in current_run.live.records if p.notice_id == sid), None) if (
+            current_run is not None and not context.gaps and context.unchanged()) else None
+        if clock_parent is not None:
+            from agents.assess.source_clock import acquisition_summary
+            # Companion display summaries are not an independent clock authority.
+            clock = acquisition_summary(clock_parent.authoritative_evidence)
             row["source_as_of"] = clock.get("source_as_of")
             row["source_clock_status"] = clock.get("status")
             row["source_clock_coverage"] = f"{clock['known']} of {clock['total']} evidence acquisition times recorded"
-        elif evidence_date:
-            row["source_as_of"] = min(d for d in (row.get("source_as_of"), evidence_date) if d)
-        row["lead_rows"] = children.get(row["source_id"], [])
-        reviewed = next((c for c in row["lead_rows"] if c.get("research")), None)
+        bound = children.get(sid, [])
+        reviewed = next((c for c in bound if c.get("research") and _current_research(c, sid, context)), None)
+        row["lead_rows"] = [c for c in bound if (admitted and not c.get("research"))
+                            or (reviewed and c.get("research") and _current_research(c, sid, context))]
+        row["saved_lead_rows"] = [deepcopy(c) for c in saved_children.get(sid, []) if c not in row["lead_rows"]]
+        if row["saved_lead_rows"]:
+            row["lead_projection_gaps"] = companion_gaps or [
+                "Saved lead history lacks current notice admission or matching reviewed-research authority."]
         if reviewed:
             row["research"] = reviewed["research"]
             row["targets"] = reviewed.get("targets", [])
@@ -436,8 +596,14 @@ def build_external_product_document(
                 row["window_state"] = "Historical notice closed; follow-on status needs confirmation"
         row["lead_status"] = ", ".join(sorted({
             child["lead_tier"] for child in row["lead_rows"]
-        })) or ("No child lead" if leadgen.get("status") == "complete"
+        })) or ("Current lead withheld; saved history retained" if row["saved_lead_rows"] else
+                "No child lead" if leadgen.get("status") == "complete"
                 else "Lead generation input needs refresh")
+        _notice_family(row, context)
+
+    # Assessment retention does not move held notices behind qualified notices.
+    native_order = {str(raw.get("record_id")): i for i, raw in enumerate(graph_rows)}
+    opportunity_rows.sort(key=lambda row: native_order.get(row["source_id"], len(native_order)))
 
     # Slot 7: graph-classified forecasts, separate from live opportunities.
     qualified_rows = [r for r in qualified_rows if not r.get("research")]
@@ -582,7 +748,7 @@ def build_external_product_document(
     if leadgen.get("status") == "complete":
         priorities = _priority_records([
             r for r in opportunity_rows
-            if any(c.get("lead_tier") in {"LEAD_T1", "LEAD_T2"}
+            if r.get("current_notice_admitted") and any(c.get("lead_tier") in {"LEAD_T1", "LEAD_T2"}
                    for c in r.get("lead_rows", []))
         ][:3], [])
     reviewed_rows = [r for r in opportunity_rows if r.get("research")]
@@ -685,6 +851,8 @@ def build_external_product_document(
         "incremental_cache_receipt": _serial(graph_cache),
         "owned_record_keys": sorted(claimed),
         "owned_record_count": len(claimed),
+        "current_notice_graph_admitted": graph_current,
+        "lead_projection_gaps": companion_gaps,
     }
     source_receipt = {
         "evidence_pack_generated_at": _text(_get(evidence_pack, "generated_at")),
@@ -694,6 +862,13 @@ def build_external_product_document(
         "graph_records": len(graph_rows),
         "graph_indexed_records": len(graph_index),
     }
+    if context is not None and not context.unchanged():
+        # A source/pointer change during projection invalidates every positive
+        # derived from that snapshot. Rebuild once with saved history only.
+        return build_external_product_document(
+            market_map=market_map, graph_payload=supplied_graph, evidence_pack=evidence_pack,
+            profile=profile, client_name=client_name, slug=slug, as_of=as_of,
+            leadgen=leadgen, notice_context=None)
     return ExternalProductDocument(
         schema_version=EXTERNAL_PRODUCT_PROJECTION_VERSION,
         contract_version=CONTRACT_VERSION,

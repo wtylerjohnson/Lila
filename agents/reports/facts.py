@@ -919,7 +919,7 @@ def _funded_demand_facts(results: dict, c: _Counter) -> list[Fact]:
         p0 = pkgs[0]
         facts.append(Fact(
             id=c.next(), kind="context",
-            text=(f"FUNDED-DEMAND SIGNAL: '{term}' appears in "
+            text=(f"DOCUMENT MENTION: '{term}' appears in "
                   f"{len(pkgs)} budget/appropriations document(s), most "
                   f"recently '{(p0.get('title') or '')[:90]}' "
                   f"({p0.get('collection')}, {p0.get('date')}). Document-"
@@ -948,7 +948,8 @@ def _buyer_map_facts(results: dict, profile, c: _Counter) -> list[Fact]:
         prods = ", ".join(b.get("products") or b.get("terms")[:3])
         pop = (f"; next period-of-performance end {b['next_pop_end']}"
                if b.get("next_pop_end") else "")
-        win = (" DISPLACEMENT WINDOW: that end date is inside 18 months."
+        win = (" AWARD TIMING CONTEXT: that end date is inside 18 months."
+               " Confirm any follow-on purchase and its product scope."
                if b.get("displacement_window") else "")
         ss = ""
         if b.get("sole_source_notices"):

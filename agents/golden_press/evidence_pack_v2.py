@@ -40,76 +40,43 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-_LIFECYCLE_WORDS = re.compile(
-    r"\b(?:draft|final|amendment\s+\d+|sources?\s+sought|request\s+for\s+"
-    r"information|rfi|presolicitation|pre\s+solicitation|solicitation|"
-    r"combined\s+synopsis|special\s+notice|recompete)\b",
-    flags=re.IGNORECASE)
+def canonicalize_requirement_families(rows: list[dict], *, notice_context=None) -> list[dict]:
+    """One current structured family, full supplied history, original native order."""
+    from tools.relevance.notice_family import resolve
+    families = resolve(rows)
+    if notice_context is not None and notice_context.families:
+        known = {r.get("record_id"): r for r in rows}
+        families = []
+        consumed = set()
+        for family in notice_context.families:
+            available = [sid for sid in family["member_ids"] if sid in known]
+            if not available:
+                continue
+            consumed.update(available)
+            selected = family["representative_id"]
+            row = known.get(selected) or known[available[0]]
+            families.append(dict(family, representative=row))
+        families.extend(resolve([r for r in rows if r.get("record_id") not in consumed]))
+    # Use the selected row's position, including native ordering at the producer.
+    rank = {r.get("record_id"): i for i, r in enumerate(rows)}
+    kept = []
+    for family in families:
+        row = family["representative"]
+        kept.append(dict(row,
+            requirement_family=family["family_key"],
+            canonical_record_id=family["representative_id"],
+            family_member_ids=family["member_ids"],
+            family_member_count=len(family["members"]),
+            family_basis=family["family_basis"],
+            family_order_status=family["order_status"],
+            family_members=family["members"],
+            family_history_scope=family["history_scope"]))
+    return sorted(kept, key=lambda row: rank.get(row.get("record_id"), len(rows)))
 
 
-def _family_basis(title: Any, agency: Any) -> str:
-    """Stable requirement identity independent of lifecycle posting labels.
-
-    The agency remains part of the identity. Procurement-stage vocabulary is
-    removed so a Sources Sought and later Solicitation for the same named work
-    resolve to one family without relying on record ids.
-    """
-    normalized_title = _LIFECYCLE_WORDS.sub(" ", str(title or ""))
-    normalized_title = re.sub(
-        r"[^a-z0-9]+", " ", normalized_title.casefold()).strip()
-    normalized_agency = re.sub(
-        r"[^a-z0-9]+", " ", str(agency or "").casefold()).strip()
-    return normalized_title + "|" + normalized_agency
-
-
-def _family_key(title: Any, agency: Any) -> str:
-    basis = _family_basis(title, agency)
-    return hashlib.sha1(basis.encode("utf-8")).hexdigest()[:10]
-
-
-def _canonical_quality(row: dict) -> tuple:
-    """Prefer the most actionable and best-evidenced family member."""
-    return (
-        1 if row.get("window_state") == "live" else 0,
-        1 if row.get("response_deadline") else 0,
-        1 if row.get("contact_email") else 0,
-        1 if row.get("url") else 0,
-        len(str(row.get("description") or "")),
-        str(row.get("record_id") or ""),
-    )
-
-
-def canonicalize_requirement_families(rows: list[dict]) -> list[dict]:
-    """Return one deterministic canonical record per requirement family.
-
-    Every survivor receipts all source members so later lifecycle postings can
-    be reconciled without a database migration.
-    """
-    members: dict[str, list[dict]] = {}
-    for row in rows:
-        fam = _family_key(row.get("title"), row.get("agency"))
-        members.setdefault(fam, []).append(row)
-    kept: list[dict] = []
-    for fam in sorted(members):
-        family_rows = members[fam]
-        canonical = max(family_rows, key=_canonical_quality)
-        member_ids = sorted({str(r.get("record_id") or "")
-                             for r in family_rows if r.get("record_id")})
-        kept.append(dict(
-            canonical,
-            requirement_family=fam,
-            canonical_record_id=canonical.get("record_id"),
-            family_member_ids=member_ids,
-            family_member_count=len(family_rows),
-            family_basis=_family_basis(canonical.get("title"),
-                                       canonical.get("agency")),
-        ))
-    return kept
-
-
-def dedupe_requirements(rows: list[dict]) -> list[dict]:
+def dedupe_requirements(rows: list[dict], *, notice_context=None) -> list[dict]:
     """Compatibility wrapper for the canonical family resolver."""
-    return canonicalize_requirement_families(rows)
+    return canonicalize_requirement_families(rows, notice_context=notice_context)
 
 
 def build_target_groups(opportunities: list[dict], *,
@@ -132,30 +99,32 @@ def build_target_groups(opportunities: list[dict], *,
             "opportunity_record_id": rid,
             "opportunity_title": opp.get("title"),
         }
-        name = str(opp.get("contact_name") or "").strip()
-        email = str(opp.get("contact_email") or "").strip()
-        if name or email:
+        contacts = opp.get("source_notice_contacts")
+        if contacts is None:
+            contacts = [
+                dict(name=opp.get("contact_name"), title=opp.get("contact_title"),
+                     email=opp.get("contact_email"), phone=opp.get("contact_phone"),
+                     source_slot="primary_contact"),
+                dict(name=opp.get("contact_secondary_name"), title=opp.get("contact_secondary_title"),
+                     email=opp.get("contact_secondary_email"), phone=opp.get("contact_secondary_phone"),
+                     source_slot="secondary_contact"),
+            ]
+        for contact in contacts:
+            name = str(contact.get("name") or "").strip()
+            email = str(contact.get("email") or "").strip()
+            phone = str(contact.get("phone") or "").strip()
+            if not (name or email or phone):
+                continue
             rows.append({
                 **common,
-                "role": "contracting_officer_or_specialist",
+                "role": "published_notice_contact",
+                "title": contact.get("title"),
                 "name": name or None, "email": email or None,
-                "phone": str(opp.get("contact_phone") or "").strip() or None,
+                "phone": phone or None,
                 "organization": opp.get("agency"),
                 "source_kind": "published_contact",
                 "contact_state": "sourced",
-                "provenance": f"sam_notice:{rid}:primary_contact",
-                "source_record_id": rid,
-            })
-        sec = str(opp.get("contact_secondary_email") or "").strip()
-        if sec:
-            rows.append({
-                **common,
-                "role": "contracting_officer_or_specialist",
-                "name": None, "email": sec, "phone": None,
-                "organization": opp.get("agency"),
-                "source_kind": "published_contact",
-                "contact_state": "sourced",
-                "provenance": f"sam_notice:{rid}:secondary_contact",
+                "provenance": f"sam_notice:{rid}:{contact['source_slot']}",
                 "source_record_id": rid,
             })
         sb = str(opp.get("small_business_poc") or "").strip()
@@ -397,7 +366,7 @@ def _hydrate_pocs(record: dict, store_conn) -> dict:
     return out
 
 
-def qualify_opportunities(records: list[dict], ctx: dict
+def qualify_opportunities(records: list[dict], ctx: dict, *, notice_context=None
                           ) -> tuple[list[dict], dict[str, str], list[dict]]:
     """Apply the promotion boundary after evidence classification.
 
@@ -409,22 +378,24 @@ def qualify_opportunities(records: list[dict], ctx: dict
     qualified_rows: list[dict] = []
     incumbents: dict[str, str] = {}
     held_rows: list[dict] = []
+    active_context = notice_context if notice_context is not None and notice_context.unchanged() else None
     for row in records:
-        if row.get("evidence_class") != "current_opportunity":
+        if row.get("lane") != "L1_notice":
             continue
-        fit = _technical_fit(row, ctx)
-        eligibility = _eligibility(row, ctx)
-        route = er.classify_route(row, ctx)
-        if not fit["fit"]:
-            row["qualification_state"] = "held_for_fit_review"
-            row["qualification_reason"] = fit["basis"]
+        refreshed = er.apply_native_admission(row, active_context, recheck=False)
+        row.update(refreshed)
+        decision = row["notice_admission"]
+        if not decision["admitted"]:
+            row.pop("qualified", None)
+            row["qualification_state"] = "held_for_source_review"
+            row["qualification_reason"] = "; ".join(decision["gaps"])
             held_rows.append(row)
             continue
-        if not eligibility["eligible_route"]:
-            row["qualification_state"] = "needs_eligible_route"
-            row["qualification_reason"] = eligibility["basis"]
-            held_rows.append(row)
-            continue
+        fit = {"fit": True, "fit_class": "direct", "basis": row["fit_basis"]}
+        route = decision["route"]
+        eligibility = {"direct": route["commercial_route"] == "direct",
+            "eligible_route": route["eligible_route"], "commercial_route": route["commercial_route"],
+            "access_rule": route["original_access_claims"], "basis": route["route_basis"]}
 
         incumbent = _incumbent(row)
         if incumbent:
@@ -447,8 +418,8 @@ def qualify_opportunities(records: list[dict], ctx: dict
             "instrument": row.get("notice_type"),
             "access_rule": row.get("set_aside") or "none stated",
             "response_due": row.get("response_deadline"),
-            "published_value": row.get("ceiling_dollars")
-                               or row.get("estimated_value_range"),
+            "published_value": (row.get("ceiling_dollars") if row.get("ceiling_dollars") is not None
+                                else row.get("estimated_value_range")),
             "evidence_class": row.get("evidence_class"),
             "service_fit": row.get("service_fit"),
             "window_state": row.get("window_state"),
@@ -459,8 +430,19 @@ def qualify_opportunities(records: list[dict], ctx: dict
             "relationship_provenance": row.get(
                 "relationship_provenance"),
             "next_route": route,
+            "notice_admission": decision,
+            "family_members": row.get("family_members", []),
         }
         qualified_rows.append(row)
+    if active_context is not None and not active_context.unchanged():
+        for row in qualified_rows:
+            row.pop("qualified", None)
+            row["qualification_state"] = "held_for_source_review"
+            row["qualification_reason"] = "Source changed during graph qualification"
+            row["notice_admission"]["admitted"] = False
+            row["notice_admission"]["gaps"].append(row["qualification_reason"])
+            held_rows.append(row)
+        qualified_rows, incumbents = [], {}
     return qualified_rows, incumbents, held_rows
 
 
@@ -562,6 +544,7 @@ def build_corrected_pack(slug: str, client_name: str, *,
                          pack_dir: Optional[Path] = None,
                          deep_sweep_path: Optional[Path] = None,
                          store_conn=None,
+                         notice_context=None,
                          rendered_competitor_names: Optional[set] = None,
                          research_gaps: Optional[list] = None,
                          enrichments: Optional[list[dict]] = None,
@@ -578,6 +561,10 @@ def build_corrected_pack(slug: str, client_name: str, *,
                          pack_dir / f"{slug}.golden_report.evidence_pack.json")
     pressed = json.loads(pressed_pack_path.read_text(encoding="utf-8"))
     ctx = er.build_context(client_name, slug, pack=pressed, root=base)
+    if notice_context is None:
+        from agents.golden_press.notice_bridge import NoticeReadContext
+        notice_context = NoticeReadContext(base, client_name, slug, datetime.now(timezone.utc))
+    ctx["native_notice_context_sha256"] = notice_context.fingerprint
     adapter = graph_adapter or ExistingSystemsGraphAdapter(
         root=base,
         slug=slug,
@@ -606,12 +593,12 @@ def build_corrected_pack(slug: str, client_name: str, *,
 
     l1 = [r for r in classified if r.get("lane") == "L1_notice"]
     rest = [r for r in classified if r.get("lane") != "L1_notice"]
-    l1_deduped = dedupe_requirements(l1)
+    l1_deduped = dedupe_requirements(l1, notice_context=notice_context)
     dropped_dupes = len(l1) - len(l1_deduped)
     final = rest + l1_deduped
 
     opportunities, incumbents, held_opportunities = qualify_opportunities(
-        final, ctx)
+        final, ctx, notice_context=notice_context)
     research_queue = build_ambiguity_queue(final)
 
     active_requirement_families = {
@@ -665,6 +652,7 @@ def build_corrected_pack(slug: str, client_name: str, *,
 
     payload = {
         "schema_version": SCHEMA_VERSION,
+        "native_notice_context": notice_context.receipt(),
         "client_name": client_name,
         "slug": slug,
         "generated_at": _now_iso(),
@@ -676,6 +664,8 @@ def build_corrected_pack(slug: str, client_name: str, *,
             "family_member_ids": list(row.get("family_member_ids") or []),
             "family_member_count": int(row.get("family_member_count") or 1),
             "family_basis": row.get("family_basis"),
+            "family_order_status": row.get("family_order_status"),
+            "family_members": row.get("family_members"),
         } for row in final if row.get("requirement_family")],
         "classification_context": {
             "client_aliases": sorted(ctx["client_aliases"]),
@@ -725,4 +715,5 @@ def build_corrected_pack(slug: str, client_name: str, *,
     from tools.atomic_io import atomic_write_text
     atomic_write_text(str(receipt), _move_receipt_markdown(
         client_name, payload))
+    notice_context.seal_graph(payload)
     return out, payload

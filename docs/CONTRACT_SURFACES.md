@@ -836,3 +836,82 @@ Raw, typed, envelope and persisted legacy v1/v2 research relabels are refused, i
 The ordinary forecast producer retains restricted functional/competitor research separately from eligible matches. Operator scope and exclusions take precedence; off-code research explicitly reports the original boundary and cannot qualify a direct bid. APFS source_fields preserves original fields without changing source IDs or store event semantics. Optional buyer-map award detail lookup is bounded to10 exact client-description matches, exposes invalid/failed/not-run outcomes, and never changes buyer-map success or infers renewal.
 
 LeadGen projects research_subject parents with zero children, visible source/ask/questions/targets and raw Show work. No buying motion, timeframe, seller route or communication permission is invented. Existing notice quality checks remain required. Research parent-only quality is checked separately. Eight Market Map slots, opportunity assessment and live/Horizon/partner meanings remain intact. Root owns final combined Step6/7 review and actual operating cutover.
+
+## Step6 native source admission and family identity (051)
+
+Separately identified contract change under the locked weekend plan. Current notice
+graph qualification and native action projection rebind the actual selected source,
+profile, taxonomy and immutable Assess/review/depth at the ordinary reader. Saved
+graph/registry flags and legacy discovery matches cannot establish current authority.
+`source_fields.notice_source_v1` transports original evidence only. `NoticeReadContext`
+revalidates original inputs and passes current admission explicitly through graph,
+Market Map and external projection. Missing context yields zero qualified rows while
+preserving raw assessments and contextual source facts.
+
+The shared notice-family owner uses source/agency/office/full solicitation with
+posting fallback and conservative original chronology. Full supplied members and
+retained store siblings precede filtering; closed or zero-match representatives
+suppress older positives without replacing native slots. Compact term diagnostics
+retain zero-match members and full-census suppression counts. Research-only parents
+remain visible without a default invented live-bid child. Award/document context does
+not itself establish displacement or funding. No immutable identity migration,
+operator-gate change, external eight-slot change, CRM or frozen-case rescore occurs.
+See `docs/verification/step6-051/REVIEW.md` for exact changed contracts, limitations
+and executable verification commands; `FUTURE_MEASUREMENT_CONTRACT.json` separately
+predeclares retrieval, native recommendations and seller-action measurements. The
+proposed future equal-effort budget is not a frozen or executed benchmark.
+
+## Step7 discovery collection and file locator extension (052)
+
+Explicit isolated contract extension under the accepted Step6 lineage and locked
+weekend auto-passthrough. `sam_notice_detail.fetch_notice_resources` adds internal
+original-response custody and explicit collection state. Recognized inventories
+reject conflicts in explicit opportunityId/noticeId/notice_id keys. The original
+052 code does not inspect notice URLs; follow-up 053 extends that scope with
+parsed original-notice link paths. Current cache reuse rebinds the
+original response and projected inventory. Existing trusted Assess review and
+schema2 identities are unchanged; no generic discovery hash grants authority.
+
+`sam_attachment_text.extract_public_attachment_text` adds raw/text capture
+locators, resource-metadata binding, aware collection clock, parse limits and
+separate states. Original byte retention precedes parsing. `run_searches` carries
+all file attempts and stops, while `attachment_collection_v1` maps exact Unicode
+character intervals into the retained combined text and original file extraction.
+Dossier research verifies notice/inventory/file/text/offset binding before
+attribution, remains discovery_only, and preserves legacy research readability.
+The original-source and explicit human review gates remain controlling. An
+attachment-only buying statement cannot become strict Assess/LeadRow authority
+from this collector or its dossier context.
+
+The change is verified by tests/test_step7_evidence_collection.py plus existing
+collector/dossier/Assess/Step6 suites. Saved original IHS SOW/Q&A replay is separate
+from the actual public acquisition receipt, synthetic tests and Fable verdict.
+No comparable-result claim, frozen rescore, NETSCOUT composite or operating merge.
+
+### Step7 follow-up contract repair (053, root assigned)
+
+The isolated 053 diff extends original notice identity checks to parsed notice
+paths in response links and adds requested/final/redirect-chain custody fields.
+Both fresh and stale public inventory reuse require the validated projection;
+depth caches reject foreign or malformed records before reuse. Withdrawn files
+remain historical inventory and original bytes, outside active counts/hashes and
+download slots. This intentionally changes prior live-file hashes when withdrawn
+rows were previously counted; no saved approval, cache or frozen case is migrated.
+
+File receipts add explicit stop reasons and local retention_failed with diagnostic
+data only. Validated/captured evidence is withheld on retention failure. Eligibility
+precedes the existing file cap; an empty text-budget slice never creates a passage.
+Strict Assess, LeadRow and operator approval schemas/gates remain unchanged.
+The 053 tests separately cover cache/notice identity, storage concurrency, file
+selection, native receipt propagation and discriminating strict-Assess controls.
+Internal hashes still do not prove coherent-cache-rewrite resistance or source truth.
+
+## Combined operating candidate, September 14, 2026
+
+The current combined Assess write contract is schema3/assess:v3, including the
+separate parent-only ResearchSubject lane. Earlier schema1/schema2 amendment
+sections document their historical scope and remain valid for archival reads;
+they do not override current schema3 writes. Step6 current-source admission and
+Step7 discovery-only attachment custody apply alongside that research contract.
+No attachment receipt grants trusted requirement approval, and no research parent
+becomes a seller action without the existing independent qualification evidence.

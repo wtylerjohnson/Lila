@@ -1,0 +1,22 @@
+{
+  "at_utc": "2026-09-13T22:04:24.112463+00:00",
+  "frozen_file_count": 20846,
+  "changed_frozen_files": [],
+  "protected_checkouts": {
+    "step7-evidence-collection": {
+      "unchanged": true,
+      "head": "67f644bc31bf19eadec628b738855e7b6c152a4e",
+      "status": "",
+      "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "step2-capability-alignment": {
+      "unchanged": true,
+      "head": "d767922b5f462308d2e62d2cff42c052e26f6a7e",
+      "status": " M agents/decisions/triage.py\n M agents/golden_press/evidence_pack_v2.py\n M agents/golden_press/evidence_route.py\n M agents/golden_press/notice_bridge.py\n M tests/test_triage_prefilter.py\n",
+      "diff_sha256": "097aef09d5ec8186d8f49e069c18c7b643cb8d00600214550960cb446ceaadcf"
+    }
+  },
+  "actual_start_sha256": "c0606f04ce9495c0c68ecd16cf082abf0902baab8b8d95e75746f78390656688",
+  "production_modified_by_this_task": false,
+  "accepted_step7_untouched": true
+}

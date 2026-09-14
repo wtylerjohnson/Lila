@@ -19,7 +19,7 @@ from agents.golden_press import evidence_route as er
 from tools.intelligence_graph.cache import CacheResult, PersistentCache, stable_hash
 
 ADAPTER_VERSION = "existing-systems-graph-adapter-v2"
-CLASSIFICATION_CACHE_VERSION = "classification-decision-overlay-v1"
+CLASSIFICATION_CACHE_VERSION = "classification-decision-overlay-v2-native-notices"
 ENTITY_NORMALIZER_VERSION = "canonical-entity-registry-v1"
 APOLLO_CACHE_VERSION = "apollo-enrichment-cache-v1"
 SOURCE_EXTRACT_VERSION = "source-extract-cache-v1"
@@ -36,11 +36,12 @@ CLASSIFICATION_INPUT_FIELDS = (
     "additional_info", "naics", "naics_code", "psc", "psc_code",
     "response_deadline", "release_date", "estimated_release_date",
     "fiscal_year", "fy", "recipient", "set_aside",
+    "record_id", "source_fields", "notice_type", "active", "agency", "office", "url", "posted_date",
 )
 CLASSIFICATION_DECISION_FIELDS = (
     "service_fit", "fit_basis", "window_state", "window_basis",
     "evidence_class", "evidence_basis", "route_relationship",
-    "commercial_route", "eligible_route", "route_basis",
+    "commercial_route", "eligible_route", "route_basis", "original_access_claims",
     "canonical_entity_id", "canonical_entity", "relationship_provenance",
 )
 
@@ -130,8 +131,8 @@ class ExistingSystemsGraphAdapter:
         def compute_decision() -> dict:
             classified = er.classify_record(record, self.context)
             return {
-                field: classified.get(field)
-                for field in CLASSIFICATION_DECISION_FIELDS
+                field: classified[field]
+                for field in CLASSIFICATION_DECISION_FIELDS if field in classified
             }
 
         result = self.cache.get_or_compute(

@@ -48,7 +48,8 @@ from agents.golden_press.term_tiers import evaluate_term, load_guards
 _SELECT = """
 SELECT notice_id, title, notice_type, agency, subtier, office, posted,
        deadline, naics, psc, set_aside, url, description_prefix, last_seen,
-       poc_name, poc_email, poc_phone, poc_secondary_email
+       poc_name, poc_email, poc_phone, poc_secondary_email,
+       sol_number, active, base_type, set_aside_code, description_len, description_sha256
   FROM notices
 """
 
@@ -274,8 +275,22 @@ def run_l1_from_store(
         scored.sort(key=lambda s: (-s[0], s[3] or 99,
                                    str(s[1]["deadline"] or "9999")))
         records = [_to_record(row, hits, rank) for _, row, hits, rank in scored]
-        kept, dropped = dedupe_by_title_agency(records)
-        receipt["deduped_away"] = len(dropped)
+        from tools.relevance.notice_family import resolve, store_siblings
+        census = store_siblings(conn, [dict(row) for _, row, _, _ in scored])
+        families = resolve(census)
+        family_by_id = {sid: f for f in families for sid in f["member_ids"]}
+        latest_records = []
+        for record in records:
+            family = family_by_id.get(record.record_id)
+            if family:
+                record.source_fields["notice_family_v1"] = {k: v for k, v in family.items() if k != "representative"}
+            if family and (family["order_status"] != "ordered" or family["representative_id"] != record.record_id):
+                continue
+            latest_records.append(record)
+        kept, dropped = dedupe_by_title_agency(latest_records)
+        receipt["family_census"] = [{k: v for k, v in f.items() if k != "representative"} for f in families]
+        receipt["superseded_selected_records"] = len(records) - len(latest_records)
+        receipt["deduped_away"] = len(records) - len(kept)
         if len(kept) > cap:
             _log(f"L1(store) capped at {cap} of {len(kept)} deduped notices; "
                  "the cap is loud, never silent")
@@ -313,7 +328,11 @@ def run_l1_from_store(
 
 def _to_record(row, hits: list[str], rank: Optional[int]) -> GoldenRecord:
     """One store row as a GoldenRecord, fully populated from the writer."""
+    from agents.golden_press.notice_bridge import source_transport
     return GoldenRecord(
+        source_fields={"notice_source_v1": source_transport(dict(row), locator="notice_store_snapshot"),
+                       "store_observed_at": row["last_seen"],
+                       "acquisition_state": "unknown_native_depth"},
         record_id=str(row["notice_id"] or ""),
         lane="L1_notice",
         title=str(row["title"] or ""),

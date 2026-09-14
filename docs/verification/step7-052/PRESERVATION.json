@@ -1,0 +1,94 @@
+{
+  "at_utc": "2026-09-13T14:12:52.696835+00:00",
+  "files": [
+    {
+      "path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/cases/apex-discovery-calibration-004/capture_lock.FINAL.json",
+      "sha256": "658bbbff0e994d757c411787bfb7671621a8e53759dbc3dcf5ec92fa4ae6e3b0",
+      "matches": true
+    },
+    {
+      "path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/cases/apex-discovery-calibration-005/capture_lock.FINAL.json",
+      "sha256": "137cb5e2b994ed372db1528a8b31862e81555792a44c9edf2c90e5c6ec3f55a5",
+      "matches": true
+    },
+    {
+      "path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/cases/apex-discovery-calibration-005/lila/capture/CAPTURE-LILA-005/new_native_sweep.json",
+      "sha256": "6ce0ca8907f38f544aa59a3530ee614ac345c61fdacf7ef007284d570b0c6e73",
+      "matches": true
+    },
+    {
+      "path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/control/CALIBRATION_005_REPAIR_PLAN.LOCKED.json",
+      "sha256": "17c2905d6eaee80f4e58eb39c7cc3cbf662ceae28c364e86ddaca4981edc67aa",
+      "matches": true
+    },
+    {
+      "path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/handoffs/CALIBRATION_005_PRIORITIZED_FIXES.md",
+      "sha256": "80d02eb190fb9eded30e559064d9e33023a2e207557666b19e009dc99a21e5c2",
+      "matches": true
+    },
+    {
+      "path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/cases/apex-discovery-calibration-005/result-v4.json",
+      "sha256": "83d1ad79d70083cd6705c38f8b4c632847721754c363cf62d3fed8293ec764ca",
+      "matches": true
+    },
+    {
+      "path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/scorecards/apex-discovery-calibration-005.md",
+      "sha256": "b8d9742ba3373d95d14e66caf1002731140a1eb4db90ddde59c32107095b43cf",
+      "matches": true
+    },
+    {
+      "path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/cases/apex-discovery-calibration-005/pool.json",
+      "sha256": "7fec67f2b3aa876cdfcf04779ebb77c5bcdf6245c68f797ac7c90157591d5a37",
+      "matches": true
+    },
+    {
+      "path": "/Users/wtjohnson/Documents/Codex/LILA-Competitive-Benchmark/cases/apex-discovery-calibration-005/capture.json",
+      "sha256": "48dde25f81e37f6568f54172cb73e431b46accd5de44753713d6bb886c189b1e",
+      "matches": true
+    },
+    {
+      "path": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/agents/decisions/triage.py",
+      "sha256": "8e20f2a9546311d565a7003dbb31fe1cee0250c46899e902fcec0723b1b52f2e",
+      "matches": true
+    },
+    {
+      "path": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/agents/golden_press/evidence_pack_v2.py",
+      "sha256": "f93c32c0e061d6312e1948a63e0f20235c87149fca997a9b99ee9e9060b9e03c",
+      "matches": true
+    },
+    {
+      "path": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/agents/golden_press/evidence_route.py",
+      "sha256": "5cbd33da42a05af04375a0ed744037f1be1df74b10f861e088d53b5f31655e22",
+      "matches": true
+    },
+    {
+      "path": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/agents/golden_press/notice_bridge.py",
+      "sha256": "2de43ee7b6dff28355e47c55b58d958895301c875e61adb928756025b5e47076",
+      "matches": true
+    },
+    {
+      "path": "/Users/wtjohnson/Documents/Codex/2026-09-08/lila-benchmark-coordinator/work/step2-capability-alignment/tests/test_triage_prefilter.py",
+      "sha256": "20994dee97f36a6705ac2af059df5cd417591e9b74881a37cb52160b700a0722",
+      "matches": true
+    },
+    {
+      "path": "/Users/wtjohnson/Lila/docs/plans/WEEKEND_BUILD_PLAN_2026-09-11.md",
+      "sha256": "71a4c7c11ee575596357e5e0fcfb66a75d2c855b4761040042732c8cad26bfc5",
+      "matches": true
+    }
+  ],
+  "file_mismatches": [],
+  "fixtures_verified": 31,
+  "fixture_mismatches": [],
+  "old_head": "d767922b5f462308d2e62d2cff42c052e26f6a7e",
+  "old_diff_sha256": "097aef09d5ec8186d8f49e069c18c7b643cb8d00600214550960cb446ceaadcf",
+  "old_status": "M agents/decisions/triage.py\n M agents/golden_press/evidence_pack_v2.py\n M agents/golden_press/evidence_route.py\n M agents/golden_press/notice_bridge.py\n M tests/test_triage_prefilter.py",
+  "step6_head": "2d522f0362e656e029986344d47e2e06b86a58f8",
+  "step6_status": "",
+  "step7_head": "6b51f005c001d2d99a535e4a302370f9ad80c6ea",
+  "step7_status": "",
+  "operating_head_observed": "f0f7aecb034d617152907f445ca0d697e135081c",
+  "netscout_composite_head_observed": "d064f49a03d1271070d59e1e717632330c24c77d",
+  "production_merge": false,
+  "diagnostic_attempt": "Initial custody script guessed agents/reports paths and stopped before writing a receipt; corrected to git-observed agents/golden_press paths."
+}
