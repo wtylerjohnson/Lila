@@ -1,0 +1,156 @@
+.......................................................................s [  1%]
+sssssss..s.............................................................. [  2%]
+........................................................................ [  3%]
+........................................................................ [  4%]
+........................................................................ [  5%]
+...................................................................................................................... [  7%]
+........................................................................ [  8%]
+........................................................................ [ 10%]
+........................................................................ [ 11%]
+........................................................................ [ 12%]
+........................................................................ [ 13%]
+........................................................................ [ 14%]
+........................................................................ [ 15%]
+........................................................................ [ 17%]
+........................................................................ [ 18%]
+........................................................................ [ 19%]
+........................................................................ [ 20%]
+........................................................................ [ 21%]
+........................................................................ [ 22%]
+........................................................................ [ 24%]
+........................................................................ [ 25%]
+........................................................................ [ 26%]
+........................................................................ [ 27%]
+........................................................................ [ 28%]
+........................................................................ [ 29%]
+.......................s................................................ [ 30%]
+........................................................................ [ 32%]
+........................................................................ [ 33%]
+........................................................................ [ 34%]
+........................................................................ [ 35%]
+........................................................................ [ 36%]
+........................................................................ [ 37%]
+.......................................................s................ [ 39%]
+........................................................................ [ 40%]
+........................................................................ [ 41%]
+........................................................................ [ 42%]
+........................................................................ [ 43%]
+........................................................................ [ 44%]
+........................................................................ [ 46%]
+........................................................................ [ 47%]
+........................................................................ [ 48%]
+........................................................................ [ 49%]
+........................................................................ [ 50%]
+........................................................................ [ 51%]
+........................................................................ [ 53%]
+........................................................................ [ 54%]
+......s................................................................. [ 55%]
+........................................................................ [ 56%]
+........................................................................ [ 57%]
+........................................................................ [ 58%]
+....................................................................s... [ 60%]
+........................................................................ [ 61%]
+........................................................................ [ 62%]
+........................................................................ [ 63%]
+........................................................................ [ 64%]
+........................................................................ [ 65%]
+........................................................................ [ 67%]
+........................................................................ [ 68%]
+........................................................................ [ 69%]
+........................................................................ [ 70%]
+........................................................................ [ 71%]
+........................................................................ [ 72%]
+........................................................................ [ 74%]
+........................................................................ [ 75%]
+........................................................................ [ 76%]
+........................................................................ [ 77%]
+........................................................................ [ 78%]
+........................................................................ [ 79%]
+..............ssssss...................ssssss........................... [ 81%]
+..s................s............s..............s.....s...............s.. [ 82%]
+..............s..............s.......................................... [ 83%]
+.s............s.....s..........................s........................ [ 84%]
+........................................................................ [ 85%]
+........................................................................ [ 86%]
+........................................................................ [ 87%]
+........................................................................ [ 89%]
+........................................................................ [ 90%]
+......................
+  TIER ATTRIBUTION, substring vs Apollo subdepartments
+  name               substring apollo  verdict
+  Brian McCormick            2      2  agree  (sourcing_procurement)
+  Geoff Swanstrom            1      1  agree  (information_technology_executive,engineering_technical,technology_operations)
+  disagreement rate: 0/2 = 0%   SAMPLE SIZE 2, too small to conclude
+..........sss..................................... [ 91%]
+........................................................................ [ 92%]
+........................................................................ [ 93%]
+........................................................................ [ 94%]
+........................................................................ [ 96%]
+........................................................................ [ 97%]
+........................................................................ [ 98%]
+........................................................................ [ 99%]
+........................                                                 [100%]
+=============================== warnings summary ===============================
+tests/test_golden_press_compose.py: 8 warnings
+tests/test_markup_coverage.py: 1 warning
+tests/test_studio_interaction.py: 1 warning
+tests/test_targeting_band.py: 4 warnings
+  /Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/forecast-pocs-056/agents/golden_press/skeleton.py:205: DeprecationWarning: 'count' is passed as positional argument
+    neutral = re.sub(r'src="[^"]*"', f'src="{_NEUTRAL_LOGO_SRC}"', tag, 1)
+
+tests/test_leadgen_qualify.py::test_incumbent_in_requirement_span_plus_bare_expiry_is_not_t2
+tests/test_leadgen_qualify.py::test_routing_and_optics_are_not_component_role
+  /Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/work/forecast-pocs-056/agents/assess/contracts.py:580: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `tuple[EvidenceRef, ...]` - serialized value may not be as expected [field_name='authoritative_evidence', input_value=[EvidenceRef(evidence_id=...MENT: 'requirement'>,))], input_type=list])
+    value = handler(self)
+
+tests/test_research_html_sources.py::test_copied_unbound_subject_cannot_receive_builder_proof[change1]
+  /Users/wtjohnson/Lila/.venv/lib/python3.14/site-packages/pydantic/main.py:475: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `<class 'pydantic.networks.HttpUrl'>` but got `<class 'str'>` with value `'https://www.usaspending.gov/award/CONT_AWD_foreign_123'` - serialized value may not be as expected.)
+    return self.__pydantic_serializer__.to_python(
+
+tests/test_research_html_sources.py::test_copied_unbound_subject_cannot_receive_builder_proof[change2]
+  /Users/wtjohnson/Lila/.venv/lib/python3.14/site-packages/pydantic/main.py:475: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `<class 'pydantic.networks.HttpUrl'>` but got `<class 'str'>` with value `'javascript:alert(1)'` - serialized value may not be as expected.)
+    return self.__pydantic_serializer__.to_python(
+
+tests/test_signal_board_presentation.py::test_cross_process_uploads_preserve_both_manifest_entries
+tests/test_signal_board_presentation.py::test_cross_process_uploads_preserve_both_manifest_entries
+tests/test_workstation_creation_adversarial.py::test_cross_process_creators_do_not_lose_registry_rows
+tests/test_workstation_creation_adversarial.py::test_cross_process_creators_do_not_lose_registry_rows
+  /Users/wtjohnson/.local/share/uv/python/cpython-3.14.5-macos-aarch64-none/lib/python3.14/multiprocessing/popen_fork.py:76: DeprecationWarning: This process (pid=91479) is multi-threaded, use of fork() may lead to deadlocks in the child.
+    self.pid = os.fork()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_apex_search_benchmark.py:115: PIVOT not positively identified in this store slice; collection job, not a screen defect
+SKIPPED [1] tests/test_apex_search_benchmark.py:115: DIA RMIC not positively identified in this store slice; collection job, not a screen defect
+SKIPPED [1] tests/test_apex_search_benchmark.py:115: HHS VMO not positively identified in this store slice; collection job, not a screen defect
+SKIPPED [1] tests/test_apex_search_benchmark.py:115: DHA TCRS not positively identified in this store slice; collection job, not a screen defect
+SKIPPED [1] tests/test_apex_search_benchmark.py:127: PIVOT not positively identified in this store slice
+SKIPPED [1] tests/test_apex_search_benchmark.py:127: DIA RMIC not positively identified in this store slice
+SKIPPED [1] tests/test_apex_search_benchmark.py:127: HHS VMO not positively identified in this store slice
+SKIPPED [1] tests/test_apex_search_benchmark.py:127: DHA TCRS not positively identified in this store slice
+SKIPPED [1] tests/test_apex_search_benchmark.py:172: VHA award not in this machine's store slice
+SKIPPED [1] tests/test_cross_client_leakage.py:73: fewer than two pressed clients on this checkout
+SKIPPED [1] tests/test_hhs_sbcx_forecast.py:240: set LILA_RUN_LIVE_SOURCE_TESTS=1 for the bounded official probe
+SKIPPED [1] tests/test_motion_title_strategy.py:86: red_hat pack not on this machine
+SKIPPED [1] tests/test_operating_repair.py:135: real Arista operating input is not versioned; run local acceptance separately
+SKIPPED [6] tests/test_source_accepted_wave2.py:282: live smoke is opt-in: set LILA_LIVE_SMOKE=1
+SKIPPED [6] tests/test_source_connector_wave3.py:181: set LILA_LIVE_SOURCE_HEALTH=1 for opt-in official endpoint probes
+SKIPPED [1] tests/test_source_ed_forecast.py:396: live smoke is opt-in: set LILA_LIVE_SMOKE=1
+SKIPPED [1] tests/test_source_fpds_atom.py:360: live smoke only when LILA_LIVE_SMOKE is set
+SKIPPED [1] tests/test_source_gsa_elibrary.py:278: live smoke is opt-in: set LILA_LIVE_SMOKE=1
+SKIPPED [1] tests/test_source_navy_nawcad_lraf.py:81: live smoke is opt-in: set LILA_LIVE_SMOKE=1
+SKIPPED [1] tests/test_source_navy_nawcwd_lraf.py:94: live smoke is opt-in: set LILA_LIVE_SMOKE=1
+SKIPPED [1] tests/test_source_nih_reporter.py:284: live smoke is opt-in: LILA_LIVE_SMOKE=1
+SKIPPED [1] tests/test_source_oasis_plus_holders.py:296: live smoke is opt-in: LILA_LIVE_SMOKE=1
+SKIPPED [1] tests/test_source_omb_apportionment.py:294: live smoke is opt-in: set LILA_LIVE_SMOKE=1
+SKIPPED [1] tests/test_source_sba_mentor_protege.py:293: live smoke is opt-in: set LILA_LIVE_SMOKE=1
+SKIPPED [1] tests/test_source_sba_sbs.py:242: live smoke is opt-in: set LILA_LIVE_SMOKE=1
+SKIPPED [1] tests/test_source_sec_procurement_forecast.py:85: live smoke is opt-in: set LILA_LIVE_SMOKE=1
+SKIPPED [1] tests/test_source_state_forecast.py:402: live smoke is opt-in: set LILA_LIVE_SMOKE=1
+SKIPPED [1] tests/test_targeting_hardening.py:150: riverbed pack not on this machine
+SKIPPED [1] tests/test_targeting_hardening.py:150: thinklogical pack not on this machine
+SKIPPED [1] tests/test_targeting_hardening.py:150: varonis pack not on this machine
+6150 passed, 40 skipped, 22 warnings, 26 subtests passed in 123.93s (0:02:03)

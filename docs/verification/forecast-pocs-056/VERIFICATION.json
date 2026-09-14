@@ -1,0 +1,64 @@
+{
+  "work_id": "FORECAST-POCS-056",
+  "at_utc": "2026-09-14T21:50:16.312925+00:00",
+  "base": "ee0ce8bfd5b9e3c7c5acc96f70a2db55e40c0a95",
+  "tested_sha": "766085f9353555d08c5fe6e9ab607f04459171ed",
+  "owner": "root",
+  "source_files": {
+    "agents/assess/research_subjects.py": "d8b730cbc23f1cfcdab8c4715c03383d13d23c8eb6f3b7da19e63e3232d9a8e9",
+    "agents/golden_press/external_product_projection.py": "ff37728df123e619b31e4e876255a53cf446846763952283ceca3c29a7cbc94d",
+    "agents/golden_press/external_product_render.py": "d3e8953850a25c4ef2a9e09c6845c7930fbfed3676fafdf2a06dea98c2fb8fd7",
+    "agents/golden_press/records.py": "07514dcf73d59d4ee5418bf2363ca30ffc53c92ea5295a5c1970b887303e5f17",
+    "agents/golden_press/retrieval.py": "b179d4fdc706cc152d810c3ebb515225d107b32ab980eec2228b6a2f32eea615",
+    "agents/leadgen/press.py": "07b968f65b5d5f5d82b6e4801b24b9c26b498462d8eafdbf7e1ee61df4701648",
+    "agents/leadgen/press_html.py": "ef8b74bf9b344f34ed2ec4d3f1f97a7126f3020c89cd27fade0fb3bbcaed9cb9",
+    "agents/leadgen/research_html.py": "3a1b975966ad2ba2177e6841bbcc2183d4a14d09d476286deba8ff7fb0747753",
+    "agents/schemas.py": "fdf337cc5d280e805f113ce112693ab32fbd48c7f969a968b451a482e0c1d89f",
+    "docs/CONTRACT_SURFACES.md": "e00ef5f2bc04d06decc13a6f64d6ae5ad1b75a4984812c7d3c4d09a456354bab",
+    "docs/verification/forecast-pocs-056/FIXTURE_STAGING.json": "7354660077c4b3c1cfe61c343a6428fe6ca33571e1d3a1f854ccd5cd5359885f",
+    "docs/verification/forecast-pocs-056/KICKOFF.json": "fc9b4961f4dcfe6e8ac023de5a7917d8c59e3a82da408ac37de2b809b968bc0d",
+    "docs/verification/forecast-pocs-056/PRE_PATCH_REPORT.md": "ca81b2d3f40bca4cdb36e5b3815d1f6a4222357e9d0f6a83ef62f3fa49fd031e",
+    "tests/fixtures/apfs_pocs_74247.json": "4f9ea5340e9af1c28a97cd8cef753398724bba429d05c81fa6c513336eaca05e",
+    "tests/test_forecast_pocs.py": "93ac8eb21bee661628e0e56da6c1672320d99575a6ca84910b6ff382cadb8c11",
+    "tests/test_research_html_sources.py": "becbeba6a828667220ce27ffef83a2dd8c7baf33978e67cfd8ef03e0653b3c26",
+    "tools/api/forecasts/contacts.py": "0db12b79f934d4ec682474f5f7aaba6d55fff7b9c4c0689c02d1748fa3aaa73f",
+    "tools/api/forecasts/dhs_apfs.py": "b31605c2c82ba1ed1f410bb2c01db6da5b3fb639a96a18247d8e5996da32e40f",
+    "tools/contact_graph/forecasts.py": "61c483aba7fbd419a38a38175cf5e2ae2cd6d6a55dd36d0ea4f9192cf3ff4a68",
+    "tools/contact_graph/harvest.py": "7f969e7f2b9f09e27fb6664bd2df704d5d81a9563fbaacd3b146afb03cf7e42a",
+    "tools/contact_graph/store.py": "a29a6c0a843541affe0118906f8cc407d2776f2a684fdbe10b430c925a476a38"
+  },
+  "full_suite": {
+    "passed": 6150,
+    "skipped": 40,
+    "subtests_passed": 26,
+    "junit": [
+      {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "40",
+        "tests": "6216",
+        "time": "123.772",
+        "timestamp": "2026-09-14T15:48:07.889894-06:00",
+        "hostname": "Ws-MacBook-Air.local"
+      }
+    ],
+    "log_sha256": "853792b4feab9b50676c3c51be088d7deaf990b1f42fbd65eca8ca87f52c0334"
+  },
+  "coverage": [
+    "APFS primary, alternate and coordinator contacts with original roles and channels",
+    "Legacy saved-source display without source mutation",
+    "Scoped inline harvest, repeat dedupe and republication history",
+    "Native Assess to Press and Golden report contact ordering",
+    "Contact source and freshness rendering contracts",
+    "Local NETSCOUT report browser check"
+  ],
+  "limits": [
+    "Full suite uses saved fixtures with offline guard; not a fresh client run",
+    "Other adapters can carry typed contacts; no claim all adapters parse POCs",
+    "Operating integration and GitHub publication recorded separately",
+    "No new Fable review claimed; existing residuals retained"
+  ],
+  "local_report_correction": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/APFS_POC_FIX_056/REPORT_CORRECTION.json",
+  "source_audit": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/APFS_POC_AUDIT_2026-09-14/SOURCE_RECEIPT.json"
+}
