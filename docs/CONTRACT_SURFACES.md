@@ -967,3 +967,19 @@ Regression: `tests/test_shared_qualification.py`; positive controls in `tests/te
 055 scope follow-up: positive actor roles, dated events and tool authority must refer to the same concrete, affirmative buyer requirement. Literal requirement objects are extracted from source-bound clauses; generic software/services alone cannot supply the scope. Explicit different contracts or internal-use tools stay separate. Relevant cross-sentence withdrawal/cancellation and agency-supplied tools block promotion, while clearly unrelated events/equipment do not. Elided references are accepted only for a single concrete requirement; ambiguous or unsupported language stays in research. This remains a conservative deterministic sufficient-evidence rule, with independent-review residuals disclosed.
 
 In multi-requirement notices, a single matched requirement must satisfy the role, dated event and tool-authority checks together. Independent matches against different requirements cannot combine into a lead. Paired multi-requirement positives remain eligible; duplicate equivalent requirement clauses do not invent another scope.
+
+## Published forecast POCs (FORECAST-POCS-056, September 14, 2026)
+
+ForecastRecord adds optional structured contacts using OpportunityContact and an
+explicit contact_publication_date. APFS maps primary, alternate and small-business
+coordinator fields with phones and emails; raw source fields remain untouched.
+Saved APFS rows can derive the same contact display from their bound raw fields,
+without rewriting immutable source or Assess hashes. Contact roles are publication
+roles, not purchasing authority; phone publication never implies mobile status.
+
+The existing append-only contact harvest now includes scoped matched/research
+forecast rows. It uses forecast source IDs/URLs and publication dates, never SAM
+URLs or harvest time as publication time. Forecast role and publication-date sightings stay distinct;
+existing SAM deduplication is unchanged. Forecast contacts render before broader
+targets in native research HTML/Markdown and the Market Map forecast records.
+This does not create lead children, change qualification or modify engagement gates.

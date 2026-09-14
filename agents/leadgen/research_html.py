@@ -161,3 +161,66 @@ def reviewed_context_markdown(subject):
                       *[f'[{t.name} / {t.role}]({t.source_url}): {t.next_ask}. {t.authority_boundary}' for t in item.targets],
                       'Existing business does not establish demand or purchasing authority for this scope.'])
     return lines
+
+
+def _forecast_projection(subject):
+    from agents.assess.contracts import ResearchSubject
+    subject = ResearchSubject.model_validate(subject.model_dump(mode='json'))
+    if subject.source_kind != 'forecast':
+        return None
+    return json.loads(subject.source_payload_json)
+
+
+def render_forecast_contacts(subject):
+    record = _forecast_projection(subject)
+    return render_forecast_contact_record(record) if record else ''
+
+
+def render_forecast_contact_record(record):
+    from tools.api.forecasts.contacts import contact_record
+    projected = contact_record(record)
+    if projected is None or not projected['contacts']:
+        return ''
+    rows = []
+    for contact in projected['contacts']:
+        role = contact.title or contact.contact_type or 'Forecast POC'
+        email = escape(contact.email or 'Not published')
+        if contact.email and _EMAIL.fullmatch(contact.email):
+            email = f'<a href="mailto:{escape(contact.email, quote=True)}">{email}</a>'
+        phone = escape(contact.phone or 'Not published')
+        digits = re.sub(r'[^0-9+]', '', contact.phone or '')
+        if digits and len(re.sub(r'\D', '', digits)) >= 7:
+            phone = f'<a href="tel:{escape(digits, quote=True)}">{phone}</a>'
+        ask = ('Confirm small-business participation and the permitted contract route.'
+               if contact.contact_type == 'small_business_coordinator' else
+               'Confirm procurement status and the appropriate technical contact.')
+        rows.append('<tr><td><b>' + escape(contact.name or 'Name not published')
+                    + '</b><br>' + escape(role) + '</td><td>' + email
+                    + '</td><td>' + phone + '</td><td>' + ask + '</td></tr>')
+    stamp = projected['published'].isoformat() if projected['published'] else 'Not established'
+    return ('<section class="forecast-pocs"><h4>Published forecast contacts</h4>'
+            '<p>Start with the published POCs to confirm current status and the permitted communication route. '
+            'These source roles do not establish purchasing authority.</p>'
+            '<div class="table-scroll"><table class="data-table"><thead><tr>'
+            '<th>Person / published role</th><th>Email</th><th>Published phone</th><th>Next question</th>'
+            '</tr></thead><tbody>' + ''.join(rows) + '</tbody></table></div><p>'
+            + '<a href="' + escape(projected['source_url'], quote=True) + '" rel="noreferrer">'
+            + escape(projected['source_id']) + '</a> · Source publication: ' + escape(stamp)
+            + '</p></section>')
+
+
+def forecast_contacts_markdown(subject):
+    from tools.api.forecasts.contacts import contact_record
+    raw = _forecast_projection(subject)
+    projected = contact_record(raw) if raw else None
+    if projected is None or not projected['contacts']:
+        return []
+    lines = ['','### Published forecast contacts', '',
+             'Source roles identify a contact route; purchasing authority remains to be confirmed.']
+    for c in projected['contacts']:
+        # Escape formatting so source names cannot inject Markdown structure.
+        def clean(value):
+            return re.sub(r'([\\`*_{}\[\]<>|])', r'\\\1', ' '.join(str(value or 'Not published').split()))
+        lines.append(f'- {clean(c.name)} / {clean(c.title or c.contact_type)}: {clean(c.email)}; published phone {clean(c.phone)}')
+    lines.append(f"Source: [{clean(projected['source_id'])}]({projected['source_url']})")
+    return lines

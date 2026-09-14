@@ -43,6 +43,8 @@ def dedupe_key(obs: ContactObservation) -> DedupeKey:
         normalize_name(obs.person_name),
         obs.channel_kind,
         (obs.channel_value or "").strip().lower(),
+        # Forecast role sightings remain distinct when one person fills two roles.
+        *([obs.role_type, obs.observed_at] if obs.notice_type == "Forecast" else []),
     )
 
 

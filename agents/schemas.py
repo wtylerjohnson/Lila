@@ -201,6 +201,10 @@ class ForecastRecord(BaseModel):
     award_type: Optional[str] = Field(default=None, description="contract type/vehicle as stated")
     set_aside: Optional[str] = None
     small_business_program: Optional[str] = None
+    contacts: list[OpportunityContact] = Field(default_factory=list,
+        description="Source-published forecast POCs, with distinct primary, alternate and coordinator roles")
+    contact_publication_date: Optional[date] = Field(default=None,
+        description="Source publication date for contact observations; never retrieval time")
     small_business_poc: Optional[str] = Field(
         default=None, description="small-business specialist contact if listed")
     url: str = Field(description="link to the agency's forecast record")

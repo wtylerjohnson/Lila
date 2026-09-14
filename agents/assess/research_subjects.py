@@ -36,6 +36,10 @@ def _locator(kind, row):
             from tools.api.forecasts.dhs_apfs import map_record
             mapped = map_record(raw, retrieved_at=datetime(1970,1,1,tzinfo=timezone.utc)).model_dump(mode="json")
             for field,value in mapped.items():
+                # Older immutable forecast payloads predate these additive fields.
+                # If supplied, they must still match the retained original source.
+                if field in {'contacts', 'contact_publication_date'} and field not in row:
+                    continue
                 if field not in {'retrieved_at','first_seen','last_seen','record_hash'} and row.get(field) != value:
                     raise ValueError(f'forecast mapped field disagrees with original APFS source: {field}')
             expected = f"/record/{raw.get('id')}/public-print/"

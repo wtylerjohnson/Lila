@@ -1,0 +1,9 @@
+{
+  "work_id": "FORECAST-POCS-056",
+  "base": "ee0ce8bfd5b9e3c7c5acc96f70a2db55e40c0a95",
+  "plan_id": "LILA-WEEKEND-2026-09-11-v1",
+  "plan_sha256": "71a4c7c11ee575596357e5e0fcfb66a75d2c855b4761040042732c8cad26bfc5",
+  "owner": "root",
+  "authorization": "User: that should be an easy fix - do it",
+  "scope": "Structured source forecast POCs through mapping, harvest and native report; preserve original sources and forecast-only boundary."
+}

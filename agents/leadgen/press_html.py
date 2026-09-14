@@ -180,6 +180,8 @@ def render_html(receipt: PressLeadGenReceipt) -> str:
             subject = parent.research_subject
             context = json.loads(subject.discovery_context_json) if subject.discovery_context_json else {}
             boundary = "Research only; direct qualification unchanged. Code boundary: " + str(context.get("direct_code_boundary", "unknown"))
+            from .research_html import render_forecast_contacts
+            detail += render_forecast_contacts(subject)
             detail += render_research(parent.research) + render_targets(parent.targets)
             detail += render_reviewed_context(subject)
             detail += ('<div class="receipt-body"><p><b>Research needed</b> · ' + _text(subject.source_posture.replace('_',' ')) + '</p>'

@@ -104,6 +104,9 @@ class GoldenRecord(BaseModel):
     anticipated_solicitation_close: Optional[str] = None
     anticipated_award: Optional[str] = None
     fiscal_year: Optional[str] = None
+    contacts: list[dict[str, Any]] = Field(default_factory=list)
+    contact_publication_date: Optional[str] = None
+    forecast_source: Optional[str] = None
     small_business_poc: Optional[str] = None
     source_fields: dict[str, Any] = Field(default_factory=dict)
     entity_hits: list[str] = Field(

@@ -141,6 +141,7 @@ def _graph_record(row: dict, *, kind: str, summary: str = "") -> dict:
     record_id = _text(row.get("record_id") or row.get("notice_id"))
     return {
         "record_key": _record_key(kind, record_id),
+        **({"forecast_contact_record": {**row, "source_id": record_id, "url": _source_from_graph(row)}} if kind == "forecast" else {}),
         "kind": kind,
         "source_id": record_id,
         "title": _text(row.get("title")) or record_id,

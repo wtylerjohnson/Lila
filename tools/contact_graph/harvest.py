@@ -15,6 +15,7 @@ calls; inline only sees what the sweep already fetched).
 """
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Iterable, Optional
@@ -25,8 +26,8 @@ from tools.toggles import is_enabled
 
 TOGGLE = "contact_graph"
 
-# Sources whose records carry POCs today. New extraction sources (Federal
-# Register, SBIR, forecasts, GAO) plug in here without touching callers.
+# Notice-shaped sources. Scoped forecasts use their separate source-aware
+# extractor below; they must never inherit SAM URLs or notice semantics.
 POC_SOURCES = ("sam.gov",)
 
 
@@ -121,4 +122,30 @@ def harvest_from_results(
                     lst, source=src, store=store, harvested_at=harvested_at, force=True
                 )
             )
+    # Harvest only the scoped matched/research population, never all-market rows.
+    from tools.contact_graph.forecasts import observations_from_forecast
+    seen_forecasts = set()
+    for key in ("forecasts", "forecast_signals"):
+        family = (results or {}).get(key) or {}
+        if not isinstance(family, dict):
+            continue
+        records = list(family.get("matched") or [])
+        records += [c["record"] for c in family.get("research_candidates") or []
+                    if isinstance(c, dict) and isinstance(c.get("record"), dict)]
+        for record in records:
+            if not isinstance(record, dict):
+                continue
+            fingerprint = json.dumps(record, sort_keys=True, default=str)
+            if fingerprint in seen_forecasts:
+                continue
+            seen_forecasts.add(fingerprint)
+            obs = observations_from_forecast(record, harvested_at=harvested_at)
+            summary.notices += 1
+            if obs:
+                summary.with_pocs += 1
+                result = store.append(obs)
+                summary.observations_written += result.written
+                summary.observations_skipped += result.skipped
+            else:
+                summary.coverage_gaps += 1
     return summary

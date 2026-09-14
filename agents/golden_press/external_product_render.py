@@ -198,6 +198,12 @@ def _priority(record: dict) -> str:
         + "</div></article>")
 
 
+def _forecast_pocs(record: dict) -> str:
+    from agents.leadgen.research_html import render_forecast_contact_record
+    raw = record.get("forecast_contact_record")
+    return render_forecast_contact_record(raw) if raw else ""
+
+
 def _record(record: dict, *, include_targets: bool = False) -> str:
     if "reference_key" in record:
         return _priority(record)
@@ -210,6 +216,7 @@ def _record(record: dict, *, include_targets: bool = False) -> str:
         + (f'<p>{esc(summary)}</p>' if summary else "")
         + _fields(record)
         + _source_link(record)
+        + _forecast_pocs(record)
         + _family_history(record)
         + _lead_rows(record)
         + _saved_lead_history(record)

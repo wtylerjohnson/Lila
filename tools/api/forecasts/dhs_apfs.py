@@ -84,7 +84,10 @@ def map_record(rec: dict, retrieved_at: Optional[datetime] = None) -> ForecastRe
     solicitation = (rec.get("estimated_solicitation_release_date")
                     or rec.get("estimated_release_date")
                     or rec.get("award_quarter"))
+    from .contacts import apfs_contacts, publication_date
     return ForecastRecord(
+        contacts=apfs_contacts(rec),
+        contact_publication_date=publication_date(rec),
         source="dhs_apfs",
         source_id=str(rec.get("apfs_number") or rid),
         agency="DHS",
