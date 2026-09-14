@@ -14,8 +14,18 @@ from pathlib import Path
 @contextmanager
 def _object_lock(directory: Path, digest: str, *, shared: bool = False):
     locks = directory / 'object_locks'
-    locks.mkdir(parents=True, exist_ok=True)
-    with (locks / f'{digest}.lock').open('a+b') as handle:
+    if shared:
+        try:
+            handle = (locks / f'{digest}.lock').open('rb')
+        except OSError:
+            # Read-only/legacy stores may have no accessible lock. A racing
+            # partial read is still refused by the caller's exact hash check.
+            yield
+            return
+    else:
+        locks.mkdir(parents=True, exist_ok=True)
+        handle = (locks / f'{digest}.lock').open('a+b')
+    with handle:
         fcntl.flock(handle, fcntl.LOCK_SH if shared else fcntl.LOCK_EX)
         try:
             yield
@@ -42,29 +52,32 @@ def retain_bytes(directory: Path, payload: bytes) -> dict:
             handle.flush()
             os.fsync(handle.fileno())
         with _object_lock(directory, digest):
-            if path.exists() or path.is_symlink():
-                if not path.is_symlink() and path.read_bytes() == payload:
-                    return {"path": relative, "sha256": digest, "bytes": len(payload)}
-                _quarantine(directory, path)
-            try:
-                os.link(temporary, path)
-            except FileExistsError:
-                # An uncooperative writer appeared after the locked check.
-                raise ValueError('retained SAM object appeared during publication')
-            except OSError:
-                # Hardlinks are unavailable on some cache filesystems. Exclusive
-                # creation and the shared read lock prevent partial-byte reads.
+            for attempt in range(3):
+                if path.exists() or path.is_symlink():
+                    if path.is_file() and not path.is_symlink() and path.read_bytes() == payload:
+                        return {"path": relative, "sha256": digest, "bytes": len(payload)}
+                    _quarantine(directory, path)
                 try:
-                    with path.open('xb') as handle:
-                        handle.write(payload)
-                        handle.flush()
-                        os.fsync(handle.fileno())
+                    try:
+                        os.link(temporary, path)
+                    except FileExistsError:
+                        raise
+                    except OSError:
+                        # Recheck a raced exclusive create on the next bounded
+                        # iteration, preserving any conflicting bytes/history.
+                        with path.open('xb') as handle:
+                            handle.write(payload)
+                            handle.flush()
+                            os.fsync(handle.fileno())
                 except FileExistsError:
-                    raise
+                    continue
                 except OSError:
-                    if path.exists():
+                    if path.exists() or path.is_symlink():
                         _quarantine(directory, path)
                     raise
+                break
+            else:
+                raise ValueError('retained SAM object repeatedly raced publication')
     finally:
         if temporary is not None:
             temporary.unlink(missing_ok=True)
@@ -82,7 +95,7 @@ def read_retained(directory: Path, receipt: dict) -> bytes:
     if receipt.get("path") != relative:
         raise ValueError("invalid retained SAM locator")
     path = directory / relative
-    if path.resolve().parent != (directory / "objects").resolve():
+    if path.is_symlink() or path.resolve().parent != (directory / "objects").resolve():
         raise ValueError("retained SAM object escaped cache")
     with _object_lock(directory, digest, shared=True):
         payload = path.read_bytes()

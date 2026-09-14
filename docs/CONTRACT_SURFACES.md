@@ -884,8 +884,10 @@ paths in response links and adds requested/final/redirect-chain custody fields.
 Both fresh and stale public inventory reuse require the validated projection;
 depth caches reject foreign or malformed records before reuse. Withdrawn files
 remain historical inventory and original bytes, outside active counts/hashes and
-download slots. This intentionally changes prior live-file hashes when withdrawn
-rows were previously counted; no saved approval, cache or frozen case is migrated.
+download slots. The lifecycle projection changes all17 recognized saved-inventory
+hashes, including13 without withdrawn rows. All legacy inventory bindings require
+migration assessment and re-review, not only withdrawn-file notices; no frozen
+case or historical approval is migrated by this contract change.
 
 File receipts add explicit stop reasons and local retention_failed with diagnostic
 data only. Validated/captured evidence is withheld on retention failure. Eligibility
@@ -894,3 +896,24 @@ Strict Assess, LeadRow and operator approval schemas/gates remain unchanged.
 The 053 tests separately cover cache/notice identity, storage concurrency, file
 selection, native receipt propagation and discriminating strict-Assess controls.
 Internal hashes still do not prove coherent-cache-rewrite resistance or source truth.
+
+
+### Explicit merge repair054: depth acquisition and migration receipts
+
+Both fetch_notice_depth network legs now share retained-response/origin validation.
+No legacy checked flag substitutes for a retained, positively same-notice capture.
+The new depth cache schema records typed current inventory state, description and
+resources captures, opaque historical JSON custody and before/after migration
+counts/hashes. Failed reconciliation withholds current count/hash and checked flags.
+Keyless inventory success never restores an unbound description or copies approval.
+`run_dossiers._source_depth_record` persists withdrawn history and these receipts
+beside analysis. They remain provenance and gap data, not new approval authority.
+All legacy bindings are assessed for migration, including inventories without
+withdrawals. Root owns operating warming and explicit review of changed evidence.
+
+Read-only retained bytes remain usable after hash verification. UTF-8-invalid
+extraction stays unreadable with raw custody, and local retention diagnostics are
+bounded. Original-notice IDs in URL paths/explicit query/fragment carriers are
+casefolded; malformed body links are distinguished from proved foreign conflicts.
+Source/API keys, frozen004/005, approval gates, Assess and LeadRow schemas are
+unchanged. See tests/test_step7_merge_repair.py and the054 verification handoff.

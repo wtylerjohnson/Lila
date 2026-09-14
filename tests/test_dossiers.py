@@ -5,12 +5,25 @@ import hashlib
 import json
 
 import pytest
+import httpx
 
 import tools.api.sam_notice_detail as nd
 import tools.api.sam_quota as sq
 from agents.decisions.dossier import (
     PursuitDossier, compose_dossier, render_dossier_markdown, select_targets,
 )
+
+def observed_json(fn):
+    """Existing unit payloads now include the production response observer."""
+    def get(url, *, response_observer=None, max_response_bytes=None, **kwargs):
+        payload = fn(url, **kwargs)
+        response = httpx.Response(200, json=payload,
+            request=httpx.Request('GET', url, params=kwargs.get('params')))
+        if response_observer:
+            response_observer(response, response.content, True)
+        return payload
+    return get
+
 
 NOTICES = [
     {"source_id": "N-LATE", "title": "Late", "response_deadline": "2026-10-01"},
@@ -48,9 +61,9 @@ def test_depth_fetch_meters_caches_and_never_caches_failure(monkeypatch):
             return {"description": "<p>Full scope text</p>"}
         return {"_embedded": [{"name": "SOW.pdf", "mimeType": "application/pdf"}]}
 
-    monkeypatch.setattr(nd, "get_json", fake_get)
+    monkeypatch.setattr(nd, "get_json", observed_json(fake_get))
     before = sq.calls_today()
-    d = nd.fetch_notice_depth("N-1", api_key="k")
+    d = nd.fetch_notice_depth("11111111111111111111111111111111", api_key="k")
     assert d["description"] == "Full scope text"
     assert d["attachments"][0]["name"] == "SOW.pdf"
     assert d["description_checked"] is True
@@ -59,7 +72,7 @@ def test_depth_fetch_meters_caches_and_never_caches_failure(monkeypatch):
     assert sq.calls_today() == before + 1
     # Second call: served from permanent cache — no HTTP, no quota.
     calls.clear()
-    d2 = nd.fetch_notice_depth("N-1", api_key="k")
+    d2 = nd.fetch_notice_depth("11111111111111111111111111111111", api_key="k")
     assert d2["from_cache"] is True and not calls and sq.calls_today() == before + 1
 
     # Failures are not cached: next attempt retries live.
@@ -67,10 +80,10 @@ def test_depth_fetch_meters_caches_and_never_caches_failure(monkeypatch):
         raise RuntimeError("429")
 
     monkeypatch.setattr(nd, "get_json", boom)
-    f1 = nd.fetch_notice_depth("N-2", api_key="k")
+    f1 = nd.fetch_notice_depth("22222222222222222222222222222222", api_key="k")
     assert f1["description"] is None and f1["errors"]
-    monkeypatch.setattr(nd, "get_json", fake_get)
-    f2 = nd.fetch_notice_depth("N-2", api_key="k")
+    monkeypatch.setattr(nd, "get_json", observed_json(fake_get))
+    f2 = nd.fetch_notice_depth("22222222222222222222222222222222", api_key="k")
     assert f2["description"] == "Full scope text" and f2["from_cache"] is False
 
 
@@ -83,8 +96,8 @@ def test_cached_description_retries_keyless_attachment_failure(monkeypatch):
             return {"description": "Authoritative requirement"}
         raise RuntimeError("resources temporarily unavailable")
 
-    monkeypatch.setattr(nd, "get_json", first)
-    d1 = nd.fetch_notice_depth("N-RESOURCE-RETRY", api_key="k")
+    monkeypatch.setattr(nd, "get_json", observed_json(first))
+    d1 = nd.fetch_notice_depth("33333333333333333333333333333333", api_key="k")
     assert d1["description"] == "Authoritative requirement"
     assert d1["resources_checked"] is False
 
@@ -95,8 +108,8 @@ def test_cached_description_retries_keyless_attachment_failure(monkeypatch):
         assert "resources" in url
         return {"_embedded": [{"name": "PWS.pdf", "mimeType": "application/pdf"}]}
 
-    monkeypatch.setattr(nd, "get_json", retry)
-    d2 = nd.fetch_notice_depth("N-RESOURCE-RETRY", api_key="k")
+    monkeypatch.setattr(nd, "get_json", observed_json(retry))
+    d2 = nd.fetch_notice_depth("33333333333333333333333333333333", api_key="k")
     assert d2["from_cache"] is True
     assert d2["resources_checked"] is True
     assert d2["attachments"][0]["name"] == "PWS.pdf"
@@ -111,22 +124,22 @@ def test_cache_refreshes_when_notice_modification_postdates_depth(monkeypatch):
             return {"description": next(descriptions)}
         return []
 
-    monkeypatch.setattr(nd, "get_json", fetched)
-    first = nd.fetch_notice_depth("N-AMENDED", api_key="k")
+    monkeypatch.setattr(nd, "get_json", observed_json(fetched))
+    first = nd.fetch_notice_depth("44444444444444444444444444444444", api_key="k")
     assert first["description"] == "Original requirement"
-    cache = nd._cache_dir() / "N-AMENDED.json"
+    cache = nd._cache_dir() / "44444444444444444444444444444444.json"
     stored = json.loads(cache.read_text())
     stored["retrieved_at"] = "2020-01-01T00:00:00+00:00"
     cache.write_text(json.dumps(stored))
 
     refreshed = nd.fetch_notice_depth(
-        "N-AMENDED", api_key="k",
+        "44444444444444444444444444444444", api_key="k",
         min_retrieved_at="2026-07-10T00:00:00+00:00")
     assert refreshed["description"] == "Amended requirement"
     assert refreshed["description_checked"] is True
     assert not any("predates current notice" in error
                    for error in refreshed["errors"])
-    assert list((nd._cache_dir() / ".history" / "N-AMENDED.json").glob("*.json"))
+    assert list((nd._cache_dir() / ".history" / "44444444444444444444444444444444.json").glob("*.json"))
 
 
 def test_unknown_resources_schema_never_confirms_zero_attachments(monkeypatch):
@@ -135,8 +148,8 @@ def test_unknown_resources_schema_never_confirms_zero_attachments(monkeypatch):
             return {"description": "Authoritative requirement"}
         return {"unexpected": {"rows": []}}
 
-    monkeypatch.setattr(nd, "get_json", fetched)
-    depth = nd.fetch_notice_depth("N-SCHEMA-DRIFT", api_key="k")
+    monkeypatch.setattr(nd, "get_json", observed_json(fetched))
+    depth = nd.fetch_notice_depth("55555555555555555555555555555555", api_key="k")
     assert depth["resources_checked"] is False
     assert depth["resources_schema"] is None
     assert depth["attachments"] is None
