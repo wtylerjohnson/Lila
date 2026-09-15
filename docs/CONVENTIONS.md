@@ -2366,3 +2366,27 @@ The Market Map uses current immutable Assess/source/review equality and unchange
 Native source fields use a readable definition list in Show work and preserve the exact downloadable JSON. New research questions name the original forecast or contract; old saved questions remain intact. Golden preserves `CurrentNextAction.object`, `owner`, `due`, blockers and communication permission, and both available contact channels. An owner label does not imply account-rep assignment; a phone is not labeled mobile without source evidence.
 
 Prose-only stable `data-edit-id` hooks extend the existing Studio editor for research explanations and next actions. Source amounts, dates, contact details, qualification and evidence are not editable through those hooks. Portable edit/download/reopen tests cover the new fields; edited prose is not automatically imported as approved research. Scriptless client export remains scriptless. No source retrieval, paid enrichment, client rerun or new editing runtime is introduced.
+
+
+## Semantic retrieval runtime (SEMANTIC-RUNTIME-058)
+
+The local default encoder in `tools/retrieval/dense.py` requires the
+Sentence Transformers, PyTorch and Transformers versions recorded in
+`requirements.txt`. NumPy alone supports fake-encoder tests, not real semantic
+retrieval. Install the declared dependencies into the operating `.venv`; do not
+change model IDs, dimensions, client frames or qualification gates to make a
+runtime check pass.
+
+The existing model is `BAAI/bge-base-en-v1.5` (768 dimensions). A cached-model
+smoke may run with `HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1` and must exercise
+`default_encoder`, incremental `embed_missing`, `dense_retrieve` and guarded
+`hybrid_retrieve` with real vectors in isolated temporary databases. Preserve
+source IDs, original descriptions and existing source stores. Report dependency
+installation, real encoding, index coverage and client release separately.
+
+The operating sidecar is `data/state/retrieval/dense_vectors.db`. Its absence or
+partial coverage is not a successful semantic search. `tools.retrieval.deep_sweep`
+is an explicit caller of hybrid retrieval; installing packages does not
+automatically dispatch it from Command Center or refresh every client report.
+An index built from the saved notice store establishes saved-corpus retrieval,
+not source freshness or qualified lead yield.

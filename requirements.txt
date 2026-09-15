@@ -20,3 +20,8 @@ openpyxl
 
 # Offline dense/hybrid retrieval and its contract tests
 numpy>=1.26
+
+# Local semantic encoder (verified together on the operating Python runtime)
+sentence-transformers==6.0.1
+torch==2.14.0
+transformers==5.17.0
