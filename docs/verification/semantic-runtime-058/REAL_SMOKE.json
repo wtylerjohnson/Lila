@@ -1,0 +1,82 @@
+{
+  "status": "REAL_ENCODER_AND_RETRIEVAL_SMOKE_PASS",
+  "model_id": "BAAI/bge-base-en-v1.5",
+  "model_cache_revision": "a5beb1e3e68b9ab74eb54cfd186867f64f240e1a",
+  "device": "mps",
+  "dimensions": 768,
+  "vectors_finite_normalized": true,
+  "related_similarity": 0.8143782019615173,
+  "unrelated_similarity": 0.4487428069114685,
+  "saved_source_population": 397819,
+  "sample_rows": 256,
+  "sample_method": "First256 by notice_id; runtime sample not relevance benchmark",
+  "sample_sha256": "41ae02f5e30ea938ac623b0ece084087c0c1793b447f20d847755d2f6c729442",
+  "embedding": {
+    "model_id": "BAAI/bge-base-en-v1.5",
+    "dim": 768,
+    "device": "mps",
+    "store_rows": 256,
+    "rows_embedded_this_pass": 256,
+    "wall_seconds": 10.8,
+    "rows_per_second": 23.7,
+    "sidecar_rows": 256,
+    "at": "2026-09-15T15:36:55.533966+00:00"
+  },
+  "incremental_rows_reembedded": 0,
+  "dense_hits": [
+    [
+      "0009284e517746228fd1e624d362a814",
+      0.5175232291221619
+    ],
+    [
+      "0007485b2e184069a730427926d65e23",
+      0.5041247606277466
+    ],
+    [
+      "00035a1926c241f49321a01e57bad2bc",
+      0.4902611970901489
+    ],
+    [
+      "00063482dd3840d8acb4efc9178322a2",
+      0.4848116636276245
+    ],
+    [
+      "000294bd9c244ceb86ad3fde966c47b8",
+      0.46573472023010254
+    ]
+  ],
+  "hybrid_receipt": {
+    "bm25_pool": 0,
+    "dense_pool": 256,
+    "fused": 256,
+    "k": 5,
+    "guard_rejected": {
+      "entity_or_ladder": 0,
+      "corpus_negative_no_span": 1
+    },
+    "award_history_excluded": 55,
+    "rejected_ids": [
+      {
+        "notice_id": "0018bd3d0f844979b3646b74a6b76ed7",
+        "reason": "corpus_negative_no_span",
+        "detail": "electromagnetic emissions"
+      }
+    ],
+    "family_deduped_away": 0,
+    "returned": 5,
+    "term_route_rows": 0,
+    "dense_only_rows": 5,
+    "in_code_boundary_rows": 1
+  },
+  "sample_embedding_seconds": 10.810416541993618,
+  "estimated_full_embedding_seconds": 16799.176165309997,
+  "total_seconds": 83.00463141698856,
+  "source_store_changed": false,
+  "operating_index_created": false,
+  "client_run_started": false,
+  "packages": {
+    "sentence-transformers": "6.0.1",
+    "torch": "2.14.0",
+    "transformers": "5.17.0"
+  }
+}

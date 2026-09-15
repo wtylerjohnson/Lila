@@ -1,0 +1,103 @@
+{
+  "work_id": "SEMANTIC-RUNTIME-058",
+  "reviewer_role": "coordinator independent local reviewer",
+  "reviewed_at_utc": "2026-09-15T15:38:57.904758+00:00",
+  "candidate": "b1ffb9f890803143e81dc724f61588ed8f49b5de",
+  "base": "cd27ca78f36b87be9eb29dc2b540fa5cb5771315",
+  "verdict": "PASS_WITH_RESIDUALS",
+  "scope": "Bounded source and installed dependency review; final regression and operating integration owned by root",
+  "blocking_findings": [],
+  "changed_files": {
+    "requirements.txt": "adf016bc78f418f80913845841f7522bf2ed793166d5af453180ca7e70aec0c7",
+    "docs/CONVENTIONS.md": "943a2e992affb03643c3881f4f194b9d4e076b6873886c0dd1719181347407d2",
+    "docs/verification/semantic-runtime-058/real_smoke.py": "e1354216d775d996cf1ebc3ecb0e6829c880b3196a788444bf534fc73b7764d0"
+  },
+  "independent_checks": {
+    "candidate_clean": true,
+    "script_ast_parse": "PASS",
+    "packages_installed": 77,
+    "baseline_packages_unchanged": 49,
+    "unsatisfied_installed_requirements": 0,
+    "preservation_manifest_files_rehashed": 26,
+    "preservation_mismatches": 0,
+    "operating_dense_sidecar_exists": false
+  },
+  "source_review": {
+    "real_default_encoder": true,
+    "native_embed_missing_dense_retrieve_hybrid_retrieve": true,
+    "source_sqlite_mode": "ro",
+    "fts_sample": "memory-only",
+    "dense_sample_sidecar": "TemporaryDirectory with explicit receipt paths",
+    "production_algorithms_or_gates_changed": false
+  },
+  "owner_smoke_evidence": {
+    "path": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/SEMANTIC_RUNTIME_058/exact-script/REAL_SMOKE.json",
+    "sha256": "5be9bd1ec541518453d1ea2ae4d2f5fa60416a92371bbe7f9069fb91a8ff5d03",
+    "status": "REAL_ENCODER_AND_RETRIEVAL_SMOKE_PASS",
+    "model": "BAAI/bge-base-en-v1.5",
+    "revision": "a5beb1e3e68b9ab74eb54cfd186867f64f240e1a",
+    "sample_rows": 256,
+    "dimensions": 768,
+    "incremental_rows_reembedded": 0,
+    "dense_hits": 5,
+    "hybrid_receipt": {
+      "bm25_pool": 0,
+      "dense_pool": 256,
+      "fused": 256,
+      "k": 5,
+      "guard_rejected": {
+        "entity_or_ladder": 0,
+        "corpus_negative_no_span": 1
+      },
+      "award_history_excluded": 55,
+      "rejected_ids": [
+        {
+          "notice_id": "0018bd3d0f844979b3646b74a6b76ed7",
+          "reason": "corpus_negative_no_span",
+          "detail": "electromagnetic emissions"
+        }
+      ],
+      "family_deduped_away": 0,
+      "returned": 5,
+      "term_route_rows": 0,
+      "dense_only_rows": 5,
+      "in_code_boundary_rows": 1
+    },
+    "execution_by": "root, receipt inspected by coordinator; no duplicate model run"
+  },
+  "residuals": [
+    {
+      "id": "058-REVIEW-R1",
+      "severity": "nonblocking",
+      "detail": "Offline model mode requires HF_HUB_OFFLINE=1 and TRANSFORMERS_OFFLINE=1 at invocation. Diagnostic description alone does not enforce offline execution. Document exact command."
+    },
+    {
+      "id": "058-REVIEW-R2",
+      "severity": "nonblocking",
+      "detail": "Diagnostic preservation booleans are declarations, not computed integrity measurements. Separate manifest rehash independently supports unchanged source/protected files in this review."
+    },
+    {
+      "id": "058-REVIEW-R3",
+      "severity": "proof boundary",
+      "detail": "BM25 pool is zero in this saved sample/query. Smoke exercises guarded hybrid dense participation, not meaningful lexical/dense fusion quality or recall."
+    },
+    {
+      "id": "058-REVIEW-R4",
+      "severity": "readiness gap",
+      "detail": "Operating dense index absent. Dependency/runtime success does not establish populated saved-corpus retrieval, auto-dispatch from Command Center, source freshness, client release, or lead yield."
+    }
+  ],
+  "root_closeout_requirements": [
+    "Complete existing full strict offline suite; do not duplicate it",
+    "Retain exact-script/model/dependency/preservation receipts",
+    "Record operating integration separately and preserve index/release distinctions"
+  ],
+  "not_performed": [
+    "New workers or team",
+    "New full suite",
+    "New model run/download",
+    "Operating index population",
+    "Client run or release",
+    "Production merge"
+  ]
+}

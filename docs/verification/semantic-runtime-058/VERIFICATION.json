@@ -1,0 +1,39 @@
+{
+  "work_id": "SEMANTIC-RUNTIME-058",
+  "status": "VERIFIED_RUNTIME_FIX_INDEX_PENDING",
+  "tested_source_sha": "b1ffb9f890803143e81dc724f61588ed8f49b5de",
+  "base": "cd27ca78f36b87be9eb29dc2b540fa5cb5771315",
+  "at_utc": "2026-09-15T15:39:46.681437+00:00",
+  "full_suite": {
+    "summary": "6199 passed, 40 skipped, 22 warnings, 26 subtests passed in 217.57s (0:03:37)",
+    "junit": [
+      {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "40",
+        "tests": "6265",
+        "time": "217.335",
+        "timestamp": "2026-09-15T09:35:30.818311-06:00",
+        "hostname": "Ws-MacBook-Air.local"
+      }
+    ],
+    "log_sha256": "6b500c97fb7273aba77a604657bba5f1e0760ece72fa9a619c1179e0eb52d470",
+    "xml_sha256": "f19e56c50c427b49e42554ff2f832efa155fdb41fcb00302ec15633be18517d7"
+  },
+  "real_model_smoke": "REAL_SMOKE.json",
+  "dependency_proof": "DEPENDENCIES.json",
+  "model_identity": "MODEL_MANIFEST.json",
+  "independent_review": "COORDINATOR_REVIEW.json",
+  "source_store_preservation_receipt": "/Users/wtjohnson/Documents/Codex/2026-09-08/give-me-a-fun-recap-of/outputs/SEMANTIC_RUNTIME_058/PRESERVATION.json",
+  "operating_index_status": "ABSENT_NOT_READY",
+  "population": 397819,
+  "full_index_estimate_hours": 4.6,
+  "limits": [
+    "Offline mode requires documented environment flags",
+    "Source preservation is separately hash-verified; diagnostic booleans alone are not proof",
+    "BM25 zero sample does not prove lexical-dense fusion quality or lead relevance",
+    "No full corpus indexing, automatic client dispatch or client release"
+  ],
+  "full_test_command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=docs/verification/step7-followups-053/offline_guard LILA_SUITE_OFFLINE=1 LILA_SUITE_STRICT=1 /Users/wtjohnson/Lila/.venv/bin/python -m pytest -q -p no:cacheprovider --junitxml=/private/tmp/semantic058-full.xml"
+}
