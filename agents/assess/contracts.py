@@ -506,12 +506,12 @@ class GateStatus(str, Enum):
 
 
 class ResearchSubject(_FrozenContract):
-    """Observed award or forecast to investigate; never a buying prediction."""
+    """Observed source to investigate; never a buying prediction."""
     model_config = ConfigDict(frozen=True, extra="forbid")
-    schema_version: Literal["assess.research-subject.v1"] = "assess.research-subject.v1"
+    schema_version: Literal["assess.research-subject.v1", "assess.research-subject.v2"] = "assess.research-subject.v1"
     subject_id: str
-    source_kind: Literal["award", "forecast"]
-    source_posture: Literal["forecast_plan", "historical_award", "current_period_award", "award_timing_unknown"]
+    source_kind: Literal["award", "forecast", "program"]
+    source_posture: Literal["forecast_plan", "historical_award", "current_period_award", "award_timing_unknown", "published_program_signal"]
     source_system: str
     source_record_id: str
     source_url: HttpUrl
@@ -606,6 +606,18 @@ class AssessRun(_FrozenContract):
                 import json
                 if item.source_posture != source_posture(item.source_kind, json.loads(item.source_payload_json), self.as_of):
                     raise ValueError("research source posture disagrees with run cutoff")
+                if item.source_kind == 'program':
+                    from agents.assess.upstream import stamp
+                    row = json.loads(item.source_payload_json)
+                    captured = stamp(row.get('retrieved_at'))
+                    if captured is None or captured > self.as_of:
+                        raise ValueError('program research unavailable at run cutoff')
+                    try:
+                        published_day = date.fromisoformat(str(row.get('data_as_of'))[:10])
+                    except ValueError:
+                        published_day = None
+                    if published_day and published_day > self.as_of.date():
+                        raise ValueError('program source publication postdates run cutoff')
                 if not _agency_is_in_scope(" ".join(filter(None,(item.agency,item.component))), self.scope):
                     raise ValueError("research subject outside Assess scope")
                 if any(e.retrieved_at is not None and e.retrieved_at > self.as_of for e in item.evidence):

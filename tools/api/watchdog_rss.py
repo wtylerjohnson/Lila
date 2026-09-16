@@ -12,6 +12,8 @@ filter with the matched terms recorded, per-feed failure isolation.
 from __future__ import annotations
 
 import re
+import hashlib
+from datetime import datetime, timezone
 import xml.etree.ElementTree as ET
 from typing import Any
 
@@ -45,7 +47,7 @@ def _parse_items(xml_text: str, source: str) -> list[dict]:
         desc = _TAG.sub(" ", item.findtext("description") or "").strip()
         if title and link:
             items.append({"title": title, "url": link, "published": pub,
-                          "body": desc[:400], "source": source})
+                          "body": desc, "source": source})
     return items
 
 
@@ -82,16 +84,26 @@ class WatchdogRssSource(DataSource):
         items: list[dict] = []
         total = 0
         errors: dict[str, str] = {}
+        inventory, attempts = [], []
+        retrieved_at = datetime.now(timezone.utc).isoformat()
         for source, url in FEEDS.items():
             try:
                 parsed = _parse_items(get_text(url), source)
             except Exception as e:  # noqa: BLE001 — isolate per-feed failures
                 errors[source] = str(e)
+                attempts.append({'source': source, 'url': url, 'status': 'failed', 'error': str(e), 'retrieved_at': retrieved_at})
                 continue
+            attempts.append({'source': source, 'url': url, 'status': 'success', 'parsed': len(parsed), 'retrieved_at': retrieved_at})
             total += len(parsed)
             for i in parsed:
+                i = {**i, 'retrieved_at': retrieved_at,
+                     'content_sha256': hashlib.sha256((i['title'] + '\n' + i['body']).encode()).hexdigest()}
+                inventory.append(i)
                 hits = _matched_terms(i, query.keywords)
                 if hits:
                     items.append({**i, "matched": hits})
         return {**cap_disclosed(items, 20), "total_reports": total,
-                "errors": errors}
+                "errors": errors, "parsed_inventory": inventory,
+                "source_attempts": attempts, "retrieved_at": retrieved_at,
+                "coverage_boundary": "Current RSS inventory only; no complete archive or agency/component census",
+                "screened_records": total, "matched_before_cap": len(items)}

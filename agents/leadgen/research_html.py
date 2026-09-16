@@ -80,6 +80,9 @@ def render_source_fields(subject, *, as_of: date) -> str:
                   source_link=source_link(subject))]
     for kind, raw in (("source", subject.source_payload_json),
                       ("discovery-context", subject.discovery_context_json)):
+        if subject.source_kind == 'program' and kind == 'discovery-context':
+            # Screening receipts are retained internally, not client narrative.
+            continue
         if raw is None:
             continue
         payload = json.loads(raw)

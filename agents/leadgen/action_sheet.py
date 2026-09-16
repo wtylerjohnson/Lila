@@ -66,10 +66,17 @@ def research_subject_brief(subject, *, research=None, as_of=None, edit_key=None)
     row = json.loads(subject.source_payload_json)
     link = source_link(subject, 'Original buyer record')
     if subject.source_kind == 'forecast':
+        from tools.api.forecasts.posture import withdrawal_evidence
         dates = [('Planned solicitation release', row.get('anticipated_solicitation')),
                  ('Planned solicitation close', row.get('anticipated_solicitation_close')),
                  ('Planned award', row.get('anticipated_award'))]
         note = 'Forecast planning dates. Confirm current status before treating a date as an available buying window.'
+        withdrawal = withdrawal_evidence(row)
+        if withdrawal:
+            note = 'Source withdrawal: ' + withdrawal['quote'] + '. Historical planning context only; no current response window is established.'
+    elif subject.source_kind == 'program':
+        dates = [('Source data as of', row.get('data_as_of'))]
+        note = 'Published program evidence, not a solicitation window. A request is not an appropriation; a ceiling is not available funding. Confirm the next decision.'
     else:
         period = row.get('period_of_performance') or {}
         dates = [('Recorded performance start', period.get('start_date') or row.get('start_date')),

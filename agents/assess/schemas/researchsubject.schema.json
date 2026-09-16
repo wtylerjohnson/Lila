@@ -244,7 +244,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "Observed award or forecast to investigate; never a buying prediction.",
+  "description": "Observed source to investigate; never a buying prediction.",
   "properties": {
     "agency": {
       "title": "Agency",
@@ -319,15 +319,19 @@
       "type": "string"
     },
     "schema_version": {
-      "const": "assess.research-subject.v1",
       "default": "assess.research-subject.v1",
+      "enum": [
+        "assess.research-subject.v1",
+        "assess.research-subject.v2"
+      ],
       "title": "Schema Version",
       "type": "string"
     },
     "source_kind": {
       "enum": [
         "award",
-        "forecast"
+        "forecast",
+        "program"
       ],
       "title": "Source Kind",
       "type": "string"
@@ -341,7 +345,8 @@
         "forecast_plan",
         "historical_award",
         "current_period_award",
-        "award_timing_unknown"
+        "award_timing_unknown",
+        "published_program_signal"
       ],
       "title": "Source Posture",
       "type": "string"

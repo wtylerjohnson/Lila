@@ -1,0 +1,45 @@
+{
+  "status": "development-evaluation-input-not-an-approved-strategy",
+  "verified_on": "2026-09-16",
+  "source_url": "https://www.veeam.com/solutions/industry/goverment/federal.html",
+  "capability_boundary": "Backup and recovery, immutable data protection, disaster recovery orchestration and cloud-native workload protection. No generic cloud, infrastructure hardware, API gateway or physical disaster-response claim. Deployment-specific authorization and contract eligibility remain to be verified.",
+  "profile": {
+    "client_name": "Veeam",
+    "capability_terms": {
+      "core": ["data backup", "data recovery", "disaster recovery", "immutable backups", "backup and recovery", "Kubernetes backup"],
+      "adjacent": ["cloud migration", "virtual machine", "Kubernetes"],
+      "excluded": ["backup power", "backup generator", "backup chiller", "traffic backup"]
+    },
+    "naics_boundary": ["541519", "541512", "513210"],
+    "mission_components": ["DHS", "Missile Defense Agency"]
+  },
+  "taxonomy": {
+    "client_name": "Veeam",
+    "version": 1,
+    "updated": "2026-09-16",
+    "evidence": [{
+      "evidence_id": "veeam-federal-capabilities-20260916",
+      "url": "https://www.veeam.com/solutions/industry/goverment/federal.html",
+      "reviewed_at": "2026-09-16",
+      "basis": "Vendor-published federal use cases: workload backup/recovery, ransomware recovery and orchestration. This is capability evidence, not an agency authorization or client strategy approval."
+    }],
+    "core": [
+      {"term": "data backup", "evidence_ids": ["veeam-federal-capabilities-20260916"], "aliases": [
+        {"phrase": "backups", "context_any": ["data", "database", "systems", "operating system"], "note": "Require digital-workload context; never backup power."},
+        {"phrase": "backup", "context_any": ["data", "database", "systems", "virtual machine"], "note": "Research candidate only; scope and vendor conformity remain unanswered."}
+      ]},
+      {"term": "data recovery", "evidence_ids": ["veeam-federal-capabilities-20260916"]},
+      {"term": "backup and recovery", "evidence_ids": ["veeam-federal-capabilities-20260916"]},
+      {"term": "disaster recovery", "evidence_ids": ["veeam-federal-capabilities-20260916"]},
+      {"term": "immutable backups", "evidence_ids": ["veeam-federal-capabilities-20260916"]},
+      {"term": "Kubernetes backup", "evidence_ids": ["veeam-federal-capabilities-20260916"]}
+    ],
+    "adjacent": [{"term": "cloud migration"}, {"term": "Kubernetes"}],
+    "exclude": [
+      {"term": "backup power", "scope": "span"},
+      {"term": "backup generator", "scope": "span"},
+      {"term": "backup chiller", "scope": "span"},
+      {"term": "traffic backup", "scope": "span"}
+    ]
+  }
+}

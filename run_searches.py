@@ -1918,6 +1918,8 @@ def main() -> int:
             ),
         )
         payload = {"matched": cur, "research_candidates": research,
+                   "parsed_inventory": [record_payload(record) for record in recs],
+                   "inventory_boundary": "Scoped parsed forecast rows before relevance selection; not all federal demand",
                    "research_schema_version": 1,
                    "total_records": len(recs), "delta": delta,
                    "events": events, "screen_line": screen,
@@ -2570,6 +2572,10 @@ def main() -> int:
     # always carries the verdicts and the synthesis.
     from datetime import datetime as _dt, timezone as _timezone
     out["generated_at"] = _dt.now(_timezone.utc).isoformat(timespec="seconds")
+    from agents.assess.upstream import sweep_coverage
+    if curated_taxonomy is not None:
+        out['results']['upstream_vocabulary'] = curated_taxonomy.model_dump(mode='json')
+    out['results']['upstream_coverage'] = sweep_coverage(out, profile)
     from tools.artifacts import atomic_write_json
     atomic_write_json(path, out)
     print(f"[done] -> {path}", file=sys.stderr)

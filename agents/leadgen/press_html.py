@@ -186,7 +186,7 @@ def render_html(receipt: PressLeadGenReceipt) -> str:
                       + render_targets(parent.targets if research else ())
                       + render_reviewed_context(subject)
                       + detail + render_source_fields(subject, as_of=receipt.as_of.date()))
-            kind = "Planned purchase / research" if subject.source_kind == "forecast" else "Existing contract / research"
+            kind = {"forecast": "Planned purchase / research", "award": "Existing contract / research", "program": "Emerging need / research"}[subject.source_kind]
             identity = source_link(subject)
         else:
             kind = "Opportunity assessment"

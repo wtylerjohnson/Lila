@@ -1,0 +1,10 @@
+{
+  "_comment": "User-approved evaluation scope 2026-09-16: DHS and Missile Defense Agency only. No DoD-wide expansion; see UPSTREAM-LEADS-060 integration receipt.",
+  "departments": [
+    "DHS"
+  ],
+  "subtiers": [
+    "Missile Defense Agency"
+  ],
+  "aliases": {}
+}

@@ -27,7 +27,16 @@ def subject_identity(system, source_id):
 
 
 def _locator(kind, row):
-    if kind == 'forecast':
+    if kind == 'program':
+        from .upstream import PROGRAM_KINDS, narrative
+        from agents.reports.horizon_discovery._stored_program import stored_program_records
+        system = row.get('source')
+        if not system or not list(stored_program_records({'records': [row]}, source=system)) or row.get('kind') not in PROGRAM_KINDS:
+            raise ValueError('program research requires a provenance-complete primary source row')
+        source_id, url = row['record_id'], row['canonical_url']
+        agency, component = row['agency'], row.get('component')
+        title, text = row.get('title'), narrative(row)
+    elif kind == 'forecast':
         system, source_id, url = row.get('source'), row.get('source_id'), row.get('url')
         if system == 'dhs_apfs':
             raw = row.get('source_fields') or {}
@@ -74,6 +83,9 @@ def _locator(kind, row):
 
 
 def validate_subject(subject):
+    expected_version = 'assess.research-subject.v2' if subject.source_kind == 'program' else 'assess.research-subject.v1'
+    if subject.schema_version != expected_version:
+        raise ValueError('research kind disagrees with versioned contract')
     if subject.discovery_context_json is not None:
         context=json.loads(subject.discovery_context_json)
         if not isinstance(context,dict):
@@ -91,7 +103,7 @@ def validate_subject(subject):
         raise ValueError('research fields disagree with original source record')
     if subject.subject_id != subject_identity(system,sid):
         raise ValueError('research subject identity disagrees with source')
-    kind=EvidenceKind.AWARD if subject.source_kind=='award' else EvidenceKind.AGENCY_FORECAST
+    kind=EvidenceKind(row['kind']) if subject.source_kind=='program' else EvidenceKind.AWARD if subject.source_kind=='award' else EvidenceKind.AGENCY_FORECAST
     expected_clock=acquisition_clock(row.get('retrieved_at'),basis='none',component='research_record',field='source_row.retrieved_at',binding=subject.source_sha256)
     if len(subject.evidence) != 1:
         raise ValueError('research subject requires its single original source record')
@@ -107,6 +119,7 @@ def validate_subject(subject):
 
 def source_posture(kind, row, as_of=None):
     if kind == 'forecast':return 'forecast_plan'
+    if kind == 'program':return 'published_program_signal'
     period=row.get('period_of_performance') or {}
     try:
         ends={date.fromisoformat(str(v)[:10]) for v in (period.get('end_date'),row.get('end_date'),row.get('completion')) if v}
@@ -129,9 +142,15 @@ def make_subject(kind, row, *, questions=(), route=None, discovery_context=None,
     next_ask = (f'Is {title} still planned, and which current requirements identify the products, technical owner and eligible supplier?'
                 if kind == 'forecast' else
                 f'Who owns the next decision for {row.get("piid") or row.get("award_id")}, which products are covered, and is there a separate need beyond the recorded contract?')
-    return ResearchSubject(subject_id=subject_identity(system,sid),source_kind=kind,source_posture=source_posture(kind,row,as_of),source_system=system,source_record_id=sid,source_url=url,title=title,agency=agency,component=component,source_payload_json=canonical(row),source_sha256=sha,
+    if kind == 'program':
+        next_ask = f'For {title}, who owns resolving the published need, what remains unresolved, and when is the next technical or acquisition decision?'
+    if kind == 'forecast':
+        from tools.api.forecasts.posture import withdrawal_evidence
+        if withdrawal_evidence(row):
+            next_ask = f'The source withdraws this forecast. Is there a separately documented successor need for {title}, and who owns that decision? Do not respond to the withdrawn plan.'
+    return ResearchSubject(schema_version='assess.research-subject.v2' if kind=='program' else 'assess.research-subject.v1',subject_id=subject_identity(system,sid),source_kind=kind,source_posture=source_posture(kind,row,as_of),source_system=system,source_record_id=sid,source_url=url,title=title,agency=agency,component=component,source_payload_json=canonical(row),source_sha256=sha,
         discovery_context_json=canonical(discovery_context) if discovery_context else None,
-        evidence=(EvidenceRef(evidence_id='ev:research:v1:'+sha,tier=EvidenceTier.PROGRAM if kind=='forecast' else EvidenceTier.MARKET,kind=EvidenceKind.AGENCY_FORECAST if kind=='forecast' else EvidenceKind.AWARD,source_name=system,source_url=url,source_acquisition=clock,record_hash=sha,excerpt=text,primary_source=True,supports=(EvidenceUse.BUYER,)),),
+        evidence=(EvidenceRef(evidence_id='ev:research:v1:'+sha,tier=EvidenceTier.MARKET if kind=='award' else EvidenceTier.PROGRAM,kind=EvidenceKind(row['kind']) if kind=='program' else EvidenceKind.AGENCY_FORECAST if kind=='forecast' else EvidenceKind.AWARD,source_name=system,source_url=url,source_acquisition=clock,record_hash=sha,excerpt=text,primary_source=True,supports=(EvidenceUse.BUYER,)),),
         open_questions=unknowns, next_ask=next_ask,route_hypothesis=route or 'Acquisition route remains to be established')
 
 
@@ -141,6 +160,9 @@ def build_research_ledger(searches, profile, *,run_id,client_name,profile_versio
     from tools.relevance.engine import score_record
     results=searches.get('results') or {}
     candidates=[]
+    from .upstream import screen_programs
+    programs, _ = screen_programs(searches, profile, scope=scope, as_of=as_of)
+    candidates.extend(('program', row, context) for row, context in programs)
     for row in ((results.get('incumbent_buyer_map') or {}).get('research_award_details') or {}).get('records') or []:
         if isinstance(row,dict): candidates.append(('award',row,{}))
     for c in (results.get('forecast_signals') or {}).get('research_candidates') or []:

@@ -36,6 +36,24 @@ def test_matches_record_department_captures_components():
     assert not matches_record("", dhs)
 
 
+def test_mda_scope_is_exact_component_not_all_defense():
+    from agents.workstations import canonical_scope, workstation_id
+    from tools.relevance.scope import EngagementScope, in_scope
+
+    mda = find("MDA")
+    assert find("Missile Defense Agency") == mda
+    assert mda["parent"] == "DoD"
+    assert matches_record("DEPT OF DEFENSE / MISSILE DEFENSE AGENCY", mda)
+    assert matches_record("Missile Defense Agency", find("DoD"))
+    assert not matches_record("Department of the Army", mda)
+    assert not matches_record("Department of Defense", mda)
+    assert workstation_id(canonical_scope({"agencies": ["MDA", "DHS"]})) == "agency_dhs_mda"
+    scope = EngagementScope(departments=["DHS"], subtiers=["Missile Defense Agency"])
+    assert in_scope({"agency": "DHS"}, scope)[0]
+    assert in_scope({"agency": "Missile Defense Agency"}, scope)[0]
+    assert not in_scope({"agency": "Department of the Army"}, scope)[0]
+
+
 def _results():
     return {
         "sam.gov": [

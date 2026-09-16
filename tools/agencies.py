@@ -50,6 +50,8 @@ AGENCIES: list[dict] = [
      "aliases": ["special operations command", "socom", "ussocom"]},
     {"name": "Defense Information Systems Agency", "abbr": "DISA", "parent": "DoD",
      "aliases": ["defense information systems"]},
+    {"name": "Missile Defense Agency", "abbr": "MDA", "parent": "DoD",
+     "aliases": ["missile defense agency"]},
     {"name": "Washington Headquarters Services", "abbr": "WHS", "parent": "DoD",
      "aliases": ["washington headquarters"]},
     {"name": "Defense Logistics Agency", "abbr": "DLA", "parent": "DoD",

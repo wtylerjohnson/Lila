@@ -1,0 +1,99 @@
+{
+  "client_name": "Veeam",
+  "version": 1,
+  "updated": "2026-09-16",
+  "evidence": [
+    {
+      "evidence_id": "veeam-federal-capabilities-20260916",
+      "url": "https://www.veeam.com/solutions/industry/goverment/federal.html",
+      "reviewed_at": "2026-09-16",
+      "basis": "Vendor-published federal use cases: workload backup/recovery, ransomware recovery and orchestration. This is capability evidence, not an agency authorization or client strategy approval."
+    }
+  ],
+  "core": [
+    {
+      "term": "data backup",
+      "evidence_ids": [
+        "veeam-federal-capabilities-20260916"
+      ],
+      "aliases": [
+        {
+          "phrase": "backups",
+          "context_any": [
+            "data",
+            "database",
+            "systems",
+            "operating system"
+          ],
+          "note": "Require digital-workload context; never backup power."
+        },
+        {
+          "phrase": "backup",
+          "context_any": [
+            "data",
+            "database",
+            "systems",
+            "virtual machine"
+          ],
+          "note": "Research candidate only; scope and vendor conformity remain unanswered."
+        }
+      ]
+    },
+    {
+      "term": "data recovery",
+      "evidence_ids": [
+        "veeam-federal-capabilities-20260916"
+      ]
+    },
+    {
+      "term": "backup and recovery",
+      "evidence_ids": [
+        "veeam-federal-capabilities-20260916"
+      ]
+    },
+    {
+      "term": "disaster recovery",
+      "evidence_ids": [
+        "veeam-federal-capabilities-20260916"
+      ]
+    },
+    {
+      "term": "immutable backups",
+      "evidence_ids": [
+        "veeam-federal-capabilities-20260916"
+      ]
+    },
+    {
+      "term": "Kubernetes backup",
+      "evidence_ids": [
+        "veeam-federal-capabilities-20260916"
+      ]
+    }
+  ],
+  "adjacent": [
+    {
+      "term": "cloud migration"
+    },
+    {
+      "term": "Kubernetes"
+    }
+  ],
+  "exclude": [
+    {
+      "term": "backup power",
+      "scope": "span"
+    },
+    {
+      "term": "backup generator",
+      "scope": "span"
+    },
+    {
+      "term": "backup chiller",
+      "scope": "span"
+    },
+    {
+      "term": "traffic backup",
+      "scope": "span"
+    }
+  ]
+}

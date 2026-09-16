@@ -1,0 +1,36 @@
+{
+  "client_name": "Veeam",
+  "capability_terms": {
+    "core": [
+      "data backup",
+      "data recovery",
+      "disaster recovery",
+      "immutable backups",
+      "backup and recovery",
+      "Kubernetes backup"
+    ],
+    "adjacent": [
+      "cloud migration",
+      "virtual machine",
+      "Kubernetes"
+    ],
+    "excluded": [
+      "backup power",
+      "backup generator",
+      "backup chiller",
+      "traffic backup"
+    ]
+  },
+  "naics_boundary": [
+    "541519",
+    "541512",
+    "513210"
+  ],
+  "mission_components": [
+    "DHS",
+    "Missile Defense Agency"
+  ],
+  "capability_summary": "Backup and recovery, immutable data protection, disaster recovery orchestration and cloud-native workload protection. No generic cloud, infrastructure hardware, API gateway or physical disaster-response claim. Deployment-specific authorization and contract eligibility remain to be verified.",
+  "named_competitors_and_incumbents": [],
+  "approval_basis": "UPSTREAM-LEADS-060: user approved the bounded capability input on 2026-09-16; see docs/verification/upstream-leads-060/INTEGRATION.md"
+}

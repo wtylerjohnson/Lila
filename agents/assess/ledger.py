@@ -2762,4 +2762,10 @@ def materialize_current_assess_run(
     path = persist_assess_run(
         run, binding, diagnostics, posting_index, projection_inputs,
         state_dir=state_dir, expected_pointer=expected_pointer)
+    # Internal diagnostic companion, not a release gate or client artifact.
+    # Run-addressing preserves history without altering legacy envelope hashes.
+    from agents.assess.upstream import sweep_coverage
+    from tools.atomic_io import atomic_write_text
+    atomic_write_text(str(path.with_suffix('.upstream-coverage.json')),
+                      json.dumps(sweep_coverage(searches, profile, research=run.research), sort_keys=True, indent=2) + '\n')
     return run, path, diagnostics

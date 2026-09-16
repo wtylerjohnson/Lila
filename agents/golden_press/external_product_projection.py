@@ -376,17 +376,18 @@ def _own_research_parents(parents, owning_groups, claim):
 
     An existing row supplies only its owning position and identity. Visible
     research comes entirely from the validated source parent, never graph prose.
-    Absent graph records are retained in the forecast or historical-spend slot.
+    Absent graph records are retained in the future-demand or historical-spend
+    slot. Program evidence is not a historical award or a live solicitation.
     """
     from agents.reports.value_evidence import value_evidence
     result = []
     for parent in parents:
         subject = parent.research_subject
-        default_slot = "future-forecasts" if subject.source_kind == "forecast" else "agency-spending"
+        default_slot = "agency-spending" if subject.source_kind == "award" else "future-forecasts"
         matches = [(slot, row) for slot, rows in owning_groups.items() for row in rows
                    if row.get("source_id") == subject.source_record_id
                    and row.get("source_url") == _http_url(str(subject.source_url))
-                   and ((subject.source_kind == "forecast" and slot == "future-forecasts")
+                   and ((subject.source_kind in {"forecast", "program"} and slot == "future-forecasts")
                         or (subject.source_kind == "award" and slot in {
                             "agency-spending", "competitors", "teaming-opportunities"}))]
         if matches:

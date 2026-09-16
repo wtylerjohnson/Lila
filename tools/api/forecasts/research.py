@@ -92,6 +92,8 @@ def discover_forecasts(records: list[ForecastRecord], profile: CapabilityProfile
         if not hits and not exploratory:
             continue
         eligible = _set_aside_ok(record, profile)
+        from .posture import withdrawal_evidence
+        withdrawal = withdrawal_evidence(scoring_record)
         out.append({
             "schema_version": 1, "record": record,
             "subject_kind": "forecast", "status": "research_needed",
@@ -105,6 +107,7 @@ def discover_forecasts(records: list[ForecastRecord], profile: CapabilityProfile
             "route_hypothesis": "OEM or partner research; eligible supplier and route remain to be established" if not eligible else "research; acquisition route remains to be established",
             "unknowns": ["Current solicitation and status", "Exact product and configuration conformity", "Tool ownership and purchasing authority", "Eligible supplier and permitted OEM role", "Alternatives or complementary products allowed"],
             "communication_permission": "none",
+            "withdrawal_evidence": withdrawal,
         })
     return out
 

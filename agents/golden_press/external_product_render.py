@@ -248,6 +248,7 @@ def _research_record(record: dict) -> str:
     return ('<article class="product-record" data-research-subject="' + esc(subject.subject_id)
             + '" id="' + esc(key) + '" data-record-key="' + esc(key) + '">'
             '<span class="product-record-kind">' + ('Planned purchase / research' if subject.source_kind == 'forecast'
+                                                    else 'Emerging need / research' if subject.source_kind == 'program'
                                                     else 'Existing contract / research')
             + '</span><h3>' + esc(subject.title) + '</h3><p>' + esc(subject.agency) + '</p>'
             + source_link(subject) + research_subject_brief(subject, research=research, as_of=as_of, edit_key=key + ':research')

@@ -994,3 +994,33 @@ The Market Map uses current immutable Assess/source/review equality and unchange
 Native source fields use a readable definition list in Show work and preserve the exact downloadable JSON. New research questions name the original forecast or contract; old saved questions remain intact. Golden preserves `CurrentNextAction.object`, `owner`, `due`, blockers and communication permission, and both available contact channels. An owner label does not imply account-rep assignment; a phone is not labeled mobile without source evidence.
 
 Prose-only stable `data-edit-id` hooks extend the existing Studio editor for research explanations and next actions. Source amounts, dates, contact details, qualification and evidence are not editable through those hooks. Portable edit/download/reopen tests cover the new fields; edited prose is not automatically imported as approved research. Scriptless client export remains scriptless. No source retrieval, paid enrichment, client rerun or new editing runtime is introduced.
+## UPSTREAM-LEADS-060: additive PROGRAM research (2026-09-16)
+
+Operator approved on 2026-09-16: the user replied "approved on both" to the
+PROGRAM contract extension and the bounded Veeam DHS/MDA capability input.
+Integration and normal-run results are recorded in
+`docs/verification/upstream-leads-060/INTEGRATION.md`. This approval does not
+approve later Assess results, Target activation, paid enrichment or release.
+ResearchSubject v2 adds
+source_kind=program and published_program_signal posture for provenance-complete
+primary PROGRAM records. Existing award/forecast subjects remain v1, with their
+original identities and archival serialization. New PROGRAM records retain exact
+payload/hash, single buyer-context evidence, untrusted acquisition claims, no
+communication permission and zero automatic buying children. Captured/publication
+times cannot exceed the run cutoff. A proposal is not appropriated funding.
+
+The ordinary sweep freezes the reviewed taxonomy in upstream_vocabulary; native
+Assess re-screens PROGRAM input with it, preserving aliases and exclusions while
+not imposing procurement-code qualification on a program investigation. Old
+sweeps use their bound capability profile, not an unrecorded current taxonomy.
+Conflicting source revisions require investigation and do not acquire authority
+by order. No source, contract amount, keyword or email establishes a seller lead.
+
+upstream_coverage is internal-only. It distinguishes partial artifact counts from
+unknown agency universes and keeps collection/parse/screen/research stages separate
+from investigated/actionable stages. Materialization writes a run-addressed
+diagnostic companion, not a new approval or release gate. Fresh builds change run
+identity when input populations change; old releases are not rewritten/reapproved.
+The eight-slot projection owns PROGRAM research in existing slot 7, future
+demand, with an emerging-need label. It never treats program documents as
+historical spending or live solicitations. No locked heading/order is changed.
