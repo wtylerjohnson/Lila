@@ -175,6 +175,65 @@ class _InertExecutor:
         return _InertFuture((name, {}, "mocked offline", 0.0, None))
 
 
+def test_command_center_search_preserves_subject_timeout_and_resumes(tmp_path, monkeypatch):
+    """Real route authorization + search main; source/model I/O is injected."""
+    from agents.assess import investigations as worker
+    from tools.capability import ClientProfile, CapabilityTerms
+    import tools.capability as capability
+    import tools.relevance.taxonomy as taxonomy
+    import agents.decisions.research_picture as picture
+    import run_searches
+    review_dir, *_ = _seed_native_coexistence(tmp_path, monkeypatch)
+    monkeypatch.setenv('LILA_EXPECT_CLIENT_NAME', CLIENT)
+    monkeypatch.setenv('LILA_EXPECT_WORKSTATION_ID', WORKSTATION_ID)
+    _bind_native_owner(monkeypatch, review_dir)
+    captured = {}
+    _patch_offline_success(monkeypatch, captured)
+    monkeypatch.setattr(capability, 'require_profile', lambda _: ClientProfile(
+        client_name=CLIENT, naics_boundary=['541519'],
+        capability_terms=CapabilityTerms(core=['data recovery'])))
+    monkeypatch.setattr(taxonomy, 'load_taxonomy', lambda _: None)
+    rows = [dict(source='agency_program_documents', tier='program', kind='budget',
+        record_id=identifier, title='Data recovery', description='IT data recovery replacement is planned.',
+        agency='Department of Homeland Security', component='U.S. Customs and Border Protection',
+        canonical_url='https://www.dhs.gov/' + identifier,
+        retrieved_at='2026-01-01T00:00:00Z', data_as_of='2026-01-01') for identifier in ('one', 'two')]
+    class Sources(_InertExecutor):
+        def submit(self, runner, name, source_fn):
+            return _InertFuture((name, {'records': rows} if name == 'agency_program_documents' else {}, 'fixture', 0.0, None))
+    monkeypatch.setattr(concurrent.futures, 'ThreadPoolExecutor', Sources)
+    calls = []
+    def synth(bundle):
+        calls.append(bundle['source']['record_id'])
+        if calls == ['one', 'two']:
+            raise TimeoutError('forced one-subject timeout')
+        return dict(decision='refresh_hold', buyer_need='Published IT recovery replacement plan',
+            fit_hypothesis='Product fit remains unknown', why_now='Confirm current plan',
+            route='Routing owner not established', rationale='Refresh current work status',
+            first_question='Who owns this plan?', next_action='Research the technical owner',
+            unknowns=['Current owner'], evidence=[{'evidence_id': bundle['evidence'][0]['evidence_id'],
+                'quote': 'IT data recovery replacement is planned.'}])
+    real_worker = worker.run_investigations
+    monkeypatch.setattr(worker, 'run_investigations', lambda data, profile: real_worker(data, profile, synth=synth))
+    monkeypatch.setattr(picture, 'compose_research_picture', lambda *a, **kw: (_ for _ in ()).throw(TimeoutError('whole picture timeout')))
+    monkeypatch.setattr(sys, 'argv', ['run_searches.py', '--client', CLIENT, '--skip', 'triage'])
+    def launch(step, client, args):
+        assert step == 'searches' and args['_lila_native_workstation']
+        assert run_searches.main() == 0
+        return 'fixture-command-center-job'
+    monkeypatch.setattr(server, 'start_job', launch)
+    request = {'client_name': CLIENT, 'step': 'searches', 'args': {'workstation_id': WORKSTATION_ID}}
+    api = server.app.test_client()
+    assert api.post('/api/run', json=request).status_code == 200
+    first = captured['payload']['results']['upstream_investigations']
+    assert [item['state'] for item in first['items']] == ['complete', 'failed']
+    assert captured['payload']['results']['research_picture']['error'] == 'whole picture timeout'
+    assert api.post('/api/run', json=request).status_code == 200
+    resumed = captured['payload']['results']['upstream_investigations']
+    assert calls == ['one', 'two', 'two']
+    assert all(item['state'] == 'complete' for item in resumed['items'])
+
+
 def _patch_offline_success(monkeypatch, captured: dict) -> None:
     """Keep a successful runner test entirely off network and off disk."""
     import tools.artifacts as artifacts

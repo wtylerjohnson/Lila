@@ -19,6 +19,105 @@ from tools.api.base import REGISTRY, SourceQuery, SourceRegistry
 from tools.api.provenance import make_provenance_envelope, provenance_from_payload
 from tools.api.source_catalog import source_spec
 from tools.toggles import is_enabled
+from pydantic import BaseModel, ConfigDict, Field
+from typing import Literal
+
+
+class ProgramEvidenceEnvelope(BaseModel):
+    """Validated internal bridge; raw nested receipts remain untouched."""
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    schema_version: Literal["nested-program-evidence.v1"] = "nested-program-evidence.v1"
+    source_id: str
+    locator: str
+    payload_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    retrieved_at: str
+    state: Literal["success", "partial", "failed", "not-run"]
+    grain: Literal["oversight_report", "budget_account"]
+    requested_agencies: tuple[str, ...]
+    narrative_supported: bool
+    records: tuple[dict, ...]
+    total_matched: int | None = None
+    truncated: bool | None = None
+    limitations: tuple[str, ...] = ()
+
+
+def nested_program_evidence(results):
+    """Verify the stored child hash before normalizing any record exactly once.
+
+    Account context is parsable but cannot become a narrative candidate. A
+    successful receipt for a bounded query is not exhaustive agency coverage.
+    """
+    children = (results.get("source_mesh") or {}).get("sources") or {}
+    output, errors = [], []
+    for source in ("omb_public_budget_database", "omb_sf133", "oversight_gov_reports"):
+        child = children.get(source)
+        if not isinstance(child, dict):
+            continue
+        raw = child.get("payload")
+        if raw is None and child.get("status") in {"failed", "not-run"}:
+            errors.append({"source": source, "state": child['status'], "reason": child.get('not_run') or child.get('error')})
+            continue
+        try:
+            if child.get("source_id") != source or not isinstance(raw, dict):
+                raise ValueError("nested source identity/payload invalid")
+            sha = hashlib.sha256(_canonical_bytes(raw)).hexdigest()
+            if child.get("content_sha256") != sha:
+                raise ValueError("nested payload differs from its captured hash")
+            grain = "oversight_report" if source == "oversight_gov_reports" else "budget_account"
+            values = raw.get("accounts", raw.get("items", []))
+            if not isinstance(values, list) or child.get('record_count') != len(values):
+                raise ValueError("nested collection count differs from payload")
+            rows = []
+            provenance = raw.get('_provenance') or {}
+            for index, value in enumerate(values):
+                if not isinstance(value, dict):
+                    raise ValueError("nested row is not an object")
+                agency = value.get('agency_reviewed') if grain == 'oversight_report' else value.get('agency_name')
+                url = value.get('citation_url') or value.get('url') or child.get('retrieval_url')
+                row = dict(source=source, tier='program',
+                    record_id=value.get('record_id'), canonical_url=url,
+                    agency=agency, component=value.get('bureau_name'),
+                    retrieved_at=child.get('retrieved_at'),
+                    data_as_of=value.get('date_issued') or provenance.get('data_as_of'),
+                    kind='watchdog' if grain == 'oversight_report' else 'budget',
+                    title=value.get('title') or value.get('account_name'),
+                    description=value.get('description') if grain == 'oversight_report' else None,
+                    evidence_grain=grain, narrative_supported=grain == 'oversight_report',
+                    source_record=value, source_payload_sha256=sha,
+                    source_locator=f"results.source_mesh.sources.{source}.payload.{'accounts' if 'accounts' in raw else 'items'}[{index}]",
+                    recommendation_status='not_retrieved' if grain == 'oversight_report' else None)
+                rows.append(row)
+            limitations = provenance.get('limitations') or []
+            if isinstance(limitations, str):
+                limitations = [limitations]
+            output.append(ProgramEvidenceEnvelope(source_id=source,
+                locator=f'results.source_mesh.sources.{source}.payload', payload_sha256=sha,
+                retrieved_at=child.get('retrieved_at'), state=child.get('status'), grain=grain,
+                requested_agencies=tuple((child.get('retrieval_query') or {}).get('agencies') or []),
+                narrative_supported=grain == 'oversight_report', records=tuple(rows),
+                total_matched=raw.get('total_matched'),
+                truncated=raw.get('truncated', provenance.get('truncated')),
+                limitations=tuple(limitations)))
+        except (ValueError, TypeError) as exc:
+            errors.append({'source': source, 'state': 'failed', 'reason': str(exc)})
+    return output, errors
+
+
+def program_payloads(results):
+    """One projection used by PROGRAM screening and coverage, no source I/O."""
+    projected = dict(results)
+    envelopes, errors = nested_program_evidence(results)
+    for envelope in envelopes:
+        if envelope.source_id in projected:
+            raise ValueError('duplicate top-level and nested program source')
+        projected[envelope.source_id] = {
+            'records': list(envelope.records),
+            '_provenance': envelope.model_dump(mode='json', exclude={'records'}),
+            'evidence_interface': envelope.model_dump(mode='json', exclude={'records'})}
+    for error in errors:
+        projected[error['source']] = {'records': [], 'error': error['reason'],
+                                    '_provenance': error}
+    return projected
 
 
 SCHEMA_VERSION = 1

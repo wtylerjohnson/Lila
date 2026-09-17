@@ -121,7 +121,7 @@ def _parse_reports(doc: str) -> tuple[list[dict[str, Any]], int]:
 
 def _query_params(query: SourceQuery) -> tuple[dict[str, Any], bool]:
     candidates = [str(value).strip().strip('"')
-                  for value in (*query.keywords, *query.agencies)
+                  for value in (*query.agencies, *query.keywords)
                   if str(value).strip()]
     terms: list[str] = []
     seen: set[str] = set()
@@ -175,44 +175,67 @@ class OversightGovReportsSource(DataSource):
                 source=self.name, mode=MODE, items=[], status="partial",
                 limitations=["unscoped report crawl refused; pass capability or agency terms"],
             )
-        params, terms_capped = _query_params(query)
-        url = SEARCH_URL + "?" + urlencode(params)
-        try:
-            blob, headers = self._fetcher(url, timeout=30.0, retries=2)
-            reports, dropped = _parse_reports(blob.decode("utf-8", errors="replace"))
-        except Exception as exc:  # noqa: BLE001
-            return payload(
-                source=self.name, mode=MODE, items=[], status="failed",
-                limitations=[f"Oversight.gov retrieval or parse failed: {exc}"],
-            )
+        from tools.agencies import find, matches_record
+        # One query per canonical agency prevents an OR/term cap from silently
+        # discarding the buyer boundary. Aliases share the same query.
+        agencies = list(dict.fromkeys((find(a) or {}).get('name', a) for a in query.agencies)) or [None]
+        items, inventory, pages, errors = {}, {}, [], []
+        capped = False
+        for agency in agencies[:8]:
+            scoped = query.model_copy(update={'agencies': [agency] if agency else []})
+            params, terms_capped = _query_params(scoped)
+            capped |= terms_capped
+            for page in range(3):
+                current = {**params, 'page': page}
+                url = SEARCH_URL + "?" + urlencode(current)
+                try:
+                    blob, headers = self._fetcher(url, timeout=30.0, retries=2)
+                    doc = blob.decode('utf-8', errors='replace')
+                    reports, dropped = _parse_reports(doc)
+                    match = re.search(r'Displaying\s+(\d+)\s*[-–]\s*(\d+)\s+of\s+([\d,]+)', doc)
+                    if not reports and not re.search(r'(Displaying\s+0|No (?:reports|results)|no results)', doc, re.I):
+                        raise ValueError('unrecognized listing or empty result markup')
+                    total = int(match.group(3).replace(',', '')) if match else (0 if not reports else None)
+                    has_next = bool(re.search(r'rel=["\']next|title=["\']Go to next page', doc, re.I))
+                    more = has_next or bool(match and int(match.group(2)) < total)
+                    page_receipt = receipt(source=self.name, url=url, query=current, blob=blob,
+                        normalized=reports, headers=headers, content_kind='text/html')
+                    pages.append({'agency': agency, 'page': page, 'total_matched': total,
+                                  'more_pages': more, 'receipt': page_receipt, 'dropped': dropped})
+                    capped |= bool(dropped or page == 2 and more)
+                    for row in reports:
+                        expected = find(agency) if agency else None
+                        in_scope = not agency or bool(expected and matches_record(row.get('agency_reviewed') or '', expected)) or (row.get('agency_reviewed') or '').casefold() == agency.casefold()
+                        row = {**row, 'scope_match': in_scope, 'recommendation_status': 'not_retrieved',
+                               'query_agency': agency}
+                        inventory[row['citation_url']] = row
+                        if in_scope:
+                            items[row['citation_url']] = row
+                    if not more:
+                        break
+                except Exception as exc:
+                    errors.append({'agency': agency, 'page': page, 'url': url, 'error': str(exc)})
+                    break
         limit = max(1, min(query.limit, 50))
-        total = len(reports)
-        items = reports[:limit]
-        limitations = [
-            "HTML is the only public search surface; Drupal markup drift is a standing risk",
-            "one bounded server-side result page is read; report PDFs and recommendation nodes are not crawled",
-            "IG findings are oversight context, not proof of future procurement or supplier nonresponsibility",
-        ]
-        if terms_capped:
-            limitations.append(
-                f"bounded search used at most {MAX_QUERY_TERMS} terms and "
-                f"{MAX_QUERY_CHARS} query characters")
-        if dropped:
-            limitations.append(f"ignored {dropped} malformed listing rows")
-        if total > limit:
-            limitations.append(f"kept first {limit} of {total} returned rows")
-        source_receipt = receipt(
-            source=self.name, url=url, query=params, blob=blob,
-            normalized=items, headers=headers, content_kind="text/html",
-        )
-        return payload(
-            source=self.name, mode=MODE, items=items,
-            status=("partial" if terms_capped or dropped or total > limit
-                    else "complete"),
-            limitations=limitations, source_receipt=source_receipt,
-            total_matched=total,
-            public_detail="Official Oversight.gov scoped federal OIG report search",
-        )
+        kept = list(items.values())[:limit]
+        mismatches = [r for r in inventory.values() if not r['scope_match']]
+        partial = bool(errors or capped or mismatches or len(items) > limit or len(agencies) > 8)
+        result = payload(source=self.name, mode=MODE, items=kept,
+            status='failed' if errors and not pages else 'partial' if partial else 'complete',
+            limitations=[
+                'At most eight distinct agency queries and three pages per query; bounded keyword slice',
+                'Report publication date is distinct from observation date; current recommendation status not retrieved',
+                'Overlapping query totals are not summed; report URLs are deduplicated',
+            ], source_receipt=pages[0]['receipt'] if pages else None,
+            total_matched=None, public_detail='Official scoped OIG report context')
+        known_total = pages[0]['total_matched'] if len(agencies) == 1 and pages and not mismatches else None
+        result.update(total_matched=known_total, parsed_inventory=list(inventory.values()), page_receipts=pages,
+                      source_attempts=errors, scope_mismatches=mismatches,
+                      matched_before_cap=len(items), truncated=bool(capped or len(items) > limit),
+                      query_boundary={'agencies': agencies[:8], 'omitted_agencies': agencies[8:],
+                          'posted_from': str(query.posted_from) if query.posted_from else None,
+                          'posted_to': str(query.posted_to) if query.posted_to else None})
+        return result
 
 
 try:

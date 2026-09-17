@@ -1,7 +1,7 @@
 {
   "client_name": "Veeam",
-  "version": 1,
-  "updated": "2026-09-16",
+  "version": 2,
+  "updated": "2026-09-17",
   "evidence": [
     {
       "evidence_id": "veeam-federal-capabilities-20260916",
@@ -43,16 +43,102 @@
       "term": "data recovery",
       "evidence_ids": [
         "veeam-federal-capabilities-20260916"
+      ],
+      "aliases": [
+        {
+          "phrase": "disaster recovery",
+          "context_any": [
+            "data",
+            "systems",
+            "IT",
+            "information technology",
+            "database",
+            "cyber",
+            "infrastructure",
+            "application",
+            "system",
+            "software",
+            "cloud",
+            "cybersecurity"
+          ],
+          "note": "Digital recovery research only; remaining work, product fit and route require investigation."
+        },
+        {
+          "phrase": "recovery assurance",
+          "context_any": [
+            "data",
+            "systems",
+            "IT",
+            "information technology",
+            "database",
+            "cyber",
+            "infrastructure",
+            "application",
+            "system",
+            "software",
+            "cloud",
+            "cybersecurity"
+          ],
+          "note": "Digital recovery research only; remaining work, product fit and route require investigation."
+        },
+        {
+          "phrase": "contingency testing",
+          "context_any": [
+            "data",
+            "systems",
+            "IT",
+            "information technology",
+            "database",
+            "cyber",
+            "infrastructure",
+            "application",
+            "system",
+            "software",
+            "cloud",
+            "cybersecurity"
+          ],
+          "note": "Digital recovery research only; remaining work, product fit and route require investigation."
+        },
+        {
+          "phrase": "contingency planning",
+          "context_any": [
+            "data",
+            "systems",
+            "IT",
+            "information technology",
+            "database",
+            "cyber",
+            "infrastructure",
+            "application",
+            "system",
+            "software",
+            "cloud",
+            "cybersecurity"
+          ],
+          "note": "Digital recovery research only; remaining work, product fit and route require investigation."
+        },
+        {
+          "phrase": "recovery testing",
+          "context_any": [
+            "data",
+            "systems",
+            "IT",
+            "information technology",
+            "database",
+            "cyber",
+            "infrastructure",
+            "application",
+            "system",
+            "software",
+            "cloud",
+            "cybersecurity"
+          ],
+          "note": "Digital recovery research only; remaining work, product fit and route require investigation."
+        }
       ]
     },
     {
       "term": "backup and recovery",
-      "evidence_ids": [
-        "veeam-federal-capabilities-20260916"
-      ]
-    },
-    {
-      "term": "disaster recovery",
       "evidence_ids": [
         "veeam-federal-capabilities-20260916"
       ]
@@ -94,6 +180,38 @@
     {
       "term": "traffic backup",
       "scope": "span"
+    }
+  ],
+  "retrieval_mappings": [
+    {
+      "term": "hypervisor",
+      "disposition": "exploratory",
+      "reason": "Infrastructure transition may involve recovery requirements; no automatic product fit or qualification."
+    },
+    {
+      "term": "private cloud",
+      "disposition": "exploratory",
+      "reason": "Infrastructure transition may involve recovery requirements; no automatic product fit or qualification."
+    },
+    {
+      "term": "hybrid cloud",
+      "disposition": "exploratory",
+      "reason": "Infrastructure transition may involve recovery requirements; no automatic product fit or qualification."
+    },
+    {
+      "term": "cloud operations",
+      "disposition": "exploratory",
+      "reason": "Infrastructure transition may involve recovery requirements; no automatic product fit or qualification."
+    },
+    {
+      "term": "cloud migration",
+      "disposition": "exploratory",
+      "reason": "Infrastructure transition may involve recovery requirements; no automatic product fit or qualification."
+    },
+    {
+      "term": "contingency testing",
+      "disposition": "exploratory",
+      "reason": "Infrastructure transition may involve recovery requirements; no automatic product fit or qualification."
     }
   ]
 }

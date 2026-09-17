@@ -864,6 +864,15 @@ SOURCE_SPECS: tuple[SourceSpec, ...] = (
         ),
     ),
     SourceSpec(
+        "agency_program_documents", "Official agency program documents",
+        "program-documents", "program-signal", ("research-subjects", "source-coverage"),
+        task_key="agency_program_documents", result_key="agency_program_documents",
+        adapter_name="agency_program_documents", standard=True,
+        coverage_class="advisory", support_level="partial",
+        coverage_boundary="Registered MDA MD30 and CBP biometric program publications and sections; not an agency publication census",
+        official_url="https://comptroller.war.gov/Budget-Materials/FY2027BudgetJustification/",
+    ),
+    SourceSpec(
         "foreign_assistance", "ForeignAssistance.gov",
         "foreign-assistance", "program-signal",
         ("horizon-factory", "source-coverage"),

@@ -24,7 +24,7 @@ from tools.api.source_catalog import (
 def test_registry_runner_coverage_and_consumers_reconcile():
     registered = {source.name for source in REGISTRY.all()}
     assert registered == set(SOURCE_BY_ADAPTER)
-    assert len(STANDARD_SOURCE_SPECS) == 32
+    assert len(STANDARD_SOURCE_SPECS) == 33
     assert STANDARD_TASK_KEYS == tuple(
         source for source, _label in STANDARD_SWEEP_LANES)
     assert dict(RESULT_KEY_FOR_TASK) == {
@@ -60,7 +60,7 @@ def test_standard_source_coverage_contracts_are_explicit_and_reconcile():
             "required-exhaustive", "required-bounded", "advisory")
     }
 
-    assert by_class["advisory"] == {"grants", "gdelt", "edgar"}
+    assert by_class["advisory"] == {"grants", "gdelt", "edgar", "agency_program_documents"}
     assert by_class["required-bounded"] == {
         "usaspending.gov", "web", "federal_register", "news", "subawards",
         "contract_awards", "dod_contracts", "watchdogs", "congress",

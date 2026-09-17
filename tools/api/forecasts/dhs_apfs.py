@@ -88,6 +88,8 @@ def map_record(rec: dict, retrieved_at: Optional[datetime] = None) -> ForecastRe
     return ForecastRecord(
         contacts=apfs_contacts(rec),
         contact_publication_date=publication_date(rec),
+        incumbent_stated=_display(rec.get("contractor")),
+        predecessor_contract_id=_display(rec.get("contract_number")),
         source="dhs_apfs",
         source_id=str(rec.get("apfs_number") or rid),
         agency="DHS",

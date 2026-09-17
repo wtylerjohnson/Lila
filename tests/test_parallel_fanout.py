@@ -37,7 +37,12 @@ def test_run_searches_parallel_fanout_collects_all_keys(tmp_path, monkeypatch):
     # every adapter returns instantly with a marker; one always explodes
     class FakeOpp:
         def model_dump_json(self): return json.dumps({"ok": True})
-    monkeypatch.setattr(rs, "SamGovSource", lambda: mock.Mock(search=lambda q: [FakeOpp()]))
+    from tools.api import sam_extract
+    def extract_source(*, existing_only=False):
+        assert existing_only is True
+        return mock.Mock(search=lambda q: [FakeOpp()],
+                         last_census={"complete": True, "matched": 1, "active_screened": 1})
+    monkeypatch.setattr(sam_extract, "SamExtractSource", extract_source)
     monkeypatch.setattr(rs, "UsaSpendingSource",
                         lambda: mock.Mock(market_evidence=lambda code, agency=None: {"naics": code}))
     monkeypatch.setattr(rs, "WebSearchSource", lambda: mock.Mock(search=lambda q: []))

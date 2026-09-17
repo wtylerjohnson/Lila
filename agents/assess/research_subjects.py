@@ -47,6 +47,11 @@ def _locator(kind, row):
             for field,value in mapped.items():
                 # Older immutable forecast payloads predate these additive fields.
                 # If supplied, they must still match the retained original source.
+                if field in {'incumbent_stated', 'predecessor_contract_id'} and row.get(field) is None:
+                    # Archival APFS rows used null for both fields. All other
+                    # fields and the retained source hash still validate; a
+                    # supplied non-null value must equal the current producer.
+                    continue
                 if field in {'contacts', 'contact_publication_date'} and field not in row:
                     continue
                 if field not in {'retrieved_at','first_seen','last_seen','record_hash'} and row.get(field) != value:
@@ -154,7 +159,7 @@ def make_subject(kind, row, *, questions=(), route=None, discovery_context=None,
         open_questions=unknowns, next_ask=next_ask,route_hypothesis=route or 'Acquisition route remains to be established')
 
 
-def build_research_ledger(searches, profile, *,run_id,client_name,profile_version,scope,as_of):
+def build_research_ledger(searches, profile, *,run_id,client_name,profile_version,scope,as_of,apply_investigations=True):
     from agents.assess.ledger import _agency_is_in_scope
     from tools.relevance.taxonomy import CapabilityTaxonomy, TaxonomyTerm, KillRule
     from tools.relevance.engine import score_record
@@ -191,7 +196,11 @@ def build_research_ledger(searches, profile, *,run_id,client_name,profile_versio
             output.setdefault(subject.subject_id,subject)
         except (TypeError,ValueError,KeyError) as exc:
             diagnostics.append('Research source withheld: '+str(exc))
-    return ResearchSubjectLedger(run_id=run_id,client_name=client_name,profile_version=profile_version,scope=scope,as_of=as_of,items=tuple(output.values())),diagnostics
+    ledger = ResearchSubjectLedger(run_id=run_id,client_name=client_name,profile_version=profile_version,scope=scope,as_of=as_of,items=tuple(output.values()))
+    if apply_investigations:
+        from .investigations import apply_saved
+        ledger = apply_saved(ledger, searches, profile)
+    return ledger, diagnostics
 
 
 def apply_reviewed_subjects(ledger, book, scope_designator):

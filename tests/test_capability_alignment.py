@@ -219,6 +219,8 @@ def test_native_sam_query_and_saved_receipt_share_the_definition(tmp_path, monke
     monkeypatch.setattr(qt, 'append_term_yield_log', lambda *a, **k: None)
     queries = []
     class Source:
+        def __init__(self, *, existing_only=False):
+            assert existing_only is True
         last_census = {'complete': True, 'matched': 0}
         last_attachment_census = {}
         def search(self, query):

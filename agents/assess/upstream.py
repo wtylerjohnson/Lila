@@ -15,10 +15,10 @@ from tools.relevance.taxonomy import CapabilityTaxonomy, KillRule, TaxonomyTerm
 
 PROGRAM_KINDS = {"budget", "legislation", "regulation", "agency_announcement", "watchdog"}
 FAMILIES = {
-    "budget": ("dod_budget_exhibits", "budget_pressure", "funded_demand", "govinfo"),
+    "budget": ("dod_budget_exhibits", "agency_program_documents", "omb_public_budget_database", "omb_sf133", "budget_pressure", "funded_demand", "govinfo"),
     "acquisition_planning": ("forecast_signals", "sam.gov"),
     "strategy_program": ("darpa_opportunities", "dsip_topics", "reginfo_unified_agenda", "grants_gov", "sbir_gov"),
-    "oversight": ("watchdogs", "gao_legal"),
+    "oversight": ("watchdogs", "gao_legal", "oversight_gov_reports"),
     "award_lifecycle": ("contract_awards", "incumbent_buyer_map"),
     "prime_partner": ("subawards", "dod_contracts"),
     "announcements": ("federal_register", "congress", "news", "gdelt", "web"),
@@ -55,7 +55,8 @@ def screen_programs(searches, profile, *, scope, as_of):
     revisions are held with every version in the original sweep for resolution.
     """
     from agents.assess.ledger import _agency_is_in_scope
-    results = searches.get("results") or {}
+    from tools.api.source_mesh import program_payloads
+    results = program_payloads(searches.get("results") or {})
     taxonomy = None
     candidates, decisions, versions = [], [], {}
     for source, payload in sorted(results.items()):
@@ -72,6 +73,11 @@ def screen_programs(searches, profile, *, scope, as_of):
                  "source_url": row.get("canonical_url"), "row_sha256": sha,
                  "parsed": False, "screened": False, "relevant": None}
             decisions.append(d)
+            if row.get('evidence_grain') == 'budget_account':
+                d.update(parsed=bool(row.get('record_id') and row.get('source_payload_sha256')),
+                         reason='account_context_without_buying_narrative', grain='budget_account',
+                         screening_state='unsupported', investigation_state='unsupported')
+                continue
             if sha not in valid_hashes or row.get("kind") not in PROGRAM_KINDS or not narrative(row):
                 d["reason"] = "source_schema_or_primary_evidence_gap"
                 continue
@@ -125,7 +131,25 @@ def screen_programs(searches, profile, *, scope, as_of):
             continue
         seen.add(identity)
         output.append((row, context))
-    return output, decisions
+    # Separate publications about one explicitly identified program support
+    # one subject. No title-based grouping or generic agency overlap joins.
+    grouped, retained = {}, []
+    for row, context in output:
+        if row.get('program_id'):
+            key = (row['source'], row.get('agency'), row.get('component'), row['program_id'])
+            grouped.setdefault(key, []).append((row, context))
+        else:
+            retained.append((row, context))
+    for group in grouped.values():
+        group.sort(key=lambda item: (item[0].get('kind') != 'budget',
+                                    str(item[0].get('data_as_of') or ''), item[0]['record_id']))
+        retained.append(group[0])
+        for row, _ in group[1:]:
+            for decision in decisions:
+                if decision['source'] == row['source'] and decision['source_record_id'] == row['record_id']:
+                    decision.update(reason='supporting_publication_same_program',
+                                    joined_subject_record_id=group[0][0]['record_id'])
+    return retained, decisions
 
 
 def coverage_matrix(searches, *, agencies, decisions=(), research=None, parents=None):
@@ -134,7 +158,8 @@ def coverage_matrix(searches, *, agencies, decisions=(), research=None, parents=
     Receipt inventories are source-wide and intentionally NOT assigned to every
     component. Later-stage counts require actual source-bound native artifacts.
     """
-    results = searches.get("results") or {}
+    from tools.api.source_mesh import program_payloads
+    results = program_payloads(searches.get("results") or {})
     from agents.reports.source_coverage import coverage_from_sweep
     attempts = {r['source']: r for r in coverage_from_sweep(searches)['lanes']}
     forecasts = results.get('forecast_signals') or {}
@@ -147,8 +172,12 @@ def coverage_matrix(searches, *, agencies, decisions=(), research=None, parents=
         if row.get('source') == 'dhs_apfs' and str(row.get('component') or '').startswith(agency + '/'):
             return True
         from tools.agencies import find
-        expected, actual = find(agency), find(str(row.get('agency') or ''))
-        return bool(expected and actual and expected['name'] == actual['name'])
+        expected = find(agency)
+        labels = [row.get('agency'), row.get('component')]
+        if row.get('source') == 'dhs_apfs':
+            labels += str(row.get('component') or '').split('/')
+        return bool(expected and any(actual and expected['name'] == actual['name']
+                    for actual in (find(str(label or '')) for label in labels)))
     def subject_family(subject):
         if subject.source_kind == 'forecast': return 'acquisition_planning'
         if subject.source_kind == 'award': return 'award_lifecycle'
@@ -170,6 +199,7 @@ def coverage_matrix(searches, *, agencies, decisions=(), research=None, parents=
                     "error": payload.get("error") or payload.get("errors"),
                     "attempt_receipt": attempts.get(source),
                     "provenance": payload.get("_provenance"),
+                    "evidence_interface": payload.get("evidence_interface"),
                     "coverage": payload.get("coverage_contract"),
                     "source_attempts": payload.get("source_attempts") or payload.get("sources"),
                     "retrieved_at": payload.get("retrieved_at"),
@@ -214,6 +244,9 @@ def coverage_matrix(searches, *, agencies, decisions=(), research=None, parents=
                                 screened=len(forecast_rows), relevant=len(matched),
                                 counted_sources=['forecast_signals'],
                                 stage_boundary='Forecast inventory only. SAM and other acquisition signals remain separately unmeasured.')
+            if scoped and all(d.get('grain') == 'budget_account' for d in scoped):
+                rows[-1].update(screened=None, relevant=None, investigated=None,
+                                stage_boundary='Account context parsed; narrative screening and investigation unsupported')
     return {"schema_version": "upstream.coverage.v1", "internal_only": True,
             "generated_from": searches.get("generated_at"), "rows": rows}
 
@@ -229,5 +262,7 @@ def sweep_coverage(searches, profile, *, research=None, parents=None):
                       | {a.name for a in scope.agencies}
                       | {str(r[k]) for r in (searches.get('results', {}).get('forecast_signals', {}).get('parsed_inventory') or [])
                          for k in ('agency', 'component') if isinstance(r, dict) and r.get(k)})
+    from tools.agencies import find
+    agencies = sorted({find(a)['name'] if find(a) else a for a in agencies})
     return coverage_matrix(searches, agencies=agencies or ['scope not enumerated'],
                            decisions=decisions, research=research, parents=parents)

@@ -1,0 +1,86 @@
+[
+  {
+    "path": "data/cleaned/searches_insignary.json",
+    "source": "/Users/wtjohnson/lila-upstream-leads-20260916/data/cleaned/searches_insignary.json",
+    "bytes": 1751260,
+    "sha256": "b8b0309d6400a8e626a36b0d08dfbcdd6c237434c4dc519c9896660ec96caac9",
+    "equal_to_phase1_fixture": true
+  },
+  {
+    "path": "data/raw/sample_sam_response.json",
+    "source": "/Users/wtjohnson/lila-upstream-leads-20260916/data/raw/sample_sam_response.json",
+    "bytes": 2114,
+    "sha256": "a15ab2f11f72911aed1461505c7b778a617a90be8088d299c45f7fc9c6c03368",
+    "equal_to_phase1_fixture": true
+  },
+  {
+    "path": "data/reference/marks/.gitkeep",
+    "source": "/Users/wtjohnson/lila-upstream-leads-20260916/data/reference/marks/.gitkeep",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "equal_to_phase1_fixture": true
+  },
+  {
+    "path": "data/reference/marks/client/apexanalytix.png",
+    "source": "/Users/wtjohnson/lila-upstream-leads-20260916/data/reference/marks/client/apexanalytix.png",
+    "bytes": 976,
+    "sha256": "51024a59cb0f482f463e865ccd78048880472446fc965ed5163fec6a4679552f",
+    "equal_to_phase1_fixture": true
+  },
+  {
+    "path": "data/reference/marks/client/recorded_future.svg",
+    "source": "/Users/wtjohnson/lila-upstream-leads-20260916/data/reference/marks/client/recorded_future.svg",
+    "bytes": 733,
+    "sha256": "820448dea994a3a299d0bf937156c49b8fc9eb2d2d70de1fad18d5cc6d6e2333",
+    "equal_to_phase1_fixture": true
+  },
+  {
+    "path": "data/reference/marks/client/jtg_inc.png",
+    "source": "/Users/wtjohnson/lila-upstream-leads-20260916/data/reference/marks/client/jtg_inc.png",
+    "bytes": 1035,
+    "sha256": "a0be7644c9d11d7f5c1aa002c612106202a9aa8234d9dabe8ed6710c9eaa688f",
+    "equal_to_phase1_fixture": true
+  },
+  {
+    "path": "data/reference/marks/client/netscout.svg",
+    "source": "/Users/wtjohnson/lila-upstream-leads-20260916/data/reference/marks/client/netscout.svg",
+    "bytes": 3365,
+    "sha256": "d11e9edd739b64bf03d985eeadd5ef06688031876f989ed39e92b06c92caf562",
+    "equal_to_phase1_fixture": true
+  },
+  {
+    "path": "data/reference/marks/client/insignary.png",
+    "source": "/Users/wtjohnson/lila-upstream-leads-20260916/data/reference/marks/client/insignary.png",
+    "bytes": 910,
+    "sha256": "32beb6a3edfc1c576c9f9136795b0bafc3b8d263675dcb604028ce9e919805da",
+    "equal_to_phase1_fixture": true
+  },
+  {
+    "path": "data/reference/marks/client/osprey_flight_solutions.png",
+    "source": "/Users/wtjohnson/lila-upstream-leads-20260916/data/reference/marks/client/osprey_flight_solutions.png",
+    "bytes": 2536,
+    "sha256": "211635c8f254d8a3f34fed46766baefa2a7b8d691980cae5e40809fd444c6829",
+    "equal_to_phase1_fixture": true
+  },
+  {
+    "path": "data/state/candidate_review_v1/arista_networks/arista_networks.golden_report.evidence_pack.json",
+    "source": "/Users/wtjohnson/lila-upstream-leads-20260916/data/state/candidate_review_v1/arista_networks/arista_networks.golden_report.evidence_pack.json",
+    "bytes": 755347,
+    "sha256": "f25c802cbc9bbeae81c8308fb585e4535c4f112365538574ad25076b7f02f4fe",
+    "equal_to_phase1_fixture": true
+  },
+  {
+    "path": "data/state/candidate_review_v1/apexanalytix/apexanalytix.golden_report.evidence_pack.json",
+    "source": "/Users/wtjohnson/lila-upstream-leads-20260916/data/state/candidate_review_v1/apexanalytix/apexanalytix.golden_report.evidence_pack.json",
+    "bytes": 130995,
+    "sha256": "8727d339d0f844800906284135467917676dcd7b9aaf5f018e0fb5b42b61301e",
+    "equal_to_phase1_fixture": true
+  },
+  {
+    "path": "data/state/candidate_review_v1/jtg_inc/jtg_inc.golden_report.evidence_pack.json",
+    "source": "/Users/wtjohnson/lila-upstream-leads-20260916/data/state/candidate_review_v1/jtg_inc/jtg_inc.golden_report.evidence_pack.json",
+    "bytes": 465662,
+    "sha256": "352e59bbd257a4e008d7e0b8804219d0b3d9d639b3f1bafdab0d002c8f0ef6f3",
+    "equal_to_phase1_fixture": true
+  }
+]

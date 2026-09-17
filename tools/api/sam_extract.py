@@ -119,7 +119,21 @@ def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def _select_extract(census: dict) -> Path:
+def current_extract() -> Path:
+    """Read the configured daily producer's file; never fetch or use an old day."""
+    from tools.notice_store import min_credible_extract_bytes
+    path = _today_path()
+    if not path.is_file():
+        latest = _latest_path()
+        detail = f"; newest available is {latest.name}" if latest else ""
+        reason = 'stale daily SAM extract' if latest else 'current daily SAM extract missing'
+        raise ExtractReadFailed(f"{reason}: expected {path}{detail}")
+    if path.stat().st_size < min_credible_extract_bytes():
+        raise ExtractReadFailed(f"current daily SAM extract is below the credible size floor: {path}")
+    return path
+
+
+def _select_extract(census: dict, *, existing_only=False) -> Path:
     """Observe the native daily selection without overriding its clock/path."""
     selection = {
         "selection_started_at_utc": _utc_now(),
@@ -128,7 +142,7 @@ def _select_extract(census: dict) -> Path:
     }
     census["extract_selection"] = selection
     try:
-        path = download_extract()
+        path = current_extract() if existing_only else download_extract()
         selection["status"] = "selected"
         return path
     except Exception as exc:
@@ -146,6 +160,13 @@ def _file_stat(stat) -> dict:
         "size_bytes": stat.st_size, "modified_at_ns": stat.st_mtime_ns,
         "changed_at_ns": stat.st_ctime_ns,
     }
+
+
+def _same_content_identity(left: dict | None, right: dict | None) -> bool:
+    """ctime records metadata events, not byte identity. Hashes still verify content."""
+    keys = ('device', 'inode', 'size_bytes', 'modified_at_ns')
+    return bool(left is not None and right is not None and
+                all(left.get(k) == right.get(k) for k in keys))
 
 
 class _HashingReader(io.RawIOBase):
@@ -187,7 +208,7 @@ def _verify_extract_content(path: Path, source, before: dict, receipt: dict):
             verification["path_stat_before"] = _file_stat(path.stat())
             verification["consumed_file_stat_before"] = _file_stat(
                 os.fstat(source.fileno()))
-            if any(verification[key] != before for key in (
+            if any(not _same_content_identity(verification[key], before) for key in (
                     "file_stat_before", "path_stat_before", "consumed_file_stat_before")):
                 verification["metadata_consistency"] = "changed"
                 receipt["integrity"] = "changed"
@@ -206,7 +227,7 @@ def _verify_extract_content(path: Path, source, before: dict, receipt: dict):
             verification["path_stat_after"] = _file_stat(path.stat())
             verification["consumed_file_stat_after"] = _file_stat(
                 os.fstat(source.fileno()))
-            if any(verification[key] != before for key in (
+            if any(not _same_content_identity(verification[key], before) for key in (
                     "file_stat_after", "path_stat_after", "consumed_file_stat_after")):
                 verification["metadata_consistency"] = "changed"
                 receipt["integrity"] = "changed"
@@ -219,6 +240,9 @@ def _verify_extract_content(path: Path, source, before: dict, receipt: dict):
                 receipt["integrity"] = "changed"
                 raise ExtractReadFailed(
                     "extract changed during content verification: digest mismatch")
+        verification['ctime_changed'] = any(verification[k]['changed_at_ns'] != before['changed_at_ns']
+            for k in ('file_stat_before', 'file_stat_after', 'path_stat_before', 'path_stat_after',
+                      'consumed_file_stat_before', 'consumed_file_stat_after'))
         verification["status"] = "verified"
     except Exception as exc:
         verification.update(
@@ -255,9 +279,9 @@ def _read_extract(path: Path, census: dict, scan: str, *, previous=None):
             before = _file_stat(os.fstat(source.fileno()))
             receipt["file_stat_before"] = before
             receipt["path_stat_before"] = _file_stat(path.stat())
-            if receipt["path_stat_before"] != before or (
+            if not _same_content_identity(receipt["path_stat_before"], before) or (
                     previous is not None
-                    and previous["file_stat_after"] != before):
+                    and not _same_content_identity(previous["file_stat_after"], before)):
                 receipt["integrity"] = "changed"
                 receipt["scan_metadata_consistency"] = "changed"
                 raise ExtractReadFailed("extract changed before scan")
@@ -275,8 +299,8 @@ def _read_extract(path: Path, census: dict, scan: str, *, previous=None):
                         receipt["path_stat_after"] = _file_stat(path.stat())
                     except OSError:
                         receipt["path_stat_after"] = None
-                    if (receipt["file_stat_after"] != before
-                            or receipt["path_stat_after"] != before):
+                    if (not _same_content_identity(receipt["file_stat_after"], before)
+                            or not _same_content_identity(receipt["path_stat_after"], before)):
                         receipt["integrity"] = "changed"
                         receipt["scan_metadata_consistency"] = "changed"
                     else:
@@ -290,6 +314,8 @@ def _read_extract(path: Path, census: dict, scan: str, *, previous=None):
                     receipt["integrity"] = "changed"
                     raise ExtractReadFailed("extract bytes changed between scans")
                 _verify_extract_content(path, source, before, receipt)
+        receipt['ctime_changed'] = (receipt['file_stat_before']['changed_at_ns'] != receipt['file_stat_after']['changed_at_ns']
+                                    or receipt['content_verification'].get('ctime_changed', False))
         receipt.update(status="verified", complete=True, integrity="stable")
     except Exception as exc:
         receipt.update(status="failed", error_type=type(exc).__name__,
@@ -684,6 +710,11 @@ class SamExtractSource(DataSource):
     last_census: dict = {}
     last_attachment_census: dict = {}
 
+    def __init__(self, *, existing_only=False):
+        # The ordinary workflow reads the scheduled producer's current file.
+        # Standalone source/download maintenance retains its historical API.
+        self.existing_only = existing_only
+
     def healthcheck(self) -> tuple[bool, str]:
         latest = _latest_path()
         if latest is not None:
@@ -717,7 +748,7 @@ class SamExtractSource(DataSource):
             raise
 
     def _search(self, query: SourceQuery, census: dict) -> list[RawOpportunity]:
-        path = _select_extract(census)
+        path = _select_extract(census, existing_only=self.existing_only)
         naics = {c.strip() for c in (query.naics_codes or []) if c.strip()}
         kws = [
             k.strip().strip('"') for k in (query.keywords or []) if k.strip()
@@ -839,7 +870,7 @@ class SamExtractSource(DataSource):
             return []
         focus = [agency for agency in
                  (find(name) for name in (query.agencies or [])) if agency]
-        path = _select_extract(census)
+        path = _select_extract(census, existing_only=self.existing_only)
         latest_by_thread: dict[str, tuple[float, str]] = {}
 
         def active_thread(row: dict) -> tuple[Optional[int], str]:

@@ -541,7 +541,7 @@ def test_attachment_receipts_survive_native_enrichment_seam(
     assert json.loads(json.dumps(stats))["attachment_candidates"] == source.last_attachment_census
 
 
-@pytest.mark.parametrize("fail", [None, "download", "read"])
+@pytest.mark.parametrize("fail", [None, "missing", "stale", "read"])
 def test_native_runner_retains_consumed_or_failed_extract_census(
         native_extract, taxonomy, tmp_path, monkeypatch, fail):
     """Execute only native SAM in the existing isolated native-run fixture."""
@@ -566,44 +566,83 @@ def test_native_runner_retains_consumed_or_failed_extract_census(
             return super().submit(runner, name, fn)
 
     monkeypatch.setattr(concurrent.futures, "ThreadPoolExecutor", Executor)
-    if fail:
-        if fail == "download":
-            def refused():
-                raise se.ExtractRefused("fixture refusal")
-            monkeypatch.setattr(se, "download_extract", refused)
-        else:
-            def interrupted(handle):
-                raise OSError("fixture interrupted CSV scan")
-            monkeypatch.setattr(se, "iter_rows", interrupted)
-
-        class Fallback:
-            last_status = {"complete": True, "census": {}}
-
-            def search(self, query):
-                return []
-
-        monkeypatch.setattr(rs, "SamGovSource", Fallback)
-    else:
-        def no_fallback():
-            raise AssertionError("native extract unexpectedly fell back")
-        monkeypatch.setattr(rs, "SamGovSource", no_fallback)
+    cache, http = native_extract
+    if fail != 'missing':
+        path = cache / ('opportunities_2026-09-09.csv' if fail == 'stale' else 'opportunities_2026-09-10.csv')
+        path.write_bytes(CSV)
+    if fail == 'read':
+        def interrupted(handle):
+            raise OSError('fixture interrupted CSV scan')
+        monkeypatch.setattr(se, 'iter_rows', interrupted)
+    import tools.api.sam_gov as sam_api
+    def no_api(*args, **kwargs):
+        raise AssertionError('ordinary scan must never call the SAM live API')
+    monkeypatch.setattr(sam_api, 'SamGovSource', no_api)
     monkeypatch.setattr(sys, "argv", [
         "run_searches.py", "--client", fixture.CLIENT, "--skip", "triage", "picture"])
-    assert rs.main() == 0
-    census = json.loads(json.dumps(captured["payload"]))["results"]["sam_census"]
+    assert rs.main() == (2 if fail else 0)
+    result = json.loads(json.dumps(captured['payload']))
+    census = result['results']['sam_census']
+    assert http.calls == 0, 'ordinary scan reads the daily producer file and never downloads'
     if fail:
-        assert census["source"] == "sam.gov live API"
-        assert census["complete"] is True
-        assert census["failed_extract_census"]["complete"] is False
-        failed_census = census["failed_extract_census"]
-        if fail == "download":
-            assert failed_census["extract_selection"]["status"] == "failed"
+        assert result['status'] == 'failed_daily_extract'
+        assert 'failed_sweeps' in captured['path']
+        assert census['complete'] is False and census['source'] == 'sam_extract'
+        assert result['results']['decision_coverage_verdict']['complete'] is False
+        assert 'upstream_investigations' not in result['results']
+        if fail in {'missing', 'stale'}:
+            assert census['extract_selection']['status'] == 'failed'
+            assert 'missing' in census['error'] or 'stale' in census['error']
         else:
-            assert failed_census["extract_selection"]["status"] == "selected"
-            assert failed_census["extract_receipts"][0]["status"] == "failed"
+            assert census['extract_receipts'][0]['status'] == 'failed'
     else:
-        assert census["source"] == "sam_extract"
-        assert census["extract_receipts"][0]["status"] == "verified"
-        assert len(census["attachment_candidates"]["extract_receipts"]) == 2
-    assert "extract_receipts" not in rs._sam_census_receipt(census)
-    assert "failed_extract_census" not in rs._sam_census_receipt(census)
+        assert census['source'] == 'sam_extract'
+        assert census['extract_receipts'][0]['status'] == 'verified'
+        assert len(census['attachment_candidates']['extract_receipts']) == 2
+    assert 'extract_receipts' not in rs._sam_census_receipt(census)
+    assert 'failed_extract_census' not in rs._sam_census_receipt(census)
+
+
+@pytest.mark.parametrize('stage', ['scan', 'verification', 'between_attachment_passes'])
+def test_metadata_only_ctime_change_keeps_verified_bytes(native_extract, taxonomy, monkeypatch, stage):
+    cache, _ = native_extract
+    path = cache / 'opportunities_2026-09-10.csv'
+    path.write_bytes(CSV)
+    original_rows, original_read, original_scan = se.iter_rows, se._HashingReader.readinto, se._read_extract
+    changed = False
+    def metadata_touch():
+        nonlocal changed
+        if not changed:
+            before = path.stat()
+            path.chmod(before.st_mode ^ 0o100)
+            assert path.stat().st_ctime_ns != before.st_ctime_ns
+            assert path.stat().st_mtime_ns == before.st_mtime_ns
+            changed = True
+    def rows(handle):
+        for row in original_rows(handle):
+            if stage == 'scan':metadata_touch()
+            yield row
+    def read(reader, buffer):
+        n = original_read(reader, buffer)
+        if stage == 'verification' and len(buffer) == 1024 * 1024:metadata_touch()
+        return n
+    @contextmanager
+    def scan(selected, census, label, **kw):
+        with original_scan(selected, census, label, **kw) as handle:yield handle
+        if stage == 'between_attachment_passes' and label == 'attachment_latest':metadata_touch()
+    monkeypatch.setattr(se, 'iter_rows', rows)
+    monkeypatch.setattr(se._HashingReader, 'readinto', read)
+    monkeypatch.setattr(se, '_read_extract', scan)
+    source = se.SamExtractSource(existing_only=True)
+    if stage == 'between_attachment_passes':
+        _attachments(source, taxonomy)
+        receipt = source.last_attachment_census
+    else:
+        assert len(source.search(SourceQuery())) == 2
+        receipt = source.last_census
+    assert changed and receipt['complete'] is True
+    for r in receipt['extract_receipts']:
+        assert r['sha256'] == hashlib.sha256(CSV).hexdigest()
+        assert r['content_verification']['sha256'] == r['sha256']
+        assert r['integrity'] == 'stable'
+    assert path.read_bytes() == CSV

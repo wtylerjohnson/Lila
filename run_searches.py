@@ -27,13 +27,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from tools.env import load_env  # noqa: E402
 
-load_env()  # pick up SAM_GOV_API_KEY / ANTHROPIC_API_KEY from .env
+load_env()  # load persisted runtime/source configuration
 
 from agents.review import (  # noqa: E402
     WorkstationBindingError, load_packet_snapshot, packet_binding_lock,
 )
 from tools.api import SourceQuery  # noqa: E402
-from tools.api.sam_gov import SamGovSource  # noqa: E402
 from tools.api.source_catalog import (  # noqa: E402
     RESULT_KEY_FOR_TASK,
     SOURCE_BY_IDENTITY,
@@ -47,8 +46,8 @@ _SAM_ATTACHMENT_CANDIDATE_HARD_CAP = 12
 # The metered ceiling for the attachment stage, and the only bound that is
 # allowed to be load-bearing. The SAM pool is 20 calls/day across the
 # configured keys and that is permanent; a press must fit inside it twice
-# over. 2 leaves room for the 4-call live-search fallback and still lands a
-# whole press at 8, so two presses fit in 20 with headroom.
+# over. This bounded attachment stage is separate from the daily-extract
+# census; it cannot substitute a different candidate universe.
 _SAM_ATTACHMENT_CALL_HARD_CAP = 2
 _SAM_ATTACHMENT_STAGE_HARD_SECONDS = 180
 
@@ -1155,6 +1154,26 @@ def _decision_coverage_receipt(
     }
 
 
+def _empty_sam_decision_receipt(results: dict) -> dict:
+    """An absent or failed collection is never a successfully screened zero."""
+    payload = results.get('sam.gov')
+    census = results.get('sam_census') or {}
+    attempts = [a for a in results.get('_attempts', []) if a.get('source') == 'sam.gov']
+    complete = (isinstance(payload, list) and not payload and census.get('complete') is True
+                and not census.get('stale_cache')
+                and all(a.get('ok') and not a.get('partial') for a in attempts))
+    receipt = _decision_coverage_receipt([], {})
+    receipt.update(verdict='screened-zero' if complete else 'incomplete', complete=complete,
+                   candidate_census=0 if complete else None,
+                   identified_candidates=0 if complete else None,
+                   missing_count=0 if complete else None, prefilter_complete=complete)
+    if not complete:
+        receipt['reason'] = 'SAM collection did not establish a complete empty candidate census'
+        receipt['source_state'] = ('failed' if isinstance(payload, dict) and payload.get('error') else
+                                   'partial' if isinstance(payload, list) else 'not-run')
+    return receipt
+
+
 def main() -> int:
     from datetime import date, timedelta
 
@@ -1388,9 +1407,11 @@ def main() -> int:
         ex = None
         try:
             from tools.api.sam_extract import SamExtractSource
-            ex = SamExtractSource()
+            ex = SamExtractSource(existing_only=True)
             sam = [json.loads(o.model_dump_json()) for o in ex.search(q)]
             c = ex.last_census or {}
+            if c.get('complete') is not True:
+                raise RuntimeError('daily SAM extract scan did not establish a complete census')
             description_market_matched = int(c.get("market_matched") or 0)
             # A bounded, keyless depth pass closes the common SAM gap where
             # the description is generic and the actual client evidence lives
@@ -1433,42 +1454,10 @@ def main() -> int:
                          f"capability terms screened at once · "
                          f"{attachment_enriched} attachment-enriched / "
                          f"{attachment_relevant} newly relevant")
-        except Exception as e:  # noqa: BLE001 — extract down: fall back to live API
-            if ex is not None and ex.last_census:
-                sam_census_box["failed_extract_census"] = dict(ex.last_census)
-            print(f"[sam.gov] extract path failed ({e}) — falling back to live API",
-                  file=sys.stderr)
-        q.limit = 1000  # page size at the API max; pagination reaches totalRecords
-        src = SamGovSource()
-        sam = [json.loads(o.model_dump_json()) for o in src.search(q)]
-        st = src.last_status or {}
-        api_census = st.get("census") or {}
-        total = sum((c.get("total_records") or 0) for c in api_census.values())
-        retrieved = sum(c.get("retrieved", 0) for c in api_census.values())
-        sam_census_box.update({
-            "matched": len(sam), "active_screened": total or len(sam),
-            "retrieved": retrieved, "complete": bool(st.get("complete")),
-            "stale_cache": int(st.get("stale_cache") or 0),
-            "source": "sam.gov live API", "passes": api_census,
-            "attempt_manifest": st.get("attempt_manifest"),
-        })
-        if not native_workstation:
-            from tools.api.forecasts.coverage import record_pull
-            record_pull(
-                "sam.gov", "govwide", retrieved,
-                ok=bool(st.get("complete")),
-                note=f"retrieved {retrieved} of {total} totalRecords across "
-                     f"{len(api_census)} passes"
-                     + ("" if st.get("complete") else " · INCOMPLETE"))
-        bits = [f"{len(sam)} notices via live API"]
-        if st.get("fresh_cache"):
-            bits.append(f"{st['fresh_cache']} pass(es) from fresh cache — zero quota spent")
-        if st.get("stale_cache"):
-            bits.append(f"{st['stale_cache']} pass(es) from STALE cache (SAM throttled)")
-        if st.get("failed"):
-            bits.append(f"{st['failed']} pass(es) failed")
-        bits.append(f"{st.get('calls_today', '?')} SAM calls today")
-        return sam, " · ".join(bits)
+        except Exception as e:
+            sam_census_box.update(dict(ex.last_census) if ex is not None else {})
+            sam_census_box.update(complete=False, source='sam_extract', error_type=type(e).__name__, error=str(e))
+            raise RuntimeError(f"daily SAM extract failed; sweep stopped: {e}") from e
 
     def _t_usaspending():
         from tools.api.usaspending import addressable_terms
@@ -1930,6 +1919,8 @@ def main() -> int:
                    "lane_only_count": len(buckets["lane_only"]),
                    "coverage_gaps": gaps,
                    "note": "agency-stated intent (forecast), not live opportunities"}
+        from tools.api.research_awards import enrich_forecast_contracts
+        payload['research_contract_details'] = enrich_forecast_contracts(payload)
         d = (f" · Δ {len(delta['new'])} new / {len(delta['moved'])} moved / "
              f"{len(delta['disappeared'])} gone" if delta else "")
         ev_note = f" · {len(events)} store events" if events else ""
@@ -2122,6 +2113,9 @@ def main() -> int:
     def _t_foreign_assistance():
         return _t_program_source("foreign_assistance")
 
+    def _t_agency_program_documents():
+        return _t_program_source("agency_program_documents")
+
     TASKS = {
         "sam.gov": _t_sam,
         "usaspending.gov": _t_usaspending,
@@ -2154,6 +2148,7 @@ def main() -> int:
         "reginfo_unified_agenda": _t_reginfo_unified_agenda,
         "darpa_opportunities": _t_darpa_opportunities,
         "dod_budget_exhibits": _t_dod_budget_exhibits,
+        "agency_program_documents": _t_agency_program_documents,
         "foreign_assistance": _t_foreign_assistance,
     }
     validate_standard_tasks(TASKS)
@@ -2237,7 +2232,7 @@ def main() -> int:
             # SAM's result remains the long-standing notice-list shape, while
             # its exhaustive-screen receipt travels in ``sam_census_box``.
             # Propagate an interrupted/omitted-pass census into the generic
-            # attempt manifest so a partial live fallback cannot mint a
+            # attempt manifest so an incomplete read cannot mint a
             # comprehensive sweep merely because it returned some notices.
             usa_receipt = (
                 _usaspending_evidence_receipt(value)
@@ -2302,6 +2297,20 @@ def main() -> int:
             print(f"[attempts] ledger write skipped: {e}", file=sys.stderr)
     if sam_census_box:
         out["results"]["sam_census"] = dict(sam_census_box)
+    # Never replace a previous good sweep with a partial SAM census. Preserve
+    # this attempt under failure receipts, stop before triage/investigation.
+    sam_failure = next((a for a in attempts if a.get('source') == 'sam.gov' and not a.get('ok')), None)
+    if sam_failure is not None:
+        from tools.artifacts import atomic_write_json
+        from tools.slug import client_slug
+        failed_path = os.path.join(os.path.dirname(__file__), 'data', 'state', 'failed_sweeps',
+            client_slug(args.client), datetime.now().strftime('%Y%m%dT%H%M%S%f') + '.json')
+        out['status'] = 'failed_daily_extract'
+        out['failure'] = sam_failure
+        out['results']['decision_coverage_verdict'] = _empty_sam_decision_receipt(out['results'])
+        atomic_write_json(failed_path, out)
+        print(f"[STOP] Daily SAM extract failed. Existing successful sweep preserved. Receipt: {failed_path}", file=sys.stderr)
+        return 2
     if term_yield_box:
         out["results"]["term_yield"] = list(term_yield_box)
         out["results"]["term_yield_population"] = {
@@ -2493,25 +2502,10 @@ def main() -> int:
             print(f"[RESULT] {n_opps} UNSCREENED OPPORTUNITIES (triage failed — "
                   f"review manually or re-run)", file=sys.stderr)
     elif n_opps == 0:
-        out["results"]["decision_coverage_verdict"] = {
-            "verdict": "screened-zero",
-            "complete": True,
-            "candidate_census": 0,
-            "identified_candidates": 0,
-            "dispositioned": 0,
-            "counts": {},
-            "missing_count": 0,
-            "unexpected_count": 0,
-            "invalid_or_unscreened_count": 0,
-            "duplicate_notice_id_count": 0,
-            "prefilter_complete": True,
-            "missing_examples": [],
-            "unexpected_examples": [],
-            "invalid_or_unscreened_examples": [],
-        }
-        print("[RESULT] 0 OPPORTUNITIES FOUND FOR REVIEW "
-              "(complete screened-zero SAM candidate census)",
-              file=sys.stderr)
+        coverage = _empty_sam_decision_receipt(out['results'])
+        out['results']['decision_coverage_verdict'] = coverage
+        print('[RESULT] ' + ('0 OPPORTUNITIES FOUND FOR REVIEW (complete screened-zero SAM candidate census)'
+              if coverage['complete'] else 'SAM CANDIDATE COUNT UNKNOWN (collection incomplete)'), file=sys.stderr)
     else:
         out["results"]["decision_coverage_verdict"] = {
             "verdict": "not-run",
@@ -2531,6 +2525,21 @@ def main() -> int:
         }
         print(f"[RESULT] {n_opps} OPPORTUNITIES FOUND FOR REVIEW "
               f"(responses due today → forward)", file=sys.stderr)
+
+    # Independent durable investigations survive a later whole-picture timeout.
+    from datetime import datetime as _dt, timezone as _timezone
+    from tools.artifacts import atomic_write_json
+    out["generated_at"] = _dt.now(_timezone.utc).isoformat(timespec="seconds")
+    if curated_taxonomy is not None:
+        out['results']['upstream_vocabulary'] = curated_taxonomy.model_dump(mode='json')
+    atomic_write_json(path, out)  # captured-source checkpoint before model work
+    from agents.assess.investigations import run_investigations
+    try:
+        out['results']['upstream_investigations'] = run_investigations(out, profile)
+    except Exception as exc:
+        out['results']['upstream_investigations'] = {
+            'state': 'failed', 'error': str(exc), 'items': []}
+    atomic_write_json(path, out)
 
     # ── RESEARCH PICTURE: Claude's second pass over EVERYTHING the APIs said.
     # This is what makes the run materially better than a bare Claude search —

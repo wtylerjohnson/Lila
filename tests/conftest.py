@@ -136,6 +136,9 @@ def pytest_sessionfinish(session, exitstatus):
 
 @pytest.fixture(autouse=True)
 def _isolate_sam_state(tmp_path, monkeypatch):
+    monkeypatch.setenv("LILA_ENABLE_AGENCY_PROGRAM_DOCUMENTS", "off")
+    monkeypatch.setenv("LILA_PROGRAM_DOCUMENT_CACHE_DIR", str(tmp_path / "program_documents"))
+    monkeypatch.setenv("LILA_INVESTIGATION_DIR", str(tmp_path / "investigations"))
     # THE KEYS COME OUT FIRST (2026-07-28). This fixture isolated the cache
     # and the ledger but left SAM_GOV_API_KEY and SAM_GOV_API_KEY_2 in the
     # environment, so the suite reached the LIVE api and spent the operator's
