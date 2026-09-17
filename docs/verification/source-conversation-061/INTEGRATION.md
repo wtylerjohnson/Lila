@@ -1,8 +1,10 @@
 # UPSTREAM-SOURCE-CONVERSATION-061 integration receipt
 
 Base: `7f44925b8cf1ea8c01fe8e12eb3037260c106f1b`. Isolated branch:
-`codex/source-conversation-20260917`. This is a local patch and native draft
-review. No production merge, release, deployment or Assess/Target approval.
+`codex/source-conversation-20260917`. The initial package was a local patch and
+native draft review. The operator subsequently authorized commit and merge;
+local operating integration is recorded below. No push, client release,
+deployment or Assess/Target approval occurred.
 
 ## Daily SAM source configuration
 
@@ -17,10 +19,11 @@ The staged checkout uses this existing configuration:
 LILA_SAM_EXTRACT_DIR=/Users/wtjohnson/federal-sales-os/data/cache/sam_extract
 ```
 
-The operating checkout configuration was not changed. Integration must carry
-this producer-path configuration with the code; it must not start an independent
-download or substitute an API query. The portable module still accepts an
-explicit installation-specific path instead of hard-coding a user's home.
+The initial review left operating configuration unchanged. The authorized local
+integration subsequently created the ignored operating `.env` with this
+producer-path setting. It does not start an independent download or substitute
+an API query. The portable module still accepts an explicit installation-specific
+path instead of hard-coding a user's home.
 
 Ordinary `run_searches.py` invokes `SamExtractSource(existing_only=True)`.
 A missing, stale, unreadable or incomplete extract saves a failed-sweep receipt,
@@ -80,3 +83,31 @@ QA and patch manifests are in the task's `outputs/Veeam_Phase2_*2026-09-17*`
 artifacts. Test counts are regression evidence, not output-quality or market-yield
 evidence. The review retains incomplete source coverage, missing contact ownership,
 and the separate intermittent workstation-browser timeout rather than hiding them.
+
+## Authorized local operating integration: September 17, 2026
+
+Operator instruction: `committ and merge to main`.
+
+The exact 25-file reviewed patch was committed as
+`7ae5a72bd47662563698db76621494f8284a4e4e` and fast-forwarded into local
+`main` in `/Users/wtjohnson/Lila`. The named development branch remains available.
+Runtime entity observations, generated reports and unrelated NETSCOUT files were
+excluded from the commit. No stashing, cleaning, resets or remote push occurred.
+
+Post-merge operating checks passed:
+
+- 139 targeted tests passed in 4.76 seconds from the operating checkout.
+- The configured existing-only SAM reader consumed all 84,052 rows from the
+  September 17 scheduled extract. Consumed and independent post-read hashes both
+  equal `2f79a429bb90a8ed1c9beabf165720007274cdbf7715cdbdc43d488b3bf0de01`.
+- In-process Flask `GET /api/build` returned `/Users/wtjohnson/Lila`, revision
+  `7ae5a72`, and `stale=false`. This is an application smoke check, not a claim
+  that a live server was restarted or a fresh client release ran.
+- The four protected operating dirty files retained their pre-merge byte hashes.
+  Entity logging for smoke checks used an isolated temporary snapshot.
+
+The prior exact-code strict result remains 6,253 passed, 40 skipped, 22 warnings
+and 26 subtests passed. The post-merge check does not reclassify earlier research
+gaps, COSS adjudication, assistant wording corrections or the intermittent UI
+timeout as resolved. See `OPERATING_INTEGRATION.json` and the dated task output
+`Veeam_Phase2_Operating_Merge_2026-09-17.json` for custody and check details.

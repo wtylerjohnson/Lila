@@ -1,0 +1,245 @@
+{
+  "started_at": "2026-09-17T16:14:59.366551+00:00",
+  "authorization": "User: committ and merge to main",
+  "operating_checkout": "/Users/wtjohnson/Lila",
+  "main_before": "7f44925b8cf1ea8c01fe8e12eb3037260c106f1b",
+  "protected": {
+    "clients/netscout/profile.json": "4c43f61c4c67eabd961136dcc415f8280974fef6d2d9d0bb7e399106def49c2a",
+    "clients/netscout/capability_taxonomy.json": "64360dfb67abdd260efa07a8c7e2a3812491a83db2d840a75db3ef48cedf0425",
+    "clients/netscout/engagement_scope.json": "0f8a6f22f1b616ff4b891a213e02cfc2bb928d9423c69ebbca6551535f17f1c4",
+    "data/entities/unresolved.log": "c7be51e70722038bf4a268231b551699ce2d0c4629aa6b950bfe6a33994061da"
+  },
+  "operating_env_sha256_before": "missing",
+  "git_status_before": [
+    " M clients/netscout/profile.json",
+    " M data/entities/unresolved.log",
+    "?? clients/netscout/capability_taxonomy.json",
+    "?? clients/netscout/engagement_scope.json"
+  ],
+  "commit_paths": [
+    "agents/assess/investigation_inputs.py",
+    "agents/assess/investigations.py",
+    "agents/assess/research_subjects.py",
+    "agents/assess/upstream.py",
+    "clients/veeam/capability_taxonomy.json",
+    "docs/verification/source-conversation-061/INTEGRATION.md",
+    "docs/verification/source-conversation-061/KICKOFF.json",
+    "docs/verification/source-conversation-061/TEST_FIXTURES.json",
+    "run_picture.py",
+    "run_searches.py",
+    "tests/conftest.py",
+    "tests/test_capability_alignment.py",
+    "tests/test_parallel_fanout.py",
+    "tests/test_sam_extract_source_receipt.py",
+    "tests/test_source_catalog.py",
+    "tests/test_source_conversation.py",
+    "tests/test_workstation_native_run.py",
+    "tools/api/__init__.py",
+    "tools/api/agency_program_documents.py",
+    "tools/api/forecasts/dhs_apfs.py",
+    "tools/api/oversight_gov_reports.py",
+    "tools/api/research_awards.py",
+    "tools/api/sam_extract.py",
+    "tools/api/source_catalog.py",
+    "tools/api/source_mesh.py"
+  ],
+  "manifest_sha256": "4cc245cb959395e5948f7f945b84a158b1895ce226ba15de5efc9f01f72016ba",
+  "code_commit": "7ae5a72bd47662563698db76621494f8284a4e4e",
+  "committed_paths": [
+    "agents/assess/investigation_inputs.py",
+    "agents/assess/investigations.py",
+    "agents/assess/research_subjects.py",
+    "agents/assess/upstream.py",
+    "clients/veeam/capability_taxonomy.json",
+    "docs/verification/source-conversation-061/INTEGRATION.md",
+    "docs/verification/source-conversation-061/KICKOFF.json",
+    "docs/verification/source-conversation-061/TEST_FIXTURES.json",
+    "run_picture.py",
+    "run_searches.py",
+    "tests/conftest.py",
+    "tests/test_capability_alignment.py",
+    "tests/test_parallel_fanout.py",
+    "tests/test_sam_extract_source_receipt.py",
+    "tests/test_source_catalog.py",
+    "tests/test_source_conversation.py",
+    "tests/test_workstation_native_run.py",
+    "tools/api/__init__.py",
+    "tools/api/agency_program_documents.py",
+    "tools/api/forecasts/dhs_apfs.py",
+    "tools/api/oversight_gov_reports.py",
+    "tools/api/research_awards.py",
+    "tools/api/sam_extract.py",
+    "tools/api/source_catalog.py",
+    "tools/api/source_mesh.py"
+  ],
+  "merged_at": "2026-09-17T16:15:55.575764+00:00",
+  "merge_kind": "fast-forward",
+  "main_after_code_merge": "7ae5a72bd47662563698db76621494f8284a4e4e",
+  "operating_configuration": {
+    "LILA_SAM_EXTRACT_DIR": "/Users/wtjohnson/federal-sales-os/data/cache/sam_extract"
+  },
+  "configuration_sha256": "b4b843002d7d50663dc20d5cffa24c1762fb3e206c63f3387af27782983fb482",
+  "protected_after_merge": "all four byte hashes unchanged",
+  "pushed": false,
+  "operating_tests": {
+    "command": [
+      "/Users/wtjohnson/Lila/.venv/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_source_conversation.py",
+      "tests/test_workstation_native_run.py",
+      "tests/test_sam_extract.py",
+      "tests/test_sam_extract_source_receipt.py",
+      "tests/test_capability_alignment.py",
+      "tests/test_parallel_fanout.py",
+      "-q",
+      "--tb=short",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp=/var/folders/9h/2k1cs8_d2p7gdp8hbnh7bs6c0000gn/T/lila061-operating-smoke-hbdbb71b/pytest",
+      "--junitxml=/Users/wtjohnson/Documents/Codex/2026-09-16/files-pasted-by-the-user-execute/outputs/Veeam_Phase2_Operating_Smoke_2026-09-17.xml"
+    ],
+    "returncode": 0,
+    "log": "/Users/wtjohnson/Documents/Codex/2026-09-16/files-pasted-by-the-user-execute/outputs/Veeam_Phase2_Operating_Smoke_2026-09-17.log",
+    "runtime_entity_logs": "isolated snapshot; operating dirty file not used for writes"
+  },
+  "operating_extract_smoke": {
+    "query": {
+      "keywords": [
+        "data recovery"
+      ],
+      "agencies": [
+        "DHS",
+        "MDA"
+      ]
+    },
+    "path": "/Users/wtjohnson/federal-sales-os/data/cache/sam_extract/opportunities_2026-09-17.csv",
+    "rows_scanned": 84052,
+    "matched": 0,
+    "receipt": {
+      "schema_version": 1,
+      "scan": "primary",
+      "path": "/Users/wtjohnson/federal-sales-os/data/cache/sam_extract/opportunities_2026-09-17.csv",
+      "filename": "opportunities_2026-09-17.csv",
+      "cache_date": "2026-09-17",
+      "cache_date_basis": "local_cache_filename_not_upstream_publication",
+      "selection_started_at_utc": "2026-09-17T16:16:33.834290+00:00",
+      "selection_started_local_date": "2026-09-17",
+      "selection_finished_local_date": "2026-09-17",
+      "selection_finished_at_utc": "2026-09-17T16:16:33.834497+00:00",
+      "read_started_at_utc": "2026-09-17T16:16:33.834911+00:00",
+      "read_finished_at_utc": "2026-09-17T16:16:37.413121+00:00",
+      "status": "verified",
+      "complete": true,
+      "integrity": "stable",
+      "sha256": "2f79a429bb90a8ed1c9beabf165720007274cdbf7715cdbdc43d488b3bf0de01",
+      "bytes_read": 242915862,
+      "scan_metadata_consistency": "consistent",
+      "content_verification": {
+        "status": "verified",
+        "complete": true,
+        "method": "independent_post_read_sha256",
+        "metadata_consistency": "consistent",
+        "sha256": "2f79a429bb90a8ed1c9beabf165720007274cdbf7715cdbdc43d488b3bf0de01",
+        "bytes_read": 242915862,
+        "read_started_at_utc": "2026-09-17T16:16:37.324747+00:00",
+        "read_finished_at_utc": "2026-09-17T16:16:37.413094+00:00",
+        "file_stat_before": {
+          "device": 16777230,
+          "inode": 139610241,
+          "size_bytes": 242915862,
+          "modified_at_ns": 1789648211626413874,
+          "changed_at_ns": 1789648211628283448
+        },
+        "path_stat_before": {
+          "device": 16777230,
+          "inode": 139610241,
+          "size_bytes": 242915862,
+          "modified_at_ns": 1789648211626413874,
+          "changed_at_ns": 1789648211628283448
+        },
+        "consumed_file_stat_before": {
+          "device": 16777230,
+          "inode": 139610241,
+          "size_bytes": 242915862,
+          "modified_at_ns": 1789648211626413874,
+          "changed_at_ns": 1789648211628283448
+        },
+        "file_stat_after": {
+          "device": 16777230,
+          "inode": 139610241,
+          "size_bytes": 242915862,
+          "modified_at_ns": 1789648211626413874,
+          "changed_at_ns": 1789648211628283448
+        },
+        "path_stat_after": {
+          "device": 16777230,
+          "inode": 139610241,
+          "size_bytes": 242915862,
+          "modified_at_ns": 1789648211626413874,
+          "changed_at_ns": 1789648211628283448
+        },
+        "consumed_file_stat_after": {
+          "device": 16777230,
+          "inode": 139610241,
+          "size_bytes": 242915862,
+          "modified_at_ns": 1789648211626413874,
+          "changed_at_ns": 1789648211628283448
+        },
+        "ctime_changed": false
+      },
+      "file_stat_before": {
+        "device": 16777230,
+        "inode": 139610241,
+        "size_bytes": 242915862,
+        "modified_at_ns": 1789648211626413874,
+        "changed_at_ns": 1789648211628283448
+      },
+      "path_stat_before": {
+        "device": 16777230,
+        "inode": 139610241,
+        "size_bytes": 242915862,
+        "modified_at_ns": 1789648211626413874,
+        "changed_at_ns": 1789648211628283448
+      },
+      "file_stat_after": {
+        "device": 16777230,
+        "inode": 139610241,
+        "size_bytes": 242915862,
+        "modified_at_ns": 1789648211626413874,
+        "changed_at_ns": 1789648211628283448
+      },
+      "path_stat_after": {
+        "device": 16777230,
+        "inode": 139610241,
+        "size_bytes": 242915862,
+        "modified_at_ns": 1789648211626413874,
+        "changed_at_ns": 1789648211628283448
+      },
+      "ctime_changed": false
+    },
+    "boundary": "Read-only integration smoke; no collection fan-out, LLM, enrichment, report overwrite or client release."
+  },
+  "operating_app_smoke": {
+    "method": "In-process Flask GET /api/build; not a live server restart",
+    "response": {
+      "boot": 1789661797.534403,
+      "code_mtime": 1789661755.5533512,
+      "operating_root": "/Users/wtjohnson/Lila",
+      "revision": "7ae5a72",
+      "stale": false
+    }
+  },
+  "protected_after_smoke": "all four byte hashes unchanged",
+  "smoke_completed_at": "2026-09-17T16:16:37.617102+00:00",
+  "committed_tree_matches_verified_manifest": true,
+  "prior_strict_suite": {
+    "passed": 6253,
+    "skipped": 40,
+    "warnings": 22,
+    "subtests_passed": 26,
+    "receipt": "Veeam_Phase2_Verification_2026-09-17.json",
+    "boundary": "Exact code verified before commit; post-merge 139-test smoke is separate."
+  },
+  "local_integration_status": "MERGED_AND_OPERATING_SMOKE_VERIFIED_WITH_RECORDED_RESEARCH_RESIDUALS"
+}
