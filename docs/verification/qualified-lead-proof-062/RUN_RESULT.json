@@ -1,0 +1,149 @@
+{
+  "work_id": "QUALIFIED-LEAD-PROOF-062",
+  "recorded_at": "2026-09-18T13:43:30.621929+00:00",
+  "code_commit": "95c0d203476e4cb5ce0a243e96ab33b7e527cda9",
+  "test_isolation_commit": "a3e309305382ad24718f690c27ae0f936a24b475",
+  "job_id": "98ef02888b2f",
+  "job_status": "done",
+  "overall_synthesis": "failed: Claude Max 300-second timeout",
+  "investigation_states": {
+    "complete": 8,
+    "adjudication_required": 3
+  },
+  "baseline": {
+    "accepted_unique_buying_events": 0,
+    "contacts_with_verified_email_mobile": 0,
+    "native_qualified_rows": 0,
+    "research_priorities": 6,
+    "elapsed_seconds": null,
+    "incremental_cost_usd": null,
+    "seconds_per_accepted_event": null,
+    "cost_per_accepted_event_usd": null
+  },
+  "same_input_replay": {
+    "accepted_unique_buying_events": 0,
+    "contacts_with_verified_email_mobile": 0,
+    "native_qualified_rows": 0,
+    "research_priorities": 6,
+    "elapsed_seconds": null,
+    "incremental_cost_usd": null,
+    "seconds_per_accepted_event": null,
+    "cost_per_accepted_event_usd": null
+  },
+  "fresh_ordinary_run": {
+    "accepted_unique_buying_events": 0,
+    "contacts_with_verified_email_mobile": 0,
+    "native_qualified_rows": 0,
+    "research_priorities": 4,
+    "elapsed_seconds": 1136.468981,
+    "incremental_cost_usd": null,
+    "seconds_per_accepted_event": null,
+    "cost_per_accepted_event_usd": null
+  },
+  "sweep_sha256": "d1ba609ed7982b02edd28ba6ddcae00d1bf6efa0cc671377352bbbd2ab1e6b88",
+  "html_sha256": "354688720443d886ecb8eb0329224eb7aa926f7cc43961e166dc7a2145a05ae8",
+  "sam_extract": {
+    "filename": "opportunities_2026-09-18.csv",
+    "sha256": "ced91785f6afb927b68d71f56e1bbac3a29ab34a4aec0911a24de411bde19212",
+    "bytes_read": 245931486,
+    "status": "verified",
+    "complete": true,
+    "integrity": "stable"
+  },
+  "sam_rows_scanned": 84810,
+  "incomplete_required_sources": [
+    {
+      "source": "budget_pressure",
+      "status": "partial"
+    },
+    {
+      "source": "cisa_kev",
+      "status": "partial"
+    },
+    {
+      "source": "congress",
+      "status": "failed"
+    },
+    {
+      "source": "contract_awards",
+      "status": "partial"
+    },
+    {
+      "source": "dod_contracts",
+      "status": "partial"
+    },
+    {
+      "source": "expiring_awards",
+      "status": "partial"
+    },
+    {
+      "source": "federal_register",
+      "status": "failed"
+    },
+    {
+      "source": "forecast_signals",
+      "status": "partial"
+    },
+    {
+      "source": "horizon_thesis_gate",
+      "status": "partial"
+    },
+    {
+      "source": "regulations_gov",
+      "status": "failed"
+    },
+    {
+      "source": "watchdogs",
+      "status": "partial"
+    },
+    {
+      "source": "incumbent_buyer_map",
+      "status": "partial"
+    },
+    {
+      "source": "subawards",
+      "status": "partial"
+    }
+  ],
+  "apollo": {
+    "authorized_contacts": 34,
+    "matched_contacts": 34,
+    "new_mobile_contacts": 25,
+    "by_agency": {
+      "MDA MD30": 2,
+      "CBP biometrics": 7,
+      "TSA backup infrastructure": 11,
+      "ICE backup equipment": 5
+    },
+    "mobile_contacts_dnc_listed": 2,
+    "new_mobile_contacts_not_listed": 23,
+    "new_verified_email_mobile_channel_checks_passed": 20,
+    "match_credits": 34,
+    "phone_reveal_credits": 272,
+    "total_credits": 306,
+    "remaining_credits": 3400,
+    "cost_usd": null,
+    "cost_boundary": "Apollo reports credits; no dollar conversion supplied. Account balance delta agrees with these request receipts.",
+    "no_mobile_contacts": 9,
+    "installed_contact_count": 38,
+    "all_input_channel_checks_passed": 23,
+    "model_route": "Claude Max unchanged",
+    "outreach_sent": false,
+    "ordinary_run_boundary": "Enrichment completed after job 98ef02888b2f. These contacts are next-run inputs, not evidence of contacts in that already-finished report.",
+    "ownership_boundary": "No opportunity-specific ownership was established by provider contact enrichment.",
+    "dnc_boundary": "Two listed mobile contacts withheld from active inputs; absent DNC status is unknown, not clearance."
+  },
+  "next_run_input_sha256": "642c85cb782872d47f302f04294e4a89fd84f4e23650fb9aaf8fe0b08d9d057b",
+  "ordinary_run_input_sha256": "fe961961fe2f49ee80d471aeeab518fe308bcea69b950fd2cc46026d40c328ee",
+  "checks": {
+    "full_suite_passed": 6280,
+    "skipped": 40,
+    "subtests_passed": 26,
+    "operating_smoke_passed": 106,
+    "native_browser_qa": "pass",
+    "native_lints": "4 pass"
+  },
+  "model_route": "Claude Max unchanged",
+  "outreach_sent": false,
+  "client_release": false
+}
