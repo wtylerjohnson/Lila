@@ -166,6 +166,7 @@
           "enum": [
             "sam_notice_depth",
             "horizon_fact_bank",
+            "program_document_capture",
             "none"
           ],
           "title": "Basis",
@@ -182,7 +183,8 @@
             "notice_payload",
             "horizon_fact",
             "subaward_record",
-            "research_record"
+            "research_record",
+            "program_document"
           ],
           "title": "Component",
           "type": "string"

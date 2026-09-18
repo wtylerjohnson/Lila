@@ -202,6 +202,100 @@
       "title": "CommunicationPermission",
       "type": "string"
     },
+    "ContactVerification": {
+      "additionalProperties": false,
+      "properties": {
+        "dnc_status": {
+          "default": "not_supplied",
+          "enum": [
+            "not_found",
+            "listed",
+            "not_supplied"
+          ],
+          "title": "Dnc Status",
+          "type": "string"
+        },
+        "domain_catchall": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Domain Catchall"
+        },
+        "email_status": {
+          "enum": [
+            "verified",
+            "unknown",
+            "invalid"
+          ],
+          "title": "Email Status",
+          "type": "string"
+        },
+        "evidence_id": {
+          "minLength": 1,
+          "title": "Evidence Id",
+          "type": "string"
+        },
+        "phone_status": {
+          "enum": [
+            "valid_number",
+            "unknown",
+            "invalid"
+          ],
+          "title": "Phone Status",
+          "type": "string"
+        },
+        "phone_type": {
+          "enum": [
+            "mobile",
+            "direct",
+            "office",
+            "unknown"
+          ],
+          "title": "Phone Type",
+          "type": "string"
+        },
+        "verified_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Verified At"
+        },
+        "verified_on": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Verified On"
+        }
+      },
+      "required": [
+        "evidence_id",
+        "email_status",
+        "phone_type",
+        "phone_status"
+      ],
+      "title": "ContactVerification",
+      "type": "object"
+    },
     "Contactability": {
       "description": "Whether a published route to a buyer or holder exists.\n\nEnrichment and Apollo are not contactability. A Target-door lock is\na permission state, not proof that nobody is published.",
       "enum": [
@@ -543,6 +637,17 @@
           "minLength": 1,
           "title": "Authority Boundary",
           "type": "string"
+        },
+        "channel_verification": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContactVerification"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "contact_status": {
           "minLength": 1,
@@ -899,6 +1004,7 @@
           "enum": [
             "sam_notice_depth",
             "horizon_fact_bank",
+            "program_document_capture",
             "none"
           ],
           "title": "Basis",
@@ -915,7 +1021,8 @@
             "notice_payload",
             "horizon_fact",
             "subaward_record",
-            "research_record"
+            "research_record",
+            "program_document"
           ],
           "title": "Component",
           "type": "string"

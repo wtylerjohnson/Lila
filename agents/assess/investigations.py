@@ -19,6 +19,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from agents.assess.research_subjects import canonical, digest, make_subject
 from agents.assess.reviewed_cases import ReviewedCases, ReviewedSubject, save_cases
 from agents.leadgen.targets import LeadResearch, LeadTarget
+from agents.leadgen.research_event import ResearchBuyingEvent
 from tools.artifacts import atomic_write_json
 
 VERSION = "subject-investigation.v1"
@@ -69,6 +70,7 @@ class InvestigationDraft(BaseModel):
     evidence: tuple[Quote, ...] = Field(min_length=1)
     contacts: tuple[ContactChoice, ...] = ()
     published_contacts: tuple[PublishedContact, ...] = ()
+    buying_event: ResearchBuyingEvent | None = None
 
 
 SYSTEM = """Investigate one early buying need using only the supplied records.
@@ -121,6 +123,19 @@ Prefer short clauses without apostrophes. Copy Unicode punctuation exactly;
 never add a JSON field label to a quotation. A shorter exact clause is better
 than transcribing a full paragraph or adding an inexact second quotation.
 """
+SYSTEM += """
+Leave buying_event null unless the supplied primary sources explicitly establish
+all five claims: a current requirement, a future buying decision on an exact
+date, the client's concrete capability fit, a named eligible supplier allowed
+to supply this client's product for that requirement, and a named responsible
+person. Need, decision, supplier and owner quotations must each identify the
+same externally named event ID and exact requirement. A budget or forecast
+alone cannot establish these claims. Select source passage IDs for these
+claims; code binds the exact evidence ID and quote. The target needs a verified email and
+an explicitly identified mobile. A title, public office phone, expired date or
+enrichment alone is insufficient. Null is the honest result when any leg is
+missing. Do not invent an event ID or upgrade a source's authority.
+"""
 
 
 def _available(row, cutoff):
@@ -142,6 +157,10 @@ def bundle_for(subject, searches, profile, cutoff):
     from tools.api.source_mesh import program_payloads
     row = json.loads(subject.source_payload_json)
     evidence = list(subject.evidence)
+    from .document_evidence import captured_evidence
+    captured = captured_evidence(row, cutoff)
+    if captured is not None:
+        evidence.append(captured)
     if subject.source_kind == 'forecast':
         from agents.assess.contracts import EvidenceRef
         joins = (((searches.get('results') or {}).get('forecast_signals') or {}).get('research_contract_details') or {}).get('records', [])
@@ -168,6 +187,9 @@ def bundle_for(subject, searches, profile, cutoff):
                     continue
                 linked = make_subject("program", other, as_of=cutoff)
                 evidence.extend(linked.evidence)
+                captured = captured_evidence(other, cutoff)
+                if captured is not None:
+                    evidence.append(captured)
     evidence = list({e.evidence_id: e for e in evidence}.values())
     from .investigation_inputs import published_routing_contacts
     contacts = published_routing_contacts(evidence, organization=subject.component or subject.agency)
@@ -219,17 +241,26 @@ def synthesize(bundle):
     schema['$defs']['Quote'] = {'type':'object', 'additionalProperties':False,
         'properties':{'passage_ids':{'type':'array','items':{'type':'string'},'minItems':1,'maxItems':3}},
         'required':['passage_ids']}
+    schema['$defs']['EventClaim'] = {'type': 'object', 'additionalProperties': False,
+        'properties': {'kind': schema['$defs']['EventClaim']['properties']['kind'],
+                       'passage_ids': schema['$defs']['Quote']['properties']['passage_ids']},
+        'required': ['kind', 'passage_ids']}
     prompt = canonical(prompt_bundle) + "\nJSON schema:\n" + canonical(schema)
     if len(prompt) > 180_000:
         raise ValueError("evidence exceeds per-subject input boundary; narrow document sections")
     reply = maxplan_cli.run_claude(prompt, system=SYSTEM, model=research_engine().model,
                                  timeout_s=TIMEOUT_S, isolated=True, allowed_tools=[])
     raw = maxplan_cli.extract_json(reply)
-    for quoted in [*raw.get('evidence', []), *(c.get(k) or {} for c in raw.get('published_contacts', []) for k in ('evidence', 'role_evidence'))]:
+    for quoted in [*raw.get('evidence', []),
+                   *(raw.get('buying_event') or {}).get('claims', []),
+                   *(c.get(k) or {} for c in raw.get('published_contacts', []) for k in ('evidence', 'role_evidence'))]:
         if quoted:
             resolved = _resolve_passages(quoted, passages)
+            kind = quoted.get('kind')
             quoted.clear()
             quoted.update(resolved)
+            if kind is not None:
+                quoted['kind'] = kind
     return InvestigationDraft.model_validate(raw)
 
 
@@ -280,6 +311,12 @@ def bind_draft(subject, bundle, draft, now):
         if ref is None or _compact(quote.quote) not in _compact(ref.excerpt):
             raise ValueError("investigation quote is absent from its bound source: " + quote.evidence_id + ": " + quote.quote[:240])
         selected[ref.evidence_id] = ref
+    if draft.buying_event is not None:
+        for claim in draft.buying_event.claims:
+            ref = refs.get(claim.evidence_id)
+            if ref is None or _compact(claim.quote) not in _compact(ref.excerpt):
+                raise ValueError("buying event claim is not in the captured source")
+            selected[ref.evidence_id] = ref
     from tools.api.forecasts.posture import withdrawal_evidence
     if subject.source_kind == "forecast" and withdrawal_evidence(bundle["source"]) and draft.decision in {"pursue", "partner_inquiry"}:
         raise ValueError("withdrawn forecast cannot be promoted by an investigation")
@@ -334,7 +371,7 @@ def bind_draft(subject, bundle, draft, now):
         open_questions=tuple(unknowns), reviewed_by="LILA bounded automated investigation",
         reviewed_at=now, evidence=tuple(selected.values()))
     return ReviewedSubject(subject_id=subject.subject_id, source_sha256=subject.source_sha256,
-                           research=research, targets=tuple(targets))
+                           research=research, targets=tuple(targets), buying_event=draft.buying_event)
 
 
 def record_transition(base, subject, bundle_key, draft, now):

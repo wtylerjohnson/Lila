@@ -340,7 +340,7 @@ def lint_sam_workspace_links(html_text: str) -> LintResult:
 # Scans visible text and comments only, never base64 payloads (lint_whitelabel
 # false-positived on 'gpt' inside the GTM logo's base64).
 
-_B64_ATTR = re.compile(r'(src\s*=\s*["\'])data:[^"\']{40,}(["\'])', re.I)
+_B64_ATTR = re.compile(r'((?:src|href)\s*=\s*["\'])data:[^"\']{40,}(["\'])', re.I)
 _TAG = re.compile(r"<[^>]+>")
 
 _WORD_NUMS = {w: i for i, w in enumerate(
@@ -394,6 +394,9 @@ def _visible_text(html_text: str) -> str:
     ('4' | 'Extra Pursuit') can never fuse into a phantom count claim."""
     cleaned = strip_base64(html_text)
     cleaned = _VERIFIED_SPAN.sub(" ", cleaned)
+    # Source quotations describe the publisher's universe, not this report's
+    # card totals. Authored summaries outside these cited blocks remain checked.
+    cleaned = _THIRDPARTY.sub(" ", cleaned)
     cleaned = re.sub(r"<!--(.*?)-->", r" \1 ", cleaned, flags=re.S)
     cleaned = re.sub(r"<(script|style)\b.*?</\1>", " ", cleaned, flags=re.S | re.I)
     cleaned = _BLOCK_TAG.sub(" ¦ ", cleaned)
@@ -440,7 +443,7 @@ def lint_counts(html_text: str) -> LintResult:
         before = text[max(0, m.start() - 12):m.start()]
         after = text[m.end():m.end() + 12]
         gap = m.group("gap") or ""
-        if (_EXCLUDE_BEFORE.search(before) or _EXCLUDE_AFTER.match(after)
+        if (_EXCLUDE_BEFORE.search(before) or re.search(r"\b\d{4}-\d{2}-$", before) or _EXCLUDE_AFTER.match(after)
                 or _EXCLUDE_GAP.search(gap) or _DATEISH.match(after)):
             continue
         num_raw = m.group("num").lower()
@@ -828,6 +831,10 @@ def lint_contact_rendering(html_text: str) -> LintResult:
     channel's grade and source. A contact without a grade is a claim of currency
     we never verified; a contact without a source can't be traced to an official
     publication. Either one fails the build."""
+    # Inert embedded files are downloads, not displayed contact claims. Scanning
+    # a long base64 run with the email regex also has quadratic fallback cost.
+    # Keep the surrounding markup and every visible email/phone in the scan.
+    html_text = strip_base64(html_text)
     v: list[LintViolation] = []
 
     valid_spans: list[tuple[int, int]] = []

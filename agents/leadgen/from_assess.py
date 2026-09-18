@@ -163,7 +163,15 @@ def draft_lead_rows(
     for parent, item in zip(parents, subjects):
         kind, subject = item
         if kind == AssessmentSubjectKind.RESEARCH_SUBJECT:
-            traces.append(_parent_trace(run, parent, "Research subject preserved without a child: buying decision, clock and eligible seller route remain to be established"))
+            from .research_bridge import research_draft
+            draft, reason = research_draft(run, parent, subject, coverage_hold)
+            if draft is None:
+                traces.append(_parent_trace(run, parent, reason))
+            else:
+                lead, trace = draft
+                leads.append(lead)
+                traces.append(trace)
+                lead_ids_by_parent[parent.assessment_id].append(lead.lead_id)
             continue
         if kind == AssessmentSubjectKind.PARTNER_LINK:
             traces.append(_parent_trace(

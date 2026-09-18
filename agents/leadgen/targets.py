@@ -1,12 +1,31 @@
 """Evidence-bound seller actions. Contact data does not confer authority."""
-from datetime import datetime
+from datetime import datetime, date
 from typing import Literal
 
-from pydantic import Field, HttpUrl, model_validator
+from pydantic import Field, HttpUrl, model_validator, model_serializer
 
 from agents.assess.contracts import EvidenceRef
 
 from ._base import _FrozenContract, require_aware
+
+
+class ContactVerification(_FrozenContract):
+    evidence_id: str = Field(min_length=1)
+    verified_at: datetime | None = None
+    verified_on: date | None = None
+    email_status: Literal["verified", "unknown", "invalid"]
+    phone_type: Literal["mobile", "direct", "office", "unknown"]
+    phone_status: Literal["valid_number", "unknown", "invalid"]
+    dnc_status: Literal["not_found", "listed", "not_supplied"] = "not_supplied"
+    domain_catchall: bool | None = None
+
+    @model_validator(mode="after")
+    def aware(self):
+        if (self.verified_at is None) == (self.verified_on is None):
+            raise ValueError("retain either the verification instant or its date-only precision")
+        if self.verified_at is not None:
+            require_aware(self.verified_at, "contact verified_at")
+        return self
 
 
 class LeadTarget(_FrozenContract):
@@ -23,6 +42,14 @@ class LeadTarget(_FrozenContract):
     next_ask: str = Field(min_length=1)
     authority_boundary: str = Field(min_length=1)
     evidence: tuple[EvidenceRef, ...] = Field(min_length=1)
+    channel_verification: ContactVerification | None = None
+
+    @model_serializer(mode="wrap")
+    def legacy_channels(self, handler):
+        value = handler(self)
+        if self.channel_verification is None:
+            value.pop("channel_verification", None)
+        return value
 
 
 class LeadResearch(_FrozenContract):

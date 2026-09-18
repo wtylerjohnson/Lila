@@ -107,13 +107,13 @@ def research_subject_brief(subject, *, research=None, as_of=None, edit_key=None)
                                           source_id=subject.source_record_id), source_link=link)
     source_excerpt = subject.evidence[0].excerpt.replace('\\r\\n', '\n')
     body = ('<div class="action-grid"><section><h4>What the buyer published</h4>'
-            '<p class="source-requirement">' + source_text(source_excerpt, subject.source_url)
+            '<p class="source-requirement" data-thirdparty="1">' + source_text(source_excerpt, subject.source_url)
             + '</p><p>' + link + '</p></section><section><h4>Published timing and amount</h4>'
             '<div class="source-timing">' + timing + '</div><p>' + note + '</p>' + values
             + '<p>Source amounts describe the published record, not expected sales for the client.</p>'
             '</section></div>' + company_block)
     if research:
-        return body + render_research(research, edit_key=edit_key)
+        return body + render_research(research, edit_key=edit_key, source_subject=subject)
     return (body + '<div class="action-grid"><section><h4>Where the company could fit</h4>'
             '<p>Compare the buyer requirement with the approved company capabilities and confirm the specific product scope.</p>'
             '</section><section><h4>Route to investigate / proposed</h4><p>'

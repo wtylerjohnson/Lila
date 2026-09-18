@@ -2588,6 +2588,16 @@ def main() -> int:
     from tools.artifacts import atomic_write_json
     atomic_write_json(path, out)
     print(f"[done] -> {path}", file=sys.stderr)
+    try:
+        from agents.leadgen.business_proof import write_sweep_companion
+        print('[qualification-proof] ' + write_sweep_companion(args.client, path), file=sys.stderr)
+    except Exception as exc:
+        # Diagnostics cannot approve a release or turn failed proof into zero.
+        from tools.artifacts import atomic_write_json
+        from pathlib import Path
+        atomic_write_json(Path(path).with_suffix('.qualification-failed.json'),
+                          {'state': 'failed', 'error': str(exc), 'sweep': str(path)})
+        print('[qualification-proof] FAILED: ' + str(exc), file=sys.stderr)
 
     # Additive Assess ledger sidecar: the established sweep/report path never
     # depends on it. Materialization failures remain visible for engineering

@@ -36,7 +36,9 @@ def _contract_ids(subject):
 
 
 def input_binding(subjects, profile, cutoff):
+    from .research_inputs import fingerprint
     return digest({'source_cutoff': cutoff.isoformat(), 'profile': profile.model_dump(mode='json'),
+                   'research_inputs_sha256': fingerprint(profile.client_name),
                    'subjects': {s.subject_id: s.source_sha256 for s in subjects}})
 
 
@@ -72,6 +74,9 @@ def capture(subjects, profile, cutoff):
     result = {'schema_version': 'investigation-inputs.v1', 'input_binding': input_binding(subjects, profile, cutoff),
               'captured_at': datetime.now(timezone.utc).isoformat(),
               'subjects': {}, 'store_receipts': {}}
+    from .research_inputs import read_inputs
+    supplements, supplement_receipt = read_inputs(profile.client_name, subjects, cutoff)
+    result['store_receipts']['research_inputs'] = supplement_receipt
     try:
         sightings = ContactGraphStore().read_observations()
         result['store_receipts']['contacts'] = {'state': 'read', 'count': len(sightings)}
@@ -103,6 +108,9 @@ def capture(subjects, profile, cutoff):
             result['store_receipts']['notices'] = {'state': 'not_available'}
         for subject in subjects:
             refs, contacts, joined = {}, {}, []
+            supplemental = supplements.get(subject.subject_id, {})
+            refs.update(supplemental.get('evidence', {}))
+            contacts.update(supplemental.get('contacts', {}))
             ids = _contract_ids(subject)
             state = 'not_run_no_contract_identity'
             if ids and conn:

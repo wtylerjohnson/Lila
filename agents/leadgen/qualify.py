@@ -44,7 +44,7 @@ from .next_action import CurrentNextAction
 from .seller_path import SellerTransactionPath
 from .traces import DecisionTrace
 
-QUALIFIER_VERSION = "leadgen.qualify.v2"
+QUALIFIER_VERSION = "leadgen.qualify.v3"
 
 # Incomplete required Assess coverage may leave a four-leg draft on
 # WATCH. It cannot green LEAD_T1 / LEAD_T2.
@@ -91,7 +91,12 @@ def qualify_drafts(
         subject = subjects.get(lead.buying_motion.parent_subject_id)
         linked = partners.get(lead.buying_motion.parent_subject_id, ())
         row = _joined_action_row(lead, parent, action_rows)
-        next_lead, next_trace, took_t1 = _qualify_one(
+        if parent is not None and parent.research_subject is not None:
+            from .research_bridge import qualify_research
+            next_lead, next_trace, took_t1 = qualify_research(
+                lead, parent, run, traces_by_lead.get(lead.lead_id))
+        else:
+            next_lead, next_trace, took_t1 = _qualify_one(
             lead,
             parent,
             subject,
@@ -105,6 +110,11 @@ def qualify_drafts(
             if company_dossier.client_name.casefold() != run.client_name.casefold():
                 raise ValueError("qualifier dossier belongs to a different client")
             text = _clean(getattr(subject, "requirement_excerpt", "")).casefold()
+            if parent is not None and parent.research_subject is not None:
+                from .research_bridge import overlay_for
+                overlay = overlay_for(parent.research_subject)
+                if overlay and overlay.buying_event:
+                    text = overlay.buying_event.requirement.casefold()
             import re
             words = set(re.findall(r"[a-z0-9]+", text))
             claims = (*company_dossier.offerings, *company_dossier.keywords)

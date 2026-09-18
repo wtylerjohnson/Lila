@@ -186,6 +186,14 @@ def render_html(receipt: PressLeadGenReceipt) -> str:
                       + render_targets(parent.targets if research else ())
                       + render_reviewed_context(subject)
                       + detail + render_source_fields(subject, as_of=receipt.as_of.date()))
+            event_leads = [lead for lead in receipt.leads if lead.parent_assessment_id == parent.assessment_id]
+            if event_leads:
+                detail = ''.join('<section class="research-action"><h4>Buying decision</h4><p>'
+                    + _text(lead.buying_motion.motion_id) + ' · ' + _text(lead.buying_motion.clock)
+                    + ' · ' + _text(lead.lead_tier.value) + '</p><p>'
+                    + _text(lead.next_action.object) + '</p><p>'
+                    + _text(lead.next_action.blocked_by or 'Evidence requirements met; outreach permission remains unchanged.')
+                    + '</p></section>' for lead in event_leads) + detail
             kind = {"forecast": "Planned purchase / research", "award": "Existing contract / research", "program": "Emerging need / research"}[subject.source_kind]
             identity = source_link(subject)
         else:
@@ -232,7 +240,7 @@ def render_html(receipt: PressLeadGenReceipt) -> str:
                              and lead.research and lead.research.priority), None)
         if research and research.priority:
             priority_rows.append('<article class="assessment-sheet"><header><h3>' + _text(parent.title)
-                                 + '</h3></header><div class="assessment-sheet-body">' + render_research(research)
+                                 + '</h3></header><div class="assessment-sheet-body">' + render_research(research, source_subject=parent.research_subject)
                                  + f'<a href="#{parent_anchors[parent.assessment_id]}">Open assessment, contacts and sources</a>'
                                  + '</div></article>')
     if priority_rows:

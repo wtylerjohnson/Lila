@@ -89,6 +89,14 @@ def main() -> int:
     except Exception as exc:
         out['results']['upstream_investigations'] = {'state': 'failed', 'error': str(exc), 'items': []}
     atomic_write_json(path, out)
+    try:
+        from agents.leadgen.business_proof import write_sweep_companion
+        print('[qualification-proof] ' + write_sweep_companion(args.client, path), file=sys.stderr)
+    except Exception as exc:
+        from pathlib import Path
+        atomic_write_json(Path(path).with_suffix('.qualification-failed.json'),
+                          {'state': 'failed', 'error': str(exc), 'sweep': str(path)})
+        print('[qualification-proof] FAILED: ' + str(exc), file=sys.stderr)
 
     if "picture" not in args.skip:
         from agents.decisions.research_picture import (

@@ -48,6 +48,12 @@ def render_targets(targets):
                   ("Contact status", row.get("contact_status")),
                   ("Route", row.get("route")), ("Why contact", row.get("reason_to_contact")),
                   ("Next ask", row.get("next_ask")), ("Role boundary", row.get("authority_boundary"))]
+        verification = row.get('channel_verification') or {}
+        if verification:
+            fields.extend([('Phone type', verification.get('phone_type')),
+                           ('DNC status', verification.get('dnc_status')),
+                           ('Contact verified at', verification.get('verified_at')),
+                           ('Contact verified on', verification.get('verified_on'))])
         sources = [source_link(e.get("source_url"), e.get("source_name") or e.get("evidence_id"))
                    for e in row.get("evidence", [])]
         sources.insert(0, source_link(row.get("source_url"), row.get("source_kind") or "Published source"))
@@ -55,12 +61,13 @@ def render_targets(targets):
                     + '</strong><dl class="product-fields">'
                     + ''.join(f'<dt>{esc(label)}</dt><dd>{contact_channel(value, row.get("source_url")) if label in {"Email", "Phone"} else source_text(value, row.get("source_url"))}</dd>'
                               for label, value in fields if value)
-                    + '</dl><p>Grade C: contact observation date not established. Confirm current role and contact details.</p><p>'
+                    + ('</dl><p>Source-reported contact verification retained. Program responsibility and outreach permission remain separate.</p><p>'
+                       if verification else '</dl><p>Grade C: contact observation date not established. Confirm current role and contact details.</p><p>')
                     + ' · '.join(dict.fromkeys(sources)) + '</p></article>')
     return '<div class="product-targets">' + ''.join(rows) + '</div>' if rows else ''
 
 
-def render_research(research, *, edit_key=None):
+def render_research(research, *, edit_key=None, source_subject=None):
     row = research.model_dump(mode="json") if hasattr(research, "model_dump") else research
     if not row:
         return ''
@@ -70,7 +77,12 @@ def render_research(research, *, edit_key=None):
     statuses = {'technical_qualification': 'Check technical fit', 'known_opportunity': 'Known opportunity',
                 'investigation': 'Investigate next', 'deprioritized': 'Keep on the watchlist',
                 'rejected': 'Removed from priority'}
-    sources = ' · '.join(source_link(e['source_url'], e.get('source_name') or e['evidence_id'])
+    def evidence_link(e):
+        if source_subject is not None and str(source_subject.source_url) == str(e['source_url']):
+            from .research_html import source_link as bound_link
+            return bound_link(source_subject, e.get('source_name') or e['evidence_id'])
+        return source_link(e['source_url'], e.get('source_name') or e['evidence_id'])
+    sources = ' · '.join(evidence_link(e)
                          for e in row.get('evidence', []))
     return ('<div class="research-action"><strong>' + esc(statuses.get(row['status'], row['status']))
             + '</strong><p><b>Why this is here:</b> ' + prose('rationale')
@@ -86,5 +98,5 @@ def render_research(research, *, edit_key=None):
             + '</ul><p>These are conditions for reassessment, not permission to contact or bid.</p>'
             + '<details><summary>Research evidence and review</summary><p>' + sources
             + '</p><p>Reviewed by ' + esc(row.get('reviewed_by')) + ' · ' + esc(row.get('reviewed_at'))
-            + '</p>' + ''.join('<blockquote>' + source_text(e.get('excerpt'), e.get('source_url')) + '</blockquote>'
+            + '</p>' + ''.join('<blockquote data-thirdparty="1">' + source_text(e.get('excerpt'), e.get('source_url')) + '</blockquote>'
                               for e in row.get('evidence', [])) + '</details></div>')

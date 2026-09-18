@@ -90,8 +90,13 @@ class OpportunityAssessment(_FrozenContract):
     @model_validator(mode="after")
     def _parent_identity_is_coherent(self) -> OpportunityAssessment:
         if self.subject_kind == AssessmentSubjectKind.RESEARCH_SUBJECT:
-            if self.research_subject is None or self.research_subject.subject_id != self.subject_id or self.notice_id or self.lead_ids:
-                raise ValueError("research parent requires exact subject and zero live children")
+            if self.research_subject is None or self.research_subject.subject_id != self.subject_id or self.notice_id:
+                raise ValueError("research parent requires exact subject and cannot carry live notice identity")
+            if self.lead_ids:
+                from agents.assess.reviewed_cases import ReviewedSubject
+                overlay = ReviewedSubject.model_validate_json(self.research_subject.reviewed_overlay_json or "{}")
+                if overlay.buying_event is None:
+                    raise ValueError("research children require a source-bound buying event")
         elif self.research_subject is not None:
             raise ValueError("research subject cannot be relabeled as a legacy parent")
         require_aware(self.as_of, "opportunity assessment as_of")

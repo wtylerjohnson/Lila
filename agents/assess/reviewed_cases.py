@@ -15,6 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator, model_serial
 
 from agents.assess.contracts import LiveClassification, LiveSolicitation
 from agents.leadgen.targets import LeadResearch, LeadTarget
+from agents.leadgen.research_event import ResearchBuyingEvent
 from tools.slug import client_slug
 
 
@@ -74,6 +75,7 @@ class ReviewedSubject(BaseModel):
     targets: tuple[LeadTarget, ...] = ()
     customer_statements: tuple[CustomerStatement, ...] = ()
     investigations: tuple[ReviewedInvestigation, ...] = ()
+    buying_event: ResearchBuyingEvent | None = None
 
     @model_validator(mode="after")
     def distinct_context(self):
@@ -89,6 +91,8 @@ class ReviewedSubject(BaseModel):
     @model_serializer(mode="wrap")
     def preserve_existing_serialization(self, handler):
         value = handler(self)
+        if self.buying_event is None:
+            value.pop("buying_event", None)
         for name in ("customer_statements", "investigations"):
             if not getattr(self, name):
                 value.pop(name, None)

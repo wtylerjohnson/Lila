@@ -20,8 +20,8 @@ class SourceAcquisition(BaseModel):
     version: Literal["assess.source-acquisition.v1"] = "assess.source-acquisition.v1"
     status: Literal["known", "missing", "invalid", "date_only", "unknown_timezone",
                     "conflict", "untrusted"]
-    basis: Literal["sam_notice_depth", "horizon_fact_bank", "none"]
-    component: Literal["notice_description", "notice_payload", "horizon_fact", "subaward_record", "research_record"]
+    basis: Literal["sam_notice_depth", "horizon_fact_bank", "program_document_capture", "none"]
+    component: Literal["notice_description", "notice_payload", "horizon_fact", "subaward_record", "research_record", "program_document"]
     original_field: str
     raw_values: tuple[str, ...] = ()
     input_types: tuple[Literal["text", "non_text", "missing"], ...] = ()
@@ -42,6 +42,9 @@ class SourceAcquisition(BaseModel):
         if self.basis == "horizon_fact_bank" and (
                 self.component != "horizon_fact" or self.original_field != "fact.retrieved_at"):
             raise ValueError("Horizon acquisition must bind its fact-bank field")
+        if self.basis == "program_document_capture" and (
+                self.component != "program_document" or self.original_field != "document_evidence.document.finished_at"):
+            raise ValueError("program acquisition requires a validated document capture receipt")
         return self
 
 

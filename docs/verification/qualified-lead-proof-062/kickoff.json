@@ -1,0 +1,27 @@
+{
+  "work_id": "QUALIFIED-LEAD-PROOF-062",
+  "authorized_scope": "User: great complete 1-5; research-to-lead bridge, four investigations, contact-complete action sheets, fixed before/after comparison, ordinary-run proof",
+  "plan_id": "LILA-WEEKEND-2026-09-11-v1",
+  "plan_sha256": "71a4c7c11ee575596357e5e0fcfb66a75d2c855b4761040042732c8cad26bfc5",
+  "base": "7d009ec49c078daad2e5365165a6b8bd2f367653",
+  "checkout": "/Users/wtjohnson/Documents/Codex/2026-09-16/files-pasted-by-the-user-execute/work/qualified-leads-20260917",
+  "branch": "codex/qualified-leads-20260917",
+  "owner": "this task",
+  "started_at": "2026-09-17T16:33:17.162381+00:00",
+  "protected_operating_files": {
+    "clients/netscout/profile.json": "4c43f61c4c67eabd961136dcc415f8280974fef6d2d9d0bb7e399106def49c2a",
+    "data/entities/unresolved.log": "c7be51e70722038bf4a268231b551699ce2d0c4629aa6b950bfe6a33994061da",
+    "clients/netscout/capability_taxonomy.json": "64360dfb67abdd260efa07a8c7e2a3812491a83db2d840a75db3ef48cedf0425",
+    "clients/netscout/engagement_scope.json": "0f8a6f22f1b616ff4b891a213e02cfc2bb928d9423c69ebbca6551535f17f1c4"
+  },
+  "acceptance": [
+    "Source-bound early buying events may qualify without a solicitation; budget and forecast alone remain insufficient.",
+    "No gate changes; source acquisition, coverage, fit, access and ownership remain explicit.",
+    "Count unique accepted buying events, requiring email and evidenced mobile; DNC or missing consent does not confer outreach permission.",
+    "Same predicate applied to frozen old output and new ordinary output. Contact people and research-priority flags do not count as leads.",
+    "Four named investigations completed as qualified or specific unresolved/closed dispositions; bounded additional discovery if no qualified result.",
+    "Strict full suite and report QA; actual Command Center run; no narrative post-processing."
+  ],
+  "business_metric": "unique event IDs passing need, current decision, fit, eligible seller route, responsible person, email, mobile and source checks; time/cost per accepted event undefined at zero",
+  "baseline": "Veeam_Phase2_Sweep_Final_2026-09-17.json; preserve frozen run and no production changes"
+}

@@ -1024,3 +1024,34 @@ identity when input populations change; old releases are not rewritten/reapprove
 The eight-slot projection owns PROGRAM research in existing slot 7, future
 demand, with an emerging-need label. It never treats program documents as
 historical spending or live solicitations. No locked heading/order is changed.
+
+## Explicit contract extension: QUALIFIED-LEAD-PROOF-062
+
+The September 17 user instruction "great complete 1-5" authorizes this bounded
+extension. Prior zero-child research rules above remain the default for subjects
+without a complete, source-bound `ResearchBuyingEvent`. A parent with such a
+proposal may now carry a fail-closed four-leg child; promotion separately requires
+all five source claims, fresh source acquisition, future exact decision date,
+verified email/mobile, named requirement owner, eligible named supplier and
+complete required Assess coverage. Original source identity and source posture
+remain unchanged, and a research parent never acquires a live notice ID.
+
+The additive `buying_event` and `channel_verification` fields are omitted when
+absent, preserving archival payloads. Old readers must not be assumed to support
+the new research-child behavior. The qualifier version is v3. Existing live
+notice review, attachment checks, renewal/recompete rules, T1 cap, Market Map
+slots, Assess/Target approvals and communication permission are unchanged.
+
+`SourceAcquisition` adds the precisely scoped `program_document_capture` basis
+and `program_document` component, bound to
+`document_evidence.document.finished_at`. Only the supporting-document adapter
+emits these from validated capture/extraction receipts. The original
+`research_record` still requires basis `none`. A budget capture proves that the
+budget was retrieved, never that its request was appropriated or remains unmet.
+
+Regression: `tests/test_research_buying_event.py` covers a no-solicitation positive,
+budget/forecast negatives, unknown source clocks, wrong event/requirement/owner/
+supplier, office-to-mobile relabeling, DNC, past decisions, negative and hidden
+counterevidence, incomplete required coverage, duplicate counts, date precision,
+source-hash invalidation and archival contact roundtrips. Synthetic positives
+are feature tests, not proof of additional Veeam leads.

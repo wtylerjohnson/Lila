@@ -28,8 +28,18 @@ def check_reviewed_quality(receipt, book) -> dict:
         parent=research_parents.get(overlay.subject_id)
         if parent is None or parent.research != overlay.research or parent.targets != overlay.targets:
             problems.append(f"lost parent research or targets: {overlay.subject_id}")
-        elif parent.lead_ids or by_parent.get(parent.assessment_id):
+        elif (parent.lead_ids or by_parent.get(parent.assessment_id)) and overlay.buying_event is None:
             problems.append(f"research-only subject incorrectly minted a child: {overlay.subject_id}")
+        elif overlay.buying_event is not None:
+            from .research_event import event_gaps
+            for child in by_parent.get(parent.assessment_id, []):
+                if (child.buying_motion.motion_id != overlay.buying_event.event_id
+                        or child.buying_motion.parent_subject_id != overlay.subject_id):
+                    problems.append(f"research child differs from bound event: {overlay.subject_id}")
+                if child.lead_tier.value in {"LEAD_T1", "LEAD_T2"} and event_gaps(
+                        overlay.buying_event, overlay.research.evidence, overlay.targets,
+                        as_of=receipt.as_of, client_name=receipt.client_name):
+                    problems.append(f"research buying event falsely promoted: {overlay.subject_id}")
     if problems:
         raise ValueError("quality baseline failed: " + "; ".join(problems))
     return {"schema_version": "lead_quality.v1", "passed": True,

@@ -104,7 +104,8 @@ def render_source_fields(subject, *, as_of: date) -> str:
             f'data-source-json="{kind}" href="data:application/json;base64,{download}">Download untouched JSON</a></p>'
             '<p>URL fields link to the source record; the download retains the exact original URL and values. '
             'Saved contact text does not establish present responsibility or freshness.</p>'
-            '<dl class="source-fields">' + ''.join(rows) + '</dl>')
+            '<dl class="source-fields"' + (' data-thirdparty="1"' if kind == 'source' else '')
+            + '>' + ''.join(rows) + '</dl>')
     return ('<details><summary>Show work: original source fields and value basis</summary>'
             f'<p class="mono">Source SHA-256: {escape(subject.source_sha256)}</p>'
             + ''.join(blocks) + '</details>')
