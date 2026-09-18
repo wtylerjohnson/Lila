@@ -236,6 +236,7 @@ def test_command_center_search_preserves_subject_timeout_and_resumes(tmp_path, m
 
 def _patch_offline_success(monkeypatch, captured: dict) -> None:
     """Keep a successful runner test entirely off network and off disk."""
+    import run_searches
     import tools.artifacts as artifacts
     import tools.assess_refresh as assess_refresh
     import tools.capability as capability
@@ -243,6 +244,11 @@ def _patch_offline_success(monkeypatch, captured: dict) -> None:
     import tools.snapshots as snapshots
     from tools.api.forecasts import coverage
 
+    # The writer below is a capture, so no new sweep is persisted. Keep the
+    # companion from reading an unrelated pre-existing operating sweep at the
+    # same filename. Other runner sidecars belong to the isolated fixture too.
+    monkeypatch.setattr(run_searches, "__file__",
+                        str(Path(review.REVIEW_DIR).parent / "run_searches.py"))
     _InertExecutor.submitted = []
     monkeypatch.setattr(capability, "require_profile", lambda _client: _profile())
     monkeypatch.setattr(concurrent.futures, "ThreadPoolExecutor", _InertExecutor)
@@ -469,6 +475,7 @@ def test_run_searches_emits_native_packet_sha_and_revision_without_real_fanout(
     assert payload["search_scope"]["agencies"][0]["abbr"] == "DHS"
     assert captured["path"].endswith(
         "searches_netscout.agency_dhs.json")
+    assert Path(captured["path"]).is_relative_to(tmp_path)
     assert _InertExecutor.submitted  # source names were scheduled, never called
 
 
