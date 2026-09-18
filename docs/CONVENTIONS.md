@@ -2437,3 +2437,32 @@ patterns. It does not change the engagement scope or approval settings.
   counts. These exclusions do not suppress lint on authored copy. Historical
   award links use the validated source subject identity. Download byte equality
   and the final rendered artifact hash are checked independently.
+
+## Apollo mobile preservation (APOLLO-MOBILE-PATH-063)
+
+The September 18 instruction to add the collected contacts to the supplied
+Veeam deliverable and fix the code path authorizes this repair. Extend existing
+phone classification, targeting-store admission, frozen investigation inputs
+and `ContactVerification`; no new enrichment call or model route is introduced.
+`phone_policy.from_enrichment` reads both phone-number objects and grouped
+provider arrays without stringifying containers. It retains provider status,
+DNC, confidence and observation time; home numbers never become mobiles.
+Duplicate numbers retain blocking findings. The existing visibility switch is
+honored, and DNC-listed/invalid numbers stay stored but are not selected for
+display. `targets_store.admissible` preserves those fields.
+
+The saved Apollo research adapter selects a typed mobile, then a typed direct
+line. It never selects a legacy flat phone, organization main line, home or
+unclassified number. The normalized channel evidence binds the selected phone,
+email, provider statuses and observation date. Historical day-only precision
+and older email observation dates remain intact. Missing validation remains
+unknown, missing DNC data is not clearance, and future/malformed phone
+observations are withheld. This fixes unconditional `phone=None` without
+changing evidence qualification, outreach permission, source joins or gates.
+The capture adapter version invalidates older captures on the next normal run.
+
+Regression: `tests/test_apollo_mobile_path.py` exercises enrichment through
+store/capture/bound target/render with the network poisoned, plus provider
+shapes, DNC, invalid numbers, wrong types, stale/future observations and the
+existing suppression switch. The client HTML is a separate contact-only edit
+of the user-supplied file; its edit/download/reopen proof is not a fresh release.

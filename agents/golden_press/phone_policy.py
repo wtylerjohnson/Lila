@@ -20,10 +20,12 @@ FOUR TYPES:
 RENDER POLICY, FAIL CLOSED:
   org_main     -> its own labeled main-line column
   work_direct  -> the dial column
-  mobile       -> stored, WITHHELD from the client artifact unless
-                  LILA_TARGETING_INCLUDE_MOBILE is on (default off)
-  unclassified -> stored, withheld on the same switch
-  anything not positively classified does not render at all
+  mobile       -> stored and shown by default; the existing operator switch
+                  can suppress it
+  unclassified -> stored and shown in its own type by the same switch;
+                  never selected as a person's mobile/direct research channel
+  DNC-listed or invalid numbers -> retained in storage, withheld from display
+  missing or unknown classification -> withheld
 
 The withheld ones are STORED, deliberately. The operator can still work them
 from the store and the sequence export; what the policy governs is the
@@ -53,8 +55,8 @@ INCLUDE_MOBILE_ENV = "LILA_TARGETING_INCLUDE_MOBILE"
 _APOLLO_TYPE_MAP = {
     "mobile": MOBILE,
     "mobile_phone": MOBILE,
-    "home": MOBILE,
-    "home_phone": MOBILE,
+    "home": UNCLASSIFIED,
+    "home_phone": UNCLASSIFIED,
     "direct": WORK_DIRECT,
     "direct_phone": WORK_DIRECT,
     "work_direct": WORK_DIRECT,
@@ -150,6 +152,8 @@ def renders(entry: Optional[dict]) -> bool:
     """
     if not isinstance(entry, dict) or not entry.get("number"):
         return False
+    if entry.get('dnc_status_cd') in {'found', 'listed'} or entry.get('status_cd') == 'invalid':
+        return False
     kind = entry.get("type")
     if kind not in PHONE_TYPES:
         return False
@@ -174,7 +178,11 @@ def withheld(entries: Any) -> list:
             if isinstance(e, dict) and e.get("number") and not renders(e)]
 
 
-def from_enrichment(person: dict, organisation: Optional[dict] = None) -> list:
+PHONE_METADATA = ('status_cd', 'dnc_status_cd', 'confidence_cd', 'observed_at')
+
+
+def from_enrichment(person: dict, organisation: Optional[dict] = None,
+                    *, observed_at: Optional[str] = None) -> list:
     """Every number an enrichment record carries, classified.
 
     The organisation's switchboard is taken deliberately (operator ruling,
@@ -195,34 +203,83 @@ def from_enrichment(person: dict, organisation: Optional[dict] = None) -> list:
             if primary.get(key):
                 org_numbers.append(primary[key])
 
+    def add(value, *, flag=None, field):
+        # Webhook results group arrays by type; synchronous matches use
+        # phone_numbers entries. Never stringify a list/dict into a number.
+        if isinstance(value, list):
+            for item in value:
+                add(item, flag=flag, field=field)
+            return
+        raw = value if isinstance(value, dict) else {}
+        number = (raw.get('sanitized_number') or raw.get('raw_number') or raw.get('number')) if raw else value
+        if not isinstance(number, str) or not number.strip():
+            return
+        entry = classify(number, apollo_type=raw.get('type') or flag,
+                         source_field=field, org_numbers=org_numbers)
+        for key in PHONE_METADATA:
+            if isinstance(raw.get(key), str) and raw[key]:
+                entry[key] = raw[key]
+        if 'status_cd' not in entry and raw.get('status'):
+            entry['status_cd'] = str(raw['status'])
+        if observed_at and 'observed_at' not in entry:
+            entry['observed_at'] = observed_at
+        out.append(entry)
+
     # Person-level numbers, whatever shape the response used.
     for entry in ((person or {}).get("phone_numbers") or ()):
         if not isinstance(entry, dict):
             continue
-        out.append(classify(
-            entry.get("raw_number") or entry.get("sanitized_number"),
-            apollo_type=entry.get("type"),
-            source_field="phone_numbers[]", org_numbers=org_numbers))
+        add(entry, field='phone_numbers[]')
     for key in ("phone_number", "direct_phone", "mobile_phone",
                 "corporate_phone", "home_phone", "other_phone"):
         if (person or {}).get(key):
-            out.append(classify(person[key],
-                                apollo_type=(key if key != "phone_number"
-                                             else None),
-                                source_field=key, org_numbers=org_numbers))
+            add(person[key], flag=key if key != 'phone_number' else None, field=key)
 
     # The organisation switchboard, in its own lane.
     if org_numbers:
         out.append(classify(org_numbers[0],
                             source_field="organization.primary_phone",
                             org_numbers=org_numbers))
-    # Stable, de-duplicated by normalised number; first classification wins.
-    seen: set = set()
+    return merge_phones(out)
+
+
+def merge_phones(entries: Any) -> list:
+    """Merge retained and returned channels without losing explicit types.
+
+    A bare duplicate phone field is weaker than a typed provider entry.
+    Conflicting explicit types and blocking findings remain conservative.
+    """
+    seen: dict = {}
     unique: list = []
-    for entry in out:
-        key = normalise(entry.get("number"))
-        if not key or key in seen:
+    for value in entries:
+        if not isinstance(value, dict):
             continue
-        seen.add(key)
+        entry = dict(value)
+        key = normalise(entry.get("number"))
+        if not key:
+            continue
+        if key in seen:
+            previous = seen[key]
+            blocked = {field: previous[field] for field, values in
+                       [('dnc_status_cd', {'found','listed'}), ('status_cd', {'invalid'})]
+                       if previous.get(field) in values}
+            if previous.get('basis_kind') == 'unestablished' and entry['type'] != UNCLASSIFIED:
+                previous.update(entry)
+            elif entry.get('basis_kind') != 'unestablished' and previous['type'] != entry['type']:
+                previous.update(type=UNCLASSIFIED, basis='conflicting provider phone types', basis_kind='conflicting_types')
+            elif previous['type'] == entry['type'] and not previous.get('status_cd') and entry.get('status_cd'):
+                # Status and its observation time move together; a bare new
+                # phone value cannot make a saved validation look fresh.
+                for field in PHONE_METADATA:
+                    previous.pop(field, None)
+                    if field in entry:
+                        previous[field] = entry[field]
+            # A second occurrence must not erase a DNC/invalid finding.
+            for field, blocked_values in [('dnc_status_cd', {'found', 'listed'}), ('status_cd', {'invalid'})]:
+                if entry.get(field) in blocked_values:
+                    previous[field] = entry[field]
+            previous.update(blocked)
+            continue
+        seen[key] = entry
         unique.append(entry)
     return unique

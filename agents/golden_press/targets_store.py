@@ -169,7 +169,7 @@ def admissible(payload: Optional[dict],
         # one. An entry with no number or no known type is kept in the store
         # (the operator can still work it) but the render policy owns
         # whether it reaches the artifact.
-        from agents.golden_press.phone_policy import PHONE_TYPES
+        from agents.golden_press.phone_policy import PHONE_TYPES, PHONE_METADATA
 
         phones = []
         for entry in (raw.get("phones") or []):
@@ -185,7 +185,9 @@ def admissible(payload: Optional[dict],
                 continue
             phones.append({"number": number, "type": kind,
                            "basis": str(entry.get("basis")),
-                           "basis_kind": str(entry.get("basis_kind") or "")})
+                           "basis_kind": str(entry.get("basis_kind") or ""),
+                           **{key: entry[key] for key in PHONE_METADATA
+                              if isinstance(entry.get(key), str) and entry[key]}})
         row["phones"] = phones
         # SCREENING IS A PUBLICATION REQUIREMENT (operator ruling
         # 2026-08-06). The block survives into the row so Band 09 and the
@@ -259,7 +261,9 @@ def phone_of(row: dict, kind: str) -> Optional[dict]:
     """
     for entry in (row.get("phones") or ()):
         if isinstance(entry, dict) and entry.get("type") == kind \
-                and entry.get("number"):
+                and entry.get("number") \
+                and entry.get('dnc_status_cd') not in {'found', 'listed'} \
+                and entry.get('status_cd') != 'invalid':
             return entry
     return None
 

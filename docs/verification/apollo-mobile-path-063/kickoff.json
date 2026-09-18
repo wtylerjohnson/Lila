@@ -1,0 +1,23 @@
+{
+  "work_id": "APOLLO-MOBILE-PATH-063",
+  "plan_id": "LILA-WEEKEND-2026-09-11-v1",
+  "plan_sha256": "71a4c7c11ee575596357e5e0fcfb66a75d2c855b4761040042732c8cad26bfc5",
+  "owner": "current task",
+  "checkout": "/Users/wtjohnson/Documents/Codex/2026-09-16/files-pasted-by-the-user-execute/work/qualified-leads-20260917",
+  "branch": "codex/qualified-leads-20260917",
+  "base": "817c80dac27d6b2d3be9d97468fb67d53b12f3d4",
+  "coordinator_status": "OPERATING_MERGED_WITH_RESIDUALS",
+  "source_artifact": "/Users/wtjohnson/Downloads/LILA_Veeam_DHS_MDA_Full_Report_2026-09-17_Edited (2).html",
+  "source_sha256": "3e932e375456263d1a9c9ce705a8112aa6f6d407609d74b1cddbec90413e6dd1",
+  "protected_operating_files": {
+    "clients/netscout/profile.json": "4c43f61c4c67eabd961136dcc415f8280974fef6d2d9d0bb7e399106def49c2a",
+    "data/entities/unresolved.log": "c7be51e70722038bf4a268231b551699ce2d0c4629aa6b950bfe6a33994061da",
+    "clients/netscout/capability_taxonomy.json": "64360dfb67abdd260efa07a8c7e2a3812491a83db2d840a75db3ef48cedf0425",
+    "clients/netscout/engagement_scope.json": "0f8a6f22f1b616ff4b891a213e02cfc2bb928d9423c69ebbca6551535f17f1c4"
+  },
+  "acceptance": [
+    "Change only contact data in the supplied edited HTML; preserve seven opportunity sheets, prose, source facts, media, scripts, styles, filters and edit/download/reopen behavior.",
+    "Preserve typed Apollo person phones and provider verification/DNC through storage and research capture; never substitute switchboards or home/unknown types for mobile.",
+    "Regression tests for enrichment -> saved store -> research capture -> rendered target; required full strict suite; preserve model route and gates."
+  ]
+}

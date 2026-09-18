@@ -2,7 +2,7 @@
 
 No enrichment, migrations, title-based event joins, or press-time I/O.
 """
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 import json
 import os
 from pathlib import Path
@@ -37,9 +37,68 @@ def _contract_ids(subject):
 
 def input_binding(subjects, profile, cutoff):
     from .research_inputs import fingerprint
-    return digest({'source_cutoff': cutoff.isoformat(), 'profile': profile.model_dump(mode='json'),
+    return digest({'adapter_version': 'saved-apollo-channels.v2',
+                   'source_cutoff': cutoff.isoformat(), 'profile': profile.model_dump(mode='json'),
                    'research_inputs_sha256': fingerprint(profile.client_name),
                    'subjects': {s.subject_id: s.source_sha256 for s in subjects}})
+
+
+def _apollo_channels(saved, cutoff):
+    """Select a typed person channel, preserving the provider's observations.
+
+    Legacy flat `phone` may be an employer switchboard and is never selected.
+    Store retrieval is an observation date, not a provider validation timestamp.
+    """
+    from agents.golden_press.phone_policy import renders, MOBILE, WORK_DIRECT
+    entries = saved.get('phones') or []
+    eligible = []
+    for entry in entries:
+        if entry.get('type') not in {MOBILE, WORK_DIRECT} or not renders(entry):
+            continue
+        observed = entry.get('observed_at')
+        if observed:
+            try:
+                if len(observed) == 10:
+                    if date.fromisoformat(observed) > cutoff.date():
+                        continue
+                else:
+                    instant = datetime.fromisoformat(observed.replace('Z', '+00:00'))
+                    if instant.tzinfo is None or instant > cutoff:
+                        continue
+            except ValueError:
+                continue
+        eligible.append(entry)
+    selected = next((p for kind in (MOBILE, WORK_DIRECT) for p in eligible if p['type'] == kind), None)
+    email = saved.get('email') if not saved.get('email_locked') else None
+    if email and 'email_not_unlocked' in email.casefold():
+        email = None
+    values = dict(name=saved['name'], email=email, phone=selected['number'] if selected else None,
+        email_status=saved.get('email_status') if saved.get('email_status') in {'verified','invalid'} and email else 'unknown',
+        phone_type=('mobile' if selected['type'] == MOBILE else 'direct') if selected else 'unknown',
+        phone_status=selected.get('status_cd') if selected and selected.get('status_cd') in {'valid_number','invalid'} else 'unknown',
+        dnc_status={'found':'listed','listed':'listed','not_found':'not_found'}.get((selected or {}).get('dnc_status_cd'),'not_supplied'),
+        provider_phone=selected, provider_contact_id=saved.get('contact_id'),
+        verification_date_boundary='Provider status observed at saved retrieval; internal provider validation timestamp not supplied.')
+    if selected:
+        # Preserve day-only precision and do not refresh an older email
+        # observation merely because the phone was retrieved more recently.
+        try:
+            day = date.fromisoformat(saved['provenance']['retrieved_at'])
+            observed = selected.get('observed_at')
+            instant = None
+            if observed:
+                if len(observed) == 10:
+                    day = min(day, date.fromisoformat(observed))
+                else:
+                    instant = datetime.fromisoformat(observed.replace('Z','+00:00'))
+            if instant and instant.date() <= day:
+                values['verified_at'] = instant.isoformat()
+            else:
+                values['verified_on'] = day.isoformat()
+        except (ValueError, KeyError):
+            pass
+    withheld = sum(p.get('dnc_status_cd') in {'found','listed'} or p.get('status_cd') == 'invalid' for p in entries)
+    return values, withheld
 
 
 def published_routing_contacts(evidence, *, organization):
@@ -180,16 +239,27 @@ def capture(subjects, profile, cutoff):
                 url = saved.get('linkedin_url') or 'https://app.apollo.io/#/contacts/' + str(saved.get('contact_id') or '')
                 ref = _reference(saved, source='Apollo saved contact', url=url, kind='web_lead', primary=False)
                 refs[ref['evidence_id']] = ref
+                channels, withheld = _apollo_channels(saved, cutoff)
+                channel_ref = _reference(channels, source='Apollo saved contact channels', url=url, kind='web_lead', primary=False)
+                refs[channel_ref['evidence_id']] = channel_ref
                 status = 'Provider email status: ' + str(saved.get('email_status') or 'unknown')
                 status += '; domain catch-all: ' + str(saved.get('email_domain_catchall', 'unknown'))
+                status += '; person phone type: ' + channels['phone_type'] + '; phone status: ' + channels['phone_status']
+                status += '; DNC status: ' + channels['dnc_status']
+                if withheld:
+                    status += f'; {withheld} DNC-listed or invalid phone entries withheld'
                 item = dict(name=saved['name'], role=saved.get('title') or 'Unconfirmed routing candidate',
                     organization=saved.get('organization') or subject.agency,
                     source_kind='apollo', source_url=url,
-                    email=saved.get('email') if not saved.get('email_locked') else None,
-                    phone=None,  # employer switchboards are not personal direct dials
+                    email=channels['email'], phone=channels['phone'],
                     contact_status=status + '; current program role unconfirmed',
                     authority_boundary='Saved enrichment only; employment, program responsibility and buying authority unconfirmed',
-                    evidence_ids=[ref['evidence_id']])
+                    evidence_ids=[ref['evidence_id'], channel_ref['evidence_id']])
+                if 'verified_at' in channels or 'verified_on' in channels:
+                    item['channel_verification'] = {
+                        'evidence_id': channel_ref['evidence_id'],
+                        **{k:v for k,v in channels.items() if k in {'verified_at','verified_on','email_status','phone_type','phone_status','dnc_status'}},
+                        'domain_catchall': saved.get('email_domain_catchall') if isinstance(saved.get('email_domain_catchall'),bool) else None}
                 contacts[digest(item)] = item
             result['subjects'][subject.subject_id] = {'evidence': list(refs.values()), 'contacts': contacts,
                 'contract_join': {'state': state, 'contract_ids': ids, 'records': joined}}

@@ -1,0 +1,61 @@
+{
+  "work_id": "APOLLO-MOBILE-PATH-063",
+  "recorded_at": "2026-09-18T14:01:38.808313+00:00",
+  "base": "817c80dac27d6b2d3be9d97468fb67d53b12f3d4",
+  "tested_code_sha256": {
+    "agents/assess/investigation_inputs.py": "d799fe84728d0d66fd348f1509282eeb24561fd9c835d1da0d5cd59e3b34b17b",
+    "agents/golden_press/phone_policy.py": "d0ac756790a517c80a91ac9075a8bc52eadff471c62352bc8781872ed80e10dc",
+    "agents/golden_press/targets_store.py": "894afe437f7a446f80ac4af57fa720af36294bf4c880a09ef220f1a10ee6e196",
+    "tools/apollo_targets.py": "44d67db13dcfe808a9ebc2bb451859f4dfcc069c02882216f1cdd51870cff3ee",
+    "tests/test_apollo_mobile_path.py": "6baed98c1710d75be2a5a68a3436ba811b04f62635b83d19c8e8da385467db57"
+  },
+  "strict_offline_suite": {
+    "passed": 6300,
+    "skipped": 40,
+    "warnings": 22,
+    "subtests": 26,
+    "seconds": 144.54
+  },
+  "targeted_regressions_passed": 90,
+  "full_log_sha256": "e0cc6f47cef0abfc5baae218afd52fcd1df81457b16d432bc1dd4e1dd0e5938d",
+  "full_xml_sha256": "f6996e600c63ee3f4cc6c0ccf161d65e0048a6c15d1f107bb5ec95a18cb654c3",
+  "artifact": {
+    "source_sha256": "3e932e375456263d1a9c9ce705a8112aa6f6d407609d74b1cddbec90413e6dd1",
+    "output_sha256": "0c466a7dd893716843f0b267fc9fd58862eef0522288831b71eeb057528bf3a9",
+    "original_preserved": true,
+    "sheets": 7,
+    "original_contacts": 37,
+    "final_contacts": 62,
+    "added_contacts": 25,
+    "updated_contacts": 7,
+    "added_mobiles": 23,
+    "dnc_contacts_excluded": 2,
+    "browser_checks": [
+      "All seven sheets, original non-contact text and images match original rendered DOM; 37 contact rows become 62 without duplicates.",
+      "32 approved contact records appear exactly once on their matching opportunity; all 23 added mobiles and source disclosures verified; two DNC records absent.",
+      "Agency and rep filters plus opportunity navigation exercised.",
+      "390px layout retains document width; contact table scroll stays local.",
+      "Actual edit, Save, Download HTML, reopen, edit again, restore, export and reopen succeeded with all contacts retained.",
+      "Print media retains all seven opportunity sheets."
+    ],
+    "page_errors": [],
+    "scope": "User-supplied edited report; contact overlay plus missing-email and no-mobile contact-cell handling only."
+  },
+  "retained_provider_replay": {
+    "source_sha256": "420c6765a52a7454bfd3e39fe6bdd1dc140bc1e692f1280f0986f2b06b6d056a",
+    "provider_records_replayed": 34,
+    "renderable_mobiles": 23,
+    "listed_mobiles_withheld": 2,
+    "no_mobile_records": 9,
+    "network_calls": 0,
+    "boundary": "Offline parser replay of actual retained Apollo responses; no new enrichment or live report run."
+  },
+  "network_calls_for_enrichment": 0,
+  "model_route": "Claude Max unchanged",
+  "new_live_report_run": false,
+  "qualification_yield_claim": false,
+  "private_contact_values_in_git": false,
+  "coordinator_active_work_id": null,
+  "coordinator_status": "RUNTIME_FIXED_MERGED_AND_SERVING_INDEX_PENDING",
+  "boundary": "Tests and existing-response replay validate channel retention; the supplied report was edited separately. No new lead-yield or live-client-release proof."
+}

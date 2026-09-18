@@ -1055,3 +1055,23 @@ supplier, office-to-mobile relabeling, DNC, past decisions, negative and hidden
 counterevidence, incomplete required coverage, duplicate counts, date precision,
 source-hash invalidation and archival contact roundtrips. Synthetic positives
 are feature tests, not proof of additional Veeam leads.
+
+## Authorized repair: APOLLO-MOBILE-PATH-063
+
+The September 18 user instruction explicitly authorizes fixing Apollo mobile
+retention and adding already-collected contacts to the supplied client HTML.
+The optional saved-phone observation fields (`status_cd`, `dnc_status_cd`,
+`confidence_cd`, `observed_at`) now survive admission into the existing store.
+No immutable Assess/LeadTarget schema is changed. Existing phones without
+these fields remain readable, with unknown verification rather than invented
+status. Grouped provider phone arrays are parsed as entries; home/unknown/main
+numbers do not become mobiles. DNC-listed/invalid numbers remain in stored
+evidence but are withheld from display and selected research channels.
+
+The saved-contact adapter uses the existing `channel_verification` contract
+and binds its values to retained provider evidence. Exact subject joins, role
+conflict exclusions, capture cutoffs and the operator phone-visibility switch
+remain in force. Model routing, paid-reveal authorization and retrieval guards,
+Assess/Target approvals, outreach permission and release gates are unchanged.
+The separately patched client HTML preserves original non-contact content and
+its editing/export runtime; it is not used as ordinary-pipeline yield proof.

@@ -204,6 +204,10 @@ def _identity(person: dict, spec: dict, *, retrieved_at: str) -> Optional[dict]:
     # put a fake email in front of an operator and in the CSV export.
     if email and not locked:
         row["email"] = email
+    if person.get('email_status'):
+        row['email_status'] = str(person['email_status'])
+    from agents.golden_press.phone_policy import from_enrichment
+    row['phones'] = from_enrichment(person, observed_at=retrieved_at)
     return row
 
 
@@ -458,7 +462,7 @@ def enrich(rows: list, *, key: str, matcher=None, proof=None,
         if spend is not None:
             spend.calls_made += calls
 
-    from agents.golden_press.phone_policy import from_enrichment
+    from agents.golden_press.phone_policy import from_enrichment, merge_phones
     from agents.golden_press.person_screen import screen_person, REJECT
 
     merged = []
@@ -484,7 +488,10 @@ def enrich(rows: list, *, key: str, matcher=None, proof=None,
             if email and "email_not_unlocked" not in email.casefold():
                 row["email"] = email
                 row["email_status"] = str(person.get("email_status") or "")
-            row["phones"] = from_enrichment(person)
+                row['email_locked'] = False
+            row["phones"] = merge_phones([
+                *from_enrichment(person, observed_at=_utc_now().isoformat()),
+                *(row.get('phones') or [])])
             # Apollo's own attribution, carried for the tier measurement.
             # It is RECORDED, never yet used to decide the rendered tier.
             row["apollo_seniority"] = person.get("seniority")
